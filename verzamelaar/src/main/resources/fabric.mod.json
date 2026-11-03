@@ -1,0 +1,19 @@
+{
+	"schemaVersion": 1,
+	"id": "handig_verzamelaar",
+	"version": "${version}",
+	"name": "Handig Verzamelaar",
+	"description": "Prestaties zonder beloningen: verzamel items (x van x), fok dieren en dorpelingen, speel uren. Kies een titel in de kleur van de zeldzaamheid; die zweeft boven je naam. Server-side; vereist Handig (kern).",
+	"authors": ["Jeffrey"],
+	"license": "MIT",
+	"environment": "*",
+	"entrypoints": {
+		"main": ["nl.handig.verzamelaar.Verzamelaar"]
+	},
+	"mixins": ["handig_verzamelaar.mixins.json"],
+	"depends": {
+		"minecraft": "~26.3",
+		"fabric-api": "*",
+		"handig": ">=${kern_version}"
+	}
+}

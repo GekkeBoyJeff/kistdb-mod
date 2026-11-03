@@ -91,3 +91,14 @@ net.minecraft.world.item.equipment.Equippable
 net.minecraft.world.item.enchantment.ItemEnchantments
 eu.pb4.polymer.core.api.item.PolymerItemUtils
 eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils
+net.minecraft.advancements.criterion.BredAnimalsTrigger
+net.minecraft.advancements.critereon.BredAnimalsTrigger
+net.minecraft.world.entity.ai.behavior.VillagerMakeLove
+net.minecraft.world.entity.monster.zombie.ZombieVillager
+net.minecraft.world.entity.monster.ZombieVillager
+net.minecraft.tags.ItemTags
+net.minecraft.world.item.Item
+net.minecraft.network.chat.MutableComponent
+net.minecraft.network.chat.Style
+net.minecraft.advancements.criterion.CuredZombieVillagerTrigger
+net.minecraft.world.entity.monster.zombie.Zombie

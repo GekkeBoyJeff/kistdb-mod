@@ -3,7 +3,7 @@
 set +e
 OUT=out/javap.txt
 : > "$OUT"
-JARS=$(find ~/.gradle/caches .gradle -name '*.jar' 2>/dev/null | grep -E 'minecraft-merged|fabric-api|fabric-[a-z-]*-v[0-9]|net.fabricmc' | grep -v sources | sort -u)
+JARS=$(find ~/.gradle/caches .gradle -name '*.jar' 2>/dev/null | grep -E 'minecraft-merged|fabric-api|fabric-[a-z-]*-v[0-9]|net.fabricmc|eu.pb4|polymer|sgui' | grep -v sources | sort -u)
 while read -r cls; do
   [ -z "$cls" ] && continue
   path="$(echo "$cls" | tr . /).class"

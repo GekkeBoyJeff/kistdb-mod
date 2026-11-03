@@ -12,7 +12,7 @@ pluginManagement {
 rootProject.name = 'handig'
 
 // De kern en alle modules (een module telt mee zodra hij een fabric.mod.json heeft).
-['kern', 'kistdb', 'gereedschap', 'wegwijzer', 'info', 'gemak', 'graf'].each { m ->
+['kern', 'kistdb', 'gereedschap', 'wegwijzer', 'info', 'gemak', 'graf', 'verzamelaar', 'naam', 'gebied', 'glans'].each { m ->
 	if (file("${m}/src/main/resources/fabric.mod.json").exists()) include m
 }
 // Alleen voor de CI: draait alle modules samen op een echte server met zelftests.

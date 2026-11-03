@@ -48,6 +48,7 @@ public final class Handig implements ModInitializer {
 		});
 		ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
 			Guide.clearAll();
+			Nameplate.clearAll();
 			PlayerStore.saveDirtyAll();
 			WorldStore.saveAll();
 		});
@@ -56,6 +57,7 @@ public final class Handig implements ModInitializer {
 			Guide.clear(handler.player);
 			Guide.clearFlashes(id);
 			Hud.forget(id);
+			Nameplate.forget(id);
 			HUB_SHOWN.remove(id);
 			PlayerStore.unloadAll(id);
 		});
@@ -80,6 +82,7 @@ public final class Handig implements ModInitializer {
 			for (ServerPlayer p : server.getPlayerList().getPlayers()) refreshHub(p);
 		}
 		Guide.tick(server, tick);
+		if (tick % 10 == 3) Nameplate.tick(server);
 		Hud.tick(server, tick);
 		if (tick % 1200 == 0) {
 			PlayerStore.saveDirtyAll();

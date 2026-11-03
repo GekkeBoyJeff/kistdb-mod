@@ -49,7 +49,7 @@ jobs:
           cp build.log out/ || true
           echo "${{ steps.build.outcome }}" > out/status.txt
           echo "${GITHUB_SHA}" > out/commit.txt
-          for m in kern kistdb gereedschap wegwijzer info gemak graf; do cp $m/build/libs/*.jar out/ 2>/dev/null || true; done
+          for m in kern kistdb gereedschap wegwijzer info gemak graf verzamelaar naam gebied glans; do cp $m/build/libs/*.jar out/ 2>/dev/null || true; done
           rm -f out/*-sources.jar
           bash .github/probe.sh
       - name: publish to ci-out branch
