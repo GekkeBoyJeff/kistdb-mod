@@ -111,6 +111,11 @@ public final class Catalog {
 				goal(list.size(), (p, d) -> list.stream().filter(d.items::contains).count()), list));
 	}
 
+	/** Item-tag op naam (niet elke tag heeft in 26.x nog een Java-constante). */
+	private static net.minecraft.tags.TagKey<Item> tag(String name) {
+		return net.minecraft.tags.TagKey.create(net.minecraft.core.registries.Registries.ITEM, Identifier.withDefaultNamespace(name));
+	}
+
 	private static boolean is(String id, net.minecraft.tags.TagKey<Item> tag) {
 		Item item = BuiltInRegistries.ITEM.getValue(Identifier.withDefaultNamespace(id));
 		return new ItemStack(item).is(tag);
@@ -135,7 +140,7 @@ public final class Catalog {
 				id -> is(id, ItemTags.LOGS) && !id.startsWith("stripped_") && !id.endsWith("_wood") && !id.endsWith("_hyphae"));
 		collection("glazuur", "Pottenbakker", "Alle geglazuurde terracotta", Ui.item("magenta_glazed_terracotta"), Rarity.ZELDZAAM,
 				id -> id.endsWith("_glazed_terracotta"));
-		collection("bloemen", "Bloemist", "Alle bloemen", Items.POPPY, Rarity.ZELDZAAM, id -> is(id, ItemTags.FLOWERS));
+		collection("bloemen", "Bloemist", "Alle bloemen", Items.POPPY, Rarity.ZELDZAAM, id -> is(id, tag("flowers")));
 		collection("boompjes", "Kweker", "Alle jonge boompjes", Items.OAK_SAPLING, Rarity.ZELDZAAM, id -> is(id, ItemTags.SAPLINGS));
 		collection("erts", "Geoloog", "Alle ertsen (met zijdezacht)", Items.DIAMOND_ORE, Rarity.ZELDZAAM,
 				id -> id.endsWith("_ore") || id.equals("ancient_debris"));
@@ -183,7 +188,7 @@ public final class Catalog {
 				Items.DRAGON_EGG, Rarity.MYTHISCH, goal(1, (p, d) -> d.items.contains("dragon_egg") ? 1 : 0), null));
 	}
 
-	static long countAll(Verzamelaar.Data d) {
+	public static long countAll(Verzamelaar.Data d) {
 		long n = 0;
 		for (String id : allItems) if (d.items.contains(id)) n++;
 		return n;

@@ -112,7 +112,7 @@ public final class AchievementsGui {
 					.addLoreLine(Ui.text("Klik: wat mis je nog?", ChatFormatting.AQUA))
 					.setCallback((x, t, a, g) -> {
 						Ui.click(p);
-						new ItemsPage(p, "Alle items", null, Catalog.allItems(), Filter.MISSING, 0, () -> open(p)).open();
+						new ItemsPage(p, "Alle items", null, Catalog.allItems(), Filter.MISSING, 0, () -> AchievementsGui.open(p)).open();
 					}));
 			this.setSlot(25, Ui.button(Items.NAME_TAG, "Titel kiezen", ChatFormatting.LIGHT_PURPLE)
 					.addLoreLine(Ui.text("Welke prestatie boven je naam staat.", ChatFormatting.GRAY))
@@ -168,7 +168,7 @@ public final class AchievementsGui {
 				}
 				this.setSlot(i, b);
 			}
-			nav(this, p, pg, pages, () -> open(p), n -> new CategoryPage(p, c, n).open());
+			nav(this, p, pg, pages, () -> AchievementsGui.open(p), n -> new CategoryPage(p, c, n).open());
 		}
 	}
 
@@ -275,7 +275,7 @@ public final class AchievementsGui {
 				});
 				this.setSlot(i, b);
 			}
-			nav(this, p, pg, pages, () -> open(p), n -> new Titles(p, n).open());
+			nav(this, p, pg, pages, () -> AchievementsGui.open(p), n -> new Titles(p, n).open());
 			this.setSlot(46, Ui.button(Items.NETHER_STAR, "Automatisch", d.title.isEmpty() ? ChatFormatting.GREEN : ChatFormatting.WHITE)
 					.addLoreLine(Ui.text("Altijd je zeldzaamste prestatie.", ChatFormatting.GRAY))
 					.setCallback((x, t, a, g) -> {

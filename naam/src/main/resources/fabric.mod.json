@@ -1,0 +1,19 @@
+{
+	"schemaVersion": 1,
+	"id": "handig_naam",
+	"version": "${version}",
+	"name": "Handig Naam",
+	"description": "Nicknames: boven je hoofd, in de tablijst en in de chat (echte naam in de hover). Kleuren ontgrendel je met prestaties uit Verzamelaar. Server-side; vereist Handig (kern).",
+	"authors": ["Jeffrey"],
+	"license": "MIT",
+	"environment": "*",
+	"entrypoints": {
+		"main": ["nl.handig.naam.Naam"]
+	},
+	"mixins": ["handig_naam.mixins.json"],
+	"depends": {
+		"minecraft": "~26.3",
+		"fabric-api": "*",
+		"handig": ">=${kern_version}"
+	}
+}

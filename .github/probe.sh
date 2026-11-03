@@ -6,6 +6,7 @@ OUT=out/javap.txt
 JARS=$(find ~/.gradle/caches .gradle -name '*.jar' 2>/dev/null | grep -E 'minecraft-merged|fabric-api|fabric-[a-z-]*-v[0-9]|net.fabricmc|eu.pb4|polymer|sgui' | grep -v sources | sort -u)
 while read -r cls; do
   [ -z "$cls" ] && continue
+  case "$cls" in "?"*) continue;; esac
   path="$(echo "$cls" | tr . /).class"
   found=""
   for j in $JARS; do
@@ -17,3 +18,10 @@ while read -r cls; do
     echo "!! $cls niet gevonden" >> "$OUT"
   fi
 done < .github/probe.txt
+
+# Regels "? Patroon" in probe.txt: zoek klassenamen in de jars (handig als een pakket verhuisd is)
+grep '^? ' .github/probe.txt | while read -r _ pat; do
+  for j in $JARS; do
+    unzip -l "$j" 2>/dev/null | awk '{print $4}' | grep -E "$pat" | sed "s|^|?? $pat -> |" >> "$OUT"
+  done
+done

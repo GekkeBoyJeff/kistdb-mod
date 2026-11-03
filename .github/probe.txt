@@ -102,3 +102,7 @@ net.minecraft.network.chat.MutableComponent
 net.minecraft.network.chat.Style
 net.minecraft.advancements.criterion.CuredZombieVillagerTrigger
 net.minecraft.world.entity.monster.zombie.Zombie
+? BredAnimalsTrigger
+? CuredZombieVillagerTrigger
+? VillagerMakeLove
+? /ZombieVillager.class
