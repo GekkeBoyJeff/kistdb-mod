@@ -12,7 +12,7 @@ while read -r cls; do
     if unzip -l "$j" "$path" >/dev/null 2>&1; then found="$j"; break; fi
   done
   if [ -n "$found" ]; then
-    javap -cp "$found" -public "$cls" >> "$OUT" 2>&1
+    javap -cp "$found" -protected "$cls" >> "$OUT" 2>&1
   else
     echo "!! $cls niet gevonden" >> "$OUT"
   fi

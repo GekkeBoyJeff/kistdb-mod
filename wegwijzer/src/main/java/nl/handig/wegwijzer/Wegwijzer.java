@@ -138,7 +138,11 @@ public final class Wegwijzer implements ModInitializer {
 					.append(Ui.text("[Wijs de weg]", ChatFormatting.AQUA).withStyle(st -> st
 							.withClickEvent(new ClickEvent.RunCommand("/sterfplek"))
 							.withHoverEvent(new HoverEvent.ShowText(Component.literal("Straal naar je sterfplek")))));
+			// Andere modules (zoals Graf) voegen hier hun regel toe
+			for (Component note : nl.handig.kern.Services.deathNotes(p)) msg.append("\n").append(note);
 			p.sendSystemMessage(msg);
+		} else {
+			for (Component note : nl.handig.kern.Services.deathNotes(p)) p.sendSystemMessage(note);
 		}
 		if (DEATH_BEAM.get(p) && dimOf(p.level()).equals(death.dim)) {
 			p.level().getServer().execute(() -> beam(p, death));

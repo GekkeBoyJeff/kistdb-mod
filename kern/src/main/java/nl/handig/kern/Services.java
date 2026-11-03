@@ -1,9 +1,12 @@
 package nl.handig.kern;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
@@ -46,5 +49,51 @@ public final class Services {
 
 	public static Optional<Consumer<ServerPlayer>> menu(String key) {
 		return Optional.ofNullable(MENUS.get(key));
+	}
+
+	// ---------------------------------------------------------------- sterfbericht
+
+	/** Extra regel in het bericht na respawnen (bijvoorbeeld "je spullen liggen in je graf"). */
+	public interface DeathNote {
+		@Nullable Component note(ServerPlayer player);
+	}
+
+	private static final List<DeathNote> DEATH_NOTES = new ArrayList<>();
+
+	public static void addDeathNote(DeathNote note) {
+		DEATH_NOTES.add(note);
+	}
+
+	public static List<Component> deathNotes(ServerPlayer player) {
+		List<Component> out = new ArrayList<>();
+		for (DeathNote n : DEATH_NOTES) {
+			Component c = n.note(player);
+			if (c != null) out.add(c);
+		}
+		return out;
+	}
+
+	// ---------------------------------------------------------------- voortgang (Verzamelaar)
+
+	/** Voortgang van een speler; Verzamelaar levert dit, Gebied en Naam gebruiken het. */
+	public interface Progress {
+		/** Prestatiepunten (zeldzamere prestaties tellen zwaarder). */
+		int points(ServerPlayer player);
+
+		/** Hoogste zeldzaamheid die de speler ooit heeft gehaald, 0 (gewoon) t/m 5 (mythisch), of -1 voor nog niets. */
+		int bestRarity(ServerPlayer player);
+
+		/** Gekozen titel voor boven je naam, of null. */
+		@Nullable Component title(ServerPlayer player);
+	}
+
+	private static @Nullable Progress progress;
+
+	public static void provideProgress(Progress p) {
+		progress = p;
+	}
+
+	public static Optional<Progress> progress() {
+		return Optional.ofNullable(progress);
 	}
 }

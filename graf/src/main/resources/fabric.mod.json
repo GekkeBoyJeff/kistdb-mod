@@ -1,0 +1,19 @@
+{
+	"schemaVersion": 1,
+	"id": "handig_graf",
+	"version": "${version}",
+	"name": "Handig Graf",
+	"description": "Bij doodgaan komen je spullen in een graf (alleen voor jou te openen) in plaats van op de grond. Per speler aan te zetten, standaard uit. Server-side; vereist Handig (kern).",
+	"authors": ["Jeffrey"],
+	"license": "MIT",
+	"environment": "*",
+	"entrypoints": {
+		"main": ["nl.handig.graf.Graf"]
+	},
+	"mixins": ["handig_graf.mixins.json"],
+	"depends": {
+		"minecraft": "~26.3",
+		"fabric-api": "*",
+		"handig": ">=${kern_version}"
+	}
+}

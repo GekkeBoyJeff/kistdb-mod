@@ -38,13 +38,18 @@ public final class Handig implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-		ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+		// Opslag zo vroeg mogelijk klaarzetten, zodat modules ze in hun eigen SERVER_STARTED al kunnen lezen
+		ServerLifecycleEvents.SERVER_STARTING.register(server -> {
 			PlayerStore.initAll(server);
+			WorldStore.initAll(server);
+		});
+		ServerLifecycleEvents.SERVER_STARTED.register(server -> {
 			if (SelfTests.enabled()) server.execute(() -> SelfTests.runAll(server));
 		});
 		ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
 			Guide.clearAll();
 			PlayerStore.saveDirtyAll();
+			WorldStore.saveAll();
 		});
 		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
 			UUID id = handler.player.getUUID();
@@ -76,7 +81,10 @@ public final class Handig implements ModInitializer {
 		}
 		Guide.tick(server, tick);
 		Hud.tick(server, tick);
-		if (tick % 1200 == 0) PlayerStore.saveDirtyAll();
+		if (tick % 1200 == 0) {
+			PlayerStore.saveDirtyAll();
+			WorldStore.saveAll();
+		}
 	}
 
 	/** Houdt het icoon in het crafting-uitvak zichtbaar (of haalt het weg als het niet meer mag). */
