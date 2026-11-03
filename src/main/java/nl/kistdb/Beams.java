@@ -16,12 +16,10 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Brightness;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Display;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -87,7 +85,7 @@ public final class Beams {
 		double top = b.box.maxY - b.center.y;
 		b.site.addElement(outline(b.box, b.center, BOX_COLOR));
 
-		BlockDisplayElement column = new BlockDisplayElement(Blocks.LIGHT_BLUE_STAINED_GLASS.defaultBlockState());
+		BlockDisplayElement column = new BlockDisplayElement(Sounds.block("light_blue_stained_glass"));
 		column.setOffset(new Vec3(0, top, 0));
 		column.setTranslation(new Vector3f(-0.1f, 0, -0.1f));
 		column.setScale(new Vector3f(0.2f, 48f, 0.2f));
@@ -122,7 +120,7 @@ public final class Beams {
 
 		// --- de lijn, die met de speler meebeweegt ---
 		b.follow = new ElementHolder();
-		b.line = new BlockDisplayElement(Blocks.LIGHT_BLUE_STAINED_GLASS.defaultBlockState());
+		b.line = new BlockDisplayElement(Sounds.block("light_blue_stained_glass"));
 		b.line.setOffset(new Vec3(0, -CULL_OFFSET, 0));
 		b.line.setGlowing(true);
 		b.line.setGlowColorOverride(LINE_COLOR);
@@ -137,7 +135,7 @@ public final class Beams {
 		b.follow.startWatching(player);
 
 		ACTIVE.put(player.getUUID(), b);
-		player.playNotifySound(SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.PLAYERS, 0.4f, 1.6f);
+		Sounds.play(player, SoundEvents.EXPERIENCE_ORB_PICKUP, 0.4f, 1.6f);
 	}
 
 	/** Korte gekleurde omlijning (bv. bij noIndex aan/uit). */
@@ -152,7 +150,7 @@ public final class Beams {
 	}
 
 	private static BlockDisplayElement outline(AABB box, Vec3 center, int color) {
-		BlockState glass = Blocks.WHITE_STAINED_GLASS.defaultBlockState();
+		BlockState glass = Sounds.block("white_stained_glass");
 		BlockDisplayElement e = new BlockDisplayElement(glass);
 		e.setOffset(new Vec3(box.minX - center.x, box.minY - center.y, box.minZ - center.z));
 		e.setTranslation(new Vector3f(-0.02f, -0.02f, -0.02f));

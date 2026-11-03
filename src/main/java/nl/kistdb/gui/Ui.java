@@ -6,7 +6,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.item.Item;
 
 /** Kleine hulpjes voor de menu's. */
@@ -27,7 +26,7 @@ final class Ui {
 	}
 
 	static void click(ServerPlayer player) {
-		player.playNotifySound(SoundEvents.UI_BUTTON_CLICK.value(), SoundSource.MASTER, 0.4f, 1f);
+		nl.kistdb.Sounds.play(player, SoundEvents.UI_BUTTON_CLICK, 0.4f, 1f);
 	}
 
 	static String meters(double d) {

@@ -18,3 +18,6 @@ net.minecraft.world.level.ClipContext
 net.minecraft.resources.ResourceKey
 net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket
 net.minecraft.util.Brightness
+net.minecraft.network.protocol.game.ClientboundSoundPacket
+net.minecraft.world.entity.player.Player
+net.minecraft.core.Holder

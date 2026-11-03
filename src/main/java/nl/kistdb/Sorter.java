@@ -8,7 +8,6 @@ import java.util.function.ObjIntConsumer;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -92,6 +91,6 @@ public final class Sorter {
 	}
 
 	private static void feedback(ServerPlayer player) {
-		player.playNotifySound(SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, 0.5f, 1.4f);
+		Sounds.play(player, SoundEvents.ITEM_PICKUP, 0.5f, 1.4f);
 	}
 }
