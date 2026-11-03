@@ -1,0 +1,61 @@
+name: build
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: 'microsoft'
+      - name: build
+        id: build
+        continue-on-error: true
+        run: |
+          chmod +x ./gradlew
+          set -o pipefail
+          ./gradlew build --stacktrace --no-daemon 2>&1 | tee build.log
+      - name: collect output
+        if: always()
+        run: |
+          mkdir -p out
+          cp build.log out/ || true
+          echo "${{ steps.build.outcome }}" > out/status.txt
+          echo "${GITHUB_SHA}" > out/commit.txt
+          cp build/libs/kistdb-*.jar out/ 2>/dev/null || true
+          rm -f out/*-sources.jar
+          # API-dumps van Minecraft-klassen (voor het fixen van compileerfouten)
+          MC=""
+          for j in $(find ~/.gradle/caches .gradle -name '*.jar' 2>/dev/null | grep -i minecraft | grep -v sources); do
+            if unzip -l "$j" 2>/dev/null | grep -q 'net/minecraft/server/level/ServerPlayer.class'; then MC="$j"; break; fi
+          done
+          echo "minecraft jar: $MC" > out/javap.txt
+          if [ -n "$MC" ] && [ -f .github/probe.txt ]; then
+            while read -r cls; do
+              [ -z "$cls" ] && continue
+              javap -cp "$MC" -public "$cls" >> out/javap.txt 2>&1 || echo "!! $cls niet gevonden" >> out/javap.txt
+            done < .github/probe.txt
+          fi
+      - name: publish to ci-out branch
+        if: always()
+        run: |
+          cd out
+          git init -q -b ci-out
+          git config user.name "kistdb-ci"
+          git config user.email "kistdb-ci@users.noreply.github.com"
+          git add -A
+          git commit -q -m "CI ${GITHUB_SHA} (${{ steps.build.outcome }})"
+          git push -q -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git" ci-out
+      - uses: actions/upload-artifact@v7
+        if: steps.build.outcome == 'success'
+        with:
+          name: KistDB
+          path: build/libs/kistdb-*.jar

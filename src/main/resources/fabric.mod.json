@@ -1,0 +1,21 @@
+{
+	"schemaVersion": 1,
+	"id": "kistdb",
+	"version": "${version}",
+	"name": "KistDB",
+	"description": "Server-side: sorteerknop in je inventory, middelklik-sorteren in kisten, een kisten-database met iconen-GUI, afstand en een lichtstraal naar de juiste kist. Spelers hoeven niets te installeren.",
+	"authors": ["Jeffrey"],
+	"license": "MIT",
+	"icon": "assets/kistdb/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": ["nl.kistdb.KistDB"]
+	},
+	"mixins": ["kistdb.mixins.json"],
+	"depends": {
+		"fabricloader": ">=0.19.5",
+		"minecraft": "~26.3",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}
