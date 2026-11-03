@@ -1,6 +1,6 @@
 package nl.handig.verzamelaar.mixin;
 
-import net.minecraft.advancements.criterion.CuredZombieVillagerTrigger;
+import net.minecraft.advancements.triggers.CuredZombieVillagerTrigger;
 import net.minecraft.server.level.ServerPlayer;
 import nl.handig.verzamelaar.Verzamelaar;
 import org.spongepowered.asm.mixin.Mixin;
