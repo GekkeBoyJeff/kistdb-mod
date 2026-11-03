@@ -1,0 +1,19 @@
+{
+	"schemaVersion": 1,
+	"id": "handig_gereedschap",
+	"version": "${version}",
+	"name": "Handig Gereedschap",
+	"description": "Automatisch je volgende tool pakken, een instelbare breekgrens (standaard mogen tools breken), durability in beeld tijdens minen/hakken, blokken en eten bijvullen, en waarschuwingen voor armor/elytra en een volle inventory. Server-side; vereist Handig (kern).",
+	"authors": ["Jeffrey"],
+	"license": "MIT",
+	"environment": "*",
+	"entrypoints": {
+		"main": ["nl.handig.gereedschap.Gereedschap"]
+	},
+	"mixins": ["handig_gereedschap.mixins.json"],
+	"depends": {
+		"minecraft": "~26.3",
+		"fabric-api": "*",
+		"handig": ">=${kern_version}"
+	}
+}

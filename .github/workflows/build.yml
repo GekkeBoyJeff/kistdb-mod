@@ -28,9 +28,9 @@ jobs:
         if: steps.build.outcome == 'success'
         continue-on-error: true
         run: |
-          mkdir -p run
-          echo "eula=true" > run/eula.txt
-          printf 'online-mode=false\nlevel-type=minecraft\\:flat\nmax-tick-time=-1\n' > run/server.properties
+          mkdir -p testserver/run
+          echo "eula=true" > testserver/run/eula.txt
+          printf 'online-mode=false\nlevel-type=minecraft\\:flat\nmax-tick-time=-1\n' > testserver/run/server.properties
           ./gradlew :testserver:runServer --no-daemon > server.log 2>&1 &
           for i in $(seq 1 100); do
             if grep -qE 'HANDIG-SELFTEST (OK|FAIL) ' server.log; then sleep 3; break; fi

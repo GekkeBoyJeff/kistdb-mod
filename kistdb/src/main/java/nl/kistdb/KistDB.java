@@ -20,6 +20,7 @@ import net.minecraft.world.item.Items;
 import nl.handig.kern.ClickRouter;
 import nl.handig.kern.Hub;
 import nl.handig.kern.Module;
+import nl.handig.kern.Services;
 import nl.handig.kern.Setting;
 import nl.kistdb.gui.ChestsGui;
 import nl.kistdb.gui.OverviewGui;
@@ -73,6 +74,13 @@ public final class KistDB implements ModInitializer {
 				"Stapels samenvoegen en sorteren.", "Je hotbar blijft zoals hij is.");
 
 		ClickRouter.register(KistDB::onClick);
+		// Voor andere modules: "waar ligt dit item?" en het zoekmenu
+		Services.provideItemFinder((player, item) -> {
+			var hits = Search.find(player, item.getItem());
+			nl.kistdb.gui.Locate.go(player, item, hits);
+			return !hits.isEmpty();
+		});
+		Services.provideMenu(Services.MENU_CHESTS, p -> OverviewGui.open(p, ""));
 		KistTests.register();
 		LOG.info("KistDB geladen");
 	}
