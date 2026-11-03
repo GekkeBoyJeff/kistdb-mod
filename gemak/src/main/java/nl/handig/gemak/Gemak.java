@@ -152,7 +152,7 @@ public final class Gemak implements ModInitializer {
 			super(level, pos.x, pos.y, pos.z);
 			this.block = block;
 			this.setNoGravity(true);
-			this.setInvulnerable(true);
+			this.setPermanentlyInvulnerable(true);
 			this.setInvisible(true);
 			this.setWaitTime(0);
 			this.setRadius(0);

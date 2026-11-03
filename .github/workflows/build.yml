@@ -22,7 +22,7 @@ jobs:
         run: |
           chmod +x ./gradlew
           set -o pipefail
-          ./gradlew build --stacktrace --no-daemon 2>&1 | tee build.log
+          ./gradlew build --continue --stacktrace --no-daemon 2>&1 | tee build.log
       - name: smoke test (echte 26.3-server starten)
         id: smoke
         if: steps.build.outcome == 'success'
