@@ -50,6 +50,13 @@ public final class Sorter {
 		return ok;
 	}
 
+	/** Sorteert een container rechtstreeks (zonder menu), bv. voor tests. */
+	static boolean sortDirect(Container container) {
+		boolean ok = sort(container.getContainerSize(), container::getItem, (stack, i) -> container.setItem(i, stack));
+		if (ok) container.setChanged();
+		return ok;
+	}
+
 	private static boolean sort(int size, IntFunction<ItemStack> get, ObjIntConsumer<ItemStack> set) {
 		// 1. samenvoegen (zelfde item + zelfde componenten)
 		List<ItemStack> merged = new ArrayList<>();

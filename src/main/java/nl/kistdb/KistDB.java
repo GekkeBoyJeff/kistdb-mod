@@ -27,7 +27,12 @@ public final class KistDB implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-		ServerLifecycleEvents.SERVER_STARTED.register(Store::init);
+		ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+			Store.init(server);
+			if (Boolean.getBoolean("kistdb.selftest")) SelfTest.run(server);
+		});
+		// Laadt de mixin-doelklasse direct, zodat een kapotte mixin meteen bij het opstarten opvalt
+		LOG.debug("Mixin-doel: {}", net.minecraft.server.network.ServerGamePacketListenerImpl.class.getName());
 		ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
 			Beams.clearAll();
 			Store.saveAll();

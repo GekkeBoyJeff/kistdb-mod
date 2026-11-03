@@ -23,10 +23,29 @@ jobs:
           chmod +x ./gradlew
           set -o pipefail
           ./gradlew build --stacktrace --no-daemon 2>&1 | tee build.log
+      - name: smoke test (echte 26.3-server starten)
+        id: smoke
+        if: steps.build.outcome == 'success'
+        continue-on-error: true
+        run: |
+          mkdir -p run
+          echo "eula=true" > run/eula.txt
+          printf 'online-mode=false\nlevel-type=minecraft\\:flat\nmax-tick-time=-1\n' > run/server.properties
+          ./gradlew runServer --no-daemon > server.log 2>&1 &
+          for i in $(seq 1 100); do
+            if grep -q 'KISTDB-SELFTEST' server.log; then sleep 5; break; fi
+            if grep -qE 'Crash report|Failed to start the minecraft server|Exception in server tick loop|BUILD FAILED' server.log; then break; fi
+            sleep 5
+          done
+          pkill -9 -f java || true
+          grep -E 'KISTDB-SELFTEST|KistDB geladen|Mixin|ERROR|Exception' server.log | head -60
+          grep -q 'KISTDB-SELFTEST OK' server.log
       - name: collect output
         if: always()
         run: |
           mkdir -p out
+          cp server.log out/ 2>/dev/null || true
+          echo "${{ steps.smoke.outcome }}" > out/smoke.txt
           cp build.log out/ || true
           echo "${{ steps.build.outcome }}" > out/status.txt
           echo "${GITHUB_SHA}" > out/commit.txt

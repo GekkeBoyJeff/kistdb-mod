@@ -18,6 +18,14 @@ dependencies {
 	include "eu.pb4:polymer-virtual-entity:${project.polymer_version}"
 }
 
+loom {
+	runs {
+		server {
+			vmArg "-Dkistdb.selftest=true"
+		}
+	}
+}
+
 processResources {
 	def version = project.version
 	inputs.property "version", version
