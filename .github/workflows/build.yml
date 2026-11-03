@@ -51,18 +51,7 @@ jobs:
           echo "${GITHUB_SHA}" > out/commit.txt
           cp build/libs/kistdb-*.jar out/ 2>/dev/null || true
           rm -f out/*-sources.jar
-          # API-dumps van Minecraft-klassen (voor het fixen van compileerfouten)
-          MC=""
-          for j in $(find ~/.gradle/caches .gradle -name '*.jar' 2>/dev/null | grep -i minecraft | grep -v sources); do
-            if unzip -l "$j" 2>/dev/null | grep -q 'net/minecraft/server/level/ServerPlayer.class'; then MC="$j"; break; fi
-          done
-          echo "minecraft jar: $MC" > out/javap.txt
-          if [ -n "$MC" ] && [ -f .github/probe.txt ]; then
-            while read -r cls; do
-              [ -z "$cls" ] && continue
-              javap -cp "$MC" -public "$cls" >> out/javap.txt 2>&1 || echo "!! $cls niet gevonden" >> out/javap.txt
-            done < .github/probe.txt
-          fi
+          bash .github/probe.sh
       - name: publish to ci-out branch
         if: always()
         run: |
