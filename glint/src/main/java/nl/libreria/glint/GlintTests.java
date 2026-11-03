@@ -15,27 +15,27 @@ final class GlintTests {
 	}
 
 	static void register() {
-		SelfTests.register("glans.pakket", level -> {
-			SelfTests.check(GlintMod.assetsAdded, "assets aan het resourcepack toegevoegd");
-			SelfTests.check(GlintMod.FAMILIES.size() >= 30, "30+ effect-families: " + GlintMod.FAMILIES.size());
+		SelfTests.register("glint.pack", level -> {
+			SelfTests.check(GlintMod.assetsAdded, "assets added to the resource pack");
+			SelfTests.check(GlintMod.FAMILIES.size() >= 30, "30+ effect families: " + GlintMod.FAMILIES.size());
 			for (String e : new String[] {"fire_aspect", "unbreaking", "feather_falling", "loyalty", "riptide", "mending"}) {
-				SelfTests.check(GlintMod.BY_ENCHANT.containsKey(e), e + " heeft een effect");
+				SelfTests.check(GlintMod.BY_ENCHANT.containsKey(e), e + " has an effect");
 			}
 			SelfTests.check(GlintMod.OFF_PACKS.containsKey("fire") && GlintMod.OFF_PACKS.containsKey("books"),
-					"uit-pakketjes klaar: " + GlintMod.OFF_PACKS.keySet());
+					"off-packs ready: " + GlintMod.OFF_PACKS.keySet());
 		});
-		SelfTests.register("glans.aan-uit-en-deeltjes", level -> {
+		SelfTests.register("glint.toggle-and-particles", level -> {
 			FakePlayer p = FakePlayer.get(level);
 			GlintMod.setEnabled(p, "fire", false);
-			SelfTests.check(!GlintMod.enabled(p, "fire"), "vuur uit");
+			SelfTests.check(!GlintMod.enabled(p, "fire"), "fire off");
 			GlintMod.setEnabled(p, "fire", true);
-			SelfTests.check(GlintMod.enabled(p, "fire"), "vuur weer aan");
+			SelfTests.check(GlintMod.enabled(p, "fire"), "fire back on");
 			ItemStack sword = new ItemStack(Items.DIAMOND_SWORD);
 			var fire = level.registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
 					.getOrThrow(ResourceKey.create(Registries.ENCHANTMENT, Identifier.withDefaultNamespace("fire_aspect")));
 			EnchantmentHelper.updateEnchantments(sword, m -> m.set(fire, 2));
-			SelfTests.check("fire".equals(Aura.familyOf(sword)), "Fire Aspect-zwaard = vlammen: " + Aura.familyOf(sword));
-			SelfTests.check(Aura.familyOf(new ItemStack(Items.DIAMOND_SWORD)) == null, "zonder betovering: niets");
+			SelfTests.check("fire".equals(Aura.familyOf(sword)), "Fire Aspect sword = flames: " + Aura.familyOf(sword));
+			SelfTests.check(Aura.familyOf(new ItemStack(Items.DIAMOND_SWORD)) == null, "no enchantment: nothing");
 		});
 	}
 }

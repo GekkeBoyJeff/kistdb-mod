@@ -32,15 +32,15 @@ public final class HubGui extends SimpleGui {
 			});
 			this.setSlot(order[i], b.build());
 		}
-		this.setSlot(31, Ui.button(Items.COMPARATOR, "Instellingen", ChatFormatting.WHITE)
-				.addLoreLine(Ui.text("Per module aan/uit en afstellen", ChatFormatting.GRAY))
-				.addLoreLine(Ui.text("Ook: /opties", ChatFormatting.DARK_GRAY))
+		this.setSlot(31, Ui.button(Items.COMPARATOR, "Settings", ChatFormatting.WHITE)
+				.addLoreLine(Ui.text("Toggle and tweak each module", ChatFormatting.GRAY))
+				.addLoreLine(Ui.text("Also: /libreria settings", ChatFormatting.DARK_GRAY))
 				.setCallback((index, type, action, gui) -> {
 					Ui.click(player);
 					SettingsGui.open(player);
 				}).build());
 		if (Guide.has(player)) {
-			this.setSlot(35, Ui.button(Items.BARRIER, "Straal uitzetten", ChatFormatting.RED)
+			this.setSlot(35, Ui.button(Items.BARRIER, "Stop beam", ChatFormatting.RED)
 					.setCallback((index, type, action, gui) -> {
 						Guide.clear(player);
 						Ui.click(player);

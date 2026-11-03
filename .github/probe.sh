@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Dumpt de publieke API van klassen uit .github/probe.txt naar out/javap.txt (zoekt in Minecraft- en Fabric API-jars).
+# Dumps the API of the classes in .github/probe.txt to out/javap.txt (searches the Minecraft, Fabric API and Polymer jars).
 set +e
 OUT=out/javap.txt
 : > "$OUT"
@@ -19,7 +19,7 @@ while read -r cls; do
   fi
 done < .github/probe.txt
 
-# Regels "? Patroon" in probe.txt: zoek klassenamen in de jars (handig als een pakket verhuisd is)
+# Lines "? pattern" in probe.txt: search class names in the jars (useful when a package moved)
 grep '^? ' .github/probe.txt | while read -r _ pat; do
   for j in $JARS; do
     unzip -l "$j" 2>/dev/null | awk '{print $4}' | grep -E "$pat" | sed "s|^|?? $pat -> |" >> "$OUT"

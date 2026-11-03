@@ -2,7 +2,7 @@
 	"schemaVersion": 1,
 	"id": "libreria_testserver",
 	"version": "${version}",
-	"name": "Handig testserver (alleen CI)",
+	"name": "Libreria test server (CI only)",
 	"environment": "*",
 	"depends": {
 		"libreria": "*"

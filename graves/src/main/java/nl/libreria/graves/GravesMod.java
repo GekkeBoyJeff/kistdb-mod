@@ -60,11 +60,11 @@ import org.joml.Vector3f;
  * Per speler aan te zetten; standaard uit.
  */
 public final class GravesMod implements ModInitializer {
-	public static final Module MODULE = Module.register("graves", "Graf", Items.SKELETON_SKULL,
-			"Bij doodgaan komen je spullen in een graf", "in plaats van op de grond. Standaard uit.");
-	public static final Setting.Toggle ENABLED = MODULE.toggle("aan", "Graf bij doodgaan", false, Items.SKELETON_SKULL,
-			"Je spullen blijven veilig in een graf op je", "sterfplek. Alleen jij kunt het openen, en alles",
-			"komt terug in dezelfde vakken.", "XP valt gewoon op de grond zoals altijd.");
+	public static final Module MODULE = Module.register("graves", "Graves", Items.SKELETON_SKULL,
+			"Your items go into a grave when you die", "instead of dropping. Off by default.");
+	public static final Setting.Toggle ENABLED = MODULE.toggle("aan", "Grave on death", false, Items.SKELETON_SKULL,
+			"Your items stay safe in a grave at your", "death point. Only you can open it, and",
+			"everything returns to the same slots.", "XP still drops on the ground as usual.");
 
 	// ---------------------------------------------------------------- opslag
 
@@ -106,8 +106,8 @@ public final class GravesMod implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-		MODULE.hubEntry(Items.SKELETON_SKULL, "Mijn graven", ChatFormatting.GRAY, GravesMod::listGraves,
-				"Straal naar een graf met je spullen.", "Graf aan/uit: zie Instellingen → Graf.");
+		MODULE.hubEntry(Items.SKELETON_SKULL, "My graves", ChatFormatting.GRAY, GravesMod::listGraves,
+				"Beam to a grave with your items.", "Graves on/off: see Settings → Graves.");
 		ServerLifecycleEvents.SERVER_STARTED.register(s -> server = s);
 		ServerLifecycleEvents.SERVER_STOPPING.register(s -> {
 			SHOWN.values().forEach(ElementHolder::destroy);
@@ -127,13 +127,13 @@ public final class GravesMod implements ModInitializer {
 		});
 
 		CommandRegistrationCallback.EVENT.register((dispatcher, registry, env) -> dispatcher.register(
-				Commands.literal("graf").executes(ctx -> {
+				Commands.literal("grave").executes(ctx -> {
 					listGraves(ctx.getSource().getPlayerOrException());
 					return 1;
-				}).then(Commands.literal("straal").executes(ctx -> {
+				}).then(Commands.literal("beam").executes(ctx -> {
 					ServerPlayer p = ctx.getSource().getPlayerOrException();
 					Grave g = newestOf(p);
-					if (g == null) p.sendSystemMessage(Ui.prefix("Graf").append(Ui.text("Je hebt geen graf.", ChatFormatting.GRAY)));
+					if (g == null) p.sendSystemMessage(Ui.prefix("Graves").append(Ui.text("You don't have a grave.", ChatFormatting.GRAY)));
 					else beam(p, g);
 					return 1;
 				}))));
@@ -230,7 +230,7 @@ public final class GravesMod implements ModInitializer {
 	static void open(ServerPlayer player, Grave g) {
 		boolean owner = player.getUUID().equals(g.owner);
 		if (!owner) {
-			Hud.flash(player, Component.literal("☠ Dit is het graf van " + g.ownerName).withStyle(ChatFormatting.GRAY));
+			Hud.flash(player, Component.literal("☠ This is " + g.ownerName + "'s grave").withStyle(ChatFormatting.GRAY));
 			return;
 		}
 		int n = restore(player, g);
@@ -238,8 +238,13 @@ public final class GravesMod implements ModInitializer {
 		STORE.saveNow();
 		hide(g.id);
 		Ui.sound(player, SoundEvents.ARMOR_EQUIP_GENERIC, 1f, 1f);
-		Hud.flash(player, Component.literal("✔ " + n + " items terug uit je graf")
+		Hud.flash(player, Component.literal("✔ Got " + items(n) + " back from your grave")
 				.withStyle(ChatFormatting.GREEN));
+	}
+
+	/** "1 item" / "5 items". */
+	private static String items(int n) {
+		return n + (n == 1 ? " item" : " items");
 	}
 
 	// ---------------------------------------------------------------- zichtbaar maken
@@ -273,7 +278,7 @@ public final class GravesMod implements ModInitializer {
 
 		TextDisplayElement label = new TextDisplayElement(Component.empty()
 				.append(Component.literal("☠ " + g.ownerName).withStyle(ChatFormatting.RED))
-				.append(Component.literal("\n" + g.count() + " items · rechtsklik").withStyle(ChatFormatting.GRAY)));
+				.append(Component.literal("\n" + items(g.count()) + " · right-click").withStyle(ChatFormatting.GRAY)));
 		label.setTranslation(new Vector3f(0, 0.95f, 0));
 		label.setBillboardMode(Display.BillboardConstraints.CENTER);
 		label.setViewRange(0.4f);
@@ -322,38 +327,38 @@ public final class GravesMod implements ModInitializer {
 		Grave g = newestOf(p);
 		if (g == null || System.currentTimeMillis() - g.created > 60_000) return null;
 		return Component.empty()
-				.append(Component.literal("☠ Je spullen liggen veilig in je graf ").withStyle(ChatFormatting.GRAY))
-				.append(Component.literal("[straal]").withStyle(s -> s.withColor(ChatFormatting.AQUA)
-						.withClickEvent(new ClickEvent.RunCommand("/graf straal"))
-						.withHoverEvent(new HoverEvent.ShowText(Component.literal("Klik: straal naar je graf")))));
+				.append(Component.literal("☠ Your items are safe in your grave ").withStyle(ChatFormatting.GRAY))
+				.append(Component.literal("[beam]").withStyle(s -> s.withColor(ChatFormatting.AQUA)
+						.withClickEvent(new ClickEvent.RunCommand("/grave beam"))
+						.withHoverEvent(new HoverEvent.ShowText(Component.literal("Click: beam to your grave")))));
 	}
 
 	static void beam(ServerPlayer p, Grave g) {
 		ServerLevel level = levelOf(p.level().getServer(), g.dim);
 		if (level != p.level()) {
-			p.sendSystemMessage(Ui.prefix("Graf").append(Ui.text("Je graf ligt in een andere dimensie.", ChatFormatting.GOLD)));
+			p.sendSystemMessage(Ui.prefix("Graves").append(Ui.text("Your grave is in another dimension.", ChatFormatting.GOLD)));
 			return;
 		}
-		Guide.toPoint(p, level, g.pos().add(0, 0.5, 0), new ItemStack(Items.SKELETON_SKULL), Component.literal("Je graf"), 0);
+		Guide.toPoint(p, level, g.pos().add(0, 0.5, 0), new ItemStack(Items.SKELETON_SKULL), Component.literal("Your grave"), 0);
 	}
 
 	static void listGraves(ServerPlayer p) {
 		List<Grave> mine = new ArrayList<>();
 		for (Grave g : STORE.get().graves.values()) if (g.owner.equals(p.getUUID())) mine.add(g);
 		if (mine.isEmpty()) {
-			p.sendSystemMessage(Ui.prefix("Graf").append(Ui.text(ENABLED.get(p)
-					? "Je hebt geen graven. Mooi zo!"
-					: "Je hebt geen graven. Graf staat uit: zet het aan via /opties → Graf.", ChatFormatting.GRAY)));
+			p.sendSystemMessage(Ui.prefix("Graves").append(Ui.text(ENABLED.get(p)
+					? "You have no graves. Good!"
+					: "You have no graves. Graves are off: turn them on in /libreria settings → Graves.", ChatFormatting.GRAY)));
 			return;
 		}
 		mine.sort((a, b) -> Long.compare(b.created, a.created));
-		MutableComponent msg = Ui.prefix("Graf").append(Ui.text("Je graven:", ChatFormatting.WHITE));
+		MutableComponent msg = Ui.prefix("Graves").append(Ui.text("Your graves:", ChatFormatting.WHITE));
 		for (Grave g : mine) {
-			msg.append("\n").append(Component.literal(" ☠ " + (int) g.x + " " + (int) g.y + " " + (int) g.z + " · " + g.count() + " items")
+			msg.append("\n").append(Component.literal(" ☠ " + (int) g.x + " " + (int) g.y + " " + (int) g.z + " · " + items(g.count()))
 					.withStyle(ChatFormatting.GRAY));
 		}
-		msg.append("\n").append(Component.literal(" [straal naar de nieuwste]").withStyle(s -> s.withColor(ChatFormatting.AQUA)
-				.withClickEvent(new ClickEvent.RunCommand("/graf straal"))));
+		msg.append("\n").append(Component.literal(" [beam to the newest]").withStyle(s -> s.withColor(ChatFormatting.AQUA)
+				.withClickEvent(new ClickEvent.RunCommand("/grave beam"))));
 		p.sendSystemMessage(msg);
 	}
 

@@ -12,7 +12,7 @@ import net.minecraft.world.item.Item;
 
 /**
  * Een Libreria-module (bv. ChestsMod, ToolsMod). Een module registreert zichzelf bij het opstarten en krijgt
- * daarmee automatisch een plek in het instellingenmenu (/opties) en in het Libreria-menu (knop in het E-scherm).
+ * daarmee automatisch een plek in het instellingenmenu (/libreria settings) en in het Libreria-menu (knop in het E-scherm).
  */
 public final class Module {
 	private static final Map<String, Module> MODULES = new LinkedHashMap<>();

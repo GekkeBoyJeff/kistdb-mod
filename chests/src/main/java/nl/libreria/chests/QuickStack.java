@@ -73,12 +73,12 @@ public final class QuickStack {
 		if (moved > 0) {
 			inv.setChanged();
 			Ui.sound(player, SoundEvents.ITEM_PICKUP, 0.6f, 0.8f);
-			Hud.flash(player, Component.literal("✔ " + moved + " items opgeborgen in " + used.size() + (used.size() == 1 ? " kist" : " kisten"))
+			Hud.flash(player, Component.literal("✔ Stored " + moved + (moved == 1 ? " item" : " items") + " in " + used.size() + (used.size() == 1 ? " chest" : " chests"))
 					.withStyle(ChatFormatting.GREEN));
 		} else if (targets.isEmpty()) {
-			Hud.flash(player, Component.literal("Geen kisten uit je KistDB binnen " + radius + " blokken").withStyle(ChatFormatting.GRAY));
+			Hud.flash(player, Component.literal("No chests from your chest index within " + radius + " blocks").withStyle(ChatFormatting.GRAY));
 		} else {
-			Hud.flash(player, Component.literal("Niets om op te bergen: geen kist in de buurt heeft die items al").withStyle(ChatFormatting.GRAY));
+			Hud.flash(player, Component.literal("Nothing to stack: no nearby chest has these items yet").withStyle(ChatFormatting.GRAY));
 		}
 		return moved;
 	}

@@ -45,13 +45,13 @@ final class PointsGui extends SimpleGui {
 			boolean here = pt.dim.equals(dim);
 			GuiElementBuilder b = new GuiElementBuilder(pt.item())
 					.setName(Ui.text(pt.name, here ? ChatFormatting.YELLOW : ChatFormatting.GRAY))
-					.addLoreLine(Ui.kv("Plek: ", pt.x + " " + pt.y + " " + pt.z, ChatFormatting.WHITE))
+					.addLoreLine(Ui.kv("Location: ", pt.x + " " + pt.y + " " + pt.z, ChatFormatting.WHITE))
 					.addLoreLine(here
-							? Ui.kv("Afstand: ", Ui.meters(pos.distanceTo(Vec3.atCenterOf(pt.pos()))), ChatFormatting.GREEN)
-							: Ui.kv("In de ", WaypointsMod.dimName(pt.dim), ChatFormatting.GOLD))
+							? Ui.kv("Distance: ", Ui.meters(pos.distanceTo(Vec3.atCenterOf(pt.pos()))), ChatFormatting.GREEN)
+							: Ui.kv("In the ", WaypointsMod.dimName(pt.dim), ChatFormatting.GOLD))
 					.addLoreLine(Component.empty())
-					.addLoreLine(Ui.text(here ? "Klik: straal hierheen" : "Andere dimensie", here ? ChatFormatting.AQUA : ChatFormatting.DARK_GRAY))
-					.addLoreLine(Ui.text("Shift-klik of Q: verwijderen", ChatFormatting.RED));
+					.addLoreLine(Ui.text(here ? "Click: beam here" : "Other dimension", here ? ChatFormatting.AQUA : ChatFormatting.DARK_GRAY))
+					.addLoreLine(Ui.text("Shift-click or Q: remove", ChatFormatting.RED));
 			b.setCallback((index, type, action, gui) -> {
 				if (type.shift || type == ClickType.DROP || type == ClickType.CTRL_DROP) {
 					WaypointsMod.STORE.get(player).points.remove(pt);
@@ -65,18 +65,18 @@ final class PointsGui extends SimpleGui {
 			this.setSlot(i, b.build());
 		}
 		for (int i = 45; i < 54; i++) this.clearSlot(i);
-		this.setSlot(48, Ui.button(Items.LODESTONE, "Punt hier zetten", ChatFormatting.GREEN)
-				.addLoreLine(Ui.text("Zet een waypoint op de plek waar je staat.", ChatFormatting.GRAY))
-				.addLoreLine(Ui.text("Ook: /punt zet <naam>", ChatFormatting.DARK_GRAY))
+		this.setSlot(48, Ui.button(Items.LODESTONE, "Set waypoint here", ChatFormatting.GREEN)
+				.addLoreLine(Ui.text("Sets a waypoint where you're standing.", ChatFormatting.GRAY))
+				.addLoreLine(Ui.text("Also: /waypoint set <name>", ChatFormatting.DARK_GRAY))
 				.setCallback((index, type, action, gui) -> {
 					Ui.click(player);
 					NameGui.open(player);
 				}).build());
 		if (data.death != null) {
 			WaypointsMod.Point d = data.death;
-			this.setSlot(50, Ui.button(Items.SKELETON_SKULL, "Je laatste sterfplek", ChatFormatting.RED)
-					.addLoreLine(Ui.kv("Plek: ", d.x + " " + d.y + " " + d.z + " (" + WaypointsMod.dimName(d.dim) + ")", ChatFormatting.WHITE))
-					.addLoreLine(Ui.text("Klik: straal hierheen", ChatFormatting.AQUA))
+			this.setSlot(50, Ui.button(Items.SKELETON_SKULL, "Your last death point", ChatFormatting.RED)
+					.addLoreLine(Ui.kv("Location: ", d.x + " " + d.y + " " + d.z + " (" + WaypointsMod.dimName(d.dim) + ")", ChatFormatting.WHITE))
+					.addLoreLine(Ui.text("Click: beam here", ChatFormatting.AQUA))
 					.setCallback((index, type, action, gui) -> {
 						if (WaypointsMod.beam(player, d)) this.close();
 					}).build());
@@ -87,11 +87,11 @@ final class PointsGui extends SimpleGui {
 	private static final class NameGui extends AnvilInputGui {
 		private NameGui(ServerPlayer player) {
 			super(player, false);
-			this.setTitle(Component.literal("Naam van het punt"));
-			this.setDefaultInputValue("Thuis");
-			this.setSlot(1, Ui.button(Items.BARRIER, "Annuleren", ChatFormatting.RED)
+			this.setTitle(Component.literal("Waypoint name"));
+			this.setDefaultInputValue("Home");
+			this.setSlot(1, Ui.button(Items.BARRIER, "Cancel", ChatFormatting.RED)
 					.setCallback((index, type, action, gui) -> PointsGui.open(player)).build());
-			this.setSlot(2, Ui.button(Items.LODESTONE, "Opslaan", ChatFormatting.GREEN)
+			this.setSlot(2, Ui.button(Items.LODESTONE, "Save", ChatFormatting.GREEN)
 					.setCallback((index, type, action, gui) -> {
 						WaypointsMod.add(player, this.getInput());
 						PointsGui.open(player);

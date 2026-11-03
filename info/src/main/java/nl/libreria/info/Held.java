@@ -25,7 +25,7 @@ import nl.libreria.core.Ui;
 /** Kompas, herstelkompas en klok in je hand geven echte informatie. */
 final class Held {
 	static final String CHANNEL = "info.hand";
-	private static final String[] DIRECTIONS = {"Zuid", "Zuidwest", "West", "Noordwest", "Noord", "Noordoost", "Oost", "Zuidoost"};
+	private static final String[] DIRECTIONS = {"South", "Southwest", "West", "Northwest", "North", "Northeast", "East", "Southeast"};
 
 	private Held() {
 	}
@@ -54,8 +54,8 @@ final class Held {
 		LodestoneTracker tracker = stack.get(DataComponents.LODESTONE_TRACKER);
 		if (tracker != null) {
 			Optional<GlobalPos> target = tracker.target();
-			if (target.isEmpty()) return Component.literal("⌖ Magneetsteen kwijt").withStyle(ChatFormatting.RED);
-			return distanceTo(p, target.get(), "⌖ Magneetsteen", ChatFormatting.LIGHT_PURPLE);
+			if (target.isEmpty()) return Component.literal("⌖ Lodestone missing").withStyle(ChatFormatting.RED);
+			return distanceTo(p, target.get(), "⌖ Lodestone", ChatFormatting.LIGHT_PURPLE);
 		}
 		BlockPos pos = p.blockPosition();
 		Component biome = p.level().getBiome(pos).unwrapKey()
@@ -73,13 +73,13 @@ final class Held {
 
 	static Component recovery(ServerPlayer p) {
 		Optional<GlobalPos> death = p.getLastDeathLocation();
-		if (death.isEmpty()) return Component.literal("☠ Nog geen sterfplek").withStyle(ChatFormatting.GRAY);
-		return distanceTo(p, death.get(), "☠ Sterfplek", ChatFormatting.RED);
+		if (death.isEmpty()) return Component.literal("☠ No death point yet").withStyle(ChatFormatting.GRAY);
+		return distanceTo(p, death.get(), "☠ Death point", ChatFormatting.RED);
 	}
 
 	private static Component distanceTo(ServerPlayer p, GlobalPos target, String label, ChatFormatting color) {
 		if (!target.dimension().equals(p.level().dimension())) {
-			return Component.literal(label + " – andere dimensie").withStyle(color);
+			return Component.literal(label + " – other dimension").withStyle(color);
 		}
 		Vec3 t = Vec3.atCenterOf(target.pos());
 		return Component.empty()
@@ -89,7 +89,7 @@ final class Held {
 
 	static Component clock(ServerLevel level) {
 		if (level.dimension() != Level.OVERWORLD) {
-			return Component.literal("⌚ De klok draait hier dol").withStyle(ChatFormatting.DARK_PURPLE);
+			return Component.literal("⌚ The clock spins wildly here").withStyle(ChatFormatting.DARK_PURPLE);
 		}
 		long t = Math.floorMod(level.getOverworldClockTime(), 24000L);
 		return clockText(t, level.isThundering());
@@ -100,12 +100,12 @@ final class Held {
 		int hours = (int) ((t / 1000 + 6) % 24);
 		int minutes = (int) (t % 1000 * 60 / 1000);
 		boolean night = t >= 12542 && t < 23460;
-		String until = t < 12542 ? "nacht over " + realTime(12542 - t)
-				: night ? "dag over " + realTime(24000 - t) : "bijna dag";
+		String until = t < 12542 ? "night in " + realTime(12542 - t)
+				: night ? "day in " + realTime(24000 - t) : "almost day";
 		var out = Component.empty()
 				.append(Component.literal(String.format("%s %02d:%02d", night ? "☾" : "☀", hours, minutes)).withStyle(ChatFormatting.YELLOW))
 				.append(Component.literal("  " + until).withStyle(ChatFormatting.GRAY));
-		if (night || thunder) out.append(Component.literal("  ✔ je kunt slapen").withStyle(ChatFormatting.AQUA));
+		if (night || thunder) out.append(Component.literal("  ✔ you can sleep").withStyle(ChatFormatting.AQUA));
 		return out;
 	}
 

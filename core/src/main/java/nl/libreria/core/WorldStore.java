@@ -53,7 +53,7 @@ public final class WorldStore<T> {
 					try (Reader r = Files.newBufferedReader(p, StandardCharsets.UTF_8)) {
 						loaded = GSON.fromJson(r, this.type);
 					} catch (Exception e) {
-						Libreria.LOG.error("Kan {} niet lezen; begin leeg", p, e);
+						Libreria.LOG.error("Could not read {}; starting empty", p, e);
 					}
 				}
 			}
@@ -84,7 +84,7 @@ public final class WorldStore<T> {
 			Files.move(tmp, p, StandardCopyOption.REPLACE_EXISTING);
 			this.dirty = false;
 		} catch (IOException e) {
-			Libreria.LOG.error("Kan {} niet opslaan", p, e);
+			Libreria.LOG.error("Could not save {}", p, e);
 		}
 	}
 

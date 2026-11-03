@@ -34,19 +34,19 @@ import org.slf4j.LoggerFactory;
 public final class ChestsMod implements ModInitializer {
 	public static final Logger LOG = LoggerFactory.getLogger("Libreria Chests");
 
-	public static final Module MODULE = Module.register("chests", "KistDB", Items.CHEST,
-			"Sorteren, je kisten doorzoeken met iconen", "en een straal naar de juiste kist.");
-	public static final Setting.Toggle MIDDLE_CLICK = MODULE.toggle("middelklik", "Middelklik sorteert", true, Items.HOPPER,
-			"Middelklik in een kist sorteert die kist,", "in je eigen inventory je inventory.");
-	public static final Setting.Toggle DOUBLE_CLICK = MODULE.toggle("dubbelklik", "Dubbelklik op leeg slot sorteert", true, Items.HOPPER_MINECART,
-			"Libreria zonder middelste muisknop", "(bijvoorbeeld op een laptop).");
-	public static final Setting.Toggle NEW_MESSAGE = MODULE.toggle("melding", "Melding bij een nieuwe kist", true, Items.PAPER,
-			"\"Kist toegevoegd aan KistDB\" als je", "een kist voor het eerst opent.");
-	public static final Setting.Toggle SNEAK_NOINDEX = MODULE.toggle("sneak", "Sneak + linksklik = noIndex", true, Items.BARRIER,
-			"Met lege hand op een kist: sluit hem", "uit van zoeken (of zet hem weer aan).");
-	public static final Setting.Choice STACK_RADIUS = MODULE.choice("opbergen", "Snel opbergen: afstand", Items.CHEST_MINECART, 1,
-			new int[]{6, 10, 16, 24}, new String[]{"6 blokken", "10 blokken", "16 blokken", "24 blokken"},
-			"Hoe ver kisten mogen staan bij snel opbergen.");
+	public static final Module MODULE = Module.register("chests", "Chests", Items.CHEST,
+			"Sorting, searching your chests by icon", "and a beam to the right chest.");
+	public static final Setting.Toggle MIDDLE_CLICK = MODULE.toggle("middelklik", "Middle-click sorts", true, Items.HOPPER,
+			"Middle-click sorts the open chest,", "or your inventory if you click there.");
+	public static final Setting.Toggle DOUBLE_CLICK = MODULE.toggle("dubbelklik", "Double-click empty slot sorts", true, Items.HOPPER_MINECART,
+			"Handy without a middle mouse button", "(for example on a laptop).");
+	public static final Setting.Toggle NEW_MESSAGE = MODULE.toggle("melding", "Message for new chests", true, Items.PAPER,
+			"\"Added to your chest index\" when you", "open a chest for the first time.");
+	public static final Setting.Toggle SNEAK_NOINDEX = MODULE.toggle("sneak", "Sneak + left-click = noIndex", true, Items.BARRIER,
+			"With an empty hand on a chest: exclude", "it from search (or include it again).");
+	public static final Setting.Choice STACK_RADIUS = MODULE.choice("opbergen", "Quick stack: range", Items.CHEST_MINECART, 1,
+			new int[]{6, 10, 16, 24}, new String[]{"6 blocks", "10 blocks", "16 blocks", "24 blocks"},
+			"How far chests can be for quick stack.");
 
 	@Override
 	public void onInitialize() {
@@ -62,16 +62,16 @@ public final class ChestsMod implements ModInitializer {
 		CommandRegistrationCallback.EVENT.register(ChestCommands::register);
 
 		// In het Libreria-menu en op de knop in het E-scherm
-		Hub.setPrimary("inventory sorteren", Sorter::sortPlayer);
-		Hub.addHint("In een kist: middelklik = sorteren");
-		MODULE.hubEntry(Items.SPYGLASS, "Kisten zoeken", ChatFormatting.AQUA, p -> OverviewGui.open(p, ""),
-				"Alles in je kisten, met iconen.", "Klik een item: straal naar de kist.");
-		MODULE.hubEntry(Items.CHEST, "Mijn kisten", ChatFormatting.GOLD, ChestsGui::open,
-				"Inhoud op afstand bekijken,", "straal ernaartoe, noIndex aan/uit.");
-		MODULE.hubEntry(Items.CHEST_MINECART, "Snel opbergen", ChatFormatting.GREEN, QuickStack::run,
-				"Items uit je inventory naar kisten in de", "buurt die dat item al hebben (niet je hotbar).");
-		MODULE.hubEntry(Items.HOPPER, "Sorteer inventory", ChatFormatting.YELLOW, Sorter::sortPlayer,
-				"Stapels samenvoegen en sorteren.", "Je hotbar blijft zoals hij is.");
+		Hub.setPrimary("sort inventory", Sorter::sortPlayer);
+		Hub.addHint("In a chest: middle-click = sort");
+		MODULE.hubEntry(Items.SPYGLASS, "Search chests", ChatFormatting.AQUA, p -> OverviewGui.open(p, ""),
+				"Everything in your chests, as icons.", "Click an item: beam to the chest.");
+		MODULE.hubEntry(Items.CHEST, "My chests", ChatFormatting.GOLD, ChestsGui::open,
+				"View contents from afar,", "beam to them, toggle noIndex.");
+		MODULE.hubEntry(Items.CHEST_MINECART, "Quick stack", ChatFormatting.GREEN, QuickStack::run,
+				"Puts inventory items into nearby chests", "that already have them (not your hotbar).");
+		MODULE.hubEntry(Items.HOPPER, "Sort inventory", ChatFormatting.YELLOW, Sorter::sortPlayer,
+				"Merges and sorts stacks.", "Your hotbar stays as it is.");
 
 		ClickRouter.register(ChestsMod::onClick);
 		// Voor andere modules: "waar ligt dit item?" en het zoekmenu
@@ -82,7 +82,7 @@ public final class ChestsMod implements ModInitializer {
 		});
 		Services.provideMenu(Services.MENU_CHESTS, p -> OverviewGui.open(p, ""));
 		ChestsTests.register();
-		LOG.info("KistDB geladen");
+		LOG.info("Libreria Chests loaded");
 	}
 
 	/** Middelklik (of dubbelklik op een leeg slot) sorteert de container of je inventory. */

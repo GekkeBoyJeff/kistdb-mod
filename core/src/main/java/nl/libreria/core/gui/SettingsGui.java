@@ -12,7 +12,7 @@ import nl.libreria.core.Module;
 import nl.libreria.core.Setting;
 import nl.libreria.core.Ui;
 
-/** /opties: eerst de modules, dan per module de instellingen (klik = wijzigen, rechtsklik = terug bij keuzes). */
+/** /libreria settings: eerst de modules, dan per module de instellingen (klik = wijzigen, rechtsklik = terug bij keuzes). */
 public final class SettingsGui {
 	private SettingsGui() {
 	}
@@ -24,21 +24,21 @@ public final class SettingsGui {
 	private static final class ModulesPage extends SimpleGui {
 		ModulesPage(ServerPlayer player) {
 			super(MenuType.GENERIC_9x3, player, false);
-			this.setTitle(Component.literal("Libreria – instellingen"));
+			this.setTitle(Component.literal("Libreria – Settings"));
 			List<Module> modules = Module.all().stream().filter(m -> !m.settings().isEmpty()).toList();
 			int[] order = {10, 11, 12, 13, 14, 15, 16, 1, 2, 3, 4, 5, 6, 7};
 			for (int i = 0; i < modules.size() && i < order.length; i++) {
 				Module m = modules.get(i);
 				GuiElementBuilder b = Ui.button(m.icon, m.name, ChatFormatting.GOLD);
 				for (String d : m.description) b.addLoreLine(Ui.text(d, ChatFormatting.GRAY));
-				b.addLoreLine(Ui.text(m.settings().size() + (m.settings().size() == 1 ? " instelling" : " instellingen"), ChatFormatting.DARK_GRAY));
+				b.addLoreLine(Ui.text(m.settings().size() + (m.settings().size() == 1 ? " setting" : " settings"), ChatFormatting.DARK_GRAY));
 				b.setCallback((index, type, action, gui) -> {
 					Ui.click(player);
 					new ModulePage(player, m).open();
 				});
 				this.setSlot(order[i], b.build());
 			}
-			this.setSlot(22, Ui.button(Items.ARROW, "Naar het Libreria-menu", ChatFormatting.WHITE)
+			this.setSlot(22, Ui.button(Items.ARROW, "Libreria menu", ChatFormatting.WHITE)
 					.setCallback((index, type, action, gui) -> HubGui.open(player)).build());
 		}
 	}
@@ -60,7 +60,7 @@ public final class SettingsGui {
 			for (int i = 0; i < settings.size() && i < order.length; i++) {
 				this.setSlot(order[i], element(player, settings.get(i)).build());
 			}
-			this.setSlot(22, Ui.button(Items.ARROW, "Terug", ChatFormatting.WHITE)
+			this.setSlot(22, Ui.button(Items.ARROW, "Back", ChatFormatting.WHITE)
 					.setCallback((index, type, action, gui) -> SettingsGui.open(player)).build());
 		}
 
@@ -70,8 +70,8 @@ public final class SettingsGui {
 			b.addLoreLine(Component.empty());
 			if (s instanceof Setting.Toggle t) {
 				boolean on = t.get(player);
-				b.addLoreLine(Ui.kv("Nu: ", on ? "AAN" : "UIT", on ? ChatFormatting.GREEN : ChatFormatting.RED));
-				b.addLoreLine(Ui.text("Klik om te wisselen", ChatFormatting.DARK_GRAY));
+				b.addLoreLine(Ui.kv("Current: ", on ? "ON" : "OFF", on ? ChatFormatting.GREEN : ChatFormatting.RED));
+				b.addLoreLine(Ui.text("Click to toggle", ChatFormatting.DARK_GRAY));
 				if (on) b.glow();
 				b.setCallback((index, type, action, gui) -> {
 					t.set(player, !t.get(player));
@@ -84,7 +84,7 @@ public final class SettingsGui {
 					boolean sel = i == current;
 					b.addLoreLine(Ui.text((sel ? " ▶ " : "   ") + c.labelAt(i), sel ? ChatFormatting.GREEN : ChatFormatting.DARK_GRAY));
 				}
-				b.addLoreLine(Ui.text("Klik: volgende · Rechtsklik: vorige", ChatFormatting.DARK_GRAY));
+				b.addLoreLine(Ui.text("Click: next · Right-click: previous", ChatFormatting.DARK_GRAY));
 				b.setCallback((index, type, action, gui) -> {
 					c.cycle(player, type.isRight ? -1 : 1);
 					Ui.click(player);

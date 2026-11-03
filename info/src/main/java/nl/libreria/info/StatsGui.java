@@ -27,11 +27,11 @@ import nl.libreria.core.gui.HubGui;
 
 /** Je vanilla-statistieken, maar leesbaar: in uren, kilometers en top-lijstjes. */
 final class StatsGui extends SimpleGui {
-	private static final Locale NL = Locale.of("nl", "NL");
+	private static final Locale EN = Locale.US;
 
 	private StatsGui(ServerPlayer player) {
 		super(MenuType.GENERIC_9x6, player, false);
-		this.setTitle(Component.literal("Statistieken – " + player.getName().getString()));
+		this.setTitle(Component.literal("Statistics – " + player.getName().getString()));
 		build();
 	}
 
@@ -42,22 +42,22 @@ final class StatsGui extends SimpleGui {
 	// ---------------------------------------------------------------- opmaak
 
 	static String num(long n) {
-		return String.format(NL, "%,d", n);
+		return String.format(EN, "%,d", n);
 	}
 
-	/** Ticks naar "3 d 4 u", "12 u 5 min" of "35 min". */
+	/** Ticks naar "3 d 4 h", "12 h 5 min" of "35 min". */
 	static String time(long ticks) {
 		long min = ticks / 20 / 60;
 		long h = min / 60, d = h / 24;
-		if (d > 0) return d + " d " + (h % 24) + " u";
-		if (h > 0) return h + " u " + (min % 60) + " min";
+		if (d > 0) return d + " d " + (h % 24) + " h";
+		if (h > 0) return h + " h " + (min % 60) + " min";
 		return min + " min";
 	}
 
 	/** Centimeters naar meters of kilometers. */
 	static String dist(long cm) {
 		double m = cm / 100.0;
-		return m >= 1000 ? String.format(NL, "%.1f km", m / 1000) : String.format(NL, "%.0f m", m);
+		return m >= 1000 ? String.format(EN, "%.1f km", m / 1000) : String.format(EN, "%.0f m", m);
 	}
 
 	private int custom(Identifier stat) {
@@ -75,57 +75,57 @@ final class StatsGui extends SimpleGui {
 
 	private void build() {
 		ServerPlayer p = this.getPlayer();
-		stat(0, Items.CLOCK, "Speeltijd", time(custom(Stats.PLAY_TIME)),
-				"Sinds je laatste dood: " + time(custom(Stats.TIME_SINCE_DEATH)),
-				"Sinds je laatste slaap: " + time(custom(Stats.TIME_SINCE_REST)));
-		stat(1, Items.SKELETON_SKULL, "Doodgegaan", num(custom(Stats.DEATHS)) + " keer");
-		stat(2, Items.IRON_SWORD, "Mobs verslagen", num(custom(Stats.MOB_KILLS)),
-				"Spelers: " + num(custom(Stats.PLAYER_KILLS)));
-		stat(3, Items.WHEAT, "Dieren gefokt", num(custom(Stats.ANIMALS_BRED)));
+		stat(0, Items.CLOCK, "Playtime", time(custom(Stats.PLAY_TIME)),
+				"Since your last death: " + time(custom(Stats.TIME_SINCE_DEATH)),
+				"Since you last slept: " + time(custom(Stats.TIME_SINCE_REST)));
+		stat(1, Items.SKELETON_SKULL, "Died", num(custom(Stats.DEATHS)) + " times");
+		stat(2, Items.IRON_SWORD, "Mobs killed", num(custom(Stats.MOB_KILLS)),
+				"Players: " + num(custom(Stats.PLAYER_KILLS)));
+		stat(3, Items.WHEAT, "Animals bred", num(custom(Stats.ANIMALS_BRED)));
 		long walked = (long) custom(Stats.WALK_ONE_CM) + custom(Stats.SPRINT_ONE_CM) + custom(Stats.CROUCH_ONE_CM);
-		stat(4, Items.LEATHER_BOOTS, "Gelopen", dist(walked),
-				"Gezwommen: " + dist(custom(Stats.SWIM_ONE_CM)),
-				"Gevlogen (elytra): " + dist(custom(Stats.AVIATE_ONE_CM)),
-				"Te paard: " + dist(custom(Stats.HORSE_ONE_CM)),
-				"Per boot: " + dist(custom(Stats.BOAT_ONE_CM)),
-				"Per mijnkar: " + dist(custom(Stats.MINECART_ONE_CM)),
-				"Gevallen: " + dist(custom(Stats.FALL_ONE_CM)),
-				"Geklommen: " + dist(custom(Stats.CLIMB_ONE_CM)));
-		stat(5, Items.FISHING_ROD, "Vissen gevangen", num(custom(Stats.FISH_CAUGHT)));
-		stat(6, Items.EMERALD, "Handel met dorpelingen", num(custom(Stats.TRADED_WITH_VILLAGER)) + " keer",
-				"Gepraat: " + num(custom(Stats.TALKED_TO_VILLAGER)) + " keer");
-		stat(7, Ui.item("red_bed"), "Geslapen", num(custom(Stats.SLEEP_IN_BED)) + " keer");
-		stat(8, Items.ENCHANTING_TABLE, "Betoverd", num(custom(Stats.ENCHANT_ITEM)) + " items");
+		stat(4, Items.LEATHER_BOOTS, "Walked", dist(walked),
+				"Swum: " + dist(custom(Stats.SWIM_ONE_CM)),
+				"Flown (elytra): " + dist(custom(Stats.AVIATE_ONE_CM)),
+				"On horseback: " + dist(custom(Stats.HORSE_ONE_CM)),
+				"By boat: " + dist(custom(Stats.BOAT_ONE_CM)),
+				"By minecart: " + dist(custom(Stats.MINECART_ONE_CM)),
+				"Fallen: " + dist(custom(Stats.FALL_ONE_CM)),
+				"Climbed: " + dist(custom(Stats.CLIMB_ONE_CM)));
+		stat(5, Items.FISHING_ROD, "Fish caught", num(custom(Stats.FISH_CAUGHT)));
+		stat(6, Items.EMERALD, "Villager trades", num(custom(Stats.TRADED_WITH_VILLAGER)) + " times",
+				"Talked to: " + num(custom(Stats.TALKED_TO_VILLAGER)) + " times");
+		stat(7, Ui.item("red_bed"), "Slept in a bed", num(custom(Stats.SLEEP_IN_BED)) + " times");
+		stat(8, Items.ENCHANTING_TABLE, "Enchanted", num(custom(Stats.ENCHANT_ITEM)) + " items");
 
-		stat(9, Items.DIAMOND_SWORD, "Schade uitgedeeld", num(custom(Stats.DAMAGE_DEALT) / 20) + " ❤");
-		stat(10, Items.SHIELD, "Schade opgelopen", num(custom(Stats.DAMAGE_TAKEN) / 20) + " ❤",
-				"Geblokt met schild: " + num(custom(Stats.DAMAGE_BLOCKED_BY_SHIELD) / 20) + " ❤");
-		stat(11, Items.RABBIT_FOOT, "Gesprongen", num(custom(Stats.JUMP)) + " keer");
-		stat(12, Items.CAKE, "Taartpunten", num(custom(Stats.EAT_CAKE_SLICE)));
-		stat(13, Items.CHEST, "Kisten geopend", num(custom(Stats.OPEN_CHEST)),
-				"Vaten: " + num(custom(Stats.OPEN_BARREL)),
-				"Shulkerdozen: " + num(custom(Stats.OPEN_SHULKER_BOX)),
-				"Enderkist: " + num(custom(Stats.OPEN_ENDERCHEST)));
-		stat(14, Items.BELL, "Overvallen gewonnen", num(custom(Stats.RAID_WIN)),
-				"Gestart: " + num(custom(Stats.RAID_TRIGGER)));
-		stat(15, Items.JUKEBOX, "Platen gedraaid", num(custom(Stats.PLAY_RECORD)));
-		stat(16, Items.FLOWER_POT, "Bloemen gepot", num(custom(Stats.POT_FLOWER)));
-		stat(17, Items.TARGET, "Doelwit geraakt", num(custom(Stats.TARGET_HIT)));
+		stat(9, Items.DIAMOND_SWORD, "Damage dealt", num(custom(Stats.DAMAGE_DEALT) / 20) + " ❤");
+		stat(10, Items.SHIELD, "Damage taken", num(custom(Stats.DAMAGE_TAKEN) / 20) + " ❤",
+				"Blocked by shield: " + num(custom(Stats.DAMAGE_BLOCKED_BY_SHIELD) / 20) + " ❤");
+		stat(11, Items.RABBIT_FOOT, "Jumped", num(custom(Stats.JUMP)) + " times");
+		stat(12, Items.CAKE, "Cake slices eaten", num(custom(Stats.EAT_CAKE_SLICE)));
+		stat(13, Items.CHEST, "Chests opened", num(custom(Stats.OPEN_CHEST)),
+				"Barrels: " + num(custom(Stats.OPEN_BARREL)),
+				"Shulker boxes: " + num(custom(Stats.OPEN_SHULKER_BOX)),
+				"Ender chest: " + num(custom(Stats.OPEN_ENDERCHEST)));
+		stat(14, Items.BELL, "Raids won", num(custom(Stats.RAID_WIN)),
+				"Started: " + num(custom(Stats.RAID_TRIGGER)));
+		stat(15, Items.JUKEBOX, "Discs played", num(custom(Stats.PLAY_RECORD)));
+		stat(16, Items.FLOWER_POT, "Flowers potted", num(custom(Stats.POT_FLOWER)));
+		stat(17, Items.TARGET, "Targets hit", num(custom(Stats.TARGET_HIT)));
 
-		top(28, Items.DIAMOND_PICKAXE, "Meest gemijnd", Stats.BLOCK_MINED, b -> new ItemStack(b.asItem()), b -> b.getName());
-		top(29, Items.CRAFTING_TABLE, "Meest gemaakt", Stats.ITEM_CRAFTED, ItemStack::new, i -> new ItemStack(i).getHoverName());
-		top(30, Items.GOLDEN_APPLE, "Meest gebruikt", Stats.ITEM_USED, ItemStack::new, i -> new ItemStack(i).getHoverName());
-		top(31, Items.HOPPER, "Meest opgepakt", Stats.ITEM_PICKED_UP, ItemStack::new, i -> new ItemStack(i).getHoverName());
-		top(32, Items.ANVIL, "Kapotgegaan", Stats.ITEM_BROKEN, ItemStack::new, i -> new ItemStack(i).getHoverName());
-		top(33, Items.ZOMBIE_HEAD, "Meest verslagen", Stats.ENTITY_KILLED, StatsGui::egg, EntityType::getDescription);
-		top(34, Items.WITHER_SKELETON_SKULL, "Gedood door", Stats.ENTITY_KILLED_BY, StatsGui::egg, EntityType::getDescription);
+		top(28, Items.DIAMOND_PICKAXE, "Most mined", Stats.BLOCK_MINED, b -> new ItemStack(b.asItem()), b -> b.getName());
+		top(29, Items.CRAFTING_TABLE, "Most crafted", Stats.ITEM_CRAFTED, ItemStack::new, i -> new ItemStack(i).getHoverName());
+		top(30, Items.GOLDEN_APPLE, "Most used", Stats.ITEM_USED, ItemStack::new, i -> new ItemStack(i).getHoverName());
+		top(31, Items.HOPPER, "Most picked up", Stats.ITEM_PICKED_UP, ItemStack::new, i -> new ItemStack(i).getHoverName());
+		top(32, Items.ANVIL, "Items broken", Stats.ITEM_BROKEN, ItemStack::new, i -> new ItemStack(i).getHoverName());
+		top(33, Items.ZOMBIE_HEAD, "Most killed", Stats.ENTITY_KILLED, StatsGui::egg, EntityType::getDescription);
+		top(34, Items.WITHER_SKELETON_SKULL, "Killed by", Stats.ENTITY_KILLED_BY, StatsGui::egg, EntityType::getDescription);
 
-		this.setSlot(45, Ui.button(Items.ARROW, "Terug naar Libreria", ChatFormatting.GRAY)
+		this.setSlot(45, Ui.button(Items.ARROW, "Back to Libreria", ChatFormatting.GRAY)
 				.setCallback((i, t, a, g) -> HubGui.open(p)).build());
 		Services.menu(Services.MENU_ACHIEVEMENTS).ifPresent(open -> this.setSlot(49,
-				Ui.button(Items.NETHER_STAR, "Prestaties & verzameling", ChatFormatting.GOLD)
-						.addLoreLine(Ui.text("Wat je al verzameld hebt en", ChatFormatting.GRAY))
-						.addLoreLine(Ui.text("wat je nog mist.", ChatFormatting.GRAY))
+				Ui.button(Items.NETHER_STAR, "Achievements & collection", ChatFormatting.GOLD)
+						.addLoreLine(Ui.text("What you've collected so far", ChatFormatting.GRAY))
+						.addLoreLine(Ui.text("and what you're still missing.", ChatFormatting.GRAY))
 						.glow().setCallback((i, t, a, g) -> open.accept(p)).build()));
 	}
 
@@ -139,7 +139,7 @@ final class StatsGui extends SimpleGui {
 	private <T> void top(int slot, Item icon, String name, StatType<T> type, Function<T, ItemStack> iconOf, Function<T, Component> nameOf) {
 		ServerPlayer p = this.getPlayer();
 		this.setSlot(slot, Ui.button(icon, name, ChatFormatting.AQUA)
-				.addLoreLine(Ui.text("Klik: de top 45", ChatFormatting.GRAY))
+				.addLoreLine(Ui.text("Click: the top 45", ChatFormatting.GRAY))
 				.setCallback((i, t, a, g) -> {
 					Ui.click(p);
 					TopGui.open(p, name, type, iconOf, nameOf);
@@ -176,9 +176,9 @@ final class StatsGui extends SimpleGui {
 						.hideDefaultTooltip().build());
 			}
 			if (rows.isEmpty()) {
-				this.setSlot(22, Ui.button(Ui.item("gray_dye"), "Nog niets", ChatFormatting.GRAY).build());
+				this.setSlot(22, Ui.button(Ui.item("gray_dye"), "Nothing yet", ChatFormatting.GRAY).build());
 			}
-			this.setSlot(49, Ui.button(Items.ARROW, "Terug", ChatFormatting.GRAY)
+			this.setSlot(49, Ui.button(Items.ARROW, "Back", ChatFormatting.GRAY)
 					.setCallback((i, t, a, g) -> StatsGui.open(player)).build());
 		}
 

@@ -14,7 +14,8 @@ import nl.libreria.core.gui.HubGui;
 
 /** Nickname kiezen: naam typen in een aambeeld, kleur kiezen uit wat je hebt ontgrendeld. */
 final class NickGui extends SimpleGui {
-	private static final String[] RARITY = {"gewone", "ongewone", "zeldzame", "epische", "legendarische", "mythische"};
+	/** Met lidwoord, voor "Unlock with a rare achievement". */
+	private static final String[] RARITY = {"a common", "an uncommon", "a rare", "an epic", "a legendary", "a mythic"};
 	private static final ChatFormatting[] RARITY_COLOR = {ChatFormatting.WHITE, ChatFormatting.GREEN, ChatFormatting.AQUA,
 			ChatFormatting.LIGHT_PURPLE, ChatFormatting.GOLD, ChatFormatting.RED};
 
@@ -36,15 +37,15 @@ final class NickGui extends SimpleGui {
 
 		this.setSlot(4, new GuiElementBuilder(Items.NAME_TAG).glow()
 				.setName(Component.empty().append(preview))
-				.addLoreLine(Ui.text(d.nick.isEmpty() ? "Je hebt nog geen nickname." : "Echte naam: " + p.getName().getString(), ChatFormatting.GRAY)));
-		this.setSlot(2, Ui.button(Items.ANVIL, d.nick.isEmpty() ? "Nickname kiezen" : "Nickname wijzigen", ChatFormatting.GREEN)
-				.addLoreLine(Ui.text("Of typ: /nick <naam>", ChatFormatting.DARK_GRAY))
+				.addLoreLine(Ui.text(d.nick.isEmpty() ? "You don't have a nickname yet." : "Real name: " + p.getName().getString(), ChatFormatting.GRAY)));
+		this.setSlot(2, Ui.button(Items.ANVIL, d.nick.isEmpty() ? "Choose nickname" : "Change nickname", ChatFormatting.GREEN)
+				.addLoreLine(Ui.text("Or type: /nick <name>", ChatFormatting.DARK_GRAY))
 				.setCallback((i, t, a, g) -> {
 					Ui.click(p);
 					new NameInput(p).open();
 				}));
-		this.setSlot(6, Ui.button(Items.BARRIER, "Gewone naam", ChatFormatting.RED)
-				.addLoreLine(Ui.text("Nickname weghalen.", ChatFormatting.GRAY))
+		this.setSlot(6, Ui.button(Items.BARRIER, "Regular name", ChatFormatting.RED)
+				.addLoreLine(Ui.text("Remove your nickname.", ChatFormatting.GRAY))
 				.setCallback((i, t, a, g) -> {
 					NicknamesMod.set(p, "");
 					open(p);
@@ -57,8 +58,8 @@ final class NickGui extends SimpleGui {
 			GuiElementBuilder b = new GuiElementBuilder(ok ? Ui.item(c.dye()) : Ui.item("gray_dye"))
 					.setName(ok ? NicknamesMod.paint(c.label(), c, false) : Component.literal("✖ " + c.label()).withStyle(ChatFormatting.DARK_GRAY))
 					.hideDefaultTooltip();
-			if (ok) b.addLoreLine(Ui.text(chosen ? "Gekozen" : "Klik: deze kleur", chosen ? ChatFormatting.GREEN : ChatFormatting.AQUA));
-			else b.addLoreLine(Component.literal("Ontgrendel met een " + RARITY[c.rarity()] + " prestatie").withStyle(RARITY_COLOR[c.rarity()]));
+			if (ok) b.addLoreLine(Ui.text(chosen ? "Selected" : "Click: use this color", chosen ? ChatFormatting.GREEN : ChatFormatting.AQUA));
+			else b.addLoreLine(Component.literal("Unlock with " + RARITY[c.rarity()] + " achievement").withStyle(RARITY_COLOR[c.rarity()]));
 			if (chosen) b.glow();
 			if (ok) b.setCallback((x, t, a, g) -> {
 				NicknamesMod.setColor(p, c);
@@ -68,20 +69,20 @@ final class NickGui extends SimpleGui {
 			this.setSlot(18 + i, b);
 		}
 		boolean boldOk = unlocked >= NicknamesMod.BOLD_RARITY;
-		this.setSlot(33, Ui.button(boldOk ? Items.ANVIL : Items.IRON_BARS, (d.bold ? "✔ " : "") + "Vetgedrukt",
+		this.setSlot(33, Ui.button(boldOk ? Items.ANVIL : Items.IRON_BARS, (d.bold ? "✔ " : "") + "Bold",
 						boldOk ? ChatFormatting.WHITE : ChatFormatting.DARK_GRAY)
-				.addLoreLine(boldOk ? Ui.text("Klik: aan/uit", ChatFormatting.AQUA)
-						: Component.literal("Ontgrendel met een epische prestatie").withStyle(ChatFormatting.LIGHT_PURPLE))
+				.addLoreLine(boldOk ? Ui.text("Click: on/off", ChatFormatting.AQUA)
+						: Component.literal("Unlock with an epic achievement").withStyle(ChatFormatting.LIGHT_PURPLE))
 				.setCallback((x, t, a, g) -> {
 					if (!boldOk) return;
 					NicknamesMod.setBold(p, !d.bold);
 					Ui.click(p);
 					open(p);
 				}));
-		this.setSlot(27, Ui.button(Items.ARROW, "Terug naar Libreria", ChatFormatting.GRAY).setCallback((x, t, a, g) -> HubGui.open(p)));
+		this.setSlot(27, Ui.button(Items.ARROW, "Back to Libreria", ChatFormatting.GRAY).setCallback((x, t, a, g) -> HubGui.open(p)));
 		Services.menu(Services.MENU_ACHIEVEMENTS).ifPresent(m -> this.setSlot(35,
-				Ui.button(Items.NETHER_STAR, "Prestaties", ChatFormatting.GOLD)
-						.addLoreLine(Ui.text("Haal er meer voor nieuwe kleuren.", ChatFormatting.GRAY))
+				Ui.button(Items.NETHER_STAR, "Achievements", ChatFormatting.GOLD)
+						.addLoreLine(Ui.text("Earn more to unlock new colors.", ChatFormatting.GRAY))
 						.setCallback((x, t, a, g) -> m.accept(p))));
 	}
 
@@ -89,10 +90,10 @@ final class NickGui extends SimpleGui {
 		NameInput(ServerPlayer p) {
 			super(p, false);
 			NicknamesMod.Data d = NicknamesMod.STORE.get(p);
-			this.setTitle(Component.literal("Typ je nickname"));
+			this.setTitle(Component.literal("Type your nickname"));
 			this.setDefaultInputValue(d.nick.isEmpty() ? p.getName().getString() : d.nick);
-			this.setSlot(1, Ui.button(Items.BARRIER, "Annuleren", ChatFormatting.RED).setCallback((i, t, a, g) -> NickGui.open(p)));
-			this.setSlot(2, Ui.button(Items.NAME_TAG, "Opslaan", ChatFormatting.GREEN).setCallback((i, t, a, g) -> {
+			this.setSlot(1, Ui.button(Items.BARRIER, "Cancel", ChatFormatting.RED).setCallback((i, t, a, g) -> NickGui.open(p)));
+			this.setSlot(2, Ui.button(Items.NAME_TAG, "Save", ChatFormatting.GREEN).setCallback((i, t, a, g) -> {
 				NicknamesMod.set(p, this.getInput());
 				NickGui.open(p);
 			}));

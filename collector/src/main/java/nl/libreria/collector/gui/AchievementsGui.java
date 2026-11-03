@@ -5,6 +5,7 @@ import eu.pb4.sgui.api.gui.SimpleGui;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -53,13 +54,13 @@ public final class AchievementsGui {
 				.addLoreLine(Ui.text(a.description(), ChatFormatting.GRAY))
 				.addLoreLine(Component.empty())
 				.addLoreLine(Component.empty().append(Ui.bar(target == 0 ? 1 : (double) cur / target, 12))
-						.append(Ui.text("  " + cur + " / " + target, done ? ChatFormatting.GREEN : ChatFormatting.WHITE)))
+						.append(Ui.text(String.format(Locale.US, "  %,d / %,d", cur, target), done ? ChatFormatting.GREEN : ChatFormatting.WHITE)))
 				.hideDefaultTooltip();
 		if (done) {
-			b.addLoreLine(Ui.text("Behaald op " + CollectorMod.date(at), ChatFormatting.DARK_GRAY));
+			b.addLoreLine(Ui.text("Earned on " + CollectorMod.date(at), ChatFormatting.DARK_GRAY));
 			b.glow();
 		}
-		if (a.isCollection()) b.addLoreLine(Ui.text("Klik: bekijk wat je hebt en wat je mist", ChatFormatting.AQUA));
+		if (a.isCollection()) b.addLoreLine(Ui.text("Click: see collected and missing items", ChatFormatting.AQUA));
 		return b;
 	}
 
@@ -74,7 +75,7 @@ public final class AchievementsGui {
 	private static final class Main extends SimpleGui {
 		Main(ServerPlayer p) {
 			super(MenuType.GENERIC_9x6, p, false);
-			this.setTitle(Component.literal("Prestaties"));
+			this.setTitle(Component.literal("Achievements"));
 			CollectorMod.Data d = CollectorMod.STORE.get(p);
 			CollectorMod.scanNow(p);
 			List<Achievement> all = Catalog.all();
@@ -82,11 +83,12 @@ public final class AchievementsGui {
 
 			this.setSlot(4, new GuiElementBuilder(Items.NETHER_STAR).glow()
 					.setName(Component.literal(p.getName().getString()).withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD))
-					.addLoreLine(Ui.kv("Punten: ", String.valueOf(CollectorMod.points(d)), ChatFormatting.YELLOW))
-					.addLoreLine(Ui.kv("Behaald: ", earnedIn(d, all) + " / " + all.size(), ChatFormatting.WHITE))
-					.addLoreLine(Ui.kv("Items verzameld: ", Catalog.countAll(d) + " / " + Catalog.allItems().size(), ChatFormatting.WHITE))
-					.addLoreLine(title == null ? Ui.kv("Titel: ", "geen", ChatFormatting.DARK_GRAY)
-							: Component.empty().append(Ui.text("Titel: ", ChatFormatting.GRAY))
+					.addLoreLine(Ui.kv("Points: ", String.format(Locale.US, "%,d", CollectorMod.points(d)), ChatFormatting.YELLOW))
+					.addLoreLine(Ui.kv("Earned: ", earnedIn(d, all) + " / " + all.size(), ChatFormatting.WHITE))
+					.addLoreLine(Ui.kv("Items collected: ", String.format(Locale.US, "%,d / %,d", Catalog.countAll(d), Catalog.allItems().size()),
+							ChatFormatting.WHITE))
+					.addLoreLine(title == null ? Ui.kv("Title: ", "none", ChatFormatting.DARK_GRAY)
+							: Component.empty().append(Ui.text("Title: ", ChatFormatting.GRAY))
 									.append(Component.literal(title.name()).withStyle(title.rarity().color))));
 
 			Item[] icons = {Items.CHEST, Items.WHEAT, Items.CLOCK, Items.IRON_SWORD};
@@ -107,15 +109,16 @@ public final class AchievementsGui {
 							new CategoryPage(p, c, 0).open();
 						}));
 			}
-			this.setSlot(24, Ui.button(Items.BOOKSHELF, "Alle items", ChatFormatting.AQUA)
-					.addLoreLine(Ui.text(Catalog.countAll(d) + " van " + Catalog.allItems().size() + " verzameld", ChatFormatting.GRAY))
-					.addLoreLine(Ui.text("Klik: wat mis je nog?", ChatFormatting.AQUA))
+			this.setSlot(24, Ui.button(Items.BOOKSHELF, "All items", ChatFormatting.AQUA)
+					.addLoreLine(Ui.text(String.format(Locale.US, "%,d of %,d collected", Catalog.countAll(d), Catalog.allItems().size()),
+							ChatFormatting.GRAY))
+					.addLoreLine(Ui.text("Click: what are you still missing?", ChatFormatting.AQUA))
 					.setCallback((x, t, a, g) -> {
 						Ui.click(p);
-						new ItemsPage(p, "Alle items", null, Catalog.allItems(), Filter.MISSING, 0, () -> AchievementsGui.open(p)).open();
+						new ItemsPage(p, "All items", null, Catalog.allItems(), Filter.MISSING, 0, () -> AchievementsGui.open(p)).open();
 					}));
-			this.setSlot(25, Ui.button(Items.NAME_TAG, "Titel kiezen", ChatFormatting.LIGHT_PURPLE)
-					.addLoreLine(Ui.text("Welke prestatie boven je naam staat.", ChatFormatting.GRAY))
+			this.setSlot(25, Ui.button(Items.NAME_TAG, "Choose title", ChatFormatting.LIGHT_PURPLE)
+					.addLoreLine(Ui.text("Pick the achievement above your name.", ChatFormatting.GRAY))
 					.setCallback((x, t, a, g) -> {
 						Ui.click(p);
 						new Titles(p, 0).open();
@@ -132,13 +135,13 @@ public final class AchievementsGui {
 				if (slot > 43) break;
 			}
 			if (recent.isEmpty()) {
-				this.setSlot(40, Ui.button(Items.PAPER, "Nog niets behaald", ChatFormatting.GRAY)
-						.addLoreLine(Ui.text("Ga op avontuur!", ChatFormatting.DARK_GRAY)));
+				this.setSlot(40, Ui.button(Items.PAPER, "Nothing earned yet", ChatFormatting.GRAY)
+						.addLoreLine(Ui.text("Go on an adventure!", ChatFormatting.DARK_GRAY)));
 			}
 
-			this.setSlot(45, Ui.button(Items.ARROW, "Terug naar Libreria", ChatFormatting.GRAY).setCallback((x, t, a, g) -> HubGui.open(p)));
+			this.setSlot(45, Ui.button(Items.ARROW, "Back to Libreria", ChatFormatting.GRAY).setCallback((x, t, a, g) -> HubGui.open(p)));
 			Services.menu(Services.MENU_STATS).ifPresent(stats -> this.setSlot(53,
-					Ui.button(Items.WRITABLE_BOOK, "Statistieken", ChatFormatting.AQUA).setCallback((x, t, a, g) -> stats.accept(p))));
+					Ui.button(Items.WRITABLE_BOOK, "Statistics", ChatFormatting.AQUA).setCallback((x, t, a, g) -> stats.accept(p))));
 		}
 	}
 
@@ -173,16 +176,16 @@ public final class AchievementsGui {
 	}
 
 	private static void nav(SimpleGui gui, ServerPlayer p, int page, int pages, Runnable back, java.util.function.IntConsumer go) {
-		if (page > 0) gui.setSlot(45, Ui.button(Items.ARROW, "Vorige pagina", ChatFormatting.WHITE).setCallback((x, t, a, g) -> go.accept(page - 1)));
-		gui.setSlot(49, Ui.button(Items.BARRIER, "Terug", ChatFormatting.GRAY).setCallback((x, t, a, g) -> back.run()));
-		if (page + 1 < pages) gui.setSlot(53, Ui.button(Items.ARROW, "Volgende pagina", ChatFormatting.WHITE).setCallback((x, t, a, g) -> go.accept(page + 1)));
-		if (pages > 1) gui.setSlot(50, new GuiElementBuilder(Items.PAPER).setName(Ui.text("Pagina " + (page + 1) + " / " + pages, ChatFormatting.GRAY)));
+		if (page > 0) gui.setSlot(45, Ui.button(Items.ARROW, "Previous page", ChatFormatting.WHITE).setCallback((x, t, a, g) -> go.accept(page - 1)));
+		gui.setSlot(49, Ui.button(Items.BARRIER, "Back", ChatFormatting.GRAY).setCallback((x, t, a, g) -> back.run()));
+		if (page + 1 < pages) gui.setSlot(53, Ui.button(Items.ARROW, "Next page", ChatFormatting.WHITE).setCallback((x, t, a, g) -> go.accept(page + 1)));
+		if (pages > 1) gui.setSlot(50, new GuiElementBuilder(Items.PAPER).setName(Ui.text("Page " + (page + 1) + " / " + pages, ChatFormatting.GRAY)));
 	}
 
 	// ---------------------------------------------------------------- items van een verzameling
 
 	enum Filter {
-		ALL("Alles"), MISSING("Wat je mist"), HAVE("Wat je hebt");
+		ALL("Everything"), MISSING("Missing"), HAVE("Collected");
 
 		final String label;
 
@@ -218,11 +221,11 @@ public final class AchievementsGui {
 				GuiElementBuilder b = GuiElementBuilder.from(st).setCount(1)
 						.setName(Component.literal((h ? "✔ " : "✘ ")).withStyle(h ? ChatFormatting.GREEN : ChatFormatting.RED)
 								.append(st.getHoverName().copy().withStyle(h ? ChatFormatting.WHITE : ChatFormatting.GRAY)))
-						.setLore(List.of(h ? Ui.text("Verzameld", ChatFormatting.GREEN) : Ui.text("Nog niet verzameld", ChatFormatting.DARK_GRAY)))
+						.setLore(List.of(h ? Ui.text("Collected", ChatFormatting.GREEN) : Ui.text("Not collected yet", ChatFormatting.DARK_GRAY)))
 						.hideDefaultTooltip();
 				if (h) {
 					b.glow();
-					Services.itemFinder().ifPresent(finder -> b.addLoreLine(Ui.text("Klik: zoek hem in je kisten", ChatFormatting.AQUA))
+					Services.itemFinder().ifPresent(finder -> b.addLoreLine(Ui.text("Click: find it in your chests", ChatFormatting.AQUA))
 							.setCallback((x, t, a, g) -> {
 								if (finder.find(p, st)) this.close();
 							}));
@@ -230,8 +233,8 @@ public final class AchievementsGui {
 				this.setSlot(i, b);
 			}
 			nav(this, p, pg, pages, back, n -> new ItemsPage(p, name, owner, ids, filter, n, back).open());
-			this.setSlot(48, Ui.button(Items.HOPPER, "Toon: " + filter.label, ChatFormatting.YELLOW)
-					.addLoreLine(Ui.text("Klik om te wisselen", ChatFormatting.GRAY))
+			this.setSlot(48, Ui.button(Items.HOPPER, "Show: " + filter.label, ChatFormatting.YELLOW)
+					.addLoreLine(Ui.text("Click to switch", ChatFormatting.GRAY))
 					.setCallback((x, t, a, g) -> {
 						Ui.click(p);
 						new ItemsPage(p, name, owner, ids, filter.next(), 0, back).open();
@@ -253,7 +256,7 @@ public final class AchievementsGui {
 			earned.sort(Comparator.<Achievement>comparingInt(a -> -a.rarity().ordinal()).thenComparing(Achievement::name));
 			int pages = Math.max(1, (earned.size() + 44) / 45);
 			int pg = Math.min(page, pages - 1);
-			this.setTitle(Component.literal("Kies je titel"));
+			this.setTitle(Component.literal("Choose your title"));
 			Achievement current = CollectorMod.titleAchievement(d);
 			for (int i = 0; i < 45; i++) {
 				int idx = pg * 45 + i;
@@ -264,7 +267,7 @@ public final class AchievementsGui {
 						.setName(Component.literal("✦ " + a.name() + " ✦").withStyle(a.rarity().color))
 						.addLoreLine(Ui.text(a.rarity().label, a.rarity().color))
 						.addLoreLine(Ui.text(a.description(), ChatFormatting.GRAY))
-						.addLoreLine(Ui.text(chosen ? "Dit is je titel" : "Klik: gebruik als titel", chosen ? ChatFormatting.GREEN : ChatFormatting.AQUA))
+						.addLoreLine(Ui.text(chosen ? "This is your title" : "Click: use as title", chosen ? ChatFormatting.GREEN : ChatFormatting.AQUA))
 						.hideDefaultTooltip();
 				if (chosen) b.glow();
 				b.setCallback((x, t, act, g) -> {
@@ -276,15 +279,15 @@ public final class AchievementsGui {
 				this.setSlot(i, b);
 			}
 			nav(this, p, pg, pages, () -> AchievementsGui.open(p), n -> new Titles(p, n).open());
-			this.setSlot(46, Ui.button(Items.NETHER_STAR, "Automatisch", d.title.isEmpty() ? ChatFormatting.GREEN : ChatFormatting.WHITE)
-					.addLoreLine(Ui.text("Altijd je zeldzaamste prestatie.", ChatFormatting.GRAY))
+			this.setSlot(46, Ui.button(Items.NETHER_STAR, "Automatic", d.title.isEmpty() ? ChatFormatting.GREEN : ChatFormatting.WHITE)
+					.addLoreLine(Ui.text("Always your rarest achievement.", ChatFormatting.GRAY))
 					.setCallback((x, t, a, g) -> {
 						d.title = "";
 						CollectorMod.STORE.markDirty(p);
 						Ui.click(p);
 						new Titles(p, pg).open();
 					}));
-			this.setSlot(47, Ui.button(Items.BARRIER, "Geen titel", "-".equals(d.title) ? ChatFormatting.GREEN : ChatFormatting.WHITE)
+			this.setSlot(47, Ui.button(Items.BARRIER, "No title", "-".equals(d.title) ? ChatFormatting.GREEN : ChatFormatting.WHITE)
 					.setCallback((x, t, a, g) -> {
 						d.title = "-";
 						CollectorMod.STORE.markDirty(p);
@@ -292,8 +295,8 @@ public final class AchievementsGui {
 						new Titles(p, pg).open();
 					}));
 			if (earned.isEmpty()) {
-				this.setSlot(22, Ui.button(Items.PAPER, "Nog geen titels", ChatFormatting.GRAY)
-						.addLoreLine(Ui.text("Haal prestaties om titels te krijgen.", ChatFormatting.DARK_GRAY)));
+				this.setSlot(22, Ui.button(Items.PAPER, "No titles yet", ChatFormatting.GRAY)
+						.addLoreLine(Ui.text("Earn achievements to unlock titles.", ChatFormatting.DARK_GRAY)));
 			}
 		}
 	}

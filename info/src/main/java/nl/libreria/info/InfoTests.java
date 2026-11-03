@@ -14,37 +14,37 @@ final class InfoTests {
 	}
 
 	static void register() {
-		SelfTests.register("info.kijk-info", level -> {
+		SelfTests.register("info.look-info", level -> {
 			FakePlayer p = FakePlayer.get(level);
 			BlockPos pos = new BlockPos(60, 120, 60);
 			CropBlock wheat = (CropBlock) Blocks.WHEAT;
 			level.setBlock(pos, wheat.getStateForAge(wheat.getMaxAge()), 2);
 			Component c = Look.describeBlock(p, level, pos, false);
-			SelfTests.check(c != null && c.getString().contains("rijp"), "rijpe tarwe: " + (c == null ? "null" : c.getString()));
+			SelfTests.check(c != null && c.getString().contains("ripe"), "ripe wheat: " + (c == null ? "null" : c.getString()));
 			level.setBlock(pos, wheat.getStateForAge(3), 2);
 			c = Look.describeBlock(p, level, pos, false);
-			SelfTests.check(c != null && c.getString().contains("groei"), "groeiende tarwe");
+			SelfTests.check(c != null && c.getString().contains("growth"), "growing wheat");
 			level.setBlock(pos, Blocks.BEE_NEST.defaultBlockState().setValue(BeehiveBlock.HONEY_LEVEL, 5), 2);
 			c = Look.describeBlock(p, level, pos, false);
-			SelfTests.check(c != null && c.getString().contains("honing"), "vol bijennest");
+			SelfTests.check(c != null && c.getString().contains("honey"), "full bee nest");
 			level.setBlock(pos, Blocks.STONE.defaultBlockState(), 2);
-			SelfTests.check(Look.describeBlock(p, level, pos, false) == null, "gewone steen: niets in 'interessant'");
-			SelfTests.check(Look.describeBlock(p, level, pos, true) != null, "gewone steen: wel in 'alles'");
+			SelfTests.check(Look.describeBlock(p, level, pos, false) == null, "plain stone: nothing in 'interesting'");
+			SelfTests.check(Look.describeBlock(p, level, pos, true) != null, "plain stone: shown in 'everything'");
 			level.setBlock(pos, Blocks.AIR.defaultBlockState(), 2);
 		});
-		SelfTests.register("info.kompas-klok-paard", level -> {
-			SelfTests.check(Held.direction(0).equals("Zuid"), "yaw 0 = zuid");
-			SelfTests.check(Held.direction(180).equals("Noord"), "yaw 180 = noord");
-			SelfTests.check(Held.direction(-90).equals("Oost"), "yaw -90 = oost");
-			SelfTests.check(Held.direction(135).equals("Noordwest"), "yaw 135 = noordwest");
+		SelfTests.register("info.compass-clock-horse", level -> {
+			SelfTests.check(Held.direction(0).equals("South"), "yaw 0 = south");
+			SelfTests.check(Held.direction(180).equals("North"), "yaw 180 = north");
+			SelfTests.check(Held.direction(-90).equals("East"), "yaw -90 = east");
+			SelfTests.check(Held.direction(135).equals("Northwest"), "yaw 135 = northwest");
 			SelfTests.check(Held.clockText(0, false).getString().contains("06:00"), "tick 0 = 06:00");
-			SelfTests.check(Held.clockText(18000, false).getString().contains("00:00"), "tick 18000 = middernacht");
-			SelfTests.check(Held.clockText(18000, false).getString().contains("slapen"), "'s nachts kun je slapen");
-			SelfTests.check(!Held.clockText(6000, false).getString().contains("slapen"), "'s middags niet");
+			SelfTests.check(Held.clockText(18000, false).getString().contains("00:00"), "tick 18000 = midnight");
+			SelfTests.check(Held.clockText(18000, false).getString().contains("sleep"), "you can sleep at night");
+			SelfTests.check(!Held.clockText(6000, false).getString().contains("sleep"), "not at noon");
 			double top = Horses.jumpHeight(1.0);
-			SelfTests.check(top > 5.1 && top < 5.4, "maximale sprong ~5,3 blokken: " + top);
-			SelfTests.check(StatsGui.time(20L * 60 * 90).equals("1 u 30 min"), "tijdnotatie");
-			SelfTests.check(StatsGui.dist(250_000).equals("2,5 km"), "afstandnotatie: " + StatsGui.dist(250_000));
+			SelfTests.check(top > 5.1 && top < 5.4, "max jump ~5.3 blocks: " + top);
+			SelfTests.check(StatsGui.time(20L * 60 * 90).equals("1 h 30 min"), "time format");
+			SelfTests.check(StatsGui.dist(250_000).equals("2.5 km"), "distance format: " + StatsGui.dist(250_000));
 		});
 	}
 }

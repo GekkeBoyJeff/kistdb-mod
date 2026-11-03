@@ -52,16 +52,16 @@ import org.jetbrains.annotations.Nullable;
  * "uit"-pakketjes die over het hoofdpakket heen gaan.
  */
 public final class GlintMod implements ModInitializer {
-	public static final Module MODULE = Module.register("glint", "Glans", Items.ENCHANTED_BOOK,
-			"Enchant-effecten op je spullen, eigen", "plaatjes per betoverd boek en deeltjes", "rond spelers. Zonder installeren.");
-	public static final Setting.Toggle PACK = MODULE.toggle("pack", "Glans-plaatjes", true, Items.ENCHANTED_BOOK,
-			"Effecten op items en eigen boek-plaatjes.", "Uitzetten = het pakket wordt weggehaald", "(je scherm laadt heel even opnieuw).");
-	public static final Setting.Toggle BOOKS = MODULE.toggle("books", "Eigen plaatjes voor boeken", true, Items.BOOK,
-			"Elk betoverd boek een eigen kaft", "met een symbool, per betovering.");
-	public static final Setting.Toggle AURA = MODULE.toggle("particles", "Deeltjes rond spelers", true, Items.BLAZE_POWDER,
-			"Vlammen, sneeuw, zielenvuur… rond", "spelers met betoverde spullen.");
-	public static final Setting.Toggle AURA_SELF = MODULE.toggle("particles_self", "Deeltjes ook bij jezelf", false, Items.GLOWSTONE_DUST,
-			"Zie je eigen deeltjes ook (kan in", "de eerste persoon wat druk zijn).");
+	public static final Module MODULE = Module.register("glint", "Glint", Items.ENCHANTED_BOOK,
+			"Enchant effects on your items, custom", "textures per enchanted book and", "particles around players. No install.");
+	public static final Setting.Toggle PACK = MODULE.toggle("pack", "Glint textures", true, Items.ENCHANTED_BOOK,
+			"Effects on items and custom book art.", "Turning it off removes the pack", "(your screen briefly reloads).");
+	public static final Setting.Toggle BOOKS = MODULE.toggle("books", "Custom book textures", true, Items.BOOK,
+			"Every enchanted book gets its own cover", "with a symbol for its enchantment.");
+	public static final Setting.Toggle AURA = MODULE.toggle("particles", "Particles around players", true, Items.BLAZE_POWDER,
+			"Flames, snow, soul fire… around", "players with enchanted gear.");
+	public static final Setting.Toggle AURA_SELF = MODULE.toggle("particles_self", "Particles on yourself too", false, Items.GLOWSTONE_DUST,
+			"Also see your own particles (can be", "a bit busy in first person).");
 
 	/** Een effect-familie uit families.json (gegenereerd door tools/glans/generate.py). */
 	public record Family(String id, String group, String name, String enchants, int items, List<String> ids) {
@@ -89,8 +89,8 @@ public final class GlintMod implements ModInitializer {
 		assetsAdded = PolymerResourcePackUtils.addModAssets("libreria_glint");
 		ensureAutoHostConfig();
 
-		MODULE.hubEntry(Items.BLAZE_POWDER, "Glans-effecten", ChatFormatting.LIGHT_PURPLE, EffectsGui::open,
-				"Kies welke enchant-effecten je ziet.");
+		MODULE.hubEntry(Items.BLAZE_POWDER, "Glint effects", ChatFormatting.LIGHT_PURPLE, EffectsGui::open,
+				"Choose which enchant effects you see.");
 
 		// Vroeg, zodat de pakketjes klaar zijn voordat de eerste speler inlogt
 		ServerLifecycleEvents.SERVER_STARTING.register(GlintMod::hostOffPacks);
@@ -133,7 +133,7 @@ public final class GlintMod implements ModInitializer {
 				for (String id : ids) BY_ENCHANT.put(id, f.id());
 			}
 		} catch (IOException ex) {
-			throw new IllegalStateException("Glans: families.json ontbreekt", ex);
+			throw new IllegalStateException("Glint: families.json is missing", ex);
 		}
 	}
 
@@ -151,20 +151,20 @@ public final class GlintMod implements ModInitializer {
 
 	// ---------------------------------------------------------------- pakketjes
 
-	/** Zet de autohost van Polymer aan (die staat standaard uit), met een Nederlandse vraag aan de speler. */
+	/** Zet de autohost van Polymer aan (die staat standaard uit), met een Engelse vraag aan de speler. */
 	private static void ensureAutoHostConfig() {
 		Path file = FabricLoader.getInstance().getConfigDir().resolve("polymer/auto-host.json");
 		if (Files.exists(file)) return;
 		JsonObject o = new JsonObject();
 		o.addProperty("enabled", true);
 		o.addProperty("required", false);
-		o.addProperty("message", "Deze server laat enchant-effecten en eigen boek-plaatjes zien met een klein resourcepack. "
-				+ "Je hoeft niets te installeren. Liever niet? Kies 'Nee', of zet het later uit via /handig.");
+		o.addProperty("message", "This server shows enchant effects and custom book textures using a small resource pack. "
+				+ "You don't need to install anything. Rather not? Choose 'No', or turn it off later in /libreria settings.");
 		try {
 			Files.createDirectories(file.getParent());
 			Files.writeString(file, new com.google.gson.GsonBuilder().setPrettyPrinting().create().toJson(o));
 		} catch (IOException e) {
-			nl.libreria.core.Libreria.LOG.warn("Glans: kon {} niet schrijven", file, e);
+			nl.libreria.core.Libreria.LOG.warn("Glint: could not write {}", file, e);
 		}
 	}
 
@@ -180,7 +180,7 @@ public final class GlintMod implements ModInitializer {
 			for (String pack : packs) {
 				Optional<Path> src = container.findPath("glint/off/" + pack + ".zip");
 				if (src.isEmpty()) {
-					nl.libreria.core.Libreria.LOG.warn("Glans: uit-pakketje {} niet gevonden in de mod", pack);
+					nl.libreria.core.Libreria.LOG.warn("Glint: off-pack {} not found in the mod", pack);
 					continue;
 				}
 				Path dst = dir.resolve(pack + ".zip");
@@ -189,9 +189,9 @@ public final class GlintMod implements ModInitializer {
 				AutoHostUtils.registerHostedFile(packId(pack), dst);
 				OFF_PACKS.put(pack, hash);
 			}
-			nl.libreria.core.Libreria.LOG.info("Glans: {} uit-pakketjes klaar", OFF_PACKS.size());
+			nl.libreria.core.Libreria.LOG.info("Glint: {} off-packs ready", OFF_PACKS.size());
 		} catch (Exception e) {
-			nl.libreria.core.Libreria.LOG.error("Glans: kon de uit-pakketjes niet klaarzetten", e);
+			nl.libreria.core.Libreria.LOG.error("Glint: could not prepare the off-packs", e);
 		}
 	}
 
@@ -239,7 +239,7 @@ public final class GlintMod implements ModInitializer {
 			return;
 		}
 		if (provider == null || !provider.isReady(p.connection.getPacketContext())) {
-			p.sendSystemMessage(Ui.prefix("Glans").append(Ui.text("Het pakket is nog niet klaar; log opnieuw in.", ChatFormatting.GRAY)));
+			p.sendSystemMessage(Ui.prefix("Glint").append(Ui.text("The pack isn't ready yet; please log in again.", ChatFormatting.GRAY)));
 			return;
 		}
 		for (var info : provider.getProperties(p.connection.getPacketContext())) {

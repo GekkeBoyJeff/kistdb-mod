@@ -23,21 +23,21 @@ import net.minecraft.world.phys.Vec3;
 import nl.libreria.chests.gui.Locate;
 import nl.libreria.chests.gui.OverviewGui;
 
-/** /kist – voor iedereen (geen op-rechten nodig). */
+/** /chest – voor iedereen (geen op-rechten nodig). */
 public final class ChestCommands {
 	private ChestCommands() {
 	}
 
 	static void register(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext context, Commands.CommandSelection selection) {
-		dispatcher.register(Commands.literal("kist")
+		dispatcher.register(Commands.literal("chest")
 				.executes(c -> {
 					OverviewGui.open(c.getSource().getPlayerOrException(), "");
 					return 1;
 				})
-				.then(Commands.literal("zoek")
+				.then(Commands.literal("search")
 						.then(Commands.argument("item", ItemArgument.item(context))
 								.executes(ChestCommands::find)))
-				.then(Commands.literal("sorteer")
+				.then(Commands.literal("sort")
 						.executes(c -> Sorter.sortPlayer(c.getSource().getPlayerOrException()) ? 1 : 0))
 				.then(Commands.literal("stop")
 						.executes(c -> {
@@ -46,7 +46,7 @@ public final class ChestCommands {
 						}))
 				.then(Commands.literal("noindex")
 						.executes(ChestCommands::noIndex))
-				.then(Commands.literal("straal")
+				.then(Commands.literal("beam")
 						.then(Commands.argument("pos", BlockPosArgument.blockPos())
 								.executes(ChestCommands::beamTo))));
 	}
@@ -65,8 +65,8 @@ public final class ChestCommands {
 		Vec3 end = eye.add(p.getLookAngle().scale(6));
 		BlockHitResult hit = level.clip(new ClipContext(eye, end, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, p));
 		if (hit.getType() != HitResult.Type.BLOCK || !Containers.isStorage(level.getBlockEntity(hit.getBlockPos()))) {
-			p.sendSystemMessage(Component.literal("[KistDB] ").withStyle(ChatFormatting.GOLD)
-					.append(Component.literal("Kijk naar een kist, ton of shulker box.").withStyle(ChatFormatting.RED)));
+			p.sendSystemMessage(Component.literal("[Chests] ").withStyle(ChatFormatting.GOLD)
+					.append(Component.literal("Look at a chest, barrel or shulker box.").withStyle(ChatFormatting.RED)));
 			return 0;
 		}
 		Tracker.toggleNoIndex(p, level, Containers.keyOf(level, hit.getBlockPos()));
@@ -79,8 +79,8 @@ public final class ChestCommands {
 		ServerLevel level = p.level();
 		Store.Entry e = Store.get(p.getUUID()).find(Store.dimId(level), Containers.keyOf(level, pos));
 		if (e == null) {
-			p.sendSystemMessage(Component.literal("[KistDB] ").withStyle(ChatFormatting.GOLD)
-					.append(Component.literal("Die kist staat niet in je KistDB.").withStyle(ChatFormatting.RED)));
+			p.sendSystemMessage(Component.literal("[Chests] ").withStyle(ChatFormatting.GOLD)
+					.append(Component.literal("That chest isn't in your chest index.").withStyle(ChatFormatting.RED)));
 			return 0;
 		}
 		Beam.to(p, level, e.pos(), null, 0);

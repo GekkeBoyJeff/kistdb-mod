@@ -18,22 +18,22 @@ import nl.libreria.core.Setting;
 /** InfoMod – een Libreria-module: kijk-info, kompas- en klok-info, paard-statistieken en een statistieken-menu. */
 public final class InfoMod implements ModInitializer {
 	public static final Module MODULE = Module.register("info", "Info", Items.SPYGLASS,
-			"Zie waar je naar kijkt, wat je kompas", "en klok zeggen, paard-statistieken", "en je eigen statistieken.");
-	public static final Setting.Choice LOOK = MODULE.choice("kijk", "Kijk-info", Items.SPYGLASS, 1,
-			new int[] {0, 1, 2}, new String[] {"Uit", "Alleen interessant", "Alles"},
-			"Toont boven je hotbar waar je naar kijkt:", "groei van gewassen, honing, kistvulling,",
-			"levens van dieren, paardwaarden…", "'Alles' toont ook gewone blokken.");
-	public static final Setting.Toggle COMPASS = MODULE.toggle("kompas", "Kompas-info", true, Items.COMPASS,
-			"Kompas in je hand: richting, coördinaten", "en bioom. Herstelkompas: afstand tot je", "sterfplek. Magneetkompas: afstand.");
-	public static final Setting.Toggle CLOCK = MODULE.toggle("klok", "Klok-info", true, Items.CLOCK,
-			"Klok in je hand: tijd van de dag, hoe lang", "tot het nacht/dag wordt en of je kunt slapen.");
-	public static final Setting.Toggle HORSE = MODULE.toggle("paard", "Paard-statistieken", true, Items.SADDLE,
-			"Snelheid, sprong en levens van paarden,", "ezels en muilezels. Sneak-rechtsklik op", "een paard voor de volledige kaart.");
+			"See what you're looking at, what your", "compass and clock say, horse stats", "and your own statistics.");
+	public static final Setting.Choice LOOK = MODULE.choice("kijk", "Look info", Items.SPYGLASS, 1,
+			new int[] {0, 1, 2}, new String[] {"Off", "Only interesting", "Everything"},
+			"Shows what you're looking at above your", "hotbar: crop growth, honey, chest slots,",
+			"animal health, horse stats…", "'Everything' also shows plain blocks.");
+	public static final Setting.Toggle COMPASS = MODULE.toggle("kompas", "Compass info", true, Items.COMPASS,
+			"Compass in hand: direction, coordinates", "and biome. Recovery compass: distance", "to your death point. Lodestone compass:", "distance to its lodestone.");
+	public static final Setting.Toggle CLOCK = MODULE.toggle("klok", "Clock info", true, Items.CLOCK,
+			"Clock in hand: time of day, how long", "until night or day, and whether", "you can sleep.");
+	public static final Setting.Toggle HORSE = MODULE.toggle("paard", "Horse stats", true, Items.SADDLE,
+			"Speed, jump and health of horses,", "donkeys and mules. Sneak-right-click", "a horse for the full card.");
 
 	@Override
 	public void onInitialize() {
-		MODULE.hubEntry(Items.WRITABLE_BOOK, "Statistieken", ChatFormatting.AQUA, StatsGui::open,
-				"Speeltijd, afstanden, kills, meest", "gemijnde blokken en meer.");
+		MODULE.hubEntry(Items.WRITABLE_BOOK, "Statistics", ChatFormatting.AQUA, StatsGui::open,
+				"Playtime, distances, kills, most", "mined blocks and more.");
 		Services.provideMenu(Services.MENU_STATS, StatsGui::open);
 
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
@@ -52,7 +52,7 @@ public final class InfoMod implements ModInitializer {
 		});
 
 		CommandRegistrationCallback.EVENT.register((dispatcher, registry, env) -> {
-			for (String name : new String[] {"statistieken", "stats"}) {
+			for (String name : new String[] {"stats", "statistics"}) {
 				dispatcher.register(Commands.literal(name).executes(ctx -> {
 					StatsGui.open(ctx.getSource().getPlayerOrException());
 					return 1;

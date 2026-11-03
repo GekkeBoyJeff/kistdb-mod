@@ -13,30 +13,30 @@ final class CoreTests {
 	}
 
 	static void register() {
-		SelfTests.register("kern.instellingen", level -> {
+		SelfTests.register("core.settings", level -> {
 			FakePlayer p = FakePlayer.get(level);
 			boolean before = Libreria.HUB_BUTTON.get(p);
 			Libreria.HUB_BUTTON.set(p, !before);
-			SelfTests.check(Libreria.HUB_BUTTON.get(p) == !before, "toggle wisselt");
+			SelfTests.check(Libreria.HUB_BUTTON.get(p) == !before, "toggle flips");
 			Libreria.HUB_BUTTON.set(p, before);
 			int idx = Libreria.GUIDE_SECONDS.index(p);
 			Libreria.GUIDE_SECONDS.cycle(p, 1);
-			SelfTests.check(Libreria.GUIDE_SECONDS.index(p) == (idx + 1) % Libreria.GUIDE_SECONDS.size(), "keuze schuift door");
+			SelfTests.check(Libreria.GUIDE_SECONDS.index(p) == (idx + 1) % Libreria.GUIDE_SECONDS.size(), "choice cycles");
 			Libreria.GUIDE_SECONDS.cycle(p, -1);
-			SelfTests.check(Libreria.GUIDE_SECONDS.get(p) == 90, "standaard 90 s");
+			SelfTests.check(Libreria.GUIDE_SECONDS.get(p) == 90, "default is 90 s");
 		});
-		SelfTests.register("kern.straal", level -> {
+		SelfTests.register("core.beam", level -> {
 			FakePlayer p = FakePlayer.get(level);
 			Guide.toPoint(p, level, new Vec3(10, 100, 10), new ItemStack(Items.COMPASS), Component.literal("Test"), 5);
-			SelfTests.check(Guide.has(p), "straal actief");
+			SelfTests.check(Guide.has(p), "beam active");
 			Guide.clear(p);
-			SelfTests.check(!Guide.has(p), "straal weg");
-			Guide.toBox(p, level, new AABB(0, 100, 0, 2, 101, 1), new ItemStack(Items.DIAMOND), Component.literal("Kist"), 3, 5);
+			SelfTests.check(!Guide.has(p), "beam cleared");
+			Guide.toBox(p, level, new AABB(0, 100, 0, 2, 101, 1), new ItemStack(Items.DIAMOND), Component.literal("Chest"), 3, 5);
 			Guide.flash(p, level, new AABB(0, 100, 0, 1, 101, 1), 0xFF0000, 10);
 			Guide.clear(p);
 			Hud.show(p, "test", Component.literal("hud"), Hud.PRIO_INFO, 20);
 			Hud.flash(p, Component.literal("flash"));
-			SelfTests.check(Hub.icon() != null && !Hub.icon().isEmpty(), "hub-icoon");
+			SelfTests.check(Hub.icon() != null && !Hub.icon().isEmpty(), "hub icon");
 		});
 	}
 }

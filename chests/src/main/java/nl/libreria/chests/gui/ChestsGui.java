@@ -35,7 +35,7 @@ public final class ChestsGui extends SimpleGui {
 		List<Search.Box> boxes = Search.boxes(player, true);
 		int pages = Math.max(1, (boxes.size() + 44) / 45);
 		this.page = Math.min(this.page, pages - 1);
-		this.setTitle(Component.literal("Mijn kisten (" + boxes.size() + ")" + (pages > 1 ? " " + (this.page + 1) + "/" + pages : "")));
+		this.setTitle(Component.literal("My chests (" + boxes.size() + ")" + (pages > 1 ? " " + (this.page + 1) + "/" + pages : "")));
 		for (int i = 0; i < 45; i++) {
 			int idx = this.page * 45 + i;
 			if (idx < boxes.size()) {
@@ -45,26 +45,26 @@ public final class ChestsGui extends SimpleGui {
 			}
 		}
 		for (int i = 45; i < 54; i++) this.clearSlot(i);
-		this.setSlot(45, Ui.button(Items.ARROW, "Terug", ChatFormatting.WHITE)
+		this.setSlot(45, Ui.button(Items.ARROW, "Back", ChatFormatting.WHITE)
 				.setCallback((index, type, action, gui) -> {
 					Ui.click(player);
 					OverviewGui.open(player, "");
 				}).build());
 		if (this.page > 0) {
-			this.setSlot(48, Ui.button(Items.ARROW, "Vorige pagina", ChatFormatting.WHITE)
+			this.setSlot(48, Ui.button(Items.ARROW, "Previous page", ChatFormatting.WHITE)
 					.setCallback((index, type, action, gui) -> {
 						this.page--;
 						rebuild();
 					}).build());
 		}
-		this.setSlot(49, Ui.button(Items.BOOK, "Uitleg", ChatFormatting.AQUA)
-				.addLoreLine(Ui.text("Klik: straal naar de kist", ChatFormatting.GRAY))
-				.addLoreLine(Ui.text("Rechtsklik: inhoud bekijken", ChatFormatting.GRAY))
-				.addLoreLine(Ui.text("Shift-klik: noIndex aan/uit", ChatFormatting.GRAY))
-				.addLoreLine(Ui.text("Q (droppen): vergeten", ChatFormatting.GRAY))
+		this.setSlot(49, Ui.button(Items.BOOK, "Help", ChatFormatting.AQUA)
+				.addLoreLine(Ui.text("Click: beam to the chest", ChatFormatting.GRAY))
+				.addLoreLine(Ui.text("Right-click: view contents", ChatFormatting.GRAY))
+				.addLoreLine(Ui.text("Shift-click: toggle noIndex", ChatFormatting.GRAY))
+				.addLoreLine(Ui.text("Q (drop): forget", ChatFormatting.GRAY))
 				.build());
 		if (this.page < pages - 1) {
-			this.setSlot(50, Ui.button(Items.ARROW, "Volgende pagina", ChatFormatting.WHITE)
+			this.setSlot(50, Ui.button(Items.ARROW, "Next page", ChatFormatting.WHITE)
 					.setCallback((index, type, action, gui) -> {
 						this.page++;
 						rebuild();
@@ -79,17 +79,17 @@ public final class ChestsGui extends SimpleGui {
 		long total = box.counts().values().stream().mapToLong(Integer::longValue).sum();
 		GuiElementBuilder b = new GuiElementBuilder(Search.blockItem(e))
 				.setName(Ui.text(Search.kind(e) + " · " + Ui.meters(box.distance()), e.noIndex ? ChatFormatting.RED : ChatFormatting.YELLOW))
-				.addLoreLine(Ui.kv("Plek: ", e.x + " " + e.y + " " + e.z, ChatFormatting.WHITE))
-				.addLoreLine(Ui.kv("Inhoud: ", total + " items, " + kinds + " soorten", ChatFormatting.GREEN));
-		if (!box.live()) b.addLoreLine(Ui.kv("Laatst gezien: ", Search.ago(e.seen), ChatFormatting.DARK_GRAY));
+				.addLoreLine(Ui.kv("Location: ", e.x + " " + e.y + " " + e.z, ChatFormatting.WHITE))
+				.addLoreLine(Ui.kv("Contents: ", total + " items, " + kinds + " types", ChatFormatting.GREEN));
+		if (!box.live()) b.addLoreLine(Ui.kv("Last seen: ", Search.ago(e.seen), ChatFormatting.DARK_GRAY));
 		b.addLoreLine(e.noIndex
-				? Ui.text("noIndex: AAN (wordt overgeslagen)", ChatFormatting.RED)
-				: Ui.text("noIndex: uit", ChatFormatting.DARK_GREEN));
+				? Ui.text("noIndex: ON (skipped)", ChatFormatting.RED)
+				: Ui.text("noIndex: off", ChatFormatting.DARK_GREEN));
 		if (!e.noIndex) b.glow();
 		b.setCallback((index, type, action, gui) -> {
 			if (type == eu.pb4.sgui.api.ClickType.DROP || type == eu.pb4.sgui.api.ClickType.CTRL_DROP) {
 				Store.remove(player.getUUID(), e);
-				Tracker.actionbar(player, Ui.text("Kist vergeten", ChatFormatting.GRAY));
+				Tracker.actionbar(player, Ui.text("Chest forgotten", ChatFormatting.GRAY));
 				rebuild();
 			} else if (type.shift) {
 				Tracker.toggleNoIndex(player, player.level(), e.pos());
@@ -110,7 +110,7 @@ public final class ChestsGui extends SimpleGui {
 		private ContentsGui(ServerPlayer player, Search.Box box) {
 			super(MenuType.GENERIC_9x6, player, false);
 			Store.Entry e = box.entry();
-			this.setTitle(Component.literal(Search.kind(e) + " op " + e.x + " " + e.y + " " + e.z + (box.live() ? "" : " (laatst gezien)")));
+			this.setTitle(Component.literal(Search.kind(e) + " at " + e.x + " " + e.y + " " + e.z + (box.live() ? "" : " (last seen)")));
 			List<ItemStack> stacks = box.stacks();
 			for (int i = 0; i < 54 && i < stacks.size(); i++) {
 				ItemStack s = stacks.get(i);
@@ -120,7 +120,7 @@ public final class ChestsGui extends SimpleGui {
 							Beam.to(player, player.level(), e.pos(), s, s.getCount());
 						}).build());
 			}
-			this.setSlot(53, Ui.button(Items.ARROW, "Terug", ChatFormatting.WHITE)
+			this.setSlot(53, Ui.button(Items.ARROW, "Back", ChatFormatting.WHITE)
 					.setCallback((index, type, action, gui) -> ChestsGui.open(player)).build());
 		}
 

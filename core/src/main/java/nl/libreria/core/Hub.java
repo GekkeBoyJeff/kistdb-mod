@@ -22,7 +22,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class Hub {
 	private static @Nullable Consumer<ServerPlayer> primary;
-	private static String primaryLabel = "Libreria-menu";
+	private static String primaryLabel = "Libreria menu";
 	private static final List<String> HINTS = new ArrayList<>();
 	private static @Nullable ItemStack icon;
 
@@ -36,7 +36,7 @@ public final class Hub {
 		icon = null;
 	}
 
-	/** Extra regel in de tooltip van de knop, bv. "In een kist: middelklik = sorteren". */
+	/** Extra regel in de tooltip van de knop, bv. "In a chest: middle-click = sort". */
 	public static void addHint(String hint) {
 		HINTS.add(hint);
 		icon = null;
@@ -45,8 +45,8 @@ public final class Hub {
 	static ItemStack icon() {
 		if (icon == null) {
 			List<Component> lore = new ArrayList<>();
-			lore.add(line("Linksklik: ", primaryLabel, ChatFormatting.YELLOW));
-			lore.add(line("Rechtsklik: ", "Libreria-menu", ChatFormatting.AQUA));
+			lore.add(line("Left-click: ", primaryLabel, ChatFormatting.YELLOW));
+			lore.add(line("Right-click: ", "Libreria menu", ChatFormatting.AQUA));
 			for (String h : HINTS) lore.add(Ui.text(h, ChatFormatting.GRAY));
 			ItemStack s = new ItemStack(Items.HOPPER);
 			s.set(DataComponents.CUSTOM_NAME, Component.literal("Libreria").withStyle(st -> st.withItalic(false).withColor(ChatFormatting.GOLD).withBold(true)));

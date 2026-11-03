@@ -1,4 +1,4 @@
-// Alleen voor de CI: start een echte server met alle modules en draait hun zelftests.
+// CI only: starts a real server with all modules and runs their self-tests.
 dependencies {
 	rootProject.subprojects.findAll { it.name != 'testserver' }.each { implementation project(it.path) }
 }

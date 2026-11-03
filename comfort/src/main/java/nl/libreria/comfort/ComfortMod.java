@@ -36,14 +36,14 @@ import org.jetbrains.annotations.Nullable;
 
 /** ComfortMod – een Libreria-module: dubbele deuren samen openen, zitten op trappen en platen, rechtsklik-oogsten. */
 public final class ComfortMod implements ModInitializer {
-	public static final Module MODULE = Module.register("comfort", "Gemak", Items.OAK_DOOR,
-			"Dubbele deuren, zitten op trappen", "en rechtsklik-oogsten.");
-	public static final Setting.Toggle DOORS = MODULE.toggle("deuren", "Dubbele deuren samen", true, Items.OAK_DOOR,
-			"Open je één deur van een dubbele deur,", "dan gaat de andere mee. Sneak = alleen deze.");
-	public static final Setting.Toggle SIT = MODULE.toggle("zitten", "Zitten op trappen en platen", true, Items.OAK_STAIRS,
-			"Rechtsklik met lege handen op een trap of", "halve plaat om te zitten. Sneak = opstaan.");
-	public static final Setting.Toggle HARVEST = MODULE.toggle("oogsten", "Rechtsklik oogsten", true, Items.WHEAT,
-			"Rechtsklik op een rijp gewas (lege hand of", "schoffel): oogsten en meteen herplanten.");
+	public static final Module MODULE = Module.register("comfort", "Comfort", Items.OAK_DOOR,
+			"Double doors, sitting on stairs", "and right-click harvesting.");
+	public static final Setting.Toggle DOORS = MODULE.toggle("deuren", "Double doors together", true, Items.OAK_DOOR,
+			"Open one door of a double door and", "the other one opens with it.", "Sneak = only this one.");
+	public static final Setting.Toggle SIT = MODULE.toggle("zitten", "Sit on stairs and slabs", true, Items.OAK_STAIRS,
+			"Right-click a stair or bottom slab with", "empty hands to sit. Sneak = stand up.");
+	public static final Setting.Toggle HARVEST = MODULE.toggle("oogsten", "Right-click harvesting", true, Items.WHEAT,
+			"Right-click a ripe crop (empty hand or", "hoe) to harvest and replant it at once.");
 
 	@Override
 	public void onInitialize() {
@@ -214,31 +214,31 @@ public final class ComfortMod implements ModInitializer {
 	// ---------------------------------------------------------------- zelftests
 
 	private static void registerTests() {
-		SelfTests.register("gemak.oogsten", level -> {
+		SelfTests.register("comfort.harvest", level -> {
 			net.fabricmc.fabric.api.entity.FakePlayer p = net.fabricmc.fabric.api.entity.FakePlayer.get(level);
 			p.getInventory().clearContent();
 			BlockPos pos = new BlockPos(40, 120, 40);
 			level.setBlock(pos.below(), nl.libreria.core.Ui.block("farmland"), 3);
 			CropBlock wheat = (CropBlock) net.minecraft.world.level.block.Blocks.WHEAT;
 			level.setBlock(pos, wheat.getStateForAge(wheat.getMaxAge()), 3);
-			SelfTests.check(harvest(p, level, pos, level.getBlockState(pos)), "rijpe tarwe geoogst");
-			SelfTests.check(wheat.getAge(level.getBlockState(pos)) == 0, "herplant op leeftijd 0");
-			SelfTests.check(!harvest(p, level, pos, level.getBlockState(pos)), "onrijp: niets");
+			SelfTests.check(harvest(p, level, pos, level.getBlockState(pos)), "ripe wheat harvested");
+			SelfTests.check(wheat.getAge(level.getBlockState(pos)) == 0, "replanted at age 0");
+			SelfTests.check(!harvest(p, level, pos, level.getBlockState(pos)), "unripe: nothing");
 			level.setBlock(pos, net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), 3);
 			level.setBlock(pos.below(), net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), 3);
 		});
-		SelfTests.register("gemak.zitten-en-deuren", level -> {
+		SelfTests.register("comfort.sit-and-doors", level -> {
 			BlockState stair = nl.libreria.core.Ui.block("oak_stairs");
-			SelfTests.check(seatPos(stair, BlockPos.ZERO) != null, "op een trap kun je zitten");
-			SelfTests.check(seatPos(stair.setValue(StairBlock.HALF, Half.TOP), BlockPos.ZERO) == null, "omgekeerde trap niet");
-			SelfTests.check(seatPos(nl.libreria.core.Ui.block("stone"), BlockPos.ZERO) == null, "steen niet");
+			SelfTests.check(seatPos(stair, BlockPos.ZERO) != null, "you can sit on a stair");
+			SelfTests.check(seatPos(stair.setValue(StairBlock.HALF, Half.TOP), BlockPos.ZERO) == null, "not on an upside-down stair");
+			SelfTests.check(seatPos(nl.libreria.core.Ui.block("stone"), BlockPos.ZERO) == null, "not on stone");
 			BlockPos a = new BlockPos(50, 120, 50);
 			BlockState door = nl.libreria.core.Ui.block("oak_door").setValue(DoorBlock.FACING, Direction.NORTH);
 			BlockPos b = a.relative(Direction.NORTH.getClockWise());
 			level.setBlock(a, door.setValue(DoorBlock.HINGE, DoorHingeSide.LEFT), 2);
 			level.setBlock(b, door.setValue(DoorBlock.HINGE, DoorHingeSide.RIGHT), 2);
-			SelfTests.check(b.equals(partnerDoor(level, a, level.getBlockState(a))), "partner van linker deur");
-			SelfTests.check(a.equals(partnerDoor(level, b, level.getBlockState(b))), "partner van rechter deur");
+			SelfTests.check(b.equals(partnerDoor(level, a, level.getBlockState(a))), "partner of left door");
+			SelfTests.check(a.equals(partnerDoor(level, b, level.getBlockState(b))), "partner of right door");
 			level.setBlock(a, net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), 2);
 			level.setBlock(b, net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), 2);
 		});

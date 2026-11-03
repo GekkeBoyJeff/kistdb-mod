@@ -21,23 +21,23 @@ public final class Locate {
 
 	public static void go(ServerPlayer player, ItemStack item, List<Search.Hit> hits) {
 		if (hits.isEmpty()) {
-			player.sendSystemMessage(Ui.prefix("KistDB").append(Ui.text("Niet gevonden in je kisten in de buurt.", ChatFormatting.RED)));
+			player.sendSystemMessage(Ui.prefix("Chests").append(Ui.text("Not found in your nearby chests.", ChatFormatting.RED)));
 			return;
 		}
 		Search.Hit near = hits.getFirst();
 		Beam.to(player, player.level(), near.entry().pos(), item, near.count());
 
 		long total = hits.stream().mapToLong(Search.Hit::count).sum();
-		player.sendSystemMessage(Ui.prefix("KistDB")
+		player.sendSystemMessage(Ui.prefix("Chests")
 				.append(Ui.text(total + "× ", ChatFormatting.GREEN))
 				.append(item.getHoverName().copy().withStyle(ChatFormatting.WHITE))
-				.append(Ui.text(" in " + hits.size() + (hits.size() == 1 ? " kist:" : " kisten:"), ChatFormatting.GRAY)));
+				.append(Ui.text(" in " + hits.size() + (hits.size() == 1 ? " chest:" : " chests:"), ChatFormatting.GRAY)));
 		int max = Math.min(5, hits.size());
 		for (int i = 0; i < max; i++) {
 			player.sendSystemMessage(line(hits.get(i), i == 0));
 		}
 		if (hits.size() > max) {
-			player.sendSystemMessage(Ui.text("   … en nog " + (hits.size() - max) + " (zie /kist)", ChatFormatting.DARK_GRAY));
+			player.sendSystemMessage(Ui.text("   … and " + (hits.size() - max) + " more (see /chest)", ChatFormatting.DARK_GRAY));
 		}
 	}
 
@@ -45,16 +45,16 @@ public final class Locate {
 		var e = hit.entry();
 		MutableComponent c = Ui.text(target ? " ➜ " : " • ", target ? ChatFormatting.AQUA : ChatFormatting.DARK_GRAY)
 				.append(Ui.text(hit.count() + "× ", ChatFormatting.GREEN))
-				.append(Ui.text(Search.kind(e).toLowerCase() + " op ", ChatFormatting.GRAY))
+				.append(Ui.text(Search.kind(e).toLowerCase() + " at ", ChatFormatting.GRAY))
 				.append(Ui.text(Ui.meters(hit.distance()), ChatFormatting.YELLOW))
 				.append(Ui.text("  (" + e.x + " " + e.y + " " + e.z + ")", ChatFormatting.GRAY));
 		if (!hit.live()) {
-			c.append(Ui.text("  laatst gezien " + Search.ago(e.seen), ChatFormatting.DARK_GRAY));
+			c.append(Ui.text("  last seen " + Search.ago(e.seen), ChatFormatting.DARK_GRAY));
 		}
 		if (!target) {
 			c.withStyle(st -> st
-					.withClickEvent(new ClickEvent.RunCommand("/kist straal " + e.x + " " + e.y + " " + e.z))
-					.withHoverEvent(new HoverEvent.ShowText(Component.literal("Klik: straal naar deze kist"))));
+					.withClickEvent(new ClickEvent.RunCommand("/chest beam " + e.x + " " + e.y + " " + e.z))
+					.withHoverEvent(new HoverEvent.ShowText(Component.literal("Click: beam to this chest"))));
 		}
 		return c;
 	}

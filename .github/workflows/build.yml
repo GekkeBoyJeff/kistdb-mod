@@ -23,7 +23,7 @@ jobs:
           chmod +x ./gradlew
           set -o pipefail
           ./gradlew build --continue --stacktrace --no-daemon 2>&1 | tee build.log
-      - name: smoke test (echte 26.3-server starten)
+      - name: smoke test (start a real 26.3 server)
         id: smoke
         if: steps.build.outcome == 'success'
         continue-on-error: true
@@ -66,5 +66,5 @@ jobs:
       - uses: actions/upload-artifact@v7
         if: steps.build.outcome == 'success'
         with:
-          name: Handig
+          name: Libreria
           path: out/*.jar

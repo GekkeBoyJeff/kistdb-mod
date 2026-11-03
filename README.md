@@ -1,69 +1,67 @@
-# Handig – een server-side modframework voor Minecraft 26.3 (Fabric)
+# Libreria – a server-side mod framework for Minecraft 26.3 (Fabric)
 
-Handig is een set kleine mods die samen één geheel vormen. Alles draait **alleen op de server**: spelers joinen met een
-gewone Minecraft-client en installeren niets. Knoppen, menu's, stralen en zwevende tekst werken via slimme trucs met
-gewone vanilla-schermen en virtuele entities. Het Glans-pakket stuurt de server zelf mee.
+Libreria is a collection of small quality-of-life mods that work together as one framework. Everything runs **on the
+server only**: players join with a plain vanilla client and install nothing. Buttons, menus, beams and floating text are
+built from vanilla screens and virtual entities, and the Glint resource pack is hosted and sent by the server itself.
 
-Je kiest zelf welke modules je installeert. Ze werken los van elkaar, en als ze samen draaien vullen ze elkaar aan.
-Voorbeelden: klik in je verzameling op een item en KistDB wijst de kist aan waar het ligt. Je prestaties bepalen
-hoeveel chunks je mag claimen en welke kleuren je nickname mag hebben. Graf zet zijn regel in het sterfbericht van
-Wegwijzer.
+Pick the modules you want. Each works on its own, and together they complement each other. A few examples:
+- Click a collected item in your Collector menu and Chests beams you to the chest it is in.
+- Your achievements decide how many chunks you can claim and which colors your nickname may use.
+- Graves adds its line to the Waypoints death message.
 
-## Installeren
+## Installation
 
-1. Zet in de `mods`-map van je server:
-   - **Fabric API** voor 26.3
-   - **handig-kern-1.0.0.jar** (verplicht; bevat ook sgui en Polymer)
-   - de modules die je wilt (zie hieronder)
-2. Gebruikte je eerder de losse **KistDB**-mod? Haal die oude jar weg. `handig-kistdb-1.1.0.jar` vervangt hem, en je
-   kistdata blijft gewoon bewaard.
-3. Start de server. Spelers openen alles via **`/handig`**, of door met de **knop in het crafting-uitvak** van hun
-   inventory te klikken: linksklik = sorteren, rechtsklik = het Handig-menu.
-   Instellingen per speler staan onder **`/opties`**.
+1. Put these in your server's `mods` folder:
+   - **Fabric API** for 26.3
+   - **libreria-core-1.0.0.jar** (required; also bundles sgui and Polymer)
+   - the modules you want (see below)
+2. If you used the old standalone **KistDB** mod, remove that jar. `libreria-chests` replaces it, and your chest data
+   moves along automatically from `world/kistdb` to `world/libreria/chests`.
+3. Start the server. Players open everything with **`/libreria`** (or `/lib`), or with the **button in the crafting
+   output slot** of their inventory: left-click sorts, right-click opens the Libreria menu.
+   Per-player settings are under **`/libreria settings`**.
 
 ## Modules
 
-| Jar | Wat het doet | Commando's |
+| Jar | What it does | Commands |
 |---|---|---|
-| **handig-kern** | Menu, instellingen per speler, stralen naar plekken, HUD-regel, naamplaatjes, opslag | `/handig`, `/opties` |
-| **handig-kistdb** | Database van je kisten: zoeken (met straal en afstand), sorteren (knop, middelklik of dubbelklik in kisten), snel opbergen, noIndex per kist (sneak + linksklik) | `/kist`, `/kist zoek`, `/kist sorteer`, `/kist noindex` |
-| **handig-gereedschap** | Wisselt automatisch naar je volgende tool voordat de huidige breekt (instelbare grens, standaard mogen tools breken), durability altijd in beeld, blokken en eten bijvullen, waarschuwing bij bijna kapot harnas en een volle inventory | – |
-| **handig-wegwijzer** | Waypoints met straal, je laatste sterfplek met een klikbare melding | `/punt`, `/punt zet <naam>`, `/punt ga <naam>`, `/sterfplek` |
-| **handig-info** | Kijk-info (groei, honing, kistvulling, levens, paardwaarden…), kompas/klok-info in je hand, paard-statistieken (sneak + rechtsklik), een statistieken-menu met top-lijstjes | `/statistieken`, `/stats` |
-| **handig-gemak** | Dubbele deuren gaan samen open, zitten op trappen en halve platen, rechtsklik-oogsten met herplanten | – |
-| **handig-graf** | *Opt-in, standaard uit.* Je spullen gaan bij doodgaan in een virtueel graf (explosie- en lavabestendig, alleen voor jou) en komen terug in dezelfde vakken | `/graf`, `/graf straal` |
-| **handig-verzamelaar** | Prestaties zonder beloningen: 27 verzamelingen ("x van x"), mijlpalen tot *Item Completionist*, fokken (ook dorpelingen en genezen), speeltijd, avontuur. Zes zeldzaamheden met kleuren. Je titel zweeft boven je naam | `/prestaties`, `/titel` |
-| **handig-naam** | Nicknames boven je hoofd, in de tablijst en in de chat (echte naam in de hover). Kleuren ontgrendel je met prestaties | `/nick`, `/nick <naam>`, `/nick reset` |
-| **handig-gebied** | Chunks claimen via een kaart-GUI. Je budget groeit met speeltijd en prestatiepunten. Bescherming tegen bouwen, kisten openen en dieren aanraken; vertrouwde spelers; deuren voor bezoekers instelbaar | `/gebied`, `/gebied claim`, `/gebied vrij`, `/gebied vertrouw <speler>`, `/gebied beheer` (op) |
-| **handig-glans** | Geanimeerde enchant-effecten op wapens, gereedschap en harnas: elke betovering heeft er een, 32 soorten (vlammen, bubbels, sneeuw, bliksem…). Een eigen plaatje per betoverd boek, deeltjes rond spelers met betoverde spullen. Per speler en per effect aan/uit | via `/handig` → Glans-effecten |
+| **libreria-core** | Menu, per-player settings, beams to locations, shared action-bar line, name plates, storage | `/libreria`, `/lib`, `/libreria settings` |
+| **libreria-chests** | An index of your chests: search (with beam and distance), sorting (button, or middle-click/double-click in chests), quick stack, and noIndex per chest (sneak + left-click) | `/chest`, `/chest search`, `/chest sort`, `/chest noindex` |
+| **libreria-tools** | Switches to your next tool before the current one breaks (adjustable threshold; by default tools may break), always-visible durability, refills blocks and food, and warns about nearly broken armor and a full inventory | – |
+| **libreria-waypoints** | Waypoints with a beam, and your last death point with a clickable message | `/waypoint` (`/wp`), `/waypoint set <name>`, `/waypoint go <name>`, `/deathpoint` |
+| **libreria-info** | Look info (crop growth, honey, chest fill, health, horse stats…), compass and clock info in your hand, horse stats card (sneak + right-click), and a statistics menu with top lists | `/stats`, `/statistics` |
+| **libreria-comfort** | Double doors open together, sit on stairs and slabs, and right-click harvesting with automatic replanting | – |
+| **libreria-graves** | *Opt-in, off by default.* When you die, your items go into a virtual grave: explosion- and lava-proof, only you can open it, and everything returns to the same slots | `/grave`, `/grave beam` |
+| **libreria-collector** | Achievements without rewards: 27 collections ("x of y"), milestones up to *Item Completionist*, breeding (villagers and curing included), playtime and adventure. Six rarities with colors, and your chosen title floats above your name | `/achievements`, `/collection`, `/titles` |
+| **libreria-nicknames** | Nicknames above your head, in the tab list and in chat (real name on hover). Colours unlock with achievements | `/nick`, `/nick <name>`, `/nick reset` |
+| **libreria-claims** | Claim chunks from a map GUI. Your budget grows with playtime and achievement points. Protects against building, opening containers and touching animals; trusted players; doors for visitors are configurable | `/claim`, `/claim here`, `/claim release`, `/claim trust <player>`, `/claim untrust <player>`, `/claim admin` (ops) |
+| **libreria-glint** | Animated enchantment effects on weapons, tools and armor. Every enchantment has one, in 32 effect types (flames, bubbles, frost, lightning…). Also a custom texture per enchanted book, and particles around players with enchanted gear. Toggle per player and per effect | via `/libreria` → Glint effects |
 
-## Glans en het resourcepack
+## Glint and the resource pack
 
-Glans bouwt bij het starten van de server automatisch een resourcepack en host het zelf, op dezelfde poort als de
-server (via Polymer AutoHost). Spelers krijgen bij het joinen één keer de vraag of ze het willen gebruiken. Kies je
-"Nee", dan speel je gewoon verder met de vanilla look.
+When the server starts, Glint builds a resource pack and hosts it itself, on the same port as the server (via Polymer
+AutoHost). Players are asked once when they join whether to use it. Anyone who picks "No" just plays on with the
+vanilla look.
 
-- De eerste keer schrijft Glans `config/polymer/auto-host.json` met `enabled: true` en `required: false`. Wil je het
-  pakket verplicht maken, zet dan `required` op `true`.
-- Per speler: `/opties` → Glans (pakket, boeken, deeltjes), of `/handig` → Glans-effecten (per effect). Wisselen laadt het
-  scherm van de speler heel even opnieuw.
-- Zit je server achter een proxy of een host die maar één poort doorlaat, dan werkt de standaardinstelling van AutoHost
-  meestal gewoon. Zie anders de Polymer-documentatie over `auto-host.json`.
+- On first start, Glint writes `config/polymer/auto-host.json` with `enabled: true` and `required: false`. Set
+  `required` to `true` if you want to make the pack mandatory.
+- Per player: `/libreria settings` → Glint (pack, books, particles), or `/libreria` → Glint effects (per effect).
+  Switching makes the player's screen reload briefly.
 
-De plaatjes worden gemaakt door `tools/glans/generate.py` (alleen nodig als je effecten wilt aanpassen):
+The textures are generated by `scripts/glint/generate.py`. You only need it to change the effects:
 
 ```
-python3 tools/glans/generate.py <vanilla 26.3 assets/minecraft> glans/src/main/resources
+python3 scripts/glint/generate.py <vanilla 26.3 assets/minecraft> glint/src/main/resources
 ```
 
-## Bouwen
+## Building
 
-Elke push bouwt alles met GitHub Actions. Daarna start de CI een echte server met alle modules en draait de
-zelftests (`HANDIG-SELFTEST OK`). De jars, logs en het gegenereerde resourcepack komen op de branch `ci-out`.
+Every push builds everything with GitHub Actions. CI then starts a real server with all modules and runs the self-tests
+(`LIBRERIA-SELFTEST OK`). The jars, logs and the generated resource pack are published to the `ci-out` branch.
 
-Lokaal: `./gradlew build` (Java 25). De jars staan daarna in `<module>/build/libs/`.
+Locally: `./gradlew build` (Java 25). The jars end up in `<module>/build/libs/`.
 
-## Opslag
+## Storage
 
-Alles staat in de wereldmap onder `handig/` (instellingen, verzamelaar, graven, gebieden, nicknames…) en `kistdb/`.
-Het zijn leesbare JSON-bestanden.
+Everything lives in the world folder under `libreria/` (settings, chests, collector, graves, claims, nicknames…), as
+readable JSON files.

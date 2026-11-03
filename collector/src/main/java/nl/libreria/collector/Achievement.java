@@ -13,10 +13,10 @@ public record Achievement(String id, Category category, String name, String desc
 		Goal goal, @Nullable List<String> items) {
 
 	public enum Category {
-		VERZAMELEN("Verzamelen", "Items die je ooit in je inventory had"),
-		FOKKEN("Fokken", "Dieren en dorpelingen"),
-		TIJD("Speeltijd", "Tijd op de server"),
-		AVONTUUR("Avontuur", "Mijnen, vechten, reizen…");
+		VERZAMELEN("Collecting", "Items you ever had in your inventory"),
+		FOKKEN("Breeding", "Animals and villagers"),
+		TIJD("Playtime", "Time on the server"),
+		AVONTUUR("Adventure", "Mining, fighting, traveling…");
 
 		public final String label;
 		public final String hint;

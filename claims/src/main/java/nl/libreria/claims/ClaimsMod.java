@@ -54,8 +54,8 @@ import org.jetbrains.annotations.Nullable;
  * aanraken. Deuren, knoppen en hendels mogen bezoekers standaard wel gebruiken (per eigenaar in te stellen).
  */
 public final class ClaimsMod implements ModInitializer {
-	public static final Module MODULE = Module.register("claims", "Gebied", Items.GOLDEN_SHOVEL,
-			"Claim chunks via een kaart. Je budget", "groeit met speeltijd en prestaties.");
+	public static final Module MODULE = Module.register("claims", "Claims", Items.GOLDEN_SHOVEL,
+			"Claim chunks from a map. Your budget", "grows with playtime and achievements.");
 
 	/** Budget: basis + per speeluur + per prestatiepunt. */
 	static final int BASE = 4;
@@ -87,8 +87,8 @@ public final class ClaimsMod implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-		MODULE.hubEntry(Items.FILLED_MAP, "Gebied (claims)", ChatFormatting.GREEN, MapGui::open,
-				"Kaart van de chunks om je heen.", "Klik om te claimen of vrij te geven.");
+		MODULE.hubEntry(Items.FILLED_MAP, "Claims (map)", ChatFormatting.GREEN, MapGui::open,
+				"Map of the chunks around you.", "Click to claim or release.");
 
 		PlayerBlockBreakEvents.BEFORE.register((world, player, pos, state, be) ->
 				!(player instanceof ServerPlayer sp) || allowed(sp, world, pos, Action.BUILD));
@@ -130,38 +130,38 @@ public final class ClaimsMod implements ModInitializer {
 		});
 
 		CommandRegistrationCallback.EVENT.register((dispatcher, registry, env) -> dispatcher.register(
-				Commands.literal("gebied").executes(ctx -> {
+				Commands.literal("claim").executes(ctx -> {
 					MapGui.open(ctx.getSource().getPlayerOrException());
 					return 1;
-				}).then(Commands.literal("claim").executes(ctx -> {
+				}).then(Commands.literal("here").executes(ctx -> {
 					ServerPlayer p = ctx.getSource().getPlayerOrException();
 					claim(p, p.level(), p.chunkPosition());
 					return 1;
-				})).then(Commands.literal("vrij").executes(ctx -> {
+				})).then(Commands.literal("release").executes(ctx -> {
 					ServerPlayer p = ctx.getSource().getPlayerOrException();
 					unclaim(p, p.level(), p.chunkPosition());
 					return 1;
-				})).then(Commands.literal("beheer").executes(ctx -> {
+				})).then(Commands.literal("admin").executes(ctx -> {
 					ServerPlayer p = ctx.getSource().getPlayerOrException();
 					if (!ctx.getSource().getServer().getPlayerList().isOp(p.nameAndId())) {
-						msg(p, "Alleen voor operators.", ChatFormatting.RED);
+						msg(p, "Operators only.", ChatFormatting.RED);
 						return 0;
 					}
-					msg(p, Admin.toggle(p) ? "Beheermodus aan: je kunt overal bouwen." : "Beheermodus uit.", ChatFormatting.GOLD);
+					msg(p, Admin.toggle(p) ? "Admin mode on: you can build anywhere." : "Admin mode off.", ChatFormatting.GOLD);
 					return 1;
-				})).then(Commands.literal("vertrouw").then(Commands.argument("speler", StringArgumentType.word()).executes(ctx -> {
+				})).then(Commands.literal("trust").then(Commands.argument("player", StringArgumentType.word()).executes(ctx -> {
 					ServerPlayer p = ctx.getSource().getPlayerOrException();
-					ServerPlayer other = ctx.getSource().getServer().getPlayerList().getPlayerByName(StringArgumentType.getString(ctx, "speler"));
-					if (other == null) p.sendSystemMessage(Ui.prefix("Gebied").append(Ui.text("Die speler is niet online.", ChatFormatting.RED)));
+					ServerPlayer other = ctx.getSource().getServer().getPlayerList().getPlayerByName(StringArgumentType.getString(ctx, "player"));
+					if (other == null) p.sendSystemMessage(Ui.prefix("Claims").append(Ui.text("That player isn't online.", ChatFormatting.RED)));
 					else trust(p, other.getUUID(), other.getName().getString(), true);
 					return 1;
-				}))).then(Commands.literal("wantrouw").then(Commands.argument("speler", StringArgumentType.word()).executes(ctx -> {
+				}))).then(Commands.literal("untrust").then(Commands.argument("player", StringArgumentType.word()).executes(ctx -> {
 					ServerPlayer p = ctx.getSource().getPlayerOrException();
-					String name = StringArgumentType.getString(ctx, "speler");
+					String name = StringArgumentType.getString(ctx, "player");
 					Owner o = owner(p.getUUID());
 					o.trusted.entrySet().removeIf(e -> e.getValue().equalsIgnoreCase(name));
 					STORE.markDirty();
-					p.sendSystemMessage(Ui.prefix("Gebied").append(Ui.text(name + " kan niet meer bouwen in je gebied.", ChatFormatting.GRAY)));
+					p.sendSystemMessage(Ui.prefix("Claims").append(Ui.text(name + " can no longer build in your claims.", ChatFormatting.GRAY)));
 					return 1;
 				})))));
 
@@ -207,13 +207,13 @@ public final class ClaimsMod implements ModInitializer {
 	static boolean claim(ServerPlayer p, ServerLevel level, ChunkPos c) {
 		Claim existing = claimAt(level, c);
 		if (existing != null) {
-			msg(p, existing.owner.equals(p.getUUID()) ? "Deze chunk is al van jou." : "Deze chunk is van " + existing.ownerName + ".",
+			msg(p, existing.owner.equals(p.getUUID()) ? "This chunk is already yours." : "This chunk belongs to " + existing.ownerName + ".",
 					ChatFormatting.GRAY);
 			return false;
 		}
 		int have = owned(p.getUUID()), max = budget(p);
 		if (have >= max) {
-			msg(p, "Je budget is op (" + have + "/" + max + "). Speel meer of haal prestaties voor extra chunks.", ChatFormatting.RED);
+			msg(p, "Your budget is used up (" + have + "/" + max + "). Play more or earn achievements for extra chunks.", ChatFormatting.RED);
 			return false;
 		}
 		Claim cl = new Claim();
@@ -224,7 +224,7 @@ public final class ClaimsMod implements ModInitializer {
 		STORE.saveNow();
 		showBorder(p, level, c, 0x55FF55);
 		Ui.sound(p, net.minecraft.sounds.SoundEvents.PLAYER_LEVELUP, 0.5f, 1.6f);
-		Hud.flash(p, Component.literal("✔ Chunk geclaimd (" + (have + 1) + "/" + max + ")").withStyle(ChatFormatting.GREEN));
+		Hud.flash(p, Component.literal("✔ Chunk claimed (" + (have + 1) + "/" + max + ")").withStyle(ChatFormatting.GREEN));
 		LAST.remove(p.getUUID());
 		return true;
 	}
@@ -232,13 +232,13 @@ public final class ClaimsMod implements ModInitializer {
 	static boolean unclaim(ServerPlayer p, ServerLevel level, ChunkPos c) {
 		Claim existing = claimAt(level, c);
 		if (existing == null || !existing.owner.equals(p.getUUID())) {
-			msg(p, "Deze chunk is niet van jou.", ChatFormatting.GRAY);
+			msg(p, "This chunk isn't yours.", ChatFormatting.GRAY);
 			return false;
 		}
 		STORE.get().claims.remove(key(level, c));
 		STORE.saveNow();
 		showBorder(p, level, c, 0xFF5555);
-		Hud.flash(p, Component.literal("Chunk vrijgegeven").withStyle(ChatFormatting.GOLD));
+		Hud.flash(p, Component.literal("Chunk released").withStyle(ChatFormatting.GOLD));
 		LAST.remove(p.getUUID());
 		return true;
 	}
@@ -248,7 +248,7 @@ public final class ClaimsMod implements ModInitializer {
 		if (on) o.trusted.put(other, name);
 		else o.trusted.remove(other);
 		STORE.markDirty();
-		msg(p, on ? name + " kan nu bouwen in al je chunks." : name + " kan niet meer bouwen in je gebied.", on ? ChatFormatting.GREEN : ChatFormatting.GRAY);
+		msg(p, on ? name + " can now build in all your chunks." : name + " can no longer build in your claims.", on ? ChatFormatting.GREEN : ChatFormatting.GRAY);
 	}
 
 	/** Laat de rand van een chunk even oplichten (alleen voor jou). */
@@ -285,7 +285,7 @@ public final class ClaimsMod implements ModInitializer {
 
 	private static InteractionResult deny(ServerPlayer p) {
 		Claim c = claimAt(p.level(), p.chunkPosition());
-		Hud.flash(p, Component.literal("✋ Dit gebied is van " + (c != null ? c.ownerName : "iemand anders")).withStyle(ChatFormatting.RED));
+		Hud.flash(p, Component.literal("✋ This land belongs to " + (c != null ? c.ownerName : "someone else")).withStyle(ChatFormatting.RED));
 		// De client denkt soms dat het gelukt is: alles opnieuw sturen
 		p.containerMenu.broadcastFullState();
 		return InteractionResult.FAIL;
@@ -296,16 +296,16 @@ public final class ClaimsMod implements ModInitializer {
 		String now = c == null ? "" : c.owner.toString();
 		String before = LAST.put(p.getUUID(), now);
 		if (before == null || before.equals(now)) return;
-		if (c == null) Hud.show(p, "gebied", Component.literal("☘ Wildernis").withStyle(ChatFormatting.DARK_GREEN), Hud.PRIO_WARNING, 40);
-		else Hud.show(p, "gebied", Component.literal("⚑ Gebied van " + c.ownerName).withStyle(
+		if (c == null) Hud.show(p, "claims", Component.literal("☘ Wilderness").withStyle(ChatFormatting.DARK_GREEN), Hud.PRIO_WARNING, 40);
+		else Hud.show(p, "claims", Component.literal("⚑ Claimed by " + c.ownerName).withStyle(
 				c.owner.equals(p.getUUID()) ? ChatFormatting.GREEN : ChatFormatting.GOLD), Hud.PRIO_WARNING, 40);
 	}
 
 	static void msg(ServerPlayer p, String text, ChatFormatting color) {
-		p.sendSystemMessage(Ui.prefix("Gebied").append(Ui.text(text, color)));
+		p.sendSystemMessage(Ui.prefix("Claims").append(Ui.text(text, color)));
 	}
 
-	/** Operators kunnen met /gebied beheer tijdelijk overal bouwen. */
+	/** Operators kunnen met /claim admin tijdelijk overal bouwen. */
 	static final class Admin {
 		private static final java.util.Set<UUID> ON = new java.util.HashSet<>();
 

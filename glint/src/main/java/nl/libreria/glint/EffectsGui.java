@@ -30,7 +30,7 @@ final class EffectsGui extends SimpleGui {
 
 	private EffectsGui(ServerPlayer p) {
 		super(MenuType.GENERIC_9x6, p, false);
-		this.setTitle(Component.literal("Glans – effecten"));
+		this.setTitle(Component.literal("Glint – effects"));
 		build();
 	}
 
@@ -49,11 +49,11 @@ final class EffectsGui extends SimpleGui {
 					.setName(Component.literal((on ? "✔ " : "✘ ") + f.name()).withStyle(on ? ChatFormatting.GREEN : ChatFormatting.GRAY))
 					.addLoreLine(Ui.text(f.enchants(), ChatFormatting.LIGHT_PURPLE))
 					.addLoreLine(Ui.text(switch (f.group()) {
-						case "A" -> "Rondom het item";
-						case "B" -> "Over het item heen";
-						default -> "Losse deeltjes";
+						case "A" -> "Around the item";
+						case "B" -> "Overlay on the item";
+						default -> "Floating particles";
 					}, ChatFormatting.DARK_GRAY))
-					.addLoreLine(Ui.text(on ? "Klik: uitzetten" : "Klik: aanzetten", ChatFormatting.AQUA))
+					.addLoreLine(Ui.text(on ? "Click: turn off" : "Click: turn on", ChatFormatting.AQUA))
 					.hideDefaultTooltip();
 			if (on) b.glow();
 			b.setCallback((i, t, a, g) -> {
@@ -63,24 +63,25 @@ final class EffectsGui extends SimpleGui {
 			});
 			this.setSlot(slot++, b);
 		}
-		this.setSlot(45, Ui.button(Items.ARROW, "Terug naar Libreria", ChatFormatting.GRAY).setCallback((i, t, a, g) -> HubGui.open(p)));
-		this.setSlot(47, Ui.button(Ui.item("lime_dye"), "Alles aan", ChatFormatting.GREEN)
+		this.setSlot(45, Ui.button(Items.ARROW, "Back to Libreria", ChatFormatting.GRAY).setCallback((i, t, a, g) -> HubGui.open(p)));
+		this.setSlot(47, Ui.button(Ui.item("lime_dye"), "All on", ChatFormatting.GREEN)
 				.setCallback((i, t, a, g) -> {
 					for (String f : GlintMod.FAMILIES.keySet()) GlintMod.setEnabled(p, f, true);
 					open(p);
 				}));
-		this.setSlot(48, Ui.button(Ui.item("gray_dye"), "Alles uit", ChatFormatting.GRAY)
+		this.setSlot(48, Ui.button(Ui.item("gray_dye"), "All off", ChatFormatting.GRAY)
 				.setCallback((i, t, a, g) -> {
 					for (String f : GlintMod.FAMILIES.keySet()) GlintMod.setEnabled(p, f, false);
 					open(p);
 				}));
-		this.setSlot(50, Ui.button(Items.COMPARATOR, "Pakket, boeken en deeltjes", ChatFormatting.WHITE)
-				.addLoreLine(Ui.text("Instellingen → Glans", ChatFormatting.GRAY))
+		this.setSlot(50, Ui.button(Items.COMPARATOR, "Pack, books and particles", ChatFormatting.WHITE)
+				.addLoreLine(Ui.text("Settings → Glint", ChatFormatting.GRAY))
 				.setCallback((i, t, a, g) -> SettingsGui.open(p)));
-		this.setSlot(53, Ui.button(Items.BOOK, "Uitleg", ChatFormatting.YELLOW)
-				.addLoreLine(Ui.text("Effecten verschijnen op betoverde wapens,", ChatFormatting.GRAY))
-				.addLoreLine(Ui.text("gereedschap en harnas (in je inventory en", ChatFormatting.GRAY))
-				.addLoreLine(Ui.text("in je hand), plus deeltjes rond spelers.", ChatFormatting.GRAY))
-				.addLoreLine(Ui.text("Wisselen laadt je scherm heel even opnieuw.", ChatFormatting.DARK_GRAY)));
+		this.setSlot(53, Ui.button(Items.BOOK, "How it works", ChatFormatting.YELLOW)
+				.addLoreLine(Ui.text("Effects show on enchanted weapons,", ChatFormatting.GRAY))
+				.addLoreLine(Ui.text("tools and armor (in your inventory", ChatFormatting.GRAY))
+				.addLoreLine(Ui.text("and in your hand), plus particles", ChatFormatting.GRAY))
+				.addLoreLine(Ui.text("around players.", ChatFormatting.GRAY))
+				.addLoreLine(Ui.text("Switching briefly reloads your screen.", ChatFormatting.DARK_GRAY)));
 	}
 }

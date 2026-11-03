@@ -26,28 +26,28 @@ import org.jetbrains.annotations.Nullable;
  * naam staat in de hover. Kleuren ontgrendel je met prestaties: hoe zeldzamer je beste prestatie, hoe meer kleuren.
  */
 public final class NicknamesMod implements ModInitializer {
-	public static final Module MODULE = Module.register("nicknames", "Naam", Items.NAME_TAG,
-			"Een nickname boven je hoofd, in de", "tablijst en in de chat. Kleuren", "ontgrendel je met prestaties.");
+	public static final Module MODULE = Module.register("nicknames", "Nicknames", Items.NAME_TAG,
+			"A nickname above your head, in the", "tab list and in chat. Unlock colors", "with achievements.");
 
 	/** Kleur + de zeldzaamheid (0 = gewoon … 5 = mythisch) die je nodig hebt. */
 	public record Color(String key, String label, @Nullable ChatFormatting format, int rarity, String dye) {
 	}
 
 	public static final List<Color> COLORS = List.of(
-			new Color("white", "Wit", ChatFormatting.WHITE, 0, "white_dye"),
-			new Color("gray", "Grijs", ChatFormatting.GRAY, 0, "light_gray_dye"),
-			new Color("green", "Groen", ChatFormatting.GREEN, 1, "lime_dye"),
-			new Color("dark_green", "Donkergroen", ChatFormatting.DARK_GREEN, 1, "green_dye"),
-			new Color("yellow", "Geel", ChatFormatting.YELLOW, 1, "yellow_dye"),
-			new Color("aqua", "Lichtblauw", ChatFormatting.AQUA, 2, "light_blue_dye"),
-			new Color("dark_aqua", "Turkoois", ChatFormatting.DARK_AQUA, 2, "cyan_dye"),
-			new Color("blue", "Blauw", ChatFormatting.BLUE, 2, "blue_dye"),
-			new Color("light_purple", "Roze", ChatFormatting.LIGHT_PURPLE, 3, "magenta_dye"),
-			new Color("dark_purple", "Paars", ChatFormatting.DARK_PURPLE, 3, "purple_dye"),
-			new Color("gold", "Goud", ChatFormatting.GOLD, 4, "orange_dye"),
-			new Color("red", "Rood", ChatFormatting.RED, 4, "red_dye"),
-			new Color("dark_red", "Donkerrood", ChatFormatting.DARK_RED, 4, "brown_dye"),
-			new Color("rainbow", "Regenboog", null, 5, "prismarine_crystals"));
+			new Color("white", "White", ChatFormatting.WHITE, 0, "white_dye"),
+			new Color("gray", "Gray", ChatFormatting.GRAY, 0, "light_gray_dye"),
+			new Color("green", "Green", ChatFormatting.GREEN, 1, "lime_dye"),
+			new Color("dark_green", "Dark Green", ChatFormatting.DARK_GREEN, 1, "green_dye"),
+			new Color("yellow", "Yellow", ChatFormatting.YELLOW, 1, "yellow_dye"),
+			new Color("aqua", "Light Blue", ChatFormatting.AQUA, 2, "light_blue_dye"),
+			new Color("dark_aqua", "Turquoise", ChatFormatting.DARK_AQUA, 2, "cyan_dye"),
+			new Color("blue", "Blue", ChatFormatting.BLUE, 2, "blue_dye"),
+			new Color("light_purple", "Pink", ChatFormatting.LIGHT_PURPLE, 3, "magenta_dye"),
+			new Color("dark_purple", "Purple", ChatFormatting.DARK_PURPLE, 3, "purple_dye"),
+			new Color("gold", "Gold", ChatFormatting.GOLD, 4, "orange_dye"),
+			new Color("red", "Red", ChatFormatting.RED, 4, "red_dye"),
+			new Color("dark_red", "Dark Red", ChatFormatting.DARK_RED, 4, "brown_dye"),
+			new Color("rainbow", "Rainbow", null, 5, "prismarine_crystals"));
 	/** Vetgedrukt kan vanaf episch. */
 	public static final int BOLD_RARITY = 3;
 
@@ -68,7 +68,7 @@ public final class NicknamesMod implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		MODULE.hubEntry(Items.NAME_TAG, "Nickname", ChatFormatting.LIGHT_PURPLE, NickGui::open,
-				"Kies een nickname en een kleur.", "Meer kleuren met zeldzamere prestaties.");
+				"Pick a nickname and a color.", "More colors with rarer achievements.");
 		Nameplate.setName(NicknamesMod::plateName);
 
 		CommandRegistrationCallback.EVENT.register((dispatcher, registry, env) -> dispatcher.register(
@@ -79,9 +79,9 @@ public final class NicknamesMod implements ModInitializer {
 					ServerPlayer p = ctx.getSource().getPlayerOrException();
 					set(p, "");
 					return 1;
-				})).then(Commands.argument("naam", StringArgumentType.greedyString()).executes(ctx -> {
+				})).then(Commands.argument("name", StringArgumentType.greedyString()).executes(ctx -> {
 					ServerPlayer p = ctx.getSource().getPlayerOrException();
-					set(p, StringArgumentType.getString(ctx, "naam"));
+					set(p, StringArgumentType.getString(ctx, "name"));
 					return 1;
 				}))));
 
@@ -98,15 +98,15 @@ public final class NicknamesMod implements ModInitializer {
 	/** @return null als de naam mag, anders de reden */
 	public static @Nullable String validate(ServerPlayer p, String nick) {
 		String n = nick.strip();
-		if (n.length() < 2) return "Minstens 2 tekens.";
-		if (n.length() > 16) return "Hooguit 16 tekens.";
-		if (!n.matches("[\\p{L}\\p{N} _.\\-']+")) return "Alleen letters, cijfers, spaties en _ . - '";
+		if (n.length() < 2) return "At least 2 characters.";
+		if (n.length() > 16) return "At most 16 characters.";
+		if (!n.matches("[\\p{L}\\p{N} _.\\-']+")) return "Only letters, numbers, spaces and _ . - '";
 		String lower = n.toLowerCase(Locale.ROOT);
 		for (ServerPlayer other : p.level().getServer().getPlayerList().getPlayers()) {
 			if (other == p) continue;
-			if (other.getName().getString().toLowerCase(Locale.ROOT).equals(lower)) return "Dat is de naam van een andere speler.";
+			if (other.getName().getString().toLowerCase(Locale.ROOT).equals(lower)) return "That's another player's name.";
 			Data od = STORE.get(other);
-			if (od.nick.toLowerCase(Locale.ROOT).equals(lower)) return "Die nickname is al in gebruik.";
+			if (od.nick.toLowerCase(Locale.ROOT).equals(lower)) return "That nickname is already taken.";
 		}
 		return null;
 	}
@@ -116,18 +116,18 @@ public final class NicknamesMod implements ModInitializer {
 		if (nick.isBlank()) {
 			d.nick = "";
 			STORE.markDirty(p);
-			p.sendSystemMessage(Ui.prefix("Naam").append(Ui.text("Je gebruikt weer je gewone naam.", ChatFormatting.GRAY)));
+			p.sendSystemMessage(Ui.prefix("Nicknames").append(Ui.text("You're back to your regular name.", ChatFormatting.GRAY)));
 			refresh(p);
 			return;
 		}
 		String why = validate(p, nick);
 		if (why != null) {
-			p.sendSystemMessage(Ui.prefix("Naam").append(Ui.text(why, ChatFormatting.RED)));
+			p.sendSystemMessage(Ui.prefix("Nicknames").append(Ui.text(why, ChatFormatting.RED)));
 			return;
 		}
 		d.nick = nick.strip();
 		STORE.markDirty(p);
-		p.sendSystemMessage(Ui.prefix("Naam").append(Ui.text("Je heet nu ", ChatFormatting.GRAY)).append(styled(p)));
+		p.sendSystemMessage(Ui.prefix("Nicknames").append(Ui.text("You're now known as ", ChatFormatting.GRAY)).append(styled(p)));
 		refresh(p);
 	}
 
@@ -194,7 +194,7 @@ public final class NicknamesMod implements ModInitializer {
 		if (nick == null) return null;
 		String real = p.getName().getString();
 		return Component.empty().append(nick).withStyle(s -> s
-				.withHoverEvent(new HoverEvent.ShowText(Component.literal("Echte naam: " + real).withStyle(ChatFormatting.GRAY)))
+				.withHoverEvent(new HoverEvent.ShowText(Component.literal("Real name: " + real).withStyle(ChatFormatting.GRAY)))
 				.withClickEvent(new ClickEvent.SuggestCommand("/tell " + real + " "))
 				.withInsertion(real));
 	}

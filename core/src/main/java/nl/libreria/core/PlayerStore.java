@@ -85,7 +85,7 @@ public final class PlayerStore<T> {
 						return value;
 					}
 				} catch (Exception e) {
-					Libreria.LOG.error("Kan {} niet lezen", file, e);
+					Libreria.LOG.error("Could not read {}", file, e);
 				}
 			}
 		}
@@ -107,7 +107,7 @@ public final class PlayerStore<T> {
 			Files.move(tmp, file, StandardCopyOption.REPLACE_EXISTING);
 			this.dirty.remove(id);
 		} catch (IOException e) {
-			Libreria.LOG.error("Kan {} niet opslaan", file, e);
+			Libreria.LOG.error("Could not save {}", file, e);
 		}
 	}
 

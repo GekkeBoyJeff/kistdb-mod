@@ -36,7 +36,7 @@ final class ChestsTests {
 	}
 
 	static void register() {
-		SelfTests.register("kistdb.dubbele-kist-en-sorteren", level -> {
+		SelfTests.register("chests.double-chest-sort", level -> {
 			BlockPos[] ab = doubleChest(level, new BlockPos(8, 120, 8));
 			BlockPos a = ab[0];
 			BlockPos b = ab[1];
@@ -53,12 +53,12 @@ final class ChestsTests {
 			SelfTests.check(b.equals(Containers.partnerOf(level, a)), "partnerOf(a)==b");
 			SelfTests.check(a.equals(Containers.keyOf(level, b)), "keyOf(b)==a");
 			List<ItemStack> read = Containers.read(level, a);
-			SelfTests.check(read != null && read.size() == 6, "6 stapels gelezen");
-			SelfTests.check(Integer.valueOf(80).equals(Containers.summarize(read).get("minecraft:stone")), "80 steen");
-			SelfTests.check(Containers.boxOf(level, a).getXsize() == 2.0, "omlijning 2 breed");
+			SelfTests.check(read != null && read.size() == 6, "6 stacks read");
+			SelfTests.check(Integer.valueOf(80).equals(Containers.summarize(read).get("minecraft:stone")), "80 stone");
+			SelfTests.check(Containers.boxOf(level, a).getXsize() == 2.0, "outline is 2 wide");
 
 			Container both = new CompoundContainer(ca, cb);
-			SelfTests.check(Sorter.sortDirect(both), "sorteren gelukt");
+			SelfTests.check(Sorter.sortDirect(both), "sort succeeded");
 			int stone = 0, pearls = 0, used = 0;
 			for (int i = 0; i < both.getContainerSize(); i++) {
 				ItemStack s = both.getItem(i);
@@ -67,16 +67,16 @@ final class ChestsTests {
 				if (s.is(Items.STONE)) stone += s.getCount();
 				if (s.is(Items.ENDER_PEARL)) {
 					pearls += s.getCount();
-					SelfTests.check(s.getCount() <= 16, "parels max 16");
+					SelfTests.check(s.getCount() <= 16, "pearls max 16");
 				}
 			}
-			SelfTests.check(stone == 80 && pearls == 20, "niets kwijt");
-			SelfTests.check(used == 6, "samengevoegd tot 6 stapels");
-			SelfTests.check(!both.getItem(0).isEmpty(), "eerste slot gevuld");
+			SelfTests.check(stone == 80 && pearls == 20, "nothing lost");
+			SelfTests.check(used == 6, "merged into 6 stacks");
+			SelfTests.check(!both.getItem(0).isEmpty(), "first slot filled");
 			clear(level, a, b);
 		});
 
-		SelfTests.register("kistdb.snel-opbergen", level -> {
+		SelfTests.register("chests.quick-stack", level -> {
 			FakePlayer p = FakePlayer.get(level);
 			BlockPos[] ab = doubleChest(level, new BlockPos(20, 120, 8));
 			BlockPos a = ab[0];
@@ -90,17 +90,17 @@ final class ChestsTests {
 
 			Store.track(p.getUUID(), level, Containers.keyOf(level, a), "minecraft:chest");
 			int moved = QuickStack.run(p);
-			SelfTests.check(moved == 30, "30 verplaatst, was " + moved);
-			SelfTests.check(p.getInventory().getItem(12).isEmpty(), "slot 12 leeg");
-			SelfTests.check(p.getInventory().getItem(13).getCount() == 5, "aarde blijft (zit niet in de kist)");
-			SelfTests.check(p.getInventory().getItem(2).getCount() == 7, "hotbar ongemoeid");
-			SelfTests.check(Integer.valueOf(40).equals(Containers.summarize(Containers.read(level, a)).get("minecraft:cobblestone")), "kist heeft 40");
+			SelfTests.check(moved == 30, "30 moved, got " + moved);
+			SelfTests.check(p.getInventory().getItem(12).isEmpty(), "slot 12 empty");
+			SelfTests.check(p.getInventory().getItem(13).getCount() == 5, "dirt stays (not in the chest)");
+			SelfTests.check(p.getInventory().getItem(2).getCount() == 7, "hotbar untouched");
+			SelfTests.check(Integer.valueOf(40).equals(Containers.summarize(Containers.read(level, a)).get("minecraft:cobblestone")), "chest has 40");
 
 			Store.Entry e = Store.get(p.getUUID()).find(Store.dimId(level), Containers.keyOf(level, a));
-			SelfTests.check(e != null, "kist in database");
+			SelfTests.check(e != null, "chest in index");
 			e.noIndex = true;
 			p.getInventory().setItem(12, new ItemStack(Items.COBBLESTONE, 3));
-			SelfTests.check(QuickStack.run(p) == 0, "noIndex-kist wordt overgeslagen");
+			SelfTests.check(QuickStack.run(p) == 0, "noIndex chest is skipped");
 			Store.remove(p.getUUID(), e);
 			p.getInventory().clearContent();
 			clear(level, ab);

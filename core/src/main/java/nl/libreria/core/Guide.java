@@ -264,7 +264,7 @@ public final class Guide {
 
 	private static void arrive(ServerPlayer player) {
 		clear(player);
-		Hud.flash(player, Component.literal("✔ Aangekomen").withStyle(ChatFormatting.GREEN, ChatFormatting.BOLD));
+		Hud.flash(player, Component.literal("✔ Arrived").withStyle(ChatFormatting.GREEN, ChatFormatting.BOLD));
 		Ui.sound(player, SoundEvents.NOTE_BLOCK_CHIME, 0.5f, 1.8f);
 	}
 

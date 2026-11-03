@@ -20,7 +20,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.storage.LevelResource;
 import org.jetbrains.annotations.Nullable;
 
-/** De kisten-database: per speler een JSON-bestand in &lt;wereld&gt;/kistdb/&lt;uuid&gt;.json. */
+/** De kisten-database: per speler een JSON-bestand in &lt;wereld&gt;/libreria/chests/&lt;uuid&gt;.json. */
 public final class Store {
 	private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 	private static final Map<UUID, PlayerData> LOADED = new HashMap<>();
@@ -84,7 +84,7 @@ public final class Store {
 			}
 			Files.createDirectories(dir);
 		} catch (IOException e) {
-			ChestsMod.LOG.error("Kan map {} niet maken", dir, e);
+			ChestsMod.LOG.error("Could not create folder {}", dir, e);
 		}
 	}
 
@@ -134,7 +134,7 @@ public final class Store {
 						return data;
 					}
 				} catch (Exception e) {
-					ChestsMod.LOG.error("Kan {} niet lezen", file, e);
+					ChestsMod.LOG.error("Could not read {}", file, e);
 				}
 			}
 		}
@@ -152,7 +152,7 @@ public final class Store {
 			Files.move(tmp, file, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
 			data.dirty = false;
 		} catch (IOException e) {
-			ChestsMod.LOG.error("Kan {} niet opslaan", file, e);
+			ChestsMod.LOG.error("Could not save {}", file, e);
 		}
 	}
 

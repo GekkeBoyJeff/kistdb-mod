@@ -25,8 +25,8 @@ public final class Beam {
 
 	private static String kindAt(ServerLevel level, BlockPos key) {
 		String id = Containers.blockId(level, key);
-		if (id.contains("barrel")) return "Ton";
+		if (id.contains("barrel")) return "Barrel";
 		if (id.contains("shulker")) return "Shulker box";
-		return "Kist";
+		return "Chest";
 	}
 }

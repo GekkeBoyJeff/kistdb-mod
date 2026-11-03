@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Libreria – de kern. Andere Libreria-mods (ChestsMod, ToolsMod, WaypointsMod, Oogst) bouwen hierop:
- * instellingen per speler (/opties), het Libreria-menu met de knop in het E-scherm, de gedeelde actiebalk
+ * instellingen per speler (/libreria settings), het Libreria-menu met de knop in het E-scherm, de gedeelde actiebalk
  * en de straal die de weg wijst.
  */
 public final class Libreria implements ModInitializer {
@@ -27,12 +27,12 @@ public final class Libreria implements ModInitializer {
 	public static final Logger LOG = LoggerFactory.getLogger("Libreria");
 
 	public static final Module MODULE = Module.register("libreria", "Libreria (general)", Items.HOPPER,
-			"Algemene instellingen van Libreria.");
-	public static final Setting.Toggle HUB_BUTTON = MODULE.toggle("knop", "Knop in het E-scherm", true, Items.HOPPER,
-			"Het gloeiende Libreria-icoon in het", "crafting-uitvak van je inventory.");
-	public static final Setting.Choice GUIDE_SECONDS = MODULE.choice("straal", "Hoe lang de straal blijft", Items.SPECTRAL_ARROW, 1,
-			new int[]{45, 90, 180, 300}, new String[]{"45 seconden", "90 seconden", "3 minuten", "5 minuten"},
-			"De straal stopt ook als je er bent.");
+			"General Libreria settings.");
+	public static final Setting.Toggle HUB_BUTTON = MODULE.toggle("knop", "Inventory button", true, Items.HOPPER,
+			"The glowing Libreria icon in the", "crafting output slot of your inventory.");
+	public static final Setting.Choice GUIDE_SECONDS = MODULE.choice("straal", "Beam duration", Items.SPECTRAL_ARROW, 1,
+			new int[]{45, 90, 180, 300}, new String[]{"45 seconds", "90 seconds", "3 minutes", "5 minutes"},
+			"The beam also stops once you arrive.");
 
 	private static final Map<UUID, Boolean> HUB_SHOWN = new HashMap<>();
 

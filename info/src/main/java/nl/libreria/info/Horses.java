@@ -36,7 +36,7 @@ final class Horses {
 
 	static String fmt(double d) {
 		if (Math.abs(d - Math.round(d)) < 0.05) return Long.toString(Math.round(d));
-		return String.format(Locale.ROOT, "%.1f", d).replace('.', ',');
+		return String.format(Locale.ROOT, "%.1f", d);
 	}
 
 	static void sendCard(ServerPlayer player, AbstractHorse horse) {
@@ -45,10 +45,10 @@ final class Horses {
 				.append(Component.literal("━━ ").withStyle(ChatFormatting.DARK_GRAY))
 				.append(horse.getDisplayName().copy().withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD))
 				.append(Component.literal(" ━━").withStyle(ChatFormatting.DARK_GRAY));
-		msg.append("\n").append(row("Snelheid ", speed, SPEED_MIN, SPEED_MAX, fmt(speed) + " m/s"));
-		msg.append("\n").append(row("Sprong   ", jump, JUMP_MIN, JUMP_MAX, fmt(jump) + " blokken"));
-		msg.append("\n").append(row("Levens   ", health, HEALTH_MIN, HEALTH_MAX, fmt(health / 2.0) + " ❤"));
-		String state = horse.isBaby() ? "veulen – groeit nog" : horse.isTamed() ? "getemd" : "wild – nog niet getemd";
+		msg.append("\n").append(row("Speed  ", speed, SPEED_MIN, SPEED_MAX, fmt(speed) + " m/s"));
+		msg.append("\n").append(row("Jump    ", jump, JUMP_MIN, JUMP_MAX, fmt(jump) + " blocks"));
+		msg.append("\n").append(row("Health  ", health, HEALTH_MIN, HEALTH_MAX, fmt(health / 2.0) + " ❤"));
+		String state = horse.isBaby() ? "foal – still growing" : horse.isTamed() ? "tamed" : "wild – not tamed yet";
 		msg.append("\n").append(Component.literal(state).withStyle(ChatFormatting.GRAY));
 		player.sendSystemMessage(msg);
 	}
@@ -63,9 +63,9 @@ final class Horses {
 	}
 
 	private static String grade(double f) {
-		if (f > 0.9) return "uitzonderlijk";
-		if (f > 0.7) return "goed";
-		if (f > 0.4) return "gemiddeld";
-		return "matig";
+		if (f > 0.9) return "exceptional";
+		if (f > 0.7) return "good";
+		if (f > 0.4) return "average";
+		return "poor";
 	}
 }

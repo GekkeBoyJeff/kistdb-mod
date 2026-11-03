@@ -45,7 +45,7 @@ final class MapGui extends SimpleGui {
 		ServerLevel level = p.level();
 		ChunkPos here = p.chunkPosition();
 		int have = ClaimsMod.owned(p.getUUID()), max = ClaimsMod.budget(p);
-		this.setTitle(Component.literal("Gebied – " + have + "/" + max + " chunks"));
+		this.setTitle(Component.literal("Claims – " + have + "/" + max + " chunks"));
 
 		for (int row = 0; row < 5; row++) {
 			for (int col = 0; col < 9; col++) {
@@ -54,70 +54,77 @@ final class MapGui extends SimpleGui {
 			}
 		}
 
-		this.setSlot(45, Ui.button(Items.ARROW, "Terug naar Libreria", ChatFormatting.GRAY).setCallback((i, t, a, g) -> HubGui.open(p)));
+		this.setSlot(45, Ui.button(Items.ARROW, "Back to Libreria", ChatFormatting.GRAY).setCallback((i, t, a, g) -> HubGui.open(p)));
 		GuiElementBuilder budget = Ui.button(Items.EMERALD, "Budget: " + have + " / " + max + " chunks", ChatFormatting.GREEN)
-				.addLoreLine(Ui.kv("Basis: ", "+" + ClaimsMod.BASE, ChatFormatting.WHITE))
-				.addLoreLine(Ui.kv("Speeltijd (" + ClaimsMod.hours(p) + " uur): ", "+" + ClaimsMod.hours(p) / ClaimsMod.HOURS_PER_CHUNK, ChatFormatting.WHITE));
-		nl.libreria.core.Services.progress().ifPresent(pr -> budget.addLoreLine(Ui.kv("Prestaties (" + ClaimsMod.points(p) + " punten): ",
+				.addLoreLine(Ui.kv("Base: ", "+" + ClaimsMod.BASE, ChatFormatting.WHITE))
+				.addLoreLine(Ui.kv("Playtime (" + hoursText(ClaimsMod.hours(p)) + "): ", "+" + ClaimsMod.hours(p) / ClaimsMod.HOURS_PER_CHUNK, ChatFormatting.WHITE));
+		nl.libreria.core.Services.progress().ifPresent(pr -> budget.addLoreLine(Ui.kv("Achievements (" + ClaimsMod.points(p) + " points): ",
 				"+" + ClaimsMod.points(p) / ClaimsMod.POINTS_PER_CHUNK, ChatFormatting.WHITE)));
 		int nextHours = ClaimsMod.HOURS_PER_CHUNK - ClaimsMod.hours(p) % ClaimsMod.HOURS_PER_CHUNK;
 		budget.addLoreLine(Component.empty())
-				.addLoreLine(Ui.text("+1 chunk per " + ClaimsMod.HOURS_PER_CHUNK + " uur speeltijd"
-						+ (nl.libreria.core.Services.progress().isPresent() ? " en per " + ClaimsMod.POINTS_PER_CHUNK + " prestatiepunten" : ""), ChatFormatting.GRAY))
-				.addLoreLine(Ui.text("Volgende chunk over hooguit " + nextHours + " uur", ChatFormatting.DARK_GRAY));
+				.addLoreLine(Ui.text("+1 chunk per " + hoursText(ClaimsMod.HOURS_PER_CHUNK) + " of playtime", ChatFormatting.GRAY));
+		if (nl.libreria.core.Services.progress().isPresent()) {
+			budget.addLoreLine(Ui.text("and per " + ClaimsMod.POINTS_PER_CHUNK + " achievement points", ChatFormatting.GRAY));
+		}
+		budget.addLoreLine(Ui.text("Next chunk in at most " + hoursText(nextHours), ChatFormatting.DARK_GRAY));
 		this.setSlot(46, budget);
 
 		ClaimsMod.Owner o = ClaimsMod.owner(p.getUUID());
-		this.setSlot(47, Ui.button(Items.PLAYER_HEAD, "Vertrouwde spelers (" + o.trusted.size() + ")", ChatFormatting.AQUA)
-				.addLoreLine(Ui.text("Wie in al je chunks mag bouwen.", ChatFormatting.GRAY))
+		this.setSlot(47, Ui.button(Items.PLAYER_HEAD, "Trusted players (" + o.trusted.size() + ")", ChatFormatting.AQUA)
+				.addLoreLine(Ui.text("Who can build in all your chunks.", ChatFormatting.GRAY))
 				.setCallback((i, t, a, g) -> {
 					Ui.click(p);
 					new TrustGui(p).open();
 				}));
-		this.setSlot(48, Ui.button(Items.OAK_DOOR, "Deuren voor bezoekers: " + (o.doors ? "aan" : "uit"), o.doors ? ChatFormatting.GREEN : ChatFormatting.RED)
-				.addLoreLine(Ui.text("Mogen anderen deuren, luiken, hekken,", ChatFormatting.GRAY))
-				.addLoreLine(Ui.text("knoppen en hendels in je gebied gebruiken?", ChatFormatting.GRAY))
+		this.setSlot(48, Ui.button(Items.OAK_DOOR, "Doors for visitors: " + (o.doors ? "on" : "off"), o.doors ? ChatFormatting.GREEN : ChatFormatting.RED)
+				.addLoreLine(Ui.text("Can others use doors, trapdoors, gates,", ChatFormatting.GRAY))
+				.addLoreLine(Ui.text("buttons and levers in your claims?", ChatFormatting.GRAY))
 				.setCallback((i, t, a, g) -> {
 					o.doors = !o.doors;
 					ClaimsMod.STORE.markDirty();
 					Ui.click(p);
 					reopen(panX, panZ);
 				}));
-		this.setSlot(49, Ui.button(Items.SPYGLASS, "Rand van deze chunk tonen", ChatFormatting.YELLOW)
+		this.setSlot(49, Ui.button(Items.SPYGLASS, "Show this chunk's border", ChatFormatting.YELLOW)
 				.setCallback((i, t, a, g) -> {
 					ClaimsMod.showBorder(p, level, here, 0xFFFF55);
 					this.close();
 				}));
 		this.setSlot(50, Ui.button(Items.ARROW, "◀ West", ChatFormatting.WHITE).setCallback((i, t, a, g) -> reopen(panX - 4, panZ)));
-		this.setSlot(51, Ui.button(Items.ARROW, "▲ Noord", ChatFormatting.WHITE).setCallback((i, t, a, g) -> reopen(panX, panZ - 2)));
-		this.setSlot(52, Ui.button(Items.ARROW, "▼ Zuid", ChatFormatting.WHITE).setCallback((i, t, a, g) -> reopen(panX, panZ + 2)));
-		this.setSlot(53, Ui.button(Items.ARROW, "▶ Oost", ChatFormatting.WHITE).setCallback((i, t, a, g) -> reopen(panX + 4, panZ)));
+		this.setSlot(51, Ui.button(Items.ARROW, "▲ North", ChatFormatting.WHITE).setCallback((i, t, a, g) -> reopen(panX, panZ - 2)));
+		this.setSlot(52, Ui.button(Items.ARROW, "▼ South", ChatFormatting.WHITE).setCallback((i, t, a, g) -> reopen(panX, panZ + 2)));
+		this.setSlot(53, Ui.button(Items.ARROW, "▶ East", ChatFormatting.WHITE).setCallback((i, t, a, g) -> reopen(panX + 4, panZ)));
+	}
+
+	/** "1 hour" / "2 hours". */
+	private static String hoursText(int n) {
+		return n + (n == 1 ? " hour" : " hours");
 	}
 
 	private GuiElementBuilder cell(ServerPlayer p, ServerLevel level, ChunkPos c, boolean here, int have, int max) {
 		ClaimsMod.Claim claim = ClaimsMod.claimAt(level, c);
 		GuiElementBuilder b;
 		if (claim == null) {
-			b = new GuiElementBuilder(surface(level, c)).setName(Ui.text(here ? "◉ Hier sta je – vrij" : "Vrij", ChatFormatting.WHITE));
+			b = new GuiElementBuilder(surface(level, c)).setName(Ui.text(here ? "◉ You are here – unclaimed" : "Unclaimed", ChatFormatting.WHITE));
 			b.addLoreLine(Ui.text("Chunk " + c.x() + ", " + c.z(), ChatFormatting.DARK_GRAY));
-			b.addLoreLine(have < max ? Ui.text("Klik: claimen (" + (have + 1) + "/" + max + ")", ChatFormatting.GREEN)
-					: Ui.text("Je budget is op", ChatFormatting.RED));
+			b.addLoreLine(have < max ? Ui.text("Click: claim (" + (have + 1) + "/" + max + ")", ChatFormatting.GREEN)
+					: Ui.text("Your budget is used up", ChatFormatting.RED));
 			b.setCallback((i, t, a, g) -> {
 				if (ClaimsMod.claim(p, level, c)) reopen(panX, panZ);
 			});
 		} else if (claim.owner.equals(p.getUUID())) {
-			b = new GuiElementBuilder(Ui.item("lime_concrete")).setName(Ui.text(here ? "◉ Hier sta je – jouw chunk" : "Jouw chunk", ChatFormatting.GREEN));
+			b = new GuiElementBuilder(Ui.item("lime_concrete")).setName(Ui.text(here ? "◉ You are here – your chunk" : "Your chunk", ChatFormatting.GREEN));
 			b.addLoreLine(Ui.text("Chunk " + c.x() + ", " + c.z(), ChatFormatting.DARK_GRAY));
-			b.addLoreLine(Ui.text("Shift-klik: vrijgeven", ChatFormatting.GOLD));
+			b.addLoreLine(Ui.text("Shift-click: release", ChatFormatting.GOLD));
 			b.setCallback((i, t, a, g) -> {
 				if (t.shift && ClaimsMod.unclaim(p, level, c)) reopen(panX, panZ);
 			});
 		} else {
 			boolean trusted = ClaimsMod.owner(claim.owner).trusted.containsKey(p.getUUID());
 			b = new GuiElementBuilder(Ui.item(trusted ? "cyan_concrete" : "red_concrete"))
-					.setName(Ui.text((here ? "◉ " : "") + "Gebied van " + claim.ownerName, trusted ? ChatFormatting.AQUA : ChatFormatting.RED));
+					.setName(Ui.text((here ? "◉ " : "") + "Claimed by " + claim.ownerName, trusted ? ChatFormatting.AQUA : ChatFormatting.RED));
 			b.addLoreLine(Ui.text("Chunk " + c.x() + ", " + c.z(), ChatFormatting.DARK_GRAY));
-			if (trusted) b.addLoreLine(Ui.text("Je mag hier bouwen", ChatFormatting.AQUA));
+			if (trusted) b.addLoreLine(Ui.text("You can build here", ChatFormatting.AQUA));
 		}
 		if (here) b.glow();
 		return b.hideDefaultTooltip();
@@ -139,7 +146,7 @@ final class MapGui extends SimpleGui {
 	private static final class TrustGui extends SimpleGui {
 		TrustGui(ServerPlayer p) {
 			super(MenuType.GENERIC_9x3, p, false);
-			this.setTitle(Component.literal("Vertrouwde spelers"));
+			this.setTitle(Component.literal("Trusted players"));
 			ClaimsMod.Owner o = ClaimsMod.owner(p.getUUID());
 			int slot = 0;
 			for (ServerPlayer other : p.level().getServer().getPlayerList().getPlayers()) {
@@ -149,7 +156,7 @@ final class MapGui extends SimpleGui {
 				String name = other.getName().getString();
 				GuiElementBuilder b = new GuiElementBuilder(Items.PLAYER_HEAD)
 						.setName(Ui.text(name, on ? ChatFormatting.GREEN : ChatFormatting.WHITE))
-						.addLoreLine(Ui.text(on ? "✔ Mag bouwen in je gebied – klik: intrekken" : "Klik: laten meebouwen", on ? ChatFormatting.GREEN : ChatFormatting.AQUA))
+						.addLoreLine(Ui.text(on ? "✔ Can build in your claims – click: revoke" : "Click: let them build", on ? ChatFormatting.GREEN : ChatFormatting.AQUA))
 						.setCallback((i, t, a, g) -> {
 							ClaimsMod.trust(p, id, name, !on);
 							new TrustGui(p).open();
@@ -165,14 +172,14 @@ final class MapGui extends SimpleGui {
 				String name = e.getValue();
 				this.setSlot(slot++, new GuiElementBuilder(Items.SKELETON_SKULL).glow()
 						.setName(Ui.text(name + " (offline)", ChatFormatting.GREEN))
-						.addLoreLine(Ui.text("Klik: intrekken", ChatFormatting.GOLD))
+						.addLoreLine(Ui.text("Click: revoke", ChatFormatting.GOLD))
 						.setCallback((i, t, a, g) -> {
 							ClaimsMod.trust(p, id, name, false);
 							new TrustGui(p).open();
 						}));
 			}
-			if (slot == 0) this.setSlot(4, Ui.button(Items.PAPER, "Niemand online om te vertrouwen", ChatFormatting.GRAY));
-			this.setSlot(22, Ui.button(Items.ARROW, "Terug naar de kaart", ChatFormatting.GRAY).setCallback((i, t, a, g) -> MapGui.open(p)));
+			if (slot == 0) this.setSlot(4, Ui.button(Items.PAPER, "No one online to trust", ChatFormatting.GRAY));
+			this.setSlot(22, Ui.button(Items.ARROW, "Back to the map", ChatFormatting.GRAY).setCallback((i, t, a, g) -> MapGui.open(p)));
 		}
 	}
 }

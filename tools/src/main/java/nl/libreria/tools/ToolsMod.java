@@ -38,24 +38,24 @@ import org.slf4j.LoggerFactory;
  * voor bijna kapotte armor/elytra en een volle inventory.
  */
 public final class ToolsMod implements ModInitializer {
-	public static final Logger LOG = LoggerFactory.getLogger("Libreria/Gereedschap");
+	public static final Logger LOG = LoggerFactory.getLogger("Libreria/Tools");
 
-	public static final Module MODULE = Module.register("tools", "Gereedschap", Items.IRON_PICKAXE,
-			"Je volgende tool automatisch pakken,", "durability in beeld en bijvullen.");
-	public static final Setting.Toggle SWAP = MODULE.toggle("wissel", "Automatisch volgende tool", true, Items.IRON_PICKAXE,
-			"Gaat je tool kapot (of bereikt hij je breekgrens),", "dan pak je de volgende uit je inventory.");
-	public static final Setting.Choice KEEP = MODULE.choice("grens", "Breekgrens", Items.ANVIL, 0,
+	public static final Module MODULE = Module.register("tools", "Tools", Items.IRON_PICKAXE,
+			"Automatically grab your next tool,", "see durability and refill stacks.");
+	public static final Setting.Toggle SWAP = MODULE.toggle("wissel", "Auto-swap to next tool", true, Items.IRON_PICKAXE,
+			"When your tool breaks (or reaches your", "break limit), the next one from your", "inventory is put in your hand.");
+	public static final Setting.Choice KEEP = MODULE.choice("grens", "Break limit", Items.ANVIL, 0,
 			new int[]{0, 1, 5, 10, 25, 50, 100},
-			new String[]{"Uit – tools mogen breken", "Stop bij 1 over", "Stop bij 5 over", "Stop bij 10 over", "Stop bij 25 over", "Stop bij 50 over", "Stop bij 100 over"},
-			"Tot hoe ver je een tool gebruikt.", "Bij de grens wissel je (of stopt het minen),", "zodat je dure tools kunt repareren.");
-	public static final Setting.Toggle HUD = MODULE.toggle("hud", "Durability tijdens minen/hakken", true, Items.EXPERIENCE_BOTTLE,
-			"Balk met de durability van je tool in de", "actiebalk zolang je mined, hakt of vecht.");
-	public static final Setting.Toggle REFILL = MODULE.toggle("bijvullen", "Blokken en eten bijvullen", true, Items.BRICKS,
-			"Is je stapel in je hand op, dan komt", "dezelfde stapel uit je inventory erin.");
-	public static final Setting.Toggle ARMOR = MODULE.toggle("armor", "Waarschuwing armor en elytra", true, Items.ELYTRA,
-			"Een melding als je armor of elytra", "bijna kapot is.");
-	public static final Setting.Toggle FULL = MODULE.toggle("vol", "Melding: inventory vol", true, Items.CHEST,
-			"Waarschuwing in de actiebalk als je", "inventory vol raakt tijdens het minen.");
+			new String[]{"Off – tools may break", "Stop at 1 left", "Stop at 5 left", "Stop at 10 left", "Stop at 25 left", "Stop at 50 left", "Stop at 100 left"},
+			"How far you wear down a tool.", "At the limit you swap (or mining stops),", "so you can repair expensive tools.");
+	public static final Setting.Toggle HUD = MODULE.toggle("hud", "Durability while mining/chopping", true, Items.EXPERIENCE_BOTTLE,
+			"Shows your tool's durability bar in the", "action bar while you mine, chop or fight.");
+	public static final Setting.Toggle REFILL = MODULE.toggle("bijvullen", "Refill blocks and food", true, Items.BRICKS,
+			"When the stack in your hand runs out,", "the same stack from your inventory", "takes its place.");
+	public static final Setting.Toggle ARMOR = MODULE.toggle("armor", "Armor and elytra warning", true, Items.ELYTRA,
+			"A warning when your armor or elytra", "is about to break.");
+	public static final Setting.Toggle FULL = MODULE.toggle("vol", "Alert: inventory full", true, Items.CHEST,
+			"A warning in the action bar when your", "inventory fills up while mining.");
 
 	private record Watch(int slot, ItemStack item, int until) {
 	}
@@ -94,7 +94,7 @@ public final class ToolsMod implements ModInitializer {
 				State s = state(sp);
 				if (now - s.lastFullWarn > 200) {
 					s.lastFullWarn = now;
-					Hud.show(sp, "gereedschap.vol", Component.literal("⚠ Je inventory is vol").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD), Hud.PRIO_WARNING, 60);
+					Hud.show(sp, "tools.full", Component.literal("⚠ Your inventory is full").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD), Hud.PRIO_WARNING, 60);
 					Ui.sound(sp, SoundEvents.NOTE_BLOCK_BASS, 0.5f, 0.7f);
 				}
 			}
@@ -124,7 +124,7 @@ public final class ToolsMod implements ModInitializer {
 		ServerTickEvents.END_SERVER_TICK.register(ToolsMod::tick);
 		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> STATES.remove(handler.player.getUUID()));
 		ToolsTests.register();
-		LOG.info("Libreria Gereedschap geladen");
+		LOG.info("Libreria Tools loaded");
 	}
 
 	private static State state(ServerPlayer p) {
@@ -153,9 +153,9 @@ public final class ToolsMod implements ModInitializer {
 		State s = state(p);
 		if (now - s.lastKeepWarn > 40) {
 			s.lastKeepWarn = now;
-			Hud.show(p, "gereedschap.grens", Component.literal("⚠ ").withStyle(ChatFormatting.RED)
+			Hud.show(p, "tools.limit", Component.literal("⚠ ").withStyle(ChatFormatting.RED)
 					.append(held.getHoverName().copy().withStyle(ChatFormatting.WHITE))
-					.append(Component.literal(" heeft nog " + Tools.remaining(held) + " – breekgrens bereikt").withStyle(ChatFormatting.RED)), Hud.PRIO_WARNING, 50);
+					.append(Component.literal(" has " + Tools.remaining(held) + " left – break limit reached").withStyle(ChatFormatting.RED)), Hud.PRIO_WARNING, 50);
 			Ui.sound(p, SoundEvents.NOTE_BLOCK_BASS, 0.5f, 0.6f);
 		}
 		return false;
@@ -187,9 +187,9 @@ public final class ToolsMod implements ModInitializer {
 		if (!inv.getItem(slot).isEmpty()) return false;
 		int r = Tools.findReplacement(inv, kind, ref, KEEP.get(p), slot);
 		if (r < 0) {
-			Hud.show(p, "gereedschap.op", Component.literal("Je ").withStyle(ChatFormatting.GRAY)
+			Hud.show(p, "tools.out", Component.literal("Your ").withStyle(ChatFormatting.GRAY)
 					.append(ref.getHoverName().copy().withStyle(ChatFormatting.WHITE))
-					.append(Component.literal(" is kapot – geen vervanger in je inventory").withStyle(ChatFormatting.GRAY)), Hud.PRIO_WARNING, 60);
+					.append(Component.literal(" broke – no replacement in your inventory").withStyle(ChatFormatting.GRAY)), Hud.PRIO_WARNING, 60);
 			return false;
 		}
 		Tools.swap(inv, slot, r);
@@ -200,8 +200,8 @@ public final class ToolsMod implements ModInitializer {
 	private static void announceSwap(ServerPlayer p, ItemStack now, ItemStack old) {
 		MutableComponent msg = Component.literal("↻ ").withStyle(ChatFormatting.AQUA, ChatFormatting.BOLD)
 				.append(now.getHoverName().copy().withStyle(ChatFormatting.WHITE))
-				.append(Component.literal(" gepakt (" + Tools.remaining(now) + " over)").withStyle(ChatFormatting.GRAY));
-		Hud.show(p, "gereedschap.wissel", msg, Hud.PRIO_WARNING, 50);
+				.append(Component.literal(" equipped (" + Tools.remaining(now) + " left)").withStyle(ChatFormatting.GRAY));
+		Hud.show(p, "tools.swap", msg, Hud.PRIO_WARNING, 50);
 		Ui.sound(p, SoundEvents.ARMOR_EQUIP_GENERIC, 0.6f, 1.3f);
 	}
 
@@ -258,7 +258,7 @@ public final class ToolsMod implements ModInitializer {
 		}
 	}
 
-	/** "⛏ Diamanten houweel ▮▮▮▮▮▮▮▯▯▯ 1203/1561 (+2 reserve)" */
+	/** "⛏ Diamond Pickaxe ▮▮▮▮▮▮▮▯▯▯ 1203/1561 (+2 spare)" */
 	private static void showDurability(ServerPlayer p) {
 		ItemStack held = p.getMainHandItem();
 		String kind = Tools.kind(held);
@@ -272,9 +272,9 @@ public final class ToolsMod implements ModInitializer {
 				.append(Ui.bar((double) rem / max, 10))
 				.append(Component.literal("  " + rem + "/" + max).withStyle(rem * 5 < max ? ChatFormatting.RED : ChatFormatting.GRAY));
 		int spare = Tools.spares(p.getInventory(), kind, keep, p.getInventory().getSelectedSlot());
-		if (spare > 0) line.append(Component.literal("  +" + spare + " reserve").withStyle(ChatFormatting.DARK_AQUA));
-		if (keep > 0) line.append(Component.literal("  grens " + keep).withStyle(ChatFormatting.DARK_GRAY));
-		Hud.show(p, "gereedschap.hud", line, Hud.PRIO_INFO, 25);
+		if (spare > 0) line.append(Component.literal("  +" + spare + " spare").withStyle(ChatFormatting.DARK_AQUA));
+		if (keep > 0) line.append(Component.literal("  limit " + keep).withStyle(ChatFormatting.DARK_GRAY));
+		Hud.show(p, "tools.hud", line, Hud.PRIO_INFO, 25);
 	}
 
 	private static String icon(String kind) {
@@ -307,12 +307,12 @@ public final class ToolsMod implements ModInitializer {
 			// Opnieuw waarschuwen bij de helft van de vorige waarschuwing (bv. 20 → 10 → 5)
 			if (warned != null && rem > warned / 2) continue;
 			s.armorWarned.put(slot, rem);
-			Component msg = Ui.prefix("Libreria").append(Component.literal("⚠ Je ").withStyle(ChatFormatting.GOLD))
+			Component msg = Ui.prefix("Tools").append(Component.literal("⚠ Your ").withStyle(ChatFormatting.GOLD))
 					.append(st.getHoverName().copy().withStyle(ChatFormatting.WHITE))
-					.append(Component.literal(" is bijna kapot: nog " + rem + " over").withStyle(ChatFormatting.GOLD));
+					.append(Component.literal(" is about to break: " + rem + " left").withStyle(ChatFormatting.GOLD));
 			p.sendSystemMessage(msg);
-			Hud.show(p, "gereedschap.armor", Component.literal("⚠ ").withStyle(ChatFormatting.GOLD).append(st.getHoverName().copy())
-					.append(Component.literal(" bijna kapot (" + rem + ")").withStyle(ChatFormatting.GOLD)), Hud.PRIO_WARNING, 60);
+			Hud.show(p, "tools.armor", Component.literal("⚠ ").withStyle(ChatFormatting.GOLD).append(st.getHoverName().copy())
+					.append(Component.literal(" almost broken (" + rem + ")").withStyle(ChatFormatting.GOLD)), Hud.PRIO_WARNING, 60);
 			Ui.sound(p, SoundEvents.ITEM_BREAK, 0.5f, 1.4f);
 		}
 	}

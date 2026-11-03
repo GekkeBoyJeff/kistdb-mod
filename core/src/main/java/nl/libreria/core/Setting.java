@@ -6,7 +6,7 @@ import java.util.Map;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Item;
 
-/** Een instelling per speler. Waarden worden opgeslagen in &lt;wereld&gt;/handig/opties/&lt;uuid&gt;.json. */
+/** Een instelling per speler. Waarden worden opgeslagen in &lt;wereld&gt;/libreria/settings/&lt;uuid&gt;.json. */
 public abstract sealed class Setting permits Setting.Toggle, Setting.Choice {
 	/** Opgeslagen waarden: "module.sleutel" → getal (aan/uit = 1/0). */
 	public static final class Data {
@@ -84,7 +84,7 @@ public abstract sealed class Setting permits Setting.Toggle, Setting.Choice {
 
 		@Override
 		public String display(ServerPlayer player) {
-			return get(player) ? "AAN" : "UIT";
+			return get(player) ? "ON" : "OFF";
 		}
 	}
 

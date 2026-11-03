@@ -43,7 +43,7 @@ public final class OverviewGui extends SimpleGui {
 		int pages = Math.max(1, (list.size() + PER_PAGE - 1) / PER_PAGE);
 		this.page = Math.min(this.page, pages - 1);
 
-		String title = this.filter.isEmpty() ? "KistDB – je kisten" : "KistDB – \"" + this.filter + "\"";
+		String title = this.filter.isEmpty() ? "Chest index" : "Chest index – \"" + this.filter + "\"";
 		if (pages > 1) title += " (" + (this.page + 1) + "/" + pages + ")";
 		this.setTitle(Component.literal(title));
 
@@ -56,25 +56,25 @@ public final class OverviewGui extends SimpleGui {
 			}
 		}
 		if (list.isEmpty()) {
-			this.setSlot(22, Ui.button(Items.BARRIER, this.filter.isEmpty() ? "Nog niets gevonden" : "Geen items gevonden", ChatFormatting.RED)
-					.addLoreLine(Ui.text(this.filter.isEmpty() ? "Open een kist, ton of shulker box:" : "Probeer een andere zoekterm", ChatFormatting.GRAY))
-					.addLoreLine(Ui.text(this.filter.isEmpty() ? "die komt dan vanzelf in KistDB." : "(Engelse naam of item-ID)", ChatFormatting.GRAY))
+			this.setSlot(22, Ui.button(Items.BARRIER, this.filter.isEmpty() ? "Nothing found yet" : "No items found", ChatFormatting.RED)
+					.addLoreLine(Ui.text(this.filter.isEmpty() ? "Open a chest, barrel or shulker box:" : "Try a different search term", ChatFormatting.GRAY))
+					.addLoreLine(Ui.text(this.filter.isEmpty() ? "it's added to your chest index." : "(item name or ID)", ChatFormatting.GRAY))
 					.build());
 		}
 
 		// Onderste rij
 		for (int i = 45; i < 54; i++) this.clearSlot(i);
 		if (this.page > 0) {
-			this.setSlot(45, Ui.button(Items.ARROW, "Vorige pagina", ChatFormatting.WHITE)
+			this.setSlot(45, Ui.button(Items.ARROW, "Previous page", ChatFormatting.WHITE)
 					.setCallback((index, type, action, gui) -> {
 						this.page--;
 						Ui.click(player);
 						rebuild();
 					}).build());
 		}
-		this.setSlot(46, Ui.button(Items.NAME_TAG, "Zoeken op naam…", ChatFormatting.YELLOW)
-				.addLoreLine(Ui.text(this.filter.isEmpty() ? "Typ bv. diamond of oak" : "Nu: \"" + this.filter + "\"", ChatFormatting.GRAY))
-				.addLoreLine(Ui.text("Rechtsklik: zoekterm wissen", ChatFormatting.DARK_GRAY))
+		this.setSlot(46, Ui.button(Items.NAME_TAG, "Search by name…", ChatFormatting.YELLOW)
+				.addLoreLine(Ui.text(this.filter.isEmpty() ? "Type e.g. diamond or oak" : "Current: \"" + this.filter + "\"", ChatFormatting.GRAY))
+				.addLoreLine(Ui.text("Right-click: clear search", ChatFormatting.DARK_GRAY))
 				.setCallback((index, type, action, gui) -> {
 					Ui.click(player);
 					if (type.isRight) {
@@ -83,36 +83,36 @@ public final class OverviewGui extends SimpleGui {
 						SearchInputGui.open(player, this.filter);
 					}
 				}).build());
-		this.setSlot(47, Ui.button(Items.COMPARATOR, this.byName ? "Sortering: A–Z" : "Sortering: meeste eerst", ChatFormatting.WHITE)
-				.addLoreLine(Ui.text("Klik om te wisselen", ChatFormatting.GRAY))
+		this.setSlot(47, Ui.button(Items.COMPARATOR, this.byName ? "Sort: A–Z" : "Sort: most first", ChatFormatting.WHITE)
+				.addLoreLine(Ui.text("Click to switch", ChatFormatting.GRAY))
 				.setCallback((index, type, action, gui) -> {
 					this.byName = !this.byName;
 					this.page = 0;
 					Ui.click(player);
 					rebuild();
 				}).build());
-		this.setSlot(48, Ui.button(Items.CHEST, "Mijn kisten", ChatFormatting.GOLD)
-				.addLoreLine(Ui.text("Alle kisten in KistDB: inhoud bekijken,", ChatFormatting.GRAY))
-				.addLoreLine(Ui.text("straal ernaartoe, noIndex aan/uit", ChatFormatting.GRAY))
+		this.setSlot(48, Ui.button(Items.CHEST, "My chests", ChatFormatting.GOLD)
+				.addLoreLine(Ui.text("All chests in your index: view contents,", ChatFormatting.GRAY))
+				.addLoreLine(Ui.text("beam to them, toggle noIndex", ChatFormatting.GRAY))
 				.setCallback((index, type, action, gui) -> {
 					Ui.click(player);
 					ChestsGui.open(player);
 				}).build());
-		this.setSlot(49, Ui.button(Items.BOOK, "Uitleg", ChatFormatting.AQUA)
-				.addLoreLine(Ui.text("• Open een kist: hij komt in KistDB", ChatFormatting.GRAY))
-				.addLoreLine(Ui.text("• Klik een item: straal naar de kist", ChatFormatting.GRAY))
-				.addLoreLine(Ui.text("• Rechtsklik een item: alle kisten", ChatFormatting.GRAY))
-				.addLoreLine(Ui.text("• Sneak + linksklik op een kist (lege hand):", ChatFormatting.GRAY))
-				.addLoreLine(Ui.text("   noIndex aan/uit", ChatFormatting.GRAY))
-				.addLoreLine(Ui.text("• In een kist: middelklik = sorteren", ChatFormatting.GRAY))
-				.addLoreLine(Ui.text("• Commando: /kist", ChatFormatting.GRAY))
+		this.setSlot(49, Ui.button(Items.BOOK, "Help", ChatFormatting.AQUA)
+				.addLoreLine(Ui.text("• Open a chest to add it to your index", ChatFormatting.GRAY))
+				.addLoreLine(Ui.text("• Click an item: beam to the chest", ChatFormatting.GRAY))
+				.addLoreLine(Ui.text("• Right-click an item: all chests", ChatFormatting.GRAY))
+				.addLoreLine(Ui.text("• Sneak + left-click a chest (empty hand):", ChatFormatting.GRAY))
+				.addLoreLine(Ui.text("   toggle noIndex", ChatFormatting.GRAY))
+				.addLoreLine(Ui.text("• In a chest: middle-click = sort", ChatFormatting.GRAY))
+				.addLoreLine(Ui.text("• Command: /chest", ChatFormatting.GRAY))
 				.build());
-		this.setSlot(50, Ui.button(Items.HOPPER, "Sorteer inventory", ChatFormatting.YELLOW)
+		this.setSlot(50, Ui.button(Items.HOPPER, "Sort inventory", ChatFormatting.YELLOW)
 				.setCallback((index, type, action, gui) -> {
 					Sorter.sortPlayer(player);
 				}).build());
 		if (Guide.has(player)) {
-			this.setSlot(51, Ui.button(Items.BARRIER, "Straal uitzetten", ChatFormatting.RED)
+			this.setSlot(51, Ui.button(Items.BARRIER, "Stop beam", ChatFormatting.RED)
 					.setCallback((index, type, action, gui) -> {
 						Guide.clear(player);
 						Ui.click(player);
@@ -120,7 +120,7 @@ public final class OverviewGui extends SimpleGui {
 					}).build());
 		}
 		if (this.page < pages - 1) {
-			this.setSlot(53, Ui.button(Items.ARROW, "Volgende pagina", ChatFormatting.WHITE)
+			this.setSlot(53, Ui.button(Items.ARROW, "Next page", ChatFormatting.WHITE)
 					.setCallback((index, type, action, gui) -> {
 						this.page++;
 						Ui.click(player);
@@ -134,12 +134,12 @@ public final class OverviewGui extends SimpleGui {
 		Search.Hit near = agg.nearest();
 		int shown = (int) Math.max(1, Math.min(agg.total(), 99));
 		GuiElementBuilder b = GuiElementBuilder.from(agg.sample().copyWithCount(shown))
-				.addLoreLine(Ui.kv("Totaal: ", String.valueOf(agg.total()), ChatFormatting.GREEN))
-				.addLoreLine(Ui.kv("In ", agg.hits().size() + (agg.hits().size() == 1 ? " kist" : " kisten"), ChatFormatting.WHITE)
-						.append(Ui.text(" · dichtstbij " + Ui.meters(near.distance()), ChatFormatting.YELLOW)))
+				.addLoreLine(Ui.kv("Total: ", String.valueOf(agg.total()), ChatFormatting.GREEN))
+				.addLoreLine(Ui.kv("In ", agg.hits().size() + (agg.hits().size() == 1 ? " chest" : " chests"), ChatFormatting.WHITE)
+						.append(Ui.text(" · nearest " + Ui.meters(near.distance()), ChatFormatting.YELLOW)))
 				.addLoreLine(Component.empty())
-				.addLoreLine(Ui.text("Klik: straal naar de dichtstbijzijnde", ChatFormatting.AQUA))
-				.addLoreLine(Ui.text("Rechtsklik: alle kisten met dit item", ChatFormatting.AQUA));
+				.addLoreLine(Ui.text("Click: beam to the nearest", ChatFormatting.AQUA))
+				.addLoreLine(Ui.text("Right-click: all chests with this item", ChatFormatting.AQUA));
 		b.setCallback((index, type, action, gui) -> {
 			if (type.isRight) {
 				Ui.click(player);

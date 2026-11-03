@@ -140,19 +140,19 @@ public final class Search {
 		return item == Items.AIR ? Items.CHEST : item;
 	}
 
-	/** "net", "5 min geleden", "2 u geleden" … */
+	/** "just now", "5 min ago", "2 h ago" … */
 	public static String ago(long millis) {
-		if (millis <= 0) return "onbekend";
+		if (millis <= 0) return "unknown";
 		long s = (System.currentTimeMillis() - millis) / 1000;
-		if (s < 60) return "net";
-		if (s < 3600) return (s / 60) + " min geleden";
-		if (s < 86400) return (s / 3600) + " u geleden";
-		return (s / 86400) + " d geleden";
+		if (s < 60) return "just now";
+		if (s < 3600) return (s / 60) + " min ago";
+		if (s < 86400) return (s / 3600) + " h ago";
+		return (s / 86400) + " d ago";
 	}
 
 	public static String kind(Store.Entry e) {
-		if (e.block.contains("barrel")) return "Ton";
+		if (e.block.contains("barrel")) return "Barrel";
 		if (e.block.contains("shulker")) return "Shulker box";
-		return "Kist";
+		return "Chest";
 	}
 }

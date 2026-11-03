@@ -39,7 +39,7 @@ final class ItemGui extends SimpleGui {
 		ServerPlayer player = this.getPlayer();
 		ItemStack sample = new ItemStack(this.item);
 		List<Search.Hit> hits = Search.find(player, this.item);
-		this.setTitle(Component.literal("Waar ligt: ").append(sample.getHoverName()));
+		this.setTitle(Component.literal("Where is: ").append(sample.getHoverName()));
 		for (int i = 0; i < 45; i++) {
 			if (i < hits.size()) {
 				Search.Hit hit = hits.get(i);
@@ -47,12 +47,12 @@ final class ItemGui extends SimpleGui {
 				GuiElementBuilder b = new GuiElementBuilder(Search.blockItem(e))
 						.setCount(Math.max(1, Math.min(hit.count(), 64)))
 						.setName(Ui.text(Search.kind(e) + " · " + Ui.meters(hit.distance()), ChatFormatting.YELLOW))
-						.addLoreLine(Ui.kv("Aantal: ", String.valueOf(hit.count()), ChatFormatting.GREEN))
-						.addLoreLine(Ui.kv("Plek: ", e.x + " " + e.y + " " + e.z, ChatFormatting.WHITE));
-				if (!hit.live()) b.addLoreLine(Ui.kv("Laatst gezien: ", Search.ago(e.seen), ChatFormatting.DARK_GRAY));
+						.addLoreLine(Ui.kv("Count: ", String.valueOf(hit.count()), ChatFormatting.GREEN))
+						.addLoreLine(Ui.kv("Location: ", e.x + " " + e.y + " " + e.z, ChatFormatting.WHITE));
+				if (!hit.live()) b.addLoreLine(Ui.kv("Last seen: ", Search.ago(e.seen), ChatFormatting.DARK_GRAY));
 				b.addLoreLine(Component.empty())
-						.addLoreLine(Ui.text("Klik: straal hierheen", ChatFormatting.AQUA))
-						.addLoreLine(Ui.text("Shift-klik: noIndex (uitsluiten)", ChatFormatting.RED));
+						.addLoreLine(Ui.text("Click: beam here", ChatFormatting.AQUA))
+						.addLoreLine(Ui.text("Shift-click: noIndex (exclude)", ChatFormatting.RED));
 				b.setCallback((index, type, action, gui) -> {
 					if (type.shift) {
 						Tracker.toggleNoIndex(player, player.level(), e.pos());
@@ -68,14 +68,14 @@ final class ItemGui extends SimpleGui {
 			}
 		}
 		for (int i = 45; i < 54; i++) this.clearSlot(i);
-		this.setSlot(45, Ui.button(Items.ARROW, "Terug", ChatFormatting.WHITE)
+		this.setSlot(45, Ui.button(Items.ARROW, "Back", ChatFormatting.WHITE)
 				.setCallback((index, type, action, gui) -> {
 					Ui.click(player);
 					OverviewGui.open(player, this.backFilter, this.backByName);
 				}).build());
 		this.setSlot(49, GuiElementBuilder.from(sample.copyWithCount(1))
-				.addLoreLine(Ui.kv("In ", hits.size() + (hits.size() == 1 ? " kist" : " kisten"), ChatFormatting.WHITE))
-				.addLoreLine(Ui.text("Klik: straal naar de dichtstbijzijnde", ChatFormatting.AQUA))
+				.addLoreLine(Ui.kv("In ", hits.size() + (hits.size() == 1 ? " chest" : " chests"), ChatFormatting.WHITE))
+				.addLoreLine(Ui.text("Click: beam to the nearest", ChatFormatting.AQUA))
 				.setCallback((index, type, action, gui) -> {
 					this.close();
 					Locate.go(player, sample, hits);

@@ -46,14 +46,14 @@ import org.jetbrains.annotations.Nullable;
  * speel uren. Elke prestatie heeft een zeldzaamheid; kies er een als titel en hij zweeft in die kleur boven je naam.
  */
 public final class CollectorMod implements ModInitializer {
-	public static final Module MODULE = Module.register("collector", "Verzamelaar", Items.NETHER_STAR,
-			"Prestaties zonder beloningen: verzamel", "items, fok dieren, speel uren. Kies een", "titel in de kleur van de zeldzaamheid.");
-	public static final Setting.Toggle SHOW_TITLE = MODULE.toggle("titel", "Titel boven je naam", true, Items.NAME_TAG,
-			"Je gekozen titel zweeft boven je naam,", "in de kleur van de zeldzaamheid.", "Kiezen: /titel");
-	public static final Setting.Toggle BIG = MODULE.toggle("groot", "Grote melding in beeld", true, Items.FIREWORK_ROCKET,
-			"Een titel midden in beeld bij een", "zeldzame (of betere) prestatie.");
-	public static final Setting.Toggle OTHERS = MODULE.toggle("anderen", "Prestaties van anderen", true, Items.BELL,
-			"Een chatbericht als iemand anders een", "ongewone (of betere) prestatie haalt.");
+	public static final Module MODULE = Module.register("collector", "Collector", Items.NETHER_STAR,
+			"Achievements without rewards: collect", "items, breed animals, rack up hours.", "Pick a title in its rarity's color.");
+	public static final Setting.Toggle SHOW_TITLE = MODULE.toggle("titel", "Title above your name", true, Items.NAME_TAG,
+			"Your chosen title floats above your", "name, in the color of its rarity.", "Choose one: /titles");
+	public static final Setting.Toggle BIG = MODULE.toggle("groot", "Big on-screen announcement", true, Items.FIREWORK_ROCKET,
+			"A title in the middle of the screen", "for a rare (or better) achievement.");
+	public static final Setting.Toggle OTHERS = MODULE.toggle("anderen", "Others' achievements", true, Items.BELL,
+			"A chat message when someone else earns", "an uncommon (or better) achievement.");
 
 	public static final class Data {
 		/** Item-ID's (zonder "minecraft:") die je ooit in je inventory had. */
@@ -78,8 +78,8 @@ public final class CollectorMod implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-		MODULE.hubEntry(Items.NETHER_STAR, "Prestaties", ChatFormatting.GOLD, AchievementsGui::open,
-				"Wat je verzameld hebt, wat je nog mist,", "en je titel kiezen.");
+		MODULE.hubEntry(Items.NETHER_STAR, "Achievements", ChatFormatting.GOLD, AchievementsGui::open,
+				"See what you've collected and what's", "still missing, and pick your title.");
 		Services.provideMenu(Services.MENU_ACHIEVEMENTS, AchievementsGui::open);
 		Services.provideProgress(new Services.Progress() {
 			@Override
@@ -111,13 +111,13 @@ public final class CollectorMod implements ModInitializer {
 		});
 
 		CommandRegistrationCallback.EVENT.register((dispatcher, registry, env) -> {
-			for (String name : new String[] {"prestaties", "verzamelaar"}) {
+			for (String name : new String[] {"achievements", "collection"}) {
 				dispatcher.register(Commands.literal(name).executes(ctx -> {
 					AchievementsGui.open(ctx.getSource().getPlayerOrException());
 					return 1;
 				}));
 			}
-			dispatcher.register(Commands.literal("titel").executes(ctx -> {
+			dispatcher.register(Commands.literal("titles").executes(ctx -> {
 				AchievementsGui.openTitles(ctx.getSource().getPlayerOrException());
 				return 1;
 			}));
@@ -219,8 +219,8 @@ public final class CollectorMod implements ModInitializer {
 			// Eerste keer: wat je al gedaan had stilletjes toekennen, geen spam
 			d.initialized = true;
 			if (!fresh.isEmpty()) {
-				p.sendSystemMessage(Ui.prefix("Verzamelaar").append(Ui.text("Je hebt al " + fresh.size()
-						+ " prestaties op zak! Bekijk ze met /prestaties.", ChatFormatting.GOLD)));
+				p.sendSystemMessage(Ui.prefix("Collector").append(Ui.text("You've already earned " + fresh.size()
+						+ (fresh.size() == 1 ? " achievement" : " achievements") + "! See them with /achievements.", ChatFormatting.GOLD)));
 			}
 			return;
 		}
@@ -229,22 +229,22 @@ public final class CollectorMod implements ModInitializer {
 
 	static void announce(ServerPlayer p, Achievement a) {
 		Rarity r = a.rarity();
-		boolean big = r.ordinal() >= Rarity.ZELDZAAM.ordinal();
+		boolean big = r.ordinal() >= Rarity.RARE.ordinal();
 		if (big && BIG.get(p)) {
 			p.connection.send(new ClientboundSetTitlesAnimationPacket(5, 50, 15));
 			p.connection.send(new ClientboundSetTitleTextPacket(Component.literal("✦ " + r.label + " ✦").withStyle(r.color)));
 			p.connection.send(new ClientboundSetSubtitleTextPacket(Component.literal(a.name()).withStyle(r.color, ChatFormatting.BOLD)));
 		} else {
-			Hud.flash(p, Component.literal("✦ Prestatie: ").withStyle(ChatFormatting.GRAY).append(Component.literal(a.name()).withStyle(r.color)));
+			Hud.flash(p, Component.literal("✦ Achievement: ").withStyle(ChatFormatting.GRAY).append(Component.literal(a.name()).withStyle(r.color)));
 		}
-		if (r.ordinal() >= Rarity.EPISCH.ordinal()) Ui.sound(p, SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, 0.8f, 1f);
+		if (r.ordinal() >= Rarity.EPIC.ordinal()) Ui.sound(p, SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, 0.8f, 1f);
 		else Ui.sound(p, SoundEvents.PLAYER_LEVELUP, 0.6f, 1.4f);
 
 		MutableComponent chip = chip(a);
-		p.sendSystemMessage(Ui.prefix("Verzamelaar").append(Ui.text("Prestatie behaald: ", ChatFormatting.GRAY)).append(chip));
-		if (r.ordinal() >= Rarity.ONGEWOON.ordinal()) {
-			Component msg = Ui.prefix("Verzamelaar").append(Nameplate.displayName(p).copy().withStyle(ChatFormatting.WHITE))
-					.append(Ui.text(" behaalde ", ChatFormatting.GRAY)).append(chip);
+		p.sendSystemMessage(Ui.prefix("Collector").append(Ui.text("Achievement earned: ", ChatFormatting.GRAY)).append(chip));
+		if (r.ordinal() >= Rarity.UNCOMMON.ordinal()) {
+			Component msg = Ui.prefix("Collector").append(Nameplate.displayName(p).copy().withStyle(ChatFormatting.WHITE))
+					.append(Ui.text(" earned ", ChatFormatting.GRAY)).append(chip);
 			for (ServerPlayer other : p.level().getServer().getPlayerList().getPlayers()) {
 				if (other != p && OTHERS.get(other)) other.sendSystemMessage(msg);
 			}
@@ -309,8 +309,8 @@ public final class CollectorMod implements ModInitializer {
 		return Component.literal("✦ " + a.name() + " ✦").withStyle(a.rarity().color);
 	}
 
+	/** yyyy-MM-dd, e.g. 2026-11-03. */
 	public static String date(long millis) {
-		var d = Instant.ofEpochMilli(millis).atZone(java.time.ZoneId.systemDefault()).toLocalDate();
-		return d.getDayOfMonth() + "-" + d.getMonthValue() + "-" + d.getYear();
+		return Instant.ofEpochMilli(millis).atZone(java.time.ZoneId.systemDefault()).toLocalDate().toString();
 	}
 }

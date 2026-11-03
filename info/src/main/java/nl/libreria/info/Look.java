@@ -40,7 +40,7 @@ import org.jetbrains.annotations.Nullable;
 
 /** Kijk-info: een regel boven de hotbar over het blok of dier waar je naar kijkt (Jade-light, zonder client-mod). */
 final class Look {
-	static final String CHANNEL = "info.kijk";
+	static final String CHANNEL = "info.look";
 	private static final ChatFormatting SEP_COLOR = ChatFormatting.DARK_GRAY;
 
 	private Look() {
@@ -82,13 +82,13 @@ final class Look {
 		parts.add(hearts(living.getHealth(), living.getMaxHealth()));
 		if (e instanceof AgeableMob mob) {
 			int age = mob.getAge();
-			if (age < 0) parts.add(Component.literal("baby · groot over " + minutes(-age)).withStyle(ChatFormatting.AQUA));
-			else if (e instanceof Animal a && a.isInLove()) parts.add(Component.literal("❤ verliefd").withStyle(ChatFormatting.LIGHT_PURPLE));
-			else if (e instanceof Animal && age > 0) parts.add(Component.literal("weer fokken over " + minutes(age)).withStyle(ChatFormatting.GRAY));
+			if (age < 0) parts.add(Component.literal("baby · grows up in " + minutes(-age)).withStyle(ChatFormatting.AQUA));
+			else if (e instanceof Animal a && a.isInLove()) parts.add(Component.literal("❤ in love").withStyle(ChatFormatting.LIGHT_PURPLE));
+			else if (e instanceof Animal && age > 0) parts.add(Component.literal("can breed again in " + minutes(age)).withStyle(ChatFormatting.GRAY));
 		}
 		if (e instanceof AbstractHorse horse && InfoMod.HORSE.get(p) && !horse.isBaby()) {
 			parts.add(Component.literal("» " + Horses.fmt(Horses.speed(horse)) + " m/s").withStyle(ChatFormatting.GREEN));
-			parts.add(Component.literal("⤒ " + Horses.fmt(Horses.jump(horse)) + " blok").withStyle(ChatFormatting.GREEN));
+			parts.add(Component.literal("⤒ " + Horses.fmt(Horses.jump(horse)) + " blocks").withStyle(ChatFormatting.GREEN));
 		}
 		return join(parts);
 	}
@@ -119,23 +119,23 @@ final class Look {
 			if (age != null) {
 				int v = st.getValue(age);
 				int max = age.getPossibleValues().get(age.getPossibleValues().size() - 1);
-				if (v >= max && !(block instanceof StemBlock)) details.add(Component.literal("✔ rijp").withStyle(ChatFormatting.GREEN));
-				else details.add(Component.literal("groei " + Math.round(100.0 * v / max) + "%").withStyle(ChatFormatting.YELLOW));
+				if (v >= max && !(block instanceof StemBlock)) details.add(Component.literal("✔ ripe").withStyle(ChatFormatting.GREEN));
+				else details.add(Component.literal("growth " + Math.round(100.0 * v / max) + "%").withStyle(ChatFormatting.YELLOW));
 			}
 		}
 		// Honing
 		if (block instanceof BeehiveBlock) {
 			int honey = st.getValue(BeehiveBlock.HONEY_LEVEL);
 			details.add(honey >= BeehiveBlock.MAX_HONEY_LEVELS
-					? Component.literal("✔ vol honing").withStyle(ChatFormatting.GOLD)
-					: Component.literal("honing " + honey + "/" + BeehiveBlock.MAX_HONEY_LEVELS).withStyle(ChatFormatting.YELLOW));
+					? Component.literal("✔ full of honey").withStyle(ChatFormatting.GOLD)
+					: Component.literal("honey " + honey + "/" + BeehiveBlock.MAX_HONEY_LEVELS).withStyle(ChatFormatting.YELLOW));
 		}
 		// Compostbak
 		if (block == net.minecraft.world.level.block.Blocks.COMPOSTER) {
 			IntegerProperty lvl = intProperty(st, "level");
 			if (lvl != null) {
 				int v = st.getValue(lvl);
-				details.add(v >= 8 ? Component.literal("✔ bottemeel klaar").withStyle(ChatFormatting.GREEN)
+				details.add(v >= 8 ? Component.literal("✔ bone meal ready").withStyle(ChatFormatting.GREEN)
 						: Component.literal("compost " + v + "/7").withStyle(ChatFormatting.YELLOW));
 			}
 		}
@@ -150,13 +150,13 @@ final class Look {
 		if (be instanceof Container c && c.getContainerSize() > 0) {
 			int used = 0;
 			for (int i = 0; i < c.getContainerSize(); i++) if (!c.getItem(i).isEmpty()) used++;
-			details.add(Component.literal("▣ " + used + "/" + c.getContainerSize() + " vakken")
+			details.add(Component.literal("▣ " + used + "/" + c.getContainerSize() + " slots")
 					.withStyle(used >= c.getContainerSize() ? ChatFormatting.GOLD : ChatFormatting.GRAY));
 		}
 		// Verkeerd gereedschap: alleen als je gereedschap vasthoudt dat dit blok niet laat vallen
 		ItemStack hand = p.getMainHandItem();
 		if (st.requiresCorrectToolForDrops() && hand.has(DataComponents.TOOL) && !hand.isCorrectToolForDrops(st)) {
-			details.add(Component.literal("⚠ beter gereedschap nodig").withStyle(ChatFormatting.RED));
+			details.add(Component.literal("⚠ needs a better tool").withStyle(ChatFormatting.RED));
 		}
 
 		if (details.isEmpty() && !all) return null;

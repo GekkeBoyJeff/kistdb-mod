@@ -29,7 +29,7 @@ public final class Ui {
 		return text(key, ChatFormatting.GRAY).append(text(value, valueColor));
 	}
 
-	/** "[Libreria] " of "[KistDB] " in goud, voor chatberichten. */
+	/** "[Libreria] " of "[Chests] " in goud, voor chatberichten. */
 	public static MutableComponent prefix(String name) {
 		return text("[" + name + "] ", ChatFormatting.GOLD);
 	}
