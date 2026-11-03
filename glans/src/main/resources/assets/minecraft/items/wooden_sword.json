@@ -1,0 +1,187 @@
+{
+ "model": {
+  "type": "minecraft:composite",
+  "models": [
+   {
+    "type": "minecraft:model",
+    "model": "minecraft:item/wooden_sword"
+   },
+   {
+    "type": "minecraft:condition",
+    "property": "minecraft:component",
+    "predicate": "minecraft:enchantments",
+    "value": [
+     {
+      "enchantments": [
+       "minecraft:fire_aspect",
+       "minecraft:flame"
+      ]
+     }
+    ],
+    "on_true": {
+     "type": "minecraft:model",
+     "model": "handig:item/glans/vuur/wooden_sword"
+    },
+    "on_false": {
+     "type": "minecraft:condition",
+     "property": "minecraft:component",
+     "predicate": "minecraft:enchantments",
+     "value": [
+      {
+       "enchantments": [
+        "minecraft:smite"
+       ]
+      }
+     ],
+     "on_true": {
+      "type": "minecraft:model",
+      "model": "handig:item/glans/heilig/wooden_sword"
+     },
+     "on_false": {
+      "type": "minecraft:condition",
+      "property": "minecraft:component",
+      "predicate": "minecraft:enchantments",
+      "value": [
+       {
+        "enchantments": [
+         "minecraft:bane_of_arthropods"
+        ]
+       }
+      ],
+      "on_true": {
+       "type": "minecraft:model",
+       "model": "handig:item/glans/gif/wooden_sword"
+      },
+      "on_false": {
+       "type": "minecraft:condition",
+       "property": "minecraft:component",
+       "predicate": "minecraft:enchantments",
+       "value": [
+        {
+         "enchantments": [
+          "minecraft:sweeping_edge"
+         ]
+        }
+       ],
+       "on_true": {
+        "type": "minecraft:model",
+        "model": "handig:item/glans/zwaai/wooden_sword"
+       },
+       "on_false": {
+        "type": "minecraft:empty"
+       }
+      }
+     }
+    }
+   },
+   {
+    "type": "minecraft:condition",
+    "property": "minecraft:component",
+    "predicate": "minecraft:enchantments",
+    "value": [
+     {
+      "enchantments": [
+       "minecraft:piercing",
+       "minecraft:sharpness"
+      ]
+     }
+    ],
+    "on_true": {
+     "type": "minecraft:model",
+     "model": "handig:item/glans/scherp/wooden_sword"
+    },
+    "on_false": {
+     "type": "minecraft:condition",
+     "property": "minecraft:component",
+     "predicate": "minecraft:enchantments",
+     "value": [
+      {
+       "enchantments": [
+        "minecraft:knockback",
+        "minecraft:lunge",
+        "minecraft:punch",
+        "minecraft:wind_burst"
+       ]
+      }
+     ],
+     "on_true": {
+      "type": "minecraft:model",
+      "model": "handig:item/glans/wind/wooden_sword"
+     },
+     "on_false": {
+      "type": "minecraft:condition",
+      "property": "minecraft:component",
+      "predicate": "minecraft:enchantments",
+      "value": [
+       {
+        "enchantments": [
+         "minecraft:unbreaking"
+        ]
+       }
+      ],
+      "on_true": {
+       "type": "minecraft:model",
+       "model": "handig:item/glans/stevig/wooden_sword"
+      },
+      "on_false": {
+       "type": "minecraft:empty"
+      }
+     }
+    }
+   },
+   {
+    "type": "minecraft:condition",
+    "property": "minecraft:component",
+    "predicate": "minecraft:enchantments",
+    "value": [
+     {
+      "enchantments": [
+       "minecraft:binding_curse",
+       "minecraft:vanishing_curse"
+      ]
+     }
+    ],
+    "on_true": {
+     "type": "minecraft:model",
+     "model": "handig:item/glans/vloek/wooden_sword"
+    },
+    "on_false": {
+     "type": "minecraft:condition",
+     "property": "minecraft:component",
+     "predicate": "minecraft:enchantments",
+     "value": [
+      {
+       "enchantments": [
+        "minecraft:fortune",
+        "minecraft:looting"
+       ]
+      }
+     ],
+     "on_true": {
+      "type": "minecraft:model",
+      "model": "handig:item/glans/geluk/wooden_sword"
+     },
+     "on_false": {
+      "type": "minecraft:condition",
+      "property": "minecraft:component",
+      "predicate": "minecraft:enchantments",
+      "value": [
+       {
+        "enchantments": [
+         "minecraft:mending"
+        ]
+       }
+      ],
+      "on_true": {
+       "type": "minecraft:model",
+       "model": "handig:item/glans/herstel/wooden_sword"
+      },
+      "on_false": {
+       "type": "minecraft:empty"
+      }
+     }
+    }
+   }
+  ]
+ }
+}

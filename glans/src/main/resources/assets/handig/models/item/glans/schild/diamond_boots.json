@@ -1,0 +1,6 @@
+{
+ "parent": "minecraft:item/generated",
+ "textures": {
+  "layer0": "handig:item/glans/schild/diamond_boots"
+ }
+}

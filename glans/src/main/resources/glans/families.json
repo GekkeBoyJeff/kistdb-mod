@@ -1,0 +1,301 @@
+{
+ "vuur": {
+  "groep": "A",
+  "naam": "Vlammen",
+  "betoveringen": "Fire Aspect, Flame",
+  "items": 16,
+  "ids": [
+   "fire_aspect",
+   "flame"
+  ]
+ },
+ "bliksem": {
+  "groep": "A",
+  "naam": "Bliksem",
+  "betoveringen": "Channeling",
+  "items": 1,
+  "ids": [
+   "channeling"
+  ]
+ },
+ "ijs": {
+  "groep": "A",
+  "naam": "IJskristallen",
+  "betoveringen": "Frost Walker",
+  "items": 7,
+  "ids": [
+   "frost_walker"
+  ]
+ },
+ "ziel": {
+  "groep": "A",
+  "naam": "Zielenvuur",
+  "betoveringen": "Soul Speed",
+  "items": 7,
+  "ids": [
+   "soul_speed"
+  ]
+ },
+ "heilig": {
+  "groep": "A",
+  "naam": "Heilig licht",
+  "betoveringen": "Smite",
+  "items": 22,
+  "ids": [
+   "smite"
+  ]
+ },
+ "gif": {
+  "groep": "A",
+  "naam": "Gifdruppels",
+  "betoveringen": "Bane of Arthropods",
+  "items": 22,
+  "ids": [
+   "bane_of_arthropods"
+  ]
+ },
+ "getij": {
+  "groep": "A",
+  "naam": "Golven",
+  "betoveringen": "Riptide",
+  "items": 1,
+  "ids": [
+   "riptide"
+  ]
+ },
+ "water": {
+  "groep": "A",
+  "naam": "Bubbels",
+  "betoveringen": "Respiration, Aqua Affinity, Depth Strider",
+  "items": 15,
+  "ids": [
+   "aqua_affinity",
+   "depth_strider",
+   "respiration"
+  ]
+ },
+ "sculk": {
+  "groep": "A",
+  "naam": "Sculk",
+  "betoveringen": "Swift Sneak",
+  "items": 7,
+  "ids": [
+   "swift_sneak"
+  ]
+ },
+ "explosie": {
+  "groep": "A",
+  "naam": "Rookwolkjes",
+  "betoveringen": "Blast Protection",
+  "items": 29,
+  "ids": [
+   "blast_protection"
+  ]
+ },
+ "zwaai": {
+  "groep": "A",
+  "naam": "Zwaaiboog",
+  "betoveringen": "Sweeping Edge",
+  "items": 7,
+  "ids": [
+   "sweeping_edge"
+  ]
+ },
+ "veer": {
+  "groep": "A",
+  "naam": "Veertjes",
+  "betoveringen": "Feather Falling",
+  "items": 7,
+  "ids": [
+   "feather_falling"
+  ]
+ },
+ "trouw": {
+  "groep": "A",
+  "naam": "Terugkeerlicht",
+  "betoveringen": "Loyalty",
+  "items": 1,
+  "ids": [
+   "loyalty"
+  ]
+ },
+ "scherp": {
+  "groep": "B",
+  "naam": "Scherpte",
+  "betoveringen": "Sharpness, Piercing",
+  "items": 22,
+  "ids": [
+   "piercing",
+   "sharpness"
+  ]
+ },
+ "spiets": {
+  "groep": "B",
+  "naam": "Zeeglans",
+  "betoveringen": "Impaling",
+  "items": 1,
+  "ids": [
+   "impaling"
+  ]
+ },
+ "zwaar": {
+  "groep": "B",
+  "naam": "Zwaartekracht",
+  "betoveringen": "Density",
+  "items": 1,
+  "ids": [
+   "density"
+  ]
+ },
+ "breuk": {
+  "groep": "B",
+  "naam": "Barsten",
+  "betoveringen": "Breach",
+  "items": 1,
+  "ids": [
+   "breach"
+  ]
+ },
+ "kracht": {
+  "groep": "B",
+  "naam": "Kracht",
+  "betoveringen": "Power",
+  "items": 1,
+  "ids": [
+   "power"
+  ]
+ },
+ "drievoud": {
+  "groep": "B",
+  "naam": "Drievoud",
+  "betoveringen": "Multishot",
+  "items": 1,
+  "ids": [
+   "multishot"
+  ]
+ },
+ "snel": {
+  "groep": "B",
+  "naam": "Snelheid",
+  "betoveringen": "Efficiency, Quick Charge",
+  "items": 30,
+  "ids": [
+   "efficiency",
+   "quick_charge"
+  ]
+ },
+ "wind": {
+  "groep": "B",
+  "naam": "Wind",
+  "betoveringen": "Knockback, Punch, Wind Burst, Lunge",
+  "items": 16,
+  "ids": [
+   "knockback",
+   "lunge",
+   "punch",
+   "wind_burst"
+  ]
+ },
+ "oneindig": {
+  "groep": "B",
+  "naam": "Sterren",
+  "betoveringen": "Infinity",
+  "items": 1,
+  "ids": [
+   "infinity"
+  ]
+ },
+ "doornen": {
+  "groep": "B",
+  "naam": "Doornen",
+  "betoveringen": "Thorns",
+  "items": 29,
+  "ids": [
+   "thorns"
+  ]
+ },
+ "vuurschild": {
+  "groep": "B",
+  "naam": "Vuurschild",
+  "betoveringen": "Fire Protection",
+  "items": 29,
+  "ids": [
+   "fire_protection"
+  ]
+ },
+ "pijlschild": {
+  "groep": "B",
+  "naam": "Pijlschild",
+  "betoveringen": "Projectile Protection",
+  "items": 29,
+  "ids": [
+   "projectile_protection"
+  ]
+ },
+ "schild": {
+  "groep": "B",
+  "naam": "Schild",
+  "betoveringen": "Protection",
+  "items": 29,
+  "ids": [
+   "protection"
+  ]
+ },
+ "zijde": {
+  "groep": "B",
+  "naam": "Zijde",
+  "betoveringen": "Silk Touch",
+  "items": 28,
+  "ids": [
+   "silk_touch"
+  ]
+ },
+ "stevig": {
+  "groep": "B",
+  "naam": "Staalglans",
+  "betoveringen": "Unbreaking",
+  "items": 78,
+  "ids": [
+   "unbreaking"
+  ]
+ },
+ "vloek": {
+  "groep": "C",
+  "naam": "Vloekrook",
+  "betoveringen": "Curse of Vanishing, Curse of Binding",
+  "items": 78,
+  "ids": [
+   "binding_curse",
+   "vanishing_curse"
+  ]
+ },
+ "geluk": {
+  "groep": "C",
+  "naam": "Gelukssterren",
+  "betoveringen": "Fortune, Looting",
+  "items": 42,
+  "ids": [
+   "fortune",
+   "looting"
+  ]
+ },
+ "zee": {
+  "groep": "C",
+  "naam": "Zeeschuim",
+  "betoveringen": "Luck of the Sea, Lure",
+  "items": 1,
+  "ids": [
+   "luck_of_the_sea",
+   "lure"
+  ]
+ },
+ "herstel": {
+  "groep": "C",
+  "naam": "Ervaringsbolletjes",
+  "betoveringen": "Mending",
+  "items": 78,
+  "ids": [
+   "mending"
+  ]
+ }
+}

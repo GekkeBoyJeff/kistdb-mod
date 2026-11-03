@@ -1,0 +1,168 @@
+{
+ "model": {
+  "type": "minecraft:composite",
+  "models": [
+   {
+    "type": "minecraft:model",
+    "model": "minecraft:item/copper_axe"
+   },
+   {
+    "type": "minecraft:condition",
+    "property": "minecraft:component",
+    "predicate": "minecraft:enchantments",
+    "value": [
+     {
+      "enchantments": [
+       "minecraft:smite"
+      ]
+     }
+    ],
+    "on_true": {
+     "type": "minecraft:model",
+     "model": "handig:item/glans/heilig/copper_axe"
+    },
+    "on_false": {
+     "type": "minecraft:condition",
+     "property": "minecraft:component",
+     "predicate": "minecraft:enchantments",
+     "value": [
+      {
+       "enchantments": [
+        "minecraft:bane_of_arthropods"
+       ]
+      }
+     ],
+     "on_true": {
+      "type": "minecraft:model",
+      "model": "handig:item/glans/gif/copper_axe"
+     },
+     "on_false": {
+      "type": "minecraft:empty"
+     }
+    }
+   },
+   {
+    "type": "minecraft:condition",
+    "property": "minecraft:component",
+    "predicate": "minecraft:enchantments",
+    "value": [
+     {
+      "enchantments": [
+       "minecraft:piercing",
+       "minecraft:sharpness"
+      ]
+     }
+    ],
+    "on_true": {
+     "type": "minecraft:model",
+     "model": "handig:item/glans/scherp/copper_axe"
+    },
+    "on_false": {
+     "type": "minecraft:condition",
+     "property": "minecraft:component",
+     "predicate": "minecraft:enchantments",
+     "value": [
+      {
+       "enchantments": [
+        "minecraft:efficiency",
+        "minecraft:quick_charge"
+       ]
+      }
+     ],
+     "on_true": {
+      "type": "minecraft:model",
+      "model": "handig:item/glans/snel/copper_axe"
+     },
+     "on_false": {
+      "type": "minecraft:condition",
+      "property": "minecraft:component",
+      "predicate": "minecraft:enchantments",
+      "value": [
+       {
+        "enchantments": [
+         "minecraft:silk_touch"
+        ]
+       }
+      ],
+      "on_true": {
+       "type": "minecraft:model",
+       "model": "handig:item/glans/zijde/copper_axe"
+      },
+      "on_false": {
+       "type": "minecraft:condition",
+       "property": "minecraft:component",
+       "predicate": "minecraft:enchantments",
+       "value": [
+        {
+         "enchantments": [
+          "minecraft:unbreaking"
+         ]
+        }
+       ],
+       "on_true": {
+        "type": "minecraft:model",
+        "model": "handig:item/glans/stevig/copper_axe"
+       },
+       "on_false": {
+        "type": "minecraft:empty"
+       }
+      }
+     }
+    }
+   },
+   {
+    "type": "minecraft:condition",
+    "property": "minecraft:component",
+    "predicate": "minecraft:enchantments",
+    "value": [
+     {
+      "enchantments": [
+       "minecraft:binding_curse",
+       "minecraft:vanishing_curse"
+      ]
+     }
+    ],
+    "on_true": {
+     "type": "minecraft:model",
+     "model": "handig:item/glans/vloek/copper_axe"
+    },
+    "on_false": {
+     "type": "minecraft:condition",
+     "property": "minecraft:component",
+     "predicate": "minecraft:enchantments",
+     "value": [
+      {
+       "enchantments": [
+        "minecraft:fortune",
+        "minecraft:looting"
+       ]
+      }
+     ],
+     "on_true": {
+      "type": "minecraft:model",
+      "model": "handig:item/glans/geluk/copper_axe"
+     },
+     "on_false": {
+      "type": "minecraft:condition",
+      "property": "minecraft:component",
+      "predicate": "minecraft:enchantments",
+      "value": [
+       {
+        "enchantments": [
+         "minecraft:mending"
+        ]
+       }
+      ],
+      "on_true": {
+       "type": "minecraft:model",
+       "model": "handig:item/glans/herstel/copper_axe"
+      },
+      "on_false": {
+       "type": "minecraft:empty"
+      }
+     }
+    }
+   }
+  ]
+ }
+}

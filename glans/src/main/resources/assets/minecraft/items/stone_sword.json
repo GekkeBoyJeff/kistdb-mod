@@ -1,0 +1,187 @@
+{
+ "model": {
+  "type": "minecraft:composite",
+  "models": [
+   {
+    "type": "minecraft:model",
+    "model": "minecraft:item/stone_sword"
+   },
+   {
+    "type": "minecraft:condition",
+    "property": "minecraft:component",
+    "predicate": "minecraft:enchantments",
+    "value": [
+     {
+      "enchantments": [
+       "minecraft:fire_aspect",
+       "minecraft:flame"
+      ]
+     }
+    ],
+    "on_true": {
+     "type": "minecraft:model",
+     "model": "handig:item/glans/vuur/stone_sword"
+    },
+    "on_false": {
+     "type": "minecraft:condition",
+     "property": "minecraft:component",
+     "predicate": "minecraft:enchantments",
+     "value": [
+      {
+       "enchantments": [
+        "minecraft:smite"
+       ]
+      }
+     ],
+     "on_true": {
+      "type": "minecraft:model",
+      "model": "handig:item/glans/heilig/stone_sword"
+     },
+     "on_false": {
+      "type": "minecraft:condition",
+      "property": "minecraft:component",
+      "predicate": "minecraft:enchantments",
+      "value": [
+       {
+        "enchantments": [
+         "minecraft:bane_of_arthropods"
+        ]
+       }
+      ],
+      "on_true": {
+       "type": "minecraft:model",
+       "model": "handig:item/glans/gif/stone_sword"
+      },
+      "on_false": {
+       "type": "minecraft:condition",
+       "property": "minecraft:component",
+       "predicate": "minecraft:enchantments",
+       "value": [
+        {
+         "enchantments": [
+          "minecraft:sweeping_edge"
+         ]
+        }
+       ],
+       "on_true": {
+        "type": "minecraft:model",
+        "model": "handig:item/glans/zwaai/stone_sword"
+       },
+       "on_false": {
+        "type": "minecraft:empty"
+       }
+      }
+     }
+    }
+   },
+   {
+    "type": "minecraft:condition",
+    "property": "minecraft:component",
+    "predicate": "minecraft:enchantments",
+    "value": [
+     {
+      "enchantments": [
+       "minecraft:piercing",
+       "minecraft:sharpness"
+      ]
+     }
+    ],
+    "on_true": {
+     "type": "minecraft:model",
+     "model": "handig:item/glans/scherp/stone_sword"
+    },
+    "on_false": {
+     "type": "minecraft:condition",
+     "property": "minecraft:component",
+     "predicate": "minecraft:enchantments",
+     "value": [
+      {
+       "enchantments": [
+        "minecraft:knockback",
+        "minecraft:lunge",
+        "minecraft:punch",
+        "minecraft:wind_burst"
+       ]
+      }
+     ],
+     "on_true": {
+      "type": "minecraft:model",
+      "model": "handig:item/glans/wind/stone_sword"
+     },
+     "on_false": {
+      "type": "minecraft:condition",
+      "property": "minecraft:component",
+      "predicate": "minecraft:enchantments",
+      "value": [
+       {
+        "enchantments": [
+         "minecraft:unbreaking"
+        ]
+       }
+      ],
+      "on_true": {
+       "type": "minecraft:model",
+       "model": "handig:item/glans/stevig/stone_sword"
+      },
+      "on_false": {
+       "type": "minecraft:empty"
+      }
+     }
+    }
+   },
+   {
+    "type": "minecraft:condition",
+    "property": "minecraft:component",
+    "predicate": "minecraft:enchantments",
+    "value": [
+     {
+      "enchantments": [
+       "minecraft:binding_curse",
+       "minecraft:vanishing_curse"
+      ]
+     }
+    ],
+    "on_true": {
+     "type": "minecraft:model",
+     "model": "handig:item/glans/vloek/stone_sword"
+    },
+    "on_false": {
+     "type": "minecraft:condition",
+     "property": "minecraft:component",
+     "predicate": "minecraft:enchantments",
+     "value": [
+      {
+       "enchantments": [
+        "minecraft:fortune",
+        "minecraft:looting"
+       ]
+      }
+     ],
+     "on_true": {
+      "type": "minecraft:model",
+      "model": "handig:item/glans/geluk/stone_sword"
+     },
+     "on_false": {
+      "type": "minecraft:condition",
+      "property": "minecraft:component",
+      "predicate": "minecraft:enchantments",
+      "value": [
+       {
+        "enchantments": [
+         "minecraft:mending"
+        ]
+       }
+      ],
+      "on_true": {
+       "type": "minecraft:model",
+       "model": "handig:item/glans/herstel/stone_sword"
+      },
+      "on_false": {
+       "type": "minecraft:empty"
+      }
+     }
+    }
+   }
+  ]
+ }
+}

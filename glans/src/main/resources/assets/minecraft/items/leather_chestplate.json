@@ -1,0 +1,304 @@
+{
+ "model": {
+  "type": "minecraft:composite",
+  "models": [
+   {
+    "type": "minecraft:select",
+    "cases": [
+     {
+      "model": {
+       "type": "minecraft:model",
+       "model": "minecraft:item/leather_chestplate_quartz_trim",
+       "tints": [
+        {
+         "type": "minecraft:dye",
+         "default": -6265536
+        }
+       ]
+      },
+      "when": "minecraft:quartz"
+     },
+     {
+      "model": {
+       "type": "minecraft:model",
+       "model": "minecraft:item/leather_chestplate_iron_trim",
+       "tints": [
+        {
+         "type": "minecraft:dye",
+         "default": -6265536
+        }
+       ]
+      },
+      "when": "minecraft:iron"
+     },
+     {
+      "model": {
+       "type": "minecraft:model",
+       "model": "minecraft:item/leather_chestplate_netherite_trim",
+       "tints": [
+        {
+         "type": "minecraft:dye",
+         "default": -6265536
+        }
+       ]
+      },
+      "when": "minecraft:netherite"
+     },
+     {
+      "model": {
+       "type": "minecraft:model",
+       "model": "minecraft:item/leather_chestplate_redstone_trim",
+       "tints": [
+        {
+         "type": "minecraft:dye",
+         "default": -6265536
+        }
+       ]
+      },
+      "when": "minecraft:redstone"
+     },
+     {
+      "model": {
+       "type": "minecraft:model",
+       "model": "minecraft:item/leather_chestplate_copper_trim",
+       "tints": [
+        {
+         "type": "minecraft:dye",
+         "default": -6265536
+        }
+       ]
+      },
+      "when": "minecraft:copper"
+     },
+     {
+      "model": {
+       "type": "minecraft:model",
+       "model": "minecraft:item/leather_chestplate_gold_trim",
+       "tints": [
+        {
+         "type": "minecraft:dye",
+         "default": -6265536
+        }
+       ]
+      },
+      "when": "minecraft:gold"
+     },
+     {
+      "model": {
+       "type": "minecraft:model",
+       "model": "minecraft:item/leather_chestplate_emerald_trim",
+       "tints": [
+        {
+         "type": "minecraft:dye",
+         "default": -6265536
+        }
+       ]
+      },
+      "when": "minecraft:emerald"
+     },
+     {
+      "model": {
+       "type": "minecraft:model",
+       "model": "minecraft:item/leather_chestplate_diamond_trim",
+       "tints": [
+        {
+         "type": "minecraft:dye",
+         "default": -6265536
+        }
+       ]
+      },
+      "when": "minecraft:diamond"
+     },
+     {
+      "model": {
+       "type": "minecraft:model",
+       "model": "minecraft:item/leather_chestplate_lapis_trim",
+       "tints": [
+        {
+         "type": "minecraft:dye",
+         "default": -6265536
+        }
+       ]
+      },
+      "when": "minecraft:lapis"
+     },
+     {
+      "model": {
+       "type": "minecraft:model",
+       "model": "minecraft:item/leather_chestplate_amethyst_trim",
+       "tints": [
+        {
+         "type": "minecraft:dye",
+         "default": -6265536
+        }
+       ]
+      },
+      "when": "minecraft:amethyst"
+     },
+     {
+      "model": {
+       "type": "minecraft:model",
+       "model": "minecraft:item/leather_chestplate_resin_trim",
+       "tints": [
+        {
+         "type": "minecraft:dye",
+         "default": -6265536
+        }
+       ]
+      },
+      "when": "minecraft:resin"
+     }
+    ],
+    "fallback": {
+     "type": "minecraft:model",
+     "model": "minecraft:item/leather_chestplate",
+     "tints": [
+      {
+       "type": "minecraft:dye",
+       "default": -6265536
+      }
+     ]
+    },
+    "property": "minecraft:trim_material"
+   },
+   {
+    "type": "minecraft:condition",
+    "property": "minecraft:component",
+    "predicate": "minecraft:enchantments",
+    "value": [
+     {
+      "enchantments": [
+       "minecraft:blast_protection"
+      ]
+     }
+    ],
+    "on_true": {
+     "type": "minecraft:model",
+     "model": "handig:item/glans/explosie/leather_chestplate"
+    },
+    "on_false": {
+     "type": "minecraft:empty"
+    }
+   },
+   {
+    "type": "minecraft:condition",
+    "property": "minecraft:component",
+    "predicate": "minecraft:enchantments",
+    "value": [
+     {
+      "enchantments": [
+       "minecraft:thorns"
+      ]
+     }
+    ],
+    "on_true": {
+     "type": "minecraft:model",
+     "model": "handig:item/glans/doornen/leather_chestplate"
+    },
+    "on_false": {
+     "type": "minecraft:condition",
+     "property": "minecraft:component",
+     "predicate": "minecraft:enchantments",
+     "value": [
+      {
+       "enchantments": [
+        "minecraft:fire_protection"
+       ]
+      }
+     ],
+     "on_true": {
+      "type": "minecraft:model",
+      "model": "handig:item/glans/vuurschild/leather_chestplate"
+     },
+     "on_false": {
+      "type": "minecraft:condition",
+      "property": "minecraft:component",
+      "predicate": "minecraft:enchantments",
+      "value": [
+       {
+        "enchantments": [
+         "minecraft:projectile_protection"
+        ]
+       }
+      ],
+      "on_true": {
+       "type": "minecraft:model",
+       "model": "handig:item/glans/pijlschild/leather_chestplate"
+      },
+      "on_false": {
+       "type": "minecraft:condition",
+       "property": "minecraft:component",
+       "predicate": "minecraft:enchantments",
+       "value": [
+        {
+         "enchantments": [
+          "minecraft:protection"
+         ]
+        }
+       ],
+       "on_true": {
+        "type": "minecraft:model",
+        "model": "handig:item/glans/schild/leather_chestplate"
+       },
+       "on_false": {
+        "type": "minecraft:condition",
+        "property": "minecraft:component",
+        "predicate": "minecraft:enchantments",
+        "value": [
+         {
+          "enchantments": [
+           "minecraft:unbreaking"
+          ]
+         }
+        ],
+        "on_true": {
+         "type": "minecraft:model",
+         "model": "handig:item/glans/stevig/leather_chestplate"
+        },
+        "on_false": {
+         "type": "minecraft:empty"
+        }
+       }
+      }
+     }
+    }
+   },
+   {
+    "type": "minecraft:condition",
+    "property": "minecraft:component",
+    "predicate": "minecraft:enchantments",
+    "value": [
+     {
+      "enchantments": [
+       "minecraft:binding_curse",
+       "minecraft:vanishing_curse"
+      ]
+     }
+    ],
+    "on_true": {
+     "type": "minecraft:model",
+     "model": "handig:item/glans/vloek/leather_chestplate"
+    },
+    "on_false": {
+     "type": "minecraft:condition",
+     "property": "minecraft:component",
+     "predicate": "minecraft:enchantments",
+     "value": [
+      {
+       "enchantments": [
+        "minecraft:mending"
+       ]
+      }
+     ],
+     "on_true": {
+      "type": "minecraft:model",
+      "model": "handig:item/glans/herstel/leather_chestplate"
+     },
+     "on_false": {
+      "type": "minecraft:empty"
+     }
+    }
+   }
+  ]
+ }
+}

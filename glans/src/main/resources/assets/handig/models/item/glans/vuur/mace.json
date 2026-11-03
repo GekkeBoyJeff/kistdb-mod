@@ -1,0 +1,6 @@
+{
+ "parent": "minecraft:item/handheld_mace",
+ "textures": {
+  "layer0": "handig:item/glans/vuur/mace"
+ }
+}

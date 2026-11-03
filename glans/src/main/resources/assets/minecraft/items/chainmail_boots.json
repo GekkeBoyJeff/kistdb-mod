@@ -1,0 +1,298 @@
+{
+ "model": {
+  "type": "minecraft:composite",
+  "models": [
+   {
+    "type": "minecraft:select",
+    "cases": [
+     {
+      "model": {
+       "type": "minecraft:model",
+       "model": "minecraft:item/chainmail_boots_quartz_trim"
+      },
+      "when": "minecraft:quartz"
+     },
+     {
+      "model": {
+       "type": "minecraft:model",
+       "model": "minecraft:item/chainmail_boots_iron_trim"
+      },
+      "when": "minecraft:iron"
+     },
+     {
+      "model": {
+       "type": "minecraft:model",
+       "model": "minecraft:item/chainmail_boots_netherite_trim"
+      },
+      "when": "minecraft:netherite"
+     },
+     {
+      "model": {
+       "type": "minecraft:model",
+       "model": "minecraft:item/chainmail_boots_redstone_trim"
+      },
+      "when": "minecraft:redstone"
+     },
+     {
+      "model": {
+       "type": "minecraft:model",
+       "model": "minecraft:item/chainmail_boots_copper_trim"
+      },
+      "when": "minecraft:copper"
+     },
+     {
+      "model": {
+       "type": "minecraft:model",
+       "model": "minecraft:item/chainmail_boots_gold_trim"
+      },
+      "when": "minecraft:gold"
+     },
+     {
+      "model": {
+       "type": "minecraft:model",
+       "model": "minecraft:item/chainmail_boots_emerald_trim"
+      },
+      "when": "minecraft:emerald"
+     },
+     {
+      "model": {
+       "type": "minecraft:model",
+       "model": "minecraft:item/chainmail_boots_diamond_trim"
+      },
+      "when": "minecraft:diamond"
+     },
+     {
+      "model": {
+       "type": "minecraft:model",
+       "model": "minecraft:item/chainmail_boots_lapis_trim"
+      },
+      "when": "minecraft:lapis"
+     },
+     {
+      "model": {
+       "type": "minecraft:model",
+       "model": "minecraft:item/chainmail_boots_amethyst_trim"
+      },
+      "when": "minecraft:amethyst"
+     },
+     {
+      "model": {
+       "type": "minecraft:model",
+       "model": "minecraft:item/chainmail_boots_resin_trim"
+      },
+      "when": "minecraft:resin"
+     }
+    ],
+    "fallback": {
+     "type": "minecraft:model",
+     "model": "minecraft:item/chainmail_boots"
+    },
+    "property": "minecraft:trim_material"
+   },
+   {
+    "type": "minecraft:condition",
+    "property": "minecraft:component",
+    "predicate": "minecraft:enchantments",
+    "value": [
+     {
+      "enchantments": [
+       "minecraft:frost_walker"
+      ]
+     }
+    ],
+    "on_true": {
+     "type": "minecraft:model",
+     "model": "handig:item/glans/ijs/chainmail_boots"
+    },
+    "on_false": {
+     "type": "minecraft:condition",
+     "property": "minecraft:component",
+     "predicate": "minecraft:enchantments",
+     "value": [
+      {
+       "enchantments": [
+        "minecraft:soul_speed"
+       ]
+      }
+     ],
+     "on_true": {
+      "type": "minecraft:model",
+      "model": "handig:item/glans/ziel/chainmail_boots"
+     },
+     "on_false": {
+      "type": "minecraft:condition",
+      "property": "minecraft:component",
+      "predicate": "minecraft:enchantments",
+      "value": [
+       {
+        "enchantments": [
+         "minecraft:aqua_affinity",
+         "minecraft:depth_strider",
+         "minecraft:respiration"
+        ]
+       }
+      ],
+      "on_true": {
+       "type": "minecraft:model",
+       "model": "handig:item/glans/water/chainmail_boots"
+      },
+      "on_false": {
+       "type": "minecraft:condition",
+       "property": "minecraft:component",
+       "predicate": "minecraft:enchantments",
+       "value": [
+        {
+         "enchantments": [
+          "minecraft:blast_protection"
+         ]
+        }
+       ],
+       "on_true": {
+        "type": "minecraft:model",
+        "model": "handig:item/glans/explosie/chainmail_boots"
+       },
+       "on_false": {
+        "type": "minecraft:condition",
+        "property": "minecraft:component",
+        "predicate": "minecraft:enchantments",
+        "value": [
+         {
+          "enchantments": [
+           "minecraft:feather_falling"
+          ]
+         }
+        ],
+        "on_true": {
+         "type": "minecraft:model",
+         "model": "handig:item/glans/veer/chainmail_boots"
+        },
+        "on_false": {
+         "type": "minecraft:empty"
+        }
+       }
+      }
+     }
+    }
+   },
+   {
+    "type": "minecraft:condition",
+    "property": "minecraft:component",
+    "predicate": "minecraft:enchantments",
+    "value": [
+     {
+      "enchantments": [
+       "minecraft:thorns"
+      ]
+     }
+    ],
+    "on_true": {
+     "type": "minecraft:model",
+     "model": "handig:item/glans/doornen/chainmail_boots"
+    },
+    "on_false": {
+     "type": "minecraft:condition",
+     "property": "minecraft:component",
+     "predicate": "minecraft:enchantments",
+     "value": [
+      {
+       "enchantments": [
+        "minecraft:fire_protection"
+       ]
+      }
+     ],
+     "on_true": {
+      "type": "minecraft:model",
+      "model": "handig:item/glans/vuurschild/chainmail_boots"
+     },
+     "on_false": {
+      "type": "minecraft:condition",
+      "property": "minecraft:component",
+      "predicate": "minecraft:enchantments",
+      "value": [
+       {
+        "enchantments": [
+         "minecraft:projectile_protection"
+        ]
+       }
+      ],
+      "on_true": {
+       "type": "minecraft:model",
+       "model": "handig:item/glans/pijlschild/chainmail_boots"
+      },
+      "on_false": {
+       "type": "minecraft:condition",
+       "property": "minecraft:component",
+       "predicate": "minecraft:enchantments",
+       "value": [
+        {
+         "enchantments": [
+          "minecraft:protection"
+         ]
+        }
+       ],
+       "on_true": {
+        "type": "minecraft:model",
+        "model": "handig:item/glans/schild/chainmail_boots"
+       },
+       "on_false": {
+        "type": "minecraft:condition",
+        "property": "minecraft:component",
+        "predicate": "minecraft:enchantments",
+        "value": [
+         {
+          "enchantments": [
+           "minecraft:unbreaking"
+          ]
+         }
+        ],
+        "on_true": {
+         "type": "minecraft:model",
+         "model": "handig:item/glans/stevig/chainmail_boots"
+        },
+        "on_false": {
+         "type": "minecraft:empty"
+        }
+       }
+      }
+     }
+    }
+   },
+   {
+    "type": "minecraft:condition",
+    "property": "minecraft:component",
+    "predicate": "minecraft:enchantments",
+    "value": [
+     {
+      "enchantments": [
+       "minecraft:binding_curse",
+       "minecraft:vanishing_curse"
+      ]
+     }
+    ],
+    "on_true": {
+     "type": "minecraft:model",
+     "model": "handig:item/glans/vloek/chainmail_boots"
+    },
+    "on_false": {
+     "type": "minecraft:condition",
+     "property": "minecraft:component",
+     "predicate": "minecraft:enchantments",
+     "value": [
+      {
+       "enchantments": [
+        "minecraft:mending"
+       ]
+      }
+     ],
+     "on_true": {
+      "type": "minecraft:model",
+      "model": "handig:item/glans/herstel/chainmail_boots"
+     },
+     "on_false": {
+      "type": "minecraft:empty"
+     }
+    }
+   }
+  ]
+ }
+}

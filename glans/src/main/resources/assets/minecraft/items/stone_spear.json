@@ -1,0 +1,241 @@
+{
+ "model": {
+  "type": "minecraft:composite",
+  "models": [
+   {
+    "type": "minecraft:select",
+    "cases": [
+     {
+      "model": {
+       "type": "minecraft:model",
+       "model": "minecraft:item/stone_spear"
+      },
+      "when": [
+       "gui",
+       "ground",
+       "fixed",
+       "on_shelf"
+      ]
+     }
+    ],
+    "fallback": {
+     "type": "minecraft:model",
+     "model": "minecraft:item/stone_spear_in_hand"
+    },
+    "property": "minecraft:display_context"
+   },
+   {
+    "type": "minecraft:select",
+    "property": "minecraft:display_context",
+    "cases": [
+     {
+      "when": [
+       "gui",
+       "ground",
+       "fixed",
+       "on_shelf"
+      ],
+      "model": {
+       "type": "minecraft:condition",
+       "property": "minecraft:component",
+       "predicate": "minecraft:enchantments",
+       "value": [
+        {
+         "enchantments": [
+          "minecraft:fire_aspect",
+          "minecraft:flame"
+         ]
+        }
+       ],
+       "on_true": {
+        "type": "minecraft:model",
+        "model": "handig:item/glans/vuur/stone_spear"
+       },
+       "on_false": {
+        "type": "minecraft:condition",
+        "property": "minecraft:component",
+        "predicate": "minecraft:enchantments",
+        "value": [
+         {
+          "enchantments": [
+           "minecraft:smite"
+          ]
+         }
+        ],
+        "on_true": {
+         "type": "minecraft:model",
+         "model": "handig:item/glans/heilig/stone_spear"
+        },
+        "on_false": {
+         "type": "minecraft:condition",
+         "property": "minecraft:component",
+         "predicate": "minecraft:enchantments",
+         "value": [
+          {
+           "enchantments": [
+            "minecraft:bane_of_arthropods"
+           ]
+          }
+         ],
+         "on_true": {
+          "type": "minecraft:model",
+          "model": "handig:item/glans/gif/stone_spear"
+         },
+         "on_false": {
+          "type": "minecraft:empty"
+         }
+        }
+       }
+      }
+     }
+    ],
+    "fallback": {
+     "type": "minecraft:empty"
+    }
+   },
+   {
+    "type": "minecraft:select",
+    "property": "minecraft:display_context",
+    "cases": [
+     {
+      "when": [
+       "gui",
+       "ground",
+       "fixed",
+       "on_shelf"
+      ],
+      "model": {
+       "type": "minecraft:condition",
+       "property": "minecraft:component",
+       "predicate": "minecraft:enchantments",
+       "value": [
+        {
+         "enchantments": [
+          "minecraft:piercing",
+          "minecraft:sharpness"
+         ]
+        }
+       ],
+       "on_true": {
+        "type": "minecraft:model",
+        "model": "handig:item/glans/scherp/stone_spear"
+       },
+       "on_false": {
+        "type": "minecraft:condition",
+        "property": "minecraft:component",
+        "predicate": "minecraft:enchantments",
+        "value": [
+         {
+          "enchantments": [
+           "minecraft:knockback",
+           "minecraft:lunge",
+           "minecraft:punch",
+           "minecraft:wind_burst"
+          ]
+         }
+        ],
+        "on_true": {
+         "type": "minecraft:model",
+         "model": "handig:item/glans/wind/stone_spear"
+        },
+        "on_false": {
+         "type": "minecraft:condition",
+         "property": "minecraft:component",
+         "predicate": "minecraft:enchantments",
+         "value": [
+          {
+           "enchantments": [
+            "minecraft:unbreaking"
+           ]
+          }
+         ],
+         "on_true": {
+          "type": "minecraft:model",
+          "model": "handig:item/glans/stevig/stone_spear"
+         },
+         "on_false": {
+          "type": "minecraft:empty"
+         }
+        }
+       }
+      }
+     }
+    ],
+    "fallback": {
+     "type": "minecraft:empty"
+    }
+   },
+   {
+    "type": "minecraft:select",
+    "property": "minecraft:display_context",
+    "cases": [
+     {
+      "when": [
+       "gui",
+       "ground",
+       "fixed",
+       "on_shelf"
+      ],
+      "model": {
+       "type": "minecraft:condition",
+       "property": "minecraft:component",
+       "predicate": "minecraft:enchantments",
+       "value": [
+        {
+         "enchantments": [
+          "minecraft:binding_curse",
+          "minecraft:vanishing_curse"
+         ]
+        }
+       ],
+       "on_true": {
+        "type": "minecraft:model",
+        "model": "handig:item/glans/vloek/stone_spear"
+       },
+       "on_false": {
+        "type": "minecraft:condition",
+        "property": "minecraft:component",
+        "predicate": "minecraft:enchantments",
+        "value": [
+         {
+          "enchantments": [
+           "minecraft:fortune",
+           "minecraft:looting"
+          ]
+         }
+        ],
+        "on_true": {
+         "type": "minecraft:model",
+         "model": "handig:item/glans/geluk/stone_spear"
+        },
+        "on_false": {
+         "type": "minecraft:condition",
+         "property": "minecraft:component",
+         "predicate": "minecraft:enchantments",
+         "value": [
+          {
+           "enchantments": [
+            "minecraft:mending"
+           ]
+          }
+         ],
+         "on_true": {
+          "type": "minecraft:model",
+          "model": "handig:item/glans/herstel/stone_spear"
+         },
+         "on_false": {
+          "type": "minecraft:empty"
+         }
+        }
+       }
+      }
+     }
+    ],
+    "fallback": {
+     "type": "minecraft:empty"
+    }
+   }
+  ]
+ },
+ "swap_animation_scale": 1.95
+}

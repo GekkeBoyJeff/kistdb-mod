@@ -41,8 +41,21 @@ public abstract sealed class Setting permits Setting.Toggle, Setting.Choice {
 	}
 
 	void setRaw(ServerPlayer player, int value) {
-		STORE.get(player).values.put(fullKey(), value);
+		Integer old = STORE.get(player).values.put(fullKey(), value);
 		STORE.markDirty(player);
+		if (old == null || old != value) for (java.util.function.Consumer<ServerPlayer> l : this.listeners) l.accept(player);
+	}
+
+	private final java.util.List<java.util.function.Consumer<ServerPlayer>> listeners = new java.util.ArrayList<>();
+
+	/** Wordt aangeroepen als een speler deze instelling verandert (bijvoorbeeld om een resourcepack te wisselen). */
+	public void onChange(java.util.function.Consumer<ServerPlayer> listener) {
+		this.listeners.add(listener);
+	}
+
+	int raw(java.util.UUID id, int def) {
+		Integer v = STORE.get(id).values.get(fullKey());
+		return v == null ? def : v;
 	}
 
 	/** Tekst van de huidige waarde, voor het menu. */
@@ -58,6 +71,11 @@ public abstract sealed class Setting permits Setting.Toggle, Setting.Choice {
 
 		public boolean get(ServerPlayer player) {
 			return raw(player, this.def ? 1 : 0) != 0;
+		}
+
+		/** Ook bruikbaar voordat de speler echt in de wereld is (bijvoorbeeld tijdens het inloggen). */
+		public boolean get(java.util.UUID id) {
+			return raw(id, this.def ? 1 : 0) != 0;
 		}
 
 		public void set(ServerPlayer player, boolean value) {
