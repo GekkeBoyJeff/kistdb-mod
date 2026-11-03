@@ -1,0 +1,8 @@
+dependencies {
+	implementation project(':core')
+	// Het resourcepack bouwen en door de server zelf laten hosten: spelers hoeven niets te installeren
+	implementation "eu.pb4:polymer-resource-pack:${rootProject.polymer_version}"
+	include "eu.pb4:polymer-resource-pack:${rootProject.polymer_version}"
+	implementation "eu.pb4:polymer-autohost:${rootProject.polymer_version}"
+	include "eu.pb4:polymer-autohost:${rootProject.polymer_version}"
+}

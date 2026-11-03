@@ -22,11 +22,11 @@ subprojects {
 
 	processResources {
 		def v = project.version
-		def kern = rootProject.project(':kern').version
+		def core = rootProject.project(':core').version
 		inputs.property "version", v
-		inputs.property "kern", kern
+		inputs.property "core", core
 		filesMatching("fabric.mod.json") {
-			expand "version": v, "kern_version": kern
+			expand "version": v, "core_version": core
 		}
 	}
 
@@ -41,6 +41,6 @@ subprojects {
 	}
 
 	jar {
-		from(rootProject.file("LICENSE")) { rename { "LICENSE_handig" } }
+		from(rootProject.file("LICENSE")) { rename { "LICENSE_libreria" } }
 	}
 }

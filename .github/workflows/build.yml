@@ -33,13 +33,13 @@ jobs:
           printf 'online-mode=false\nlevel-type=minecraft\\:flat\nmax-tick-time=-1\n' > testserver/run/server.properties
           ./gradlew :testserver:runServer --no-daemon > server.log 2>&1 &
           for i in $(seq 1 100); do
-            if grep -qE 'HANDIG-SELFTEST (OK|FAIL) ' server.log; then sleep 3; break; fi
+            if grep -qE 'LIBRERIA-SELFTEST (OK|FAIL) ' server.log; then sleep 3; break; fi
             if grep -qE 'Crash report|Failed to start the minecraft server|Exception in server tick loop|BUILD FAILED' server.log; then break; fi
             sleep 5
           done
           pkill -9 -f java || true
-          grep -E 'HANDIG-SELFTEST|geladen|Mixin|ERROR|Exception' server.log | head -80
-          grep -q 'HANDIG-SELFTEST OK' server.log
+          grep -E 'LIBRERIA-SELFTEST|loaded|Mixin|ERROR|Exception' server.log | head -80
+          grep -q 'LIBRERIA-SELFTEST OK' server.log
       - name: collect output
         if: always()
         run: |
@@ -49,7 +49,7 @@ jobs:
           cp build.log out/ || true
           echo "${{ steps.build.outcome }}" > out/status.txt
           echo "${GITHUB_SHA}" > out/commit.txt
-          for m in kern kistdb gereedschap wegwijzer info gemak graf verzamelaar naam gebied glans; do cp $m/build/libs/*.jar out/ 2>/dev/null || true; done
+          for m in core chests tools waypoints info comfort graves collector nicknames claims glint; do cp $m/build/libs/*.jar out/ 2>/dev/null || true; done
           cp testserver/run/polymer/resource_pack.zip out/ 2>/dev/null || true
           rm -f out/*-sources.jar
           bash .github/probe.sh
@@ -58,8 +58,8 @@ jobs:
         run: |
           cd out
           git init -q -b ci-out
-          git config user.name "kistdb-ci"
-          git config user.email "kistdb-ci@users.noreply.github.com"
+          git config user.name "libreria-ci"
+          git config user.email "libreria-ci@users.noreply.github.com"
           git add -A
           git commit -q -m "CI ${GITHUB_SHA} (${{ steps.build.outcome }})"
           git push -q -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git" ci-out

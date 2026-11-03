@@ -1,0 +1,164 @@
+{
+ "model": {
+  "type": "minecraft:composite",
+  "models": [
+   {
+    "type": "minecraft:select",
+    "cases": [
+     {
+      "model": {
+       "type": "minecraft:model",
+       "model": "minecraft:item/crossbow_arrow"
+      },
+      "when": "arrow"
+     },
+     {
+      "model": {
+       "type": "minecraft:model",
+       "model": "minecraft:item/crossbow_firework"
+      },
+      "when": "rocket"
+     }
+    ],
+    "fallback": {
+     "type": "minecraft:condition",
+     "on_false": {
+      "type": "minecraft:model",
+      "model": "minecraft:item/crossbow"
+     },
+     "on_true": {
+      "type": "minecraft:range_dispatch",
+      "entries": [
+       {
+        "model": {
+         "type": "minecraft:model",
+         "model": "minecraft:item/crossbow_pulling_1"
+        },
+        "threshold": 0.58
+       },
+       {
+        "model": {
+         "type": "minecraft:model",
+         "model": "minecraft:item/crossbow_pulling_2"
+        },
+        "threshold": 1.0
+       }
+      ],
+      "fallback": {
+       "type": "minecraft:model",
+       "model": "minecraft:item/crossbow_pulling_0"
+      },
+      "property": "minecraft:crossbow/pull"
+     },
+     "property": "minecraft:using_item"
+    },
+    "property": "minecraft:charge_type"
+   },
+   {
+    "type": "minecraft:condition",
+    "property": "minecraft:component",
+    "predicate": "minecraft:enchantments",
+    "value": [
+     {
+      "enchantments": [
+       "minecraft:piercing",
+       "minecraft:sharpness"
+      ]
+     }
+    ],
+    "on_true": {
+     "type": "minecraft:model",
+     "model": "libreria:item/glint/sharp/crossbow"
+    },
+    "on_false": {
+     "type": "minecraft:condition",
+     "property": "minecraft:component",
+     "predicate": "minecraft:enchantments",
+     "value": [
+      {
+       "enchantments": [
+        "minecraft:multishot"
+       ]
+      }
+     ],
+     "on_true": {
+      "type": "minecraft:model",
+      "model": "libreria:item/glint/multishot/crossbow"
+     },
+     "on_false": {
+      "type": "minecraft:condition",
+      "property": "minecraft:component",
+      "predicate": "minecraft:enchantments",
+      "value": [
+       {
+        "enchantments": [
+         "minecraft:efficiency",
+         "minecraft:quick_charge"
+        ]
+       }
+      ],
+      "on_true": {
+       "type": "minecraft:model",
+       "model": "libreria:item/glint/haste/crossbow"
+      },
+      "on_false": {
+       "type": "minecraft:condition",
+       "property": "minecraft:component",
+       "predicate": "minecraft:enchantments",
+       "value": [
+        {
+         "enchantments": [
+          "minecraft:unbreaking"
+         ]
+        }
+       ],
+       "on_true": {
+        "type": "minecraft:model",
+        "model": "libreria:item/glint/sturdy/crossbow"
+       },
+       "on_false": {
+        "type": "minecraft:empty"
+       }
+      }
+     }
+    }
+   },
+   {
+    "type": "minecraft:condition",
+    "property": "minecraft:component",
+    "predicate": "minecraft:enchantments",
+    "value": [
+     {
+      "enchantments": [
+       "minecraft:binding_curse",
+       "minecraft:vanishing_curse"
+      ]
+     }
+    ],
+    "on_true": {
+     "type": "minecraft:model",
+     "model": "libreria:item/glint/curse/crossbow"
+    },
+    "on_false": {
+     "type": "minecraft:condition",
+     "property": "minecraft:component",
+     "predicate": "minecraft:enchantments",
+     "value": [
+      {
+       "enchantments": [
+        "minecraft:mending"
+       ]
+      }
+     ],
+     "on_true": {
+      "type": "minecraft:model",
+      "model": "libreria:item/glint/mending/crossbow"
+     },
+     "on_false": {
+      "type": "minecraft:empty"
+     }
+    }
+   }
+  ]
+ }
+}

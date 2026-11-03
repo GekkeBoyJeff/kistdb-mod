@@ -6,7 +6,7 @@ dependencies {
 loom {
 	runs {
 		server {
-			vmArg "-Dhandig.selftest=true"
+			vmArg "-Dlibreria.selftest=true"
 		}
 	}
 }

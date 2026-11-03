@@ -1,10 +1,10 @@
 {
 	"schemaVersion": 1,
-	"id": "handig_testserver",
+	"id": "libreria_testserver",
 	"version": "${version}",
 	"name": "Handig testserver (alleen CI)",
 	"environment": "*",
 	"depends": {
-		"handig": "*"
+		"libreria": "*"
 	}
 }

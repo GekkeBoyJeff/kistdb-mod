@@ -1,9 +1,0 @@
-{
-	"required": true,
-	"package": "nl.handig.graf.mixin",
-	"compatibilityLevel": "JAVA_25",
-	"mixins": ["PlayerDropMixin"],
-	"injectors": {
-		"defaultRequire": 1
-	}
-}

@@ -1,0 +1,18 @@
+{
+	"schemaVersion": 1,
+	"id": "libreria_waypoints",
+	"version": "${version}",
+	"name": "Handig Wegwijzer",
+	"description": "Een straal naar je sterfplek en naar je eigen waypoints (zonder teleporteren). Server-side; vereist Handig (kern).",
+	"authors": ["Jeffrey"],
+	"license": "MIT",
+	"environment": "*",
+	"entrypoints": {
+		"main": ["nl.libreria.waypoints.WaypointsMod"]
+	},
+	"depends": {
+		"minecraft": "~26.3",
+		"fabric-api": "*",
+		"libreria": ">=${core_version}"
+	}
+}

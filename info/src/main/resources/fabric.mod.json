@@ -1,6 +1,6 @@
 {
 	"schemaVersion": 1,
-	"id": "handig_info",
+	"id": "libreria_info",
 	"version": "${version}",
 	"name": "Handig Info",
 	"description": "Kijk-info boven je hotbar, kompas- en klok-info, paard-statistieken en een statistieken-menu. Server-side; vereist Handig (kern).",
@@ -8,11 +8,11 @@
 	"license": "MIT",
 	"environment": "*",
 	"entrypoints": {
-		"main": ["nl.handig.info.Info"]
+		"main": ["nl.libreria.info.InfoMod"]
 	},
 	"depends": {
 		"minecraft": "~26.3",
 		"fabric-api": "*",
-		"handig": ">=${kern_version}"
+		"libreria": ">=${core_version}"
 	}
 }

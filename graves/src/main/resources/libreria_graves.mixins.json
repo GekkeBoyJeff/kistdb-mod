@@ -1,0 +1,9 @@
+{
+	"required": true,
+	"package": "nl.libreria.graves.mixin",
+	"compatibilityLevel": "JAVA_25",
+	"mixins": ["PlayerDropMixin"],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}

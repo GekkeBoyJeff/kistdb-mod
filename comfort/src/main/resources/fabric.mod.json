@@ -1,0 +1,18 @@
+{
+	"schemaVersion": 1,
+	"id": "libreria_comfort",
+	"version": "${version}",
+	"name": "Handig Gemak",
+	"description": "Dubbele deuren samen openen, zitten op trappen en halve platen, en rechtsklik-oogsten met herplanten. Server-side; vereist Handig (kern).",
+	"authors": ["Jeffrey"],
+	"license": "MIT",
+	"environment": "*",
+	"entrypoints": {
+		"main": ["nl.libreria.comfort.ComfortMod"]
+	},
+	"depends": {
+		"minecraft": "~26.3",
+		"fabric-api": "*",
+		"libreria": ">=${core_version}"
+	}
+}

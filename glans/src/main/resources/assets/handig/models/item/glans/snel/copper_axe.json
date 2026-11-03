@@ -1,6 +1,0 @@
-{
- "parent": "minecraft:item/handheld",
- "textures": {
-  "layer0": "handig:item/glans/snel/copper_axe"
- }
-}
