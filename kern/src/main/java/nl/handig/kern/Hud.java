@@ -17,7 +17,12 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class Hud {
 	/** Vaste prioriteiten zodat modules consistent zijn. */
+	/** Waar je naar kijkt (kijk-info): het laagst, alles mag eroverheen. */
+	public static final int PRIO_LOOK = 5;
+	/** Doorlopende info, zoals de durability-balk tijdens het hakken. */
 	public static final int PRIO_INFO = 10;
+	/** Info over wat je bewust vasthoudt (kompas, klok). */
+	public static final int PRIO_HELD = 15;
 	public static final int PRIO_GUIDE = 50;
 	public static final int PRIO_WARNING = 80;
 	public static final int PRIO_FLASH = 100;

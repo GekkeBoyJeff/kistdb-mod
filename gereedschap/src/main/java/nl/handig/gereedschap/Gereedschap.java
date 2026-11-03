@@ -280,7 +280,7 @@ public final class Gereedschap implements ModInitializer {
 	private static String icon(String kind) {
 		return switch (kind) {
 			case "pickaxe" -> "⛏";
-			case "axe" -> "🪓";
+			case "axe" -> "⚒";
 			case "sword" -> "⚔";
 			case "shovel", "hoe" -> "⚒";
 			default -> "✦";

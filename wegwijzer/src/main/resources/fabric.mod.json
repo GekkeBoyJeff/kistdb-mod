@@ -1,0 +1,18 @@
+{
+	"schemaVersion": 1,
+	"id": "handig_wegwijzer",
+	"version": "${version}",
+	"name": "Handig Wegwijzer",
+	"description": "Een straal naar je sterfplek en naar je eigen waypoints (zonder teleporteren). Server-side; vereist Handig (kern).",
+	"authors": ["Jeffrey"],
+	"license": "MIT",
+	"environment": "*",
+	"entrypoints": {
+		"main": ["nl.handig.wegwijzer.Wegwijzer"]
+	},
+	"depends": {
+		"minecraft": "~26.3",
+		"fabric-api": "*",
+		"handig": ">=${kern_version}"
+	}
+}
