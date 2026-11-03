@@ -1,0 +1,18 @@
+{
+	"schemaVersion": 1,
+	"id": "kistdb",
+	"version": "${version}",
+	"name": "KistDB (Handig)",
+	"description": "Sorteren (knop in het E-scherm, middelklik in kisten), een kisten-database per speler met iconen-GUI, afstand en een lichtstraal naar de juiste kist, noIndex en snel opbergen. Server-side; vereist Handig (kern).",
+	"authors": ["Jeffrey"],
+	"license": "MIT",
+	"environment": "*",
+	"entrypoints": {
+		"main": ["nl.kistdb.KistDB"]
+	},
+	"depends": {
+		"minecraft": "~26.3",
+		"fabric-api": "*",
+		"handig": ">=${kern_version}"
+	}
+}

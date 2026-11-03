@@ -1,0 +1,12 @@
+// Alleen voor de CI: start een echte server met alle modules en draait hun zelftests.
+dependencies {
+	rootProject.subprojects.findAll { it.name != 'testserver' }.each { implementation project(it.path) }
+}
+
+loom {
+	runs {
+		server {
+			vmArg "-Dhandig.selftest=true"
+		}
+	}
+}

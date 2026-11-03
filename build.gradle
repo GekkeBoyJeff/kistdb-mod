@@ -1,45 +1,46 @@
 plugins {
-	id 'net.fabricmc.fabric-loom' version "${loom_version}"
+	id 'net.fabricmc.fabric-loom' version "${loom_version}" apply false
 }
 
-repositories {
-	maven { url 'https://maven.nucleoid.xyz/' }
-}
+subprojects {
+	apply plugin: 'net.fabricmc.fabric-loom'
+	apply plugin: 'java-library'
 
-dependencies {
-	minecraft "com.mojang:minecraft:${project.minecraft_version}"
-	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
-	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+	group = rootProject.group
+	base.archivesName = project.findProperty("archives_name_${project.name}") ?: project.name
+	version = project.findProperty("version_${project.name}") ?: rootProject.version
 
-	// Server-side GUI's (kist-menu's met iconen) en nep-entiteiten (straal/omlijning)
-	implementation "eu.pb4:sgui:${project.sgui_version}"
-	include "eu.pb4:sgui:${project.sgui_version}"
-	implementation "eu.pb4:polymer-virtual-entity:${project.polymer_version}"
-	include "eu.pb4:polymer-virtual-entity:${project.polymer_version}"
-}
+	repositories {
+		maven { url 'https://maven.nucleoid.xyz/' }
+	}
 
-loom {
-	runs {
-		server {
-			vmArg "-Dkistdb.selftest=true"
+	dependencies {
+		minecraft "com.mojang:minecraft:${rootProject.minecraft_version}"
+		implementation "net.fabricmc:fabric-loader:${rootProject.loader_version}"
+		implementation "net.fabricmc.fabric-api:fabric-api:${rootProject.fabric_api_version}"
+	}
+
+	processResources {
+		def v = project.version
+		def kern = rootProject.project(':kern').version
+		inputs.property "version", v
+		inputs.property "kern", kern
+		filesMatching("fabric.mod.json") {
+			expand "version": v, "kern_version": kern
 		}
 	}
-}
 
-processResources {
-	def version = project.version
-	inputs.property "version", version
-	filesMatching("fabric.mod.json") {
-		expand "version": version
+	tasks.withType(JavaCompile).configureEach {
+		it.options.release = 25
+		it.options.encoding = 'UTF-8'
 	}
-}
 
-tasks.withType(JavaCompile).configureEach {
-	it.options.release = 25
-	it.options.encoding = 'UTF-8'
-}
+	java {
+		sourceCompatibility = JavaVersion.VERSION_25
+		targetCompatibility = JavaVersion.VERSION_25
+	}
 
-java {
-	sourceCompatibility = JavaVersion.VERSION_25
-	targetCompatibility = JavaVersion.VERSION_25
+	jar {
+		from(rootProject.file("LICENSE")) { rename { "LICENSE_handig" } }
+	}
 }

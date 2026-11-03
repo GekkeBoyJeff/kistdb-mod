@@ -1,0 +1,21 @@
+{
+	"schemaVersion": 1,
+	"id": "handig",
+	"version": "${version}",
+	"name": "Handig (kern)",
+	"description": "De kern van de Handig-mods: instellingen per speler (/opties), het Handig-menu met een knop in het E-scherm, een gedeelde actiebalk en de straal die de weg wijst. Volledig server-side.",
+	"authors": ["Jeffrey"],
+	"license": "MIT",
+	"icon": "assets/handig/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": ["nl.handig.kern.Handig"]
+	},
+	"mixins": ["handig.mixins.json"],
+	"depends": {
+		"fabricloader": ">=0.19.5",
+		"minecraft": "~26.3",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}
