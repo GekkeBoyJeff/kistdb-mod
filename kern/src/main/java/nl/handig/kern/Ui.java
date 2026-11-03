@@ -70,4 +70,9 @@ public final class Ui {
 	public static BlockState block(String id) {
 		return BuiltInRegistries.BLOCK.getValue(Identifier.withDefaultNamespace(id)).defaultBlockState();
 	}
+
+	/** Item op ID; gekleurde varianten (rood bed, grijze kleurstof…) hebben in 26.x geen eigen constante meer. */
+	public static net.minecraft.world.item.Item item(String id) {
+		return BuiltInRegistries.ITEM.getValue(Identifier.withDefaultNamespace(id));
+	}
 }

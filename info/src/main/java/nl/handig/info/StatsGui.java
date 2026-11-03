@@ -94,7 +94,7 @@ final class StatsGui extends SimpleGui {
 		stat(5, Items.FISHING_ROD, "Vissen gevangen", num(custom(Stats.FISH_CAUGHT)));
 		stat(6, Items.EMERALD, "Handel met dorpelingen", num(custom(Stats.TRADED_WITH_VILLAGER)) + " keer",
 				"Gepraat: " + num(custom(Stats.TALKED_TO_VILLAGER)) + " keer");
-		stat(7, Items.RED_BED, "Geslapen", num(custom(Stats.SLEEP_IN_BED)) + " keer");
+		stat(7, Ui.item("red_bed"), "Geslapen", num(custom(Stats.SLEEP_IN_BED)) + " keer");
 		stat(8, Items.ENCHANTING_TABLE, "Betoverd", num(custom(Stats.ENCHANT_ITEM)) + " items");
 
 		stat(9, Items.DIAMOND_SWORD, "Schade uitgedeeld", num(custom(Stats.DAMAGE_DEALT) / 20) + " ❤");
@@ -176,7 +176,7 @@ final class StatsGui extends SimpleGui {
 						.hideDefaultTooltip().build());
 			}
 			if (rows.isEmpty()) {
-				this.setSlot(22, Ui.button(Items.GRAY_DYE, "Nog niets", ChatFormatting.GRAY).build());
+				this.setSlot(22, Ui.button(Ui.item("gray_dye"), "Nog niets", ChatFormatting.GRAY).build());
 			}
 			this.setSlot(49, Ui.button(Items.ARROW, "Terug", ChatFormatting.GRAY)
 					.setCallback((i, t, a, g) -> StatsGui.open(player)).build());
