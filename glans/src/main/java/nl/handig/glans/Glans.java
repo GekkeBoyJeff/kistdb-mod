@@ -92,7 +92,8 @@ public final class Glans implements ModInitializer {
 		MODULE.hubEntry(Items.BLAZE_POWDER, "Glans-effecten", ChatFormatting.LIGHT_PURPLE, EffectsGui::open,
 				"Kies welke enchant-effecten je ziet.");
 
-		ServerLifecycleEvents.SERVER_STARTED.register(Glans::hostOffPacks);
+		// Vroeg, zodat de pakketjes klaar zijn voordat de eerste speler inlogt
+		ServerLifecycleEvents.SERVER_STARTING.register(Glans::hostOffPacks);
 		AutoHostUtils.SEND_RESOURCE_PACK_COLLECTOR.register((provider, context, consumer) -> {
 			UUID id = playerId(context);
 			if (id == null || !PACK.get(id)) return;
@@ -178,13 +179,17 @@ public final class Glans implements ModInitializer {
 			Files.createDirectories(dir);
 			for (String pack : packs) {
 				Optional<Path> src = container.findPath("glans/uit/" + pack + ".zip");
-				if (src.isEmpty()) continue;
+				if (src.isEmpty()) {
+					nl.handig.kern.Handig.LOG.warn("Glans: uit-pakketje {} niet gevonden in de mod", pack);
+					continue;
+				}
 				Path dst = dir.resolve(pack + ".zip");
 				Files.copy(src.get(), dst, StandardCopyOption.REPLACE_EXISTING);
 				String hash = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-1").digest(Files.readAllBytes(dst)));
 				AutoHostUtils.registerHostedFile(packId(pack), dst);
 				OFF_PACKS.put(pack, hash);
 			}
+			nl.handig.kern.Handig.LOG.info("Glans: {} uit-pakketjes klaar", OFF_PACKS.size());
 		} catch (Exception e) {
 			nl.handig.kern.Handig.LOG.error("Glans: kon de uit-pakketjes niet klaarzetten", e);
 		}

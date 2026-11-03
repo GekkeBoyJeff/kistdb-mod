@@ -50,6 +50,7 @@ jobs:
           echo "${{ steps.build.outcome }}" > out/status.txt
           echo "${GITHUB_SHA}" > out/commit.txt
           for m in kern kistdb gereedschap wegwijzer info gemak graf verzamelaar naam gebied glans; do cp $m/build/libs/*.jar out/ 2>/dev/null || true; done
+          cp testserver/run/polymer/resource_pack.zip out/ 2>/dev/null || true
           rm -f out/*-sources.jar
           bash .github/probe.sh
       - name: publish to ci-out branch
