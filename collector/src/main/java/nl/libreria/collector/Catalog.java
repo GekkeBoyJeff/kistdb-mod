@@ -363,7 +363,7 @@ public final class Catalog {
 		collection("borden", "Signpost", "Every sign", Items.OAK_SIGN, U, id -> id.endsWith("_sign") && !id.endsWith("_hanging_sign"));
 		collection("hangborden", "Hanging Around", "Every hanging sign", Items.OAK_HANGING_SIGN, U, id -> id.endsWith("_hanging_sign"));
 		collection("boten", "Shipwright", "Every boat and raft", Items.OAK_BOAT, R, id -> id.endsWith("_boat") || id.endsWith("_raft"));
-		collection("koper", "Patina Collector", "Every copper block, old and new, waxed or not", Items.COPPER_BLOCK, E,
+		collection("koper", "Patina Collector", "Every copper block, old and new, waxed or not", Ui.item("copper_block"), E,
 				id -> id.contains("copper") && !id.contains("ore") && !id.startsWith("raw_") && !id.equals("copper_ingot")
 						&& !id.equals("copper_nugget") && item(id) instanceof BlockItem);
 		collection("werkbanken", "Workshop", "Every workstation", Items.CRAFTING_TABLE, R, oneOf("crafting_table", "furnace", "blast_furnace",
@@ -691,7 +691,7 @@ public final class Catalog {
 			find(c, "vondst.stad", "Hush", "Find an ancient city", Items.ECHO_SHARD, R, "Ancient City");
 			find(c, "vondst.villa", "House Guest", "Find a woodland mansion", Items.DARK_OAK_DOOR, R, "Woodland Mansion");
 			find(c, "vondst.endstad", "Void Tourist", "Find an end city", Items.PURPUR_BLOCK, E, "End City");
-			find(c, "vondst.proef", "Trial and Error", "Find trial chambers", Items.COPPER_BLOCK, U, "Trial Chambers");
+			find(c, "vondst.proef", "Trial and Error", "Find trial chambers", Ui.item("copper_block"), U, "Trial Chambers");
 		});
 	}
 
