@@ -48,6 +48,8 @@ public final class Screens implements FabricClientGameTest {
 					f("setblock %d %d %d minecraft:chest", x - 2, y, z + 2),
 					f("item replace block %d %d %d container.0 with minecraft:diamond 20", x - 2, y, z + 2),
 					f("item replace block %d %d %d container.1 with minecraft:oak_log 64", x - 2, y, z + 2),
+					f("item replace block %d %d %d container.2 with minecraft:oak_log 64", x - 2, y, z + 2),
+					f("item replace block %d %d %d container.3 with minecraft:oak_log 64", x - 2, y, z + 2),
 					f("item replace block %d %d %d container.5 with minecraft:cobblestone 40", x - 2, y, z + 2),
 					f("item replace block %d %d %d container.9 with minecraft:diamond 7", x - 2, y, z + 2),
 					f("summon minecraft:cow %d %d %d {NoAI:1b,Rotation:[180f,0f]}", x + 3, y, z - 2),
@@ -133,8 +135,7 @@ public final class Screens implements FabricClientGameTest {
 				ctx.getInput().setCursorPos(2, 2);
 				noToasts(ctx);
 				ctx.takeScreenshot("items_from_button");
-				ctx.setScreen(() -> null);
-				ctx.waitTicks(5);
+				close(ctx, server, player);
 			});
 
 			// A chest with the sort button
@@ -159,19 +160,32 @@ public final class Screens implements FabricClientGameTest {
 				ctx.waitTicks(5);
 			});
 
-			// "Your items" (a dialog): everything on you and in your chests, then searched and sorted A-Z
+			// "Your items": everything on you and in your chests, then the live search for "o"
 			safe("items", () -> {
-				server.runOnServer(s -> nl.libreria.chests.ChestSearch.open(player));
+				server.runOnServer(s -> nl.libreria.chests.gui.OverviewGui.open(player, ""));
 				ctx.waitTicks(10);
 				ctx.getInput().setCursorPos(2, 2);
 				noToasts(ctx);
 				ctx.takeScreenshot("items_window");
-				server.runOnServer(s -> nl.libreria.chests.ChestSearch.command(player, "s:name q:o"));
+				server.runOnServer(s -> nl.libreria.chests.gui.OverviewGui.openSearch(player, "o"));
 				ctx.waitTicks(10);
 				noToasts(ctx);
 				ctx.takeScreenshot("items_search");
-				ctx.setScreen(() -> null);
-				ctx.waitTicks(3);
+				close(ctx, server, player);
+			});
+
+			// An achievement for everyone: the banner at the top and fireworks
+			safe("achievement", () -> {
+				ctx.getInput().lookAt(0, -35);
+				ctx.waitTicks(5);
+				server.runOnServer(s -> nl.libreria.collector.CollectorMod.debugAnnounce(player));
+				ctx.waitTicks(12);
+				noToasts(ctx);
+				ctx.takeScreenshot("achievement_banner");
+				ctx.waitTicks(14);
+				noToasts(ctx);
+				ctx.takeScreenshot("achievement_fireworks");
+				ctx.waitTicks(60);
 			});
 
 			// A hill with trees in the claimed land, so the buildings stand on uneven ground
@@ -263,6 +277,8 @@ public final class Screens implements FabricClientGameTest {
 				menu(ctx, server, player, "menu_settings_" + m.id, p -> SettingsGui.open(p, m));
 			}
 			for (Module.HubEntry e : Module.allHubEntries()) {
+				// The land map isn't a menu (and would stay open behind the others)
+				if (e.name().equals("Land map")) continue;
 				menu(ctx, server, player, "menu_" + e.module().id + "_" + e.name().toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]+", "_"),
 						e.action());
 			}

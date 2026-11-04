@@ -18,9 +18,6 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.protocol.game.ClientboundSetSubtitleTextPacket;
-import net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket;
-import net.minecraft.network.protocol.game.ClientboundSetTitlesAnimationPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -50,8 +47,8 @@ public final class CollectorMod implements ModInitializer {
 			"Achievements without rewards: collect", "items, breed animals, rack up hours.", "Pick a title in its rarity's color.");
 	public static final Setting.Toggle SHOW_TITLE = MODULE.toggle("titel", "Title above your name", true, Items.NAME_TAG,
 			"Your chosen title floats above your", "name, in the color of its rarity.", "Choose one: /titles");
-	public static final Setting.Toggle BIG = MODULE.toggle("groot", "Big on-screen announcement", true, Items.FIREWORK_ROCKET,
-			"A title in the middle of the screen for", "rare (or better) achievements, on top of", "the advancement toast.");
+	public static final Setting.Toggle BIG = MODULE.toggle("groot", "Achievement banner", true, Items.FIREWORK_ROCKET,
+			"A banner at the top of your screen and", "fireworks when anyone (you too) earns", "an achievement.");
 	public static final Setting.Toggle OTHERS = MODULE.toggle("anderen", "Others' achievements", true, Items.BELL,
 			"A chat message when someone else earns", "an uncommon (or better) achievement.");
 
@@ -143,7 +140,9 @@ public final class CollectorMod implements ModInitializer {
 			int t = server.getTickCount();
 			if (t % 20 == 7) scanAll(server);
 			if (t % 100 == 13) checkAll(server);
+			Banner.tick(server);
 		});
+		ServerLifecycleEvents.SERVER_STOPPING.register(server -> Banner.clear());
 		ServerEntityEvents.ENTITY_LOAD.register((entity, level) -> {
 			if (entity instanceof Villager baby) onVillagerAdded(level, baby);
 		});
@@ -288,14 +287,21 @@ public final class CollectorMod implements ModInitializer {
 		for (Achievement a : fresh) announce(p, a);
 	}
 
+	/** For the screenshot test: announce a legendary achievement as if it was just earned. */
+	public static void debugAnnounce(ServerPlayer p) {
+		for (Achievement a : Catalog.all()) {
+			if (a.rarity() == Rarity.LEGENDARY) {
+				announce(p, a);
+				return;
+			}
+		}
+	}
+
 	static void announce(ServerPlayer p, Achievement a) {
 		Rarity r = a.rarity();
-		boolean big = r.ordinal() >= Rarity.RARE.ordinal();
-		if (big && BIG.get(p)) {
-			p.connection.send(new ClientboundSetTitlesAnimationPacket(5, 50, 15));
-			p.connection.send(new ClientboundSetTitleTextPacket(Component.literal("✦ " + r.label + " ✦").withStyle(r.color)));
-			p.connection.send(new ClientboundSetSubtitleTextPacket(Component.literal(a.name()).withStyle(r.color, ChatFormatting.BOLD)));
-		} else {
+		// The whole server sees it: a banner at the top of the screen and fireworks
+		Banner.add(p, a);
+		if (!BIG.get(p)) {
 			Hud.flash(p, Component.literal("✦ Achievement: ").withStyle(ChatFormatting.GRAY).append(Component.literal(a.name()).withStyle(r.color)));
 		}
 		if (r.ordinal() >= Rarity.EPIC.ordinal()) Ui.sound(p, SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, 0.8f, 1f);

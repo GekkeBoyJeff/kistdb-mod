@@ -39,7 +39,7 @@ public final class TopCard {
 
 	public static final int BRONZE = 0xF2C36B;
 
-	private record Entry(Card card, int priority) {
+	private record Entry(Card card, int priority, int until) {
 	}
 
 	private static final class Top {
@@ -51,19 +51,36 @@ public final class TopCard {
 	}
 
 	private static final Map<UUID, Top> TOPS = new HashMap<>();
+	private static int now;
 
 	private TopCard() {
 	}
 
 	/** Shows (or updates) a card on a channel. Only the card with the highest priority is on screen. */
 	public static void show(ServerPlayer p, String channel, Card card, int priority) {
+		show(p, channel, card, priority, -1);
+	}
+
+	/** The same, for {@code ticks} ticks only (-1 = until hidden). */
+	public static void show(ServerPlayer p, String channel, Card card, int priority, int ticks) {
 		Top top = TOPS.computeIfAbsent(p.getUUID(), k -> {
 			Top t = new Top();
 			t.bar.setProgress(0f);
 			return t;
 		});
-		top.cards.put(channel, new Entry(card, priority));
+		top.cards.put(channel, new Entry(card, priority, ticks < 0 ? -1 : now + ticks));
 		update(p, top);
+	}
+
+	/** Takes cards whose time is up away (from the core tick). */
+	public static void tick(net.minecraft.server.MinecraftServer server, int tick) {
+		now = tick;
+		for (Map.Entry<UUID, Top> e : TOPS.entrySet()) {
+			Top top = e.getValue();
+			if (!top.cards.values().removeIf(c -> c.until() >= 0 && c.until() <= tick)) continue;
+			ServerPlayer p = server.getPlayerList().getPlayer(e.getKey());
+			if (p != null) update(p, top);
+		}
 	}
 
 	public static void hide(ServerPlayer p, String channel) {
@@ -95,15 +112,40 @@ public final class TopCard {
 			return;
 		}
 		Card c = best.card();
-		String key = key(c);
+		boolean pack = nl.libreria.core.Pack.has(p);
+		String key = pack + "|" + key(c);
 		if (!key.equals(top.shown)) {
-			top.bar.setName(compose(c));
+			if (pack) {
+				// The pack makes white bars invisible: only the card
+				top.bar.setName(compose(c));
+				top.bar.setColor(BossEvent.BossBarColor.WHITE);
+				top.bar.setProgress(0f);
+			} else {
+				// Without the pack: an ordinary boss bar with the name and subtitle
+				top.bar.setName(Component.empty().append(c.name()).append(Component.literal("  ·  ").withStyle(ChatFormatting.DARK_GRAY))
+						.append(c.subtitle()));
+				top.bar.setColor(barColor(c.accent()));
+				top.bar.setProgress(1f);
+			}
 			top.shown = key;
 		}
 		if (!top.visible) {
 			top.bar.addPlayer(p);
 			top.visible = true;
 		}
+	}
+
+	/** The boss bar colour closest to a card's accent. */
+	private static BossEvent.BossBarColor barColor(int rgb) {
+		if (rgb < 0) return BossEvent.BossBarColor.YELLOW;
+		int r = rgb >> 16 & 255, g = rgb >> 8 & 255, b = rgb & 255;
+		if (r > 200 && g > 200 && b > 200) return BossEvent.BossBarColor.WHITE;
+		if (r > 200 && g > 150 && b < 120) return BossEvent.BossBarColor.YELLOW;
+		if (r > 200 && b > 200) return BossEvent.BossBarColor.PINK;
+		if (r > 180 && g < 120) return BossEvent.BossBarColor.RED;
+		if (g > 180 && r < 150 && b < 150) return BossEvent.BossBarColor.GREEN;
+		if (b > 180 && r > 120) return BossEvent.BossBarColor.PURPLE;
+		return BossEvent.BossBarColor.BLUE;
 	}
 
 	private static String key(Card c) {

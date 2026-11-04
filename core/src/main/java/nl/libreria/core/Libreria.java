@@ -84,6 +84,7 @@ public final class Libreria implements ModInitializer {
 		Guide.tick(server, tick);
 		if (tick % 10 == 3) Nameplate.tick(server);
 		Hud.tick(server, tick);
+		nl.libreria.core.gui.TopCard.tick(server, tick);
 		if (tick % 1200 == 0) {
 			PlayerStore.saveDirtyAll();
 			WorldStore.saveAll();

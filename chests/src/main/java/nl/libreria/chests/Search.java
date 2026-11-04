@@ -109,6 +109,43 @@ public final class Search {
 		return out;
 	}
 
+	/** One kind of item: how many you carry, how many are in your chests and which ones (nearest first). */
+	public record Stock(Item item, ItemStack sample, int carried, long stored, List<Hit> hits) {
+		public long total() {
+			return this.carried + this.stored;
+		}
+
+		/** 0 when you carry it, otherwise the distance to the nearest chest with it. */
+		public double nearest() {
+			if (this.carried > 0) return 0;
+			return this.hits.isEmpty() ? Double.MAX_VALUE : this.hits.getFirst().distance();
+		}
+	}
+
+	/** Everything you carry (hotbar, inventory, off hand) and everything in your chests nearby, per kind of item. */
+	public static List<Stock> stock(ServerPlayer player, String filter) {
+		String f = filter == null ? "" : filter.trim().toLowerCase(Locale.ROOT);
+		Map<Item, Integer> carried = new LinkedHashMap<>();
+		var inv = player.getInventory();
+		for (int i = 0; i < 36; i++) {
+			ItemStack s = inv.getItem(i);
+			if (!s.isEmpty()) carried.merge(s.getItem(), s.getCount(), Integer::sum);
+		}
+		ItemStack off = player.getOffhandItem();
+		if (!off.isEmpty()) carried.merge(off.getItem(), off.getCount(), Integer::sum);
+		Map<Item, Agg> stored = new LinkedHashMap<>();
+		for (Agg a : aggregate(player, "", false)) stored.put(a.item(), a);
+		java.util.Set<Item> all = new java.util.LinkedHashSet<>(stored.keySet());
+		all.addAll(carried.keySet());
+		List<Stock> out = new ArrayList<>();
+		for (Item item : all) {
+			if (!f.isEmpty() && !matches(item, f)) continue;
+			Agg a = stored.get(item);
+			out.add(new Stock(item, new ItemStack(item), carried.getOrDefault(item, 0), a == null ? 0 : a.total(), a == null ? List.of() : a.hits()));
+		}
+		return out;
+	}
+
 	/** Alle kisten met dit item, dichtstbijzijnde eerst. */
 	public static List<Hit> find(ServerPlayer player, Item item) {
 		List<Hit> out = new ArrayList<>();

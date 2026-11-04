@@ -70,7 +70,7 @@ public final class ChestsMod implements ModInitializer {
 		// The sort button beside your inventory window (left click sorts, right click quick-stacks into nearby chests)
 		Hub.setEdgeButton(Sorter::sortPlayer, QuickStack::run);
 		MODULE.hubEntry(Items.SPYGLASS, "Your items", ChatFormatting.AQUA, ChestSearch::open,
-				"Everything on you and in your chests,", "searchable; click one to follow the beam.", "Also: the magnifying glass in your inventory.");
+				"Everything on you and in your chests,", "searchable; click one and its chest", "lights up. Also: the magnifying glass", "in your inventory.");
 		MODULE.hubEntry(Items.CHEST, "My chests", ChatFormatting.GOLD, ChestsGui::open,
 				"See inside your chests from afar,", "beam to them, skip them in search.");
 		MODULE.hubEntry(Items.CHEST_MINECART, "Quick stack", ChatFormatting.GREEN, QuickStack::run,
@@ -81,7 +81,6 @@ public final class ChestsMod implements ModInitializer {
 		MODULE.commands(
 				"/chest – all your items (searchable)",
 				"/chest find <text> – find an item by name",
-				"/chest menu – your items as a chest menu",
 				"/chest search <item> – find an item",
 				"/chest where <item> – all its chests",
 				"/chest sort – sort your inventory",

@@ -50,11 +50,14 @@ With the pack you get:
 - **The look-at tooltip** for blocks at the top of the screen (drawn in a boss bar title; the pack makes *white*
   boss bars invisible, so a custom `/bossbar` in white would only show its name), and as a card above animals: dark leather, bronze frame, the thing's icon in a slot, a gem in the
   colour of its grade, an ornamental rule and rows with small pictures and pips.
-- **Your items** from your inventory: the recipe book button becomes a magnifying glass (Minecraft's own grey button) that opens a scrollable window with everything you carry and everything in your chests (picture, name, count; hover for where, click to follow the beam), with a search field and sorting. Also `/chest` and `/chest find`.
+- **Your items** from your inventory: the recipe book button becomes a magnifying glass (Minecraft's own grey button) that opens a Libreria menu with everything you carry and everything in your chests, with real totals (200 oak logs show 200; up to 999 in a slot). Click an item: the menu closes and its nearest chest lights up, with a beam; right-click: every chest with it. The search is live: type at the top and the matches fill the slots below while you type. Also `/chest` and `/chest find`.
 - **Sort button** on the left edge of the inventory window, in the same style: left-click sorts, right-click quick-stacks into nearby chests. The inventory screen has room for only one real button, so this one is drawn by the screen's title (the pack replaces the "Crafting" text with it; crafting tables get "Crafting Table" as their title instead) and works through a click outside the window with an empty hand, which vanilla ignores. So any such click outside the window sorts.
 - **Land map button** right of the hotbar with its key, drawn by the action bar text in a font that moves it down.
 - **Windows from the server** (dialogs: your items, the quick menu) without the warning icon Minecraft puts beside
   their title.
+- **Achievement banner** (Collector): when anyone earns an achievement, everyone gets a card at the top of the
+  screen (icon, name, rarity, who earned it) and fireworks: everyone hears them, players nearby see rockets burst in
+  the rarity's colours (the rockets exist only on their screens). Without the pack it's a coloured boss bar.
 - **Glint**: rarity frames, enchant effects and book covers.
 
 - On first start, core writes `config/polymer/auto-host.json` with `enabled: true` and `required: false`. Set
