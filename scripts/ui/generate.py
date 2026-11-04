@@ -483,7 +483,7 @@ def claim_walls():
         for y in range(16):
             for x in range(16):
                 rim = x in (0, 15) or y in (0, 15)
-                fill.putpixel((x, y), c + (95 if rim else 62,))
+                fill.putpixel((x, y), c + (62,))
         fill.save(os.path.join(base, f'textures/item/claim/fill_{name}.png'))
         ftex = f'{NS}:item/claim/fill_{name}'
         fface = {'texture': '#fill', 'uv': [0, 0, 16, 16]}
