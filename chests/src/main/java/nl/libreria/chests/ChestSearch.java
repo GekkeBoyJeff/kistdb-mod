@@ -51,7 +51,24 @@ public final class ChestSearch {
 		settings.setFiltering(RecipeBookType.CRAFTING, filtering);
 		p.connection.send(new ClientboundRecipeBookSettingsPacket(settings));
 		Ui.click(p);
-		open(p);
+		ItemSearch.open(p, "", true);
 		return true;
+	}
+
+	/**
+	 * From the search screen: the recipe book of your inventory, open the next time you press E (the server can't open
+	 * your inventory itself). Clicking the magnifying glass there closes the book again, the next click searches.
+	 */
+	public static void openRecipeBook(ServerPlayer p) {
+		var book = p.getRecipeBook();
+		boolean filtering = book.getBookSettings().isFiltering(RecipeBookType.CRAFTING);
+		book.setBookSetting(RecipeBookType.CRAFTING, true, filtering);
+		RecipeBookSettings settings = new RecipeBookSettings();
+		settings.setOpen(RecipeBookType.CRAFTING, true);
+		settings.setFiltering(RecipeBookType.CRAFTING, filtering);
+		p.connection.send(new ClientboundRecipeBookSettingsPacket(settings));
+		p.closeContainer();
+		nl.libreria.core.gui.Toast.show(p, net.minecraft.world.item.Items.KNOWLEDGE_BOOK, nl.libreria.core.gui.Toast.INFO,
+				"Recipe book ready", "Press E: it's open in your inventory");
 	}
 }

@@ -60,15 +60,17 @@ import org.joml.Vector3f;
 /**
  * The land map. Your camera swoops back and up into a third-person view over your own head and looks down at the
  * real world around you. Claimed land stands there as see-through glass buildings with bright frames (green = yours,
- * blue = you may build there, red = someone else's), each with its owner's name on top. The chunk in the middle of the
- * screen has a golden frame: that is what you claim (click) or release (right-click). WASD glides over the land
- * (sprint = faster), scroll zooms, and sneak, Q or the land map key (sneak + swap hands) takes you back. Getting hurt
+ * blue = you may build there, red = someone else's), each with its name (or its owner's) on top. The chunk in the
+ * middle of the screen has a golden frame: that is what you claim (click) or release (right-click); jump names the
+ * piece of your land under it. The mouse turns the view and tilts it, WASD glides over the land (sprint = faster),
+ * scroll zooms, and sneak, Q or the land map key (sneak + swap hands) takes you back. Getting hurt
  * closes it at once. With the pack a card at the top of the screen says whose land it is and how much you may still
  * claim.
  *
  * <p>Fully server-side: the camera is a virtual entity the client looks through, everything else is display
- * entities only you can see. While the camera is elsewhere the client doesn't send where it looks, but it does send
- * its movement keys, clicks, the scroll wheel, sneaking and the swap / drop keys, which is all the map needs.
+ * entities only you can see. While the camera is elsewhere the client doesn't send where it looks, except when it
+ * rides something: so you sit on an invisible seat (only on your screen) and the mouse reaches the server. It also
+ * sends its movement keys, clicks, the scroll wheel, jumping, sneaking and the swap / drop keys.
  */
 final class ClaimView {
 	/** How far you can glide, in chunks from where you stand. */
@@ -76,7 +78,7 @@ final class ClaimView {
 	private static final int OPEN_TICKS = 28, CLOSE_TICKS = 16;
 	/** Camera distance (zoom) and how steep it looks down. */
 	private static final double MIN_D = 14, MAX_D = 90, START_D = 34;
-	private static final float PITCH = 56f;
+	private static final float PITCH = 56f, MIN_PITCH = 22f, MAX_PITCH = 89f;
 	/** Roofs float this high over the highest ground of a piece of land; the cursor box over free land is lower. */
 	private static final int ROOF = 3, CURSOR_ROOF = 2;
 	private static final float ROD = 0.14f, CURSOR_ROD = 0.26f;
@@ -141,6 +143,8 @@ final class ClaimView {
 		final Vec3 origin;
 		final ElementHolder holder = new ElementHolder();
 		final ItemDisplayElement cam = new ItemDisplayElement();
+		/** The invisible seat you sit on while the map is open: riding, the client sends where the mouse turns. */
+		final ItemDisplayElement seat = new ItemDisplayElement();
 		final TextDisplayElement you = new TextDisplayElement();
 		/** The buildings, and the golden box around the cursor chunk. */
 		final Map<Piece, DisplayElement> pieces = new HashMap<>();
@@ -156,7 +160,9 @@ final class ClaimView {
 		double curX, curZ, curY, velX, velZ;
 		double dist = START_D, targetDist = START_D;
 		int age, closeAge = -1, lastSlot, deniedUntil = -1;
-		boolean cameraSet, wasSwinging, sneakReleased, denied;
+		boolean cameraSet, wasSwinging, wasJumping, sneakReleased, denied;
+		/** Which way the view looks and how steeply (the mouse turns and tilts it), and the last rotation seen. */
+		float yaw, pitch = PITCH, lastYaw, lastPitch;
 		@Nullable ChunkPos cursorChunk;
 		Vec3 camPos;
 		float camPitch;
@@ -170,15 +176,18 @@ final class ClaimView {
 			this.pitchStart = p.getXRot();
 			this.camPos = this.eyeStart;
 			this.camPitch = this.pitchStart;
+			this.yaw = this.yawStart;
+			this.lastYaw = this.yawStart;
+			this.lastPitch = this.pitchStart;
 		}
 
-		/** Ahead on the screen = the way you were facing when you opened the map. */
+		/** Ahead on the screen = the way the view looks (where you faced when you opened it, turned by the mouse). */
 		double fx() {
-			return -Mth.sin(this.yawStart * Mth.DEG_TO_RAD);
+			return -Mth.sin(this.yaw * Mth.DEG_TO_RAD);
 		}
 
 		double fz() {
-			return Mth.cos(this.yawStart * Mth.DEG_TO_RAD);
+			return Mth.cos(this.yaw * Mth.DEG_TO_RAD);
 		}
 	}
 
@@ -236,9 +245,14 @@ final class ClaimView {
 		v.you.setScale(new Vector3f(youScale(v)));
 		v.holder.addElement(v.you);
 
+		// The seat, right where you stand
+		v.seat.setItem(ItemStack.EMPTY);
+		v.holder.addElement(v.seat);
+
 		buildings(v, true);
 		new ManualAttachment(v.holder, v.level, () -> v.origin);
 		v.holder.startWatching(p);
+		p.connection.send(VirtualEntityUtils.createClientboundSetPassengersPacket(v.seat.getEntityId(), new int[] {p.getId()}));
 
 		// Stand still while the map is open (transient: never saved)
 		freeze(p, true);
@@ -284,6 +298,14 @@ final class ClaimView {
 			// Show the real hotbar again
 			v.p.inventoryMenu.sendAllDataToRemote();
 		}
+	}
+
+	/** The land changed (a name): rebuild what the open map shows. */
+	static void refresh(ServerPlayer p) {
+		View v = VIEWS.get(p.getUUID());
+		if (v == null || v.closeAge >= 0) return;
+		buildings(v, false);
+		if (v.cursorChunk != null) placeCursor(v, v.cursorChunk);
 	}
 
 	static void forget(ServerPlayer p) {
@@ -389,7 +411,8 @@ final class ClaimView {
 				v.closeAge++;
 				double t = ease(Math.min(1, v.closeAge / (double) CLOSE_TICKS));
 				Vec3 eye = p.getEyePosition();
-				moveCamera(v, lerp(v.camPos, eye, t), v.yawStart, Mth.lerp((float) t, v.camPitch, v.pitchStart));
+				// Back into your head, looking the way the map looked (the mouse turned you too)
+				moveCamera(v, lerp(v.camPos, eye, t), Mth.rotLerp((float) t, v.yaw, p.getYRot()), Mth.lerp((float) t, v.camPitch, p.getXRot()));
 				v.holder.tick();
 				if (v.closeAge >= CLOSE_TICKS) finish(v);
 				continue;
@@ -415,16 +438,16 @@ final class ClaimView {
 				// Swoop: out of your head, back and up, while tilting down
 				double t = ease(v.age / (double) OPEN_TICKS);
 				Vec3 from = lerp(p.getEyePosition(), look, t);
-				float pitch = Mth.lerp((float) t, v.pitchStart, PITCH);
+				float pitch = Mth.lerp((float) t, v.pitchStart, v.pitch);
 				Vec3 pos = cameraFor(v, from, v.dist * t, pitch);
-				moveCamera(v, pos, v.yawStart, pitch);
+				moveCamera(v, pos, v.yaw, pitch);
 				v.camPos = pos;
 				v.camPitch = pitch;
 			} else {
-				Vec3 pos = cameraFor(v, look, v.dist, PITCH);
-				moveCamera(v, pos, v.yawStart, PITCH);
+				Vec3 pos = cameraFor(v, look, v.dist, v.pitch);
+				moveCamera(v, pos, v.yaw, v.pitch);
 				v.camPos = pos;
-				v.camPitch = PITCH;
+				v.camPitch = v.pitch;
 			}
 			status(v);
 			v.holder.tick();
@@ -445,6 +468,15 @@ final class ClaimView {
 	private static void input(View v) {
 		ServerPlayer p = v.p;
 		var in = p.getLastClientInput();
+		// The mouse: left and right turn the view around the middle of the screen, up and down tilt it
+		float yaw = p.getYRot(), pitch = p.getXRot();
+		float turn = Mth.wrapDegrees(yaw - v.lastYaw), tilt = pitch - v.lastPitch;
+		v.lastYaw = yaw;
+		v.lastPitch = pitch;
+		if (v.age > OPEN_TICKS) {
+			v.yaw += turn;
+			v.pitch = Mth.clamp(v.pitch + tilt, MIN_PITCH, MAX_PITCH);
+		}
 		double speed = Math.max(0.5, v.dist / 46.0) * (in.sprint() ? 1.9 : 1.0);
 		double ahead = (in.forward() ? 1 : 0) - (in.backward() ? 1 : 0);
 		double side = (in.right() ? 1 : 0) - (in.left() ? 1 : 0);
@@ -480,6 +512,14 @@ final class ClaimView {
 		boolean swinging = p.isSwinging();
 		if (swinging && !v.wasSwinging && v.age > OPEN_TICKS) clickClaim(v, true);
 		v.wasSwinging = swinging;
+		// Jump = name the piece of your land in the middle of the screen
+		boolean jump = in.jump();
+		if (jump && !v.wasJumping && v.age > OPEN_TICKS && v.cursorChunk != null) {
+			ClaimsMod.Claim cl = ClaimsMod.claimAt(v.level, v.cursorChunk);
+			if (cl != null && cl.owner.equals(p.getUUID())) ClaimsMod.nameWindow(p, v.level, v.cursorChunk);
+			else Ui.sound(p, SoundEvents.VILLAGER_NO, 0.4f, 1.2f);
+		}
+		v.wasJumping = jump;
 		// Sneak = back
 		if (!p.isShiftKeyDown()) v.sneakReleased = true;
 		else if (v.sneakReleased) close(p, false);
@@ -620,6 +660,15 @@ final class ClaimView {
 			}
 		}
 		return out;
+	}
+
+	/** The name of a piece of land ("" if it has none). */
+	private static String name(View v, Region r) {
+		for (ChunkPos c : r.list()) {
+			ClaimsMod.Claim cl = ClaimsMod.claimAt(v.level, c);
+			if (cl != null && cl.area != null && !cl.area.isEmpty()) return cl.area;
+		}
+		return "";
 	}
 
 	private static @Nullable Region regionOf(View v, ChunkPos c) {
@@ -856,9 +905,11 @@ final class ClaimView {
 			Kind kind = r.kind();
 			int n = r.list().size();
 			String size = n == 1 ? "1 chunk" : n + " chunks";
-			MutableComponent text = (kind == Kind.MINE ? Component.literal("Your land")
-					: Component.literal(r.first().ownerName)).withStyle(s -> s.withColor(kind.color()).withBold(true));
-			text.append(Component.literal("\n" + size + (kind == Kind.TRUSTED ? " · you may build" : "")).withStyle(ChatFormatting.GRAY));
+			String area = name(v, r);
+			String whose = kind == Kind.MINE ? "Your land" : r.first().ownerName;
+			MutableComponent text = Component.literal(area.isEmpty() ? whose : area).withStyle(s -> s.withColor(kind.color()).withBold(true));
+			text.append(Component.literal("\n" + (area.isEmpty() ? "" : (kind == Kind.MINE ? "yours" : r.first().ownerName) + " · ") + size
+					+ (kind == Kind.TRUSTED ? " · you may build" : "")).withStyle(ChatFormatting.GRAY));
 			TextDisplayElement label = new TextDisplayElement(text);
 			label.setBillboardMode(Display.BillboardConstraints.CENTER);
 			label.setBrightness(FULL);
@@ -925,16 +976,18 @@ final class ClaimView {
 		if (v.pack) {
 			Region r = regionOf(v, c);
 			int size = r == null ? 0 : r.list().size();
+			String area = r == null ? "" : name(v, r);
 			Component name = switch (kind) {
 				case FREE -> Component.literal("Free land").withStyle(ChatFormatting.WHITE, ChatFormatting.BOLD);
-				case MINE -> Component.literal("Your land").withStyle(ChatFormatting.GREEN, ChatFormatting.BOLD);
-				default -> Component.literal(cl.ownerName + "'s land").withStyle(s -> s.withColor(kind.color()).withBold(true));
+				case MINE -> Component.literal(area.isEmpty() ? "Your land" : area).withStyle(ChatFormatting.GREEN, ChatFormatting.BOLD);
+				default -> Component.literal(area.isEmpty() ? cl.ownerName + "'s land" : area).withStyle(s -> s.withColor(kind.color()).withBold(true));
 			};
+			String chunks = size == 1 ? "1 chunk" : size + " chunks";
 			Component subtitle = Component.literal(switch (kind) {
 				case FREE -> "Nobody's yet · chunk " + c.x() + ", " + c.z();
-				case MINE -> (size == 1 ? "1 chunk" : size + " chunks") + " together · since " + ago(cl.since);
-				case TRUSTED -> "You may build here · " + (size == 1 ? "1 chunk" : size + " chunks");
-				default -> "Protected · " + (size == 1 ? "1 chunk" : size + " chunks") + " · since " + ago(cl.since);
+				case MINE -> (area.isEmpty() ? chunks + " together" : "Yours · " + chunks) + " · since " + ago(cl.since);
+				case TRUSTED -> (area.isEmpty() ? "" : cl.ownerName + "'s · ") + "You may build here · " + chunks;
+				default -> (area.isEmpty() ? "Protected · " : cl.ownerName + "'s · ") + chunks + " · since " + ago(cl.since);
 			}).withStyle(ChatFormatting.GRAY);
 			List<TopCard.Row> rows = new ArrayList<>();
 			rows.add(TopCard.Row.bar("flag", "Your land", max == 0 ? 0 : used / (double) max, room ? 0x55FF55 : 0xFF5555, 10,
@@ -942,14 +995,17 @@ final class ClaimView {
 			Component action = switch (kind) {
 				case FREE -> room ? Component.literal("Click to claim it").withStyle(ChatFormatting.YELLOW)
 						: Component.literal("Your land budget is full").withStyle(ChatFormatting.RED);
-				case MINE -> Component.literal("Right-click to give it up").withStyle(ChatFormatting.YELLOW);
+				case MINE -> Component.literal("Right-click: give it up  ·  Jump: " + (area.isEmpty() ? "name it" : "rename it"))
+						.withStyle(ChatFormatting.YELLOW);
 				case TRUSTED -> Component.literal("Ask " + cl.ownerName + " to change it").withStyle(ChatFormatting.GRAY);
 				default -> Component.literal("Not yours to change").withStyle(ChatFormatting.GRAY);
 			};
 			rows.add(TopCard.Row.text("mouse", "", action));
 			int accent = kind == Kind.FREE ? -1 : kind.color();
 			TopCard.show(v.p, CARD, new TopCard.Card(new ItemStack(Items.FILLED_MAP), accent, name, subtitle, rows), 100);
-			MutableComponent keys = Component.literal("WASD").withStyle(ChatFormatting.WHITE)
+			MutableComponent keys = Component.literal("Mouse").withStyle(ChatFormatting.WHITE)
+					.append(Component.literal(" turn  ·  ").withStyle(ChatFormatting.GRAY))
+					.append(Component.literal("WASD").withStyle(ChatFormatting.WHITE))
 					.append(Component.literal(" glide  ·  ").withStyle(ChatFormatting.GRAY))
 					.append(Component.literal("Scroll").withStyle(ChatFormatting.WHITE))
 					.append(Component.literal(" zoom  ·  ").withStyle(ChatFormatting.GRAY))
@@ -965,13 +1021,13 @@ final class ClaimView {
 			case FREE -> line.append(Component.literal("Free land").withStyle(ChatFormatting.WHITE))
 					.append(Component.literal(room ? "  ·  click: claim" : "  ·  your budget is full")
 							.withStyle(room ? ChatFormatting.YELLOW : ChatFormatting.RED));
-			case MINE -> line.append(Component.literal("Your land").withStyle(ChatFormatting.GREEN))
-					.append(Component.literal("  ·  right-click: release").withStyle(ChatFormatting.YELLOW));
+			case MINE -> line.append(Component.literal(cl.area == null || cl.area.isEmpty() ? "Your land" : cl.area).withStyle(ChatFormatting.GREEN))
+					.append(Component.literal("  ·  right-click: release  ·  jump: name").withStyle(ChatFormatting.YELLOW));
 			case TRUSTED -> line.append(Component.literal(cl.ownerName + "'s land · you may build").withStyle(ChatFormatting.AQUA));
 			default -> line.append(Component.literal(cl.ownerName + "'s land").withStyle(ChatFormatting.RED));
 		}
 		line.append(Component.literal("   " + used + "/" + max + " chunks").withStyle(ChatFormatting.GRAY));
-		if (v.age < 120) line.append(Component.literal("   WASD move · scroll zoom · Q back").withStyle(ChatFormatting.DARK_GRAY));
+		if (v.age < 120) line.append(Component.literal("   mouse turn · WASD move · scroll zoom · Q back").withStyle(ChatFormatting.DARK_GRAY));
 		Hud.show(v.p, HUD, line, Hud.PRIO_INFO, 10);
 	}
 

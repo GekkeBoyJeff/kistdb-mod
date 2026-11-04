@@ -36,6 +36,26 @@ final class ClaimsTests {
 			SelfTests.check(ClaimsMod.allowed(guest, level, inside, ClaimsMod.Action.BUILD), "after release: free");
 		});
 
+		SelfTests.register("claims.names", level -> {
+			FakePlayer owner = FakePlayer.get(level);
+			ChunkPos a = new ChunkPos(60, 60), b = new ChunkPos(61, 60), far = new ChunkPos(70, 60), c = new ChunkPos(62, 60);
+			for (ChunkPos x : new ChunkPos[] {a, b, far, c}) ClaimsMod.STORE.get().claims.remove(ClaimsMod.key(level, x));
+			SelfTests.check(ClaimsMod.claim(owner, level, a) && ClaimsMod.claim(owner, level, far), "two pieces of land");
+			SelfTests.check(ClaimsMod.nameArea(owner, level, a, "  Raven  hold "), "name the first piece");
+			SelfTests.check("Raven hold".equals(ClaimsMod.claimAt(level, a).area), "spaces cleaned up: " + ClaimsMod.claimAt(level, a).area);
+			SelfTests.check(ClaimsMod.claimAt(level, far).area.isEmpty(), "the other piece keeps no name");
+			SelfTests.check(ClaimsMod.claim(owner, level, b) && "Raven hold".equals(ClaimsMod.claimAt(level, b).area),
+					"a chunk claimed next to it gets its name");
+			SelfTests.check(ClaimsMod.nameArea(owner, level, far, "Eastwatch") && "Eastwatch".equals(ClaimsMod.claimAt(level, far).area),
+					"the other piece gets a name of its own");
+			SelfTests.check(!ClaimsMod.nameArea(owner, level, a, "x") && ClaimsMod.cleanName("§cRed") != null
+					&& !ClaimsMod.cleanName("§cRed").contains("§"), "too short is refused, colour codes go");
+			SelfTests.check(ClaimsMod.area(level, a).size() == 2, "a piece is the chunks that touch");
+			ClaimsMod.claim(owner, level, c);
+			SelfTests.check("Raven hold".equals(ClaimsMod.claimAt(level, c).area), "growing keeps the name");
+			for (ChunkPos x : new ChunkPos[] {a, b, far, c}) ClaimsMod.unclaim(owner, level, x);
+		});
+
 		SelfTests.register("claims.texts", level -> {
 			FakePlayer p = FakePlayer.get(level);
 			SelfTests.check(ClaimsMod.duration(45).equals("45 min"), "duration in minutes");

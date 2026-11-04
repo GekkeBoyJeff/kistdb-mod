@@ -76,6 +76,7 @@ public final class ClaimsMod implements ModInitializer {
 			.commands(
 					"/claim – claim the chunk you're in",
 					"/claim map – map of your land",
+					"/claim name – give your land a name",
 					"/claim show – see nearby borders",
 					"/claim info – owner and budget",
 					"/claim trust <name> – add a friend",
@@ -115,6 +116,8 @@ public final class ClaimsMod implements ModInitializer {
 		public UUID owner = new UUID(0, 0);
 		public String ownerName = "";
 		public long since;
+		/** The name of the piece of land this chunk belongs to ("" = none); every chunk of a piece carries it. */
+		public String area = "";
 	}
 
 	public static final class Owner {
@@ -231,6 +234,7 @@ public final class ClaimsMod implements ModInitializer {
 			UUID id = handler.player.getUUID();
 			LandMapItem.forget(id);
 			LAST.remove(id);
+			SHOWN.remove(id);
 			HINTED.remove(id);
 			TIP_AT.remove(id);
 		});
@@ -246,6 +250,14 @@ public final class ClaimsMod implements ModInitializer {
 							LandMapItem.give(ctx.getSource().getPlayerOrException());
 							return 1;
 						}))
+						.then(Commands.literal("name").executes(ctx -> {
+							ServerPlayer p = ctx.getSource().getPlayerOrException();
+							nameWindow(p, p.level(), p.chunkPosition());
+							return 1;
+						}).then(Commands.argument("name", StringArgumentType.greedyString()).executes(ctx -> {
+							ServerPlayer p = ctx.getSource().getPlayerOrException();
+							return nameArea(p, p.level(), p.chunkPosition(), StringArgumentType.getString(ctx, "name")) ? 1 : 0;
+						})))
 						.then(Commands.literal("release").executes(ctx -> releaseHere(ctx.getSource().getPlayerOrException())))
 						.then(Commands.literal("show").executes(ctx -> {
 							showNearby(ctx.getSource().getPlayerOrException());
@@ -331,7 +343,9 @@ public final class ClaimsMod implements ModInitializer {
 	}
 
 	static @Nullable Claim claimAt(Level level, ChunkPos c) {
-		return STORE.get().claims.get(key(level, c));
+		Claim cl = STORE.get().claims.get(key(level, c));
+		if (cl != null && cl.area == null) cl.area = "";
+		return cl;
 	}
 
 	static Owner owner(UUID id) {
@@ -439,6 +453,19 @@ public final class ClaimsMod implements ModInitializer {
 		cl.ownerName = p.getName().getString();
 		cl.since = System.currentTimeMillis();
 		STORE.get().claims.put(key(level, c), cl);
+		// Part of a named piece of land now (or joining two): the whole piece carries the name of the biggest
+		String inherited = "";
+		int biggest = 0;
+		for (ChunkPos n : neighbours(c)) {
+			Claim nc = claimAt(level, n);
+			if (nc == null || !nc.owner.equals(cl.owner) || nc.area.isEmpty()) continue;
+			int size = area(level, n).size();
+			if (size > biggest) {
+				biggest = size;
+				inherited = nc.area;
+			}
+		}
+		if (!inherited.isEmpty()) for (ChunkPos a : area(level, c)) claimAt(level, a).area = inherited;
 		STORE.saveNow();
 		showBorder(p, level, c, GREEN);
 		Ui.sound(p, net.minecraft.sounds.SoundEvents.PLAYER_LEVELUP, 0.5f, 1.6f);
@@ -479,12 +506,18 @@ public final class ClaimsMod implements ModInitializer {
 	}
 
 	/** "Chunk claimed / released" at the top of the screen, with how much of the budget is used. */
+	private static boolean unnamedHere(ServerPlayer p) {
+		Claim c = claimAt(p.level(), p.chunkPosition());
+		return c != null && c.owner.equals(p.getUUID()) && c.area.isEmpty();
+	}
+
 	static void toast(ServerPlayer p, boolean claimed) {
 		int used = owned(p.getUUID()), max = budget(p);
 		nl.libreria.core.gui.Toast.show(p, new net.minecraft.world.item.ItemStack(claimed ? Items.GOLDEN_SHOVEL : Items.WOODEN_SHOVEL),
 				claimed ? nl.libreria.core.gui.Toast.GOOD : nl.libreria.core.gui.Toast.WARN,
 				Ui.text(claimed ? "Chunk claimed" : "Chunk released", ChatFormatting.WHITE),
-				Ui.text(claimed ? "Its borders glow for a moment · /claim release to undo" : "Free land again", ChatFormatting.GRAY),
+				Ui.text(claimed ? (unnamedHere(p) ? "Give this land a name: /claim name" : "Its borders glow for a moment · /claim release to undo")
+						: "Free land again", ChatFormatting.GRAY),
 				nl.libreria.core.gui.TopCard.Row.bar("flag", "Budget", max == 0 ? 1 : used / (double) max, 0x55FF55, 10,
 						Ui.text(used + " of " + max, ChatFormatting.WHITE)));
 	}
@@ -616,7 +649,7 @@ public final class ClaimsMod implements ModInitializer {
 		Claim cl = claimAt(p.level(), c);
 		MutableComponent m = Ui.prefix("Claims").append(Ui.text("This chunk (" + c.x() + ", " + c.z() + "): ", ChatFormatting.GRAY));
 		if (cl == null) m.append(Ui.text("free land", ChatFormatting.WHITE));
-		else if (cl.owner.equals(p.getUUID())) m.append(Ui.text("your land", ChatFormatting.GREEN));
+		else if (cl.owner.equals(p.getUUID())) m.append(Ui.text(cl.area.isEmpty() ? "your land" : "your land, " + cl.area, ChatFormatting.GREEN));
 		else if (trustedIn(p, cl)) m.append(Ui.text(cl.ownerName + "'s land (you're trusted)", ChatFormatting.AQUA));
 		else m.append(Ui.text(cl.ownerName + "'s land", ChatFormatting.RED));
 		m.append("\n").append(Ui.text(budgetText(p) + " " + growthSentence(), ChatFormatting.GRAY));
@@ -625,6 +658,9 @@ public final class ClaimsMod implements ModInitializer {
 		m.append("\n").append(Ui.text("Trusted players: " + (o.trusted.isEmpty() ? "none yet" : String.join(", ", o.trusted.values())), ChatFormatting.GRAY));
 		List<MutableComponent> buttons = new ArrayList<>();
 		if (cl == null) buttons.add(chatButton("Claim it", ChatFormatting.GREEN, new ClickEvent.RunCommand("/claim"), "Claim the chunk you stand in"));
+		if (cl != null && cl.owner.equals(p.getUUID())) {
+			buttons.add(chatButton("Name this land", ChatFormatting.GOLD, new ClickEvent.RunCommand("/claim name"), "Give this piece of land a name"));
+		}
 		buttons.add(mapButton());
 		buttons.add(chatButton("Show borders", ChatFormatting.YELLOW, new ClickEvent.RunCommand("/claim show"), "Show the claims around you"));
 		buttons.add(trustButton());
@@ -723,7 +759,7 @@ public final class ClaimsMod implements ModInitializer {
 
 	private static void enterMessage(ServerPlayer p) {
 		Claim c = claimAt(p.level(), p.chunkPosition());
-		String now = c == null ? "" : c.owner.toString();
+		String now = c == null ? "" : c.owner + "|" + c.area;
 		String before = LAST.put(p.getUUID(), now);
 		if (before == null || before.equals(now)) return;
 		if (c == null) {
@@ -732,7 +768,111 @@ public final class ClaimsMod implements ModInitializer {
 		}
 		boolean mine = c.owner.equals(p.getUUID());
 		ChatFormatting color = mine ? ChatFormatting.GREEN : trustedIn(p, c) ? ChatFormatting.AQUA : ChatFormatting.GOLD;
-		Hud.show(p, "claims", Component.literal("⚑ " + (mine ? "Your land" : c.ownerName + "'s land")).withStyle(color), Hud.PRIO_WARNING, 40);
+		String whose = mine ? "Your land" : c.ownerName + "'s land";
+		if (!c.area.isEmpty()) {
+			// A named piece of land: its name fades in at the top, like a village or a forest
+			Map<String, Long> shown = SHOWN.computeIfAbsent(p.getUUID(), k -> new HashMap<>());
+			long t = System.currentTimeMillis();
+			Long last = shown.get(now);
+			if (last == null || t - last > AGAIN_MS) {
+				shown.put(now, t);
+				nl.libreria.core.gui.Caption.show(p, Component.literal(c.area), Component.literal(whose));
+				return;
+			}
+		}
+		Hud.show(p, "claims", Component.literal("⚑ " + (c.area.isEmpty() ? whose : c.area + " · " + whose)).withStyle(color), Hud.PRIO_WARNING, 40);
+	}
+
+	/** Per player: when each named piece of land last faded in (not again within a few minutes). */
+	private static final Map<UUID, Map<String, Long>> SHOWN = new HashMap<>();
+	private static final long AGAIN_MS = 5 * 60_000;
+
+	// ---------------------------------------------------------------- names for pieces of land
+
+	static List<ChunkPos> neighbours(ChunkPos c) {
+		return List.of(new ChunkPos(c.x() + 1, c.z()), new ChunkPos(c.x() - 1, c.z()), new ChunkPos(c.x(), c.z() + 1),
+				new ChunkPos(c.x(), c.z() - 1));
+	}
+
+	/** The connected piece of land of one owner that this chunk is part of (empty if it isn't claimed). */
+	static List<ChunkPos> area(Level level, ChunkPos start) {
+		Claim first = claimAt(level, start);
+		List<ChunkPos> out = new ArrayList<>();
+		if (first == null) return out;
+		Set<String> seen = new HashSet<>();
+		java.util.ArrayDeque<ChunkPos> todo = new java.util.ArrayDeque<>();
+		todo.add(start);
+		seen.add(key(level, start));
+		while (!todo.isEmpty() && out.size() < 4096) {
+			ChunkPos c = todo.poll();
+			out.add(c);
+			for (ChunkPos n : neighbours(c)) {
+				Claim nc = claimAt(level, n);
+				if (nc != null && nc.owner.equals(first.owner) && seen.add(key(level, n))) todo.add(n);
+			}
+		}
+		return out;
+	}
+
+	/** A name players can give: letters, digits, spaces and a few marks; 2 to 32 characters. */
+	static @Nullable String cleanName(String raw) {
+		if (raw == null) return null;
+		String s = raw.replace('§', ' ').replaceAll("[\\p{Cntrl}]", "").replaceAll("\\s+", " ").trim();
+		if (s.length() < 2 || s.length() > 32) return null;
+		return s;
+	}
+
+	/** Names the piece of land around {@code c} (yours). Returns false with a message when that isn't possible. */
+	static boolean nameArea(ServerPlayer p, ServerLevel level, ChunkPos c, String raw) {
+		Claim cl = claimAt(level, c);
+		if (cl == null || !cl.owner.equals(p.getUUID())) {
+			msg(p, "Stand in your own land to name it (or point at it on the land map).", ChatFormatting.GRAY);
+			return false;
+		}
+		String name = cleanName(raw);
+		if (name == null) {
+			msg(p, "A name needs 2 to 32 letters.", ChatFormatting.RED);
+			return false;
+		}
+		List<ChunkPos> piece = area(level, c);
+		for (ChunkPos a : piece) claimAt(level, a).area = name;
+		STORE.saveNow();
+		LAST.remove(p.getUUID());
+		nl.libreria.core.gui.Toast.show(p, new net.minecraft.world.item.ItemStack(Items.NAME_TAG), nl.libreria.core.gui.Toast.GOOD,
+				Ui.text("Your land is called " + name, ChatFormatting.WHITE),
+				Ui.text((piece.size() == 1 ? "1 chunk" : piece.size() + " chunks") + " · others see the name when they walk in", ChatFormatting.GRAY));
+		Ui.sound(p, net.minecraft.sounds.SoundEvents.BOOK_PAGE_TURN, 0.8f, 1.1f);
+		nl.libreria.core.Chronicle.write(p, nl.libreria.core.Chronicle.Kind.MILESTONE, "named their land " + name, false);
+		ClaimView.refresh(p);
+		return true;
+	}
+
+	/** The window with a field for the name of the piece of land around {@code c}. */
+	static void nameWindow(ServerPlayer p, ServerLevel level, ChunkPos c) {
+		Claim cl = claimAt(level, c);
+		if (cl == null || !cl.owner.equals(p.getUUID())) {
+			msg(p, "Stand in your own land to name it (or point at it on the land map).", ChatFormatting.GRAY);
+			return;
+		}
+		int size = area(level, c).size();
+		nl.libreria.core.dialog.Window w = nl.libreria.core.dialog.Window.of(Ui.text("Name your land", ChatFormatting.GREEN)
+				.withStyle(ChatFormatting.BOLD));
+		w.text(Ui.text("This piece of your land (" + (size == 1 ? "1 chunk" : size + " chunks") + ") gets a name. Anyone who walks in "
+				+ "sees it fade in at the top of their screen, like a village or a forest. Your other pieces of land can have names of "
+				+ "their own.", ChatFormatting.GRAY));
+		w.field("name", Ui.text("Name", ChatFormatting.WHITE), cl.area, 32);
+		w.button(Ui.text("✔ Save", ChatFormatting.GREEN), Ui.text("Give it this name", ChatFormatting.GRAY),
+				(pp, v) -> nameArea(pp, level, c, v.text("name", "")));
+		if (!cl.area.isEmpty()) {
+			w.button(Ui.text("Remove the name", ChatFormatting.RED), null, (pp, v) -> {
+				for (ChunkPos a : area(level, c)) claimAt(level, a).area = "";
+				STORE.saveNow();
+				LAST.remove(pp.getUUID());
+				msg(pp, "Your land has no name now.", ChatFormatting.GRAY);
+				ClaimView.refresh(pp);
+			});
+		}
+		w.done().show(p);
 	}
 
 	static void msg(ServerPlayer p, String text, ChatFormatting color) {

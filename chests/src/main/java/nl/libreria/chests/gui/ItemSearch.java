@@ -75,8 +75,12 @@ public final class ItemSearch extends AnvilInputGui {
 	private String shown = "\u0000";
 	private int page;
 
-	private ItemSearch(ServerPlayer player, String typed) {
+	/** Opened with the magnifying glass in your inventory: the last cell leads to the recipe book. */
+	private final boolean fromInventory;
+
+	private ItemSearch(ServerPlayer player, String typed, boolean fromInventory) {
 		super(player, true);
+		this.fromInventory = fromInventory;
 		this.viewer = player;
 		this.pack = Pack.has(player);
 		this.all = new ArrayList<>(Search.stock(player, ""));
@@ -95,7 +99,11 @@ public final class ItemSearch extends AnvilInputGui {
 	}
 
 	public static void open(ServerPlayer player, String typed) {
-		ItemSearch gui = new ItemSearch(player, typed);
+		open(player, typed, false);
+	}
+
+	public static void open(ServerPlayer player, String typed, boolean fromInventory) {
+		ItemSearch gui = new ItemSearch(player, typed, fromInventory);
 		gui.open();
 		gui.sendProperty(eu.pb4.sgui.api.ScreenProperty.LEVEL_COST, 0);
 	}
@@ -178,14 +186,17 @@ public final class ItemSearch extends AnvilInputGui {
 			if (!this.filter.test(s, pinned)) continue;
 			if (lower.isEmpty() || Search.matches(s.item(), lower)) matches.add(s);
 		}
-		// More than fit: the last slot turns the page
-		boolean paged = matches.size() > SLOTS;
-		int perPage = paged ? SLOTS - 1 : SLOTS;
+		// From your inventory, the last slot is the recipe book; more than fit: the slot before it turns the page
+		int usable = this.fromInventory ? SLOTS - 1 : SLOTS;
+		boolean paged = matches.size() > usable;
+		int perPage = paged ? usable - 1 : usable;
 		int pages = Math.max(1, (matches.size() + perPage - 1) / perPage);
 		this.page = Math.min(this.page, pages - 1);
 		for (int i = 0; i < SLOTS; i++) {
 			int idx = this.page * perPage + i;
-			if (paged && i == SLOTS - 1) {
+			if (this.fromInventory && i == SLOTS - 1) {
+				this.setSlot(RESULTS + i, recipeBook());
+			} else if (paged && i == usable - 1) {
 				this.setSlot(RESULTS + i, more(this.page, pages, matches.size()));
 			} else if (i < perPage && idx < matches.size()) {
 				this.setSlot(RESULTS + i, element(matches.get(idx)));
@@ -201,6 +212,17 @@ public final class ItemSearch extends AnvilInputGui {
 		this.setSlot(2, filterButton());
 		// No "Enchantment Cost" over the summary bar: this anvil repairs nothing
 		if (this.isOpen()) this.sendProperty(eu.pb4.sgui.api.ScreenProperty.LEVEL_COST, 0);
+	}
+
+	/** The way to the recipe book, which sits behind the same button as this search. */
+	private GuiElementBuilder recipeBook() {
+		GuiElementBuilder b = Menu.button(Items.KNOWLEDGE_BOOK, "Recipe book", ChatFormatting.GREEN,
+				"The magnifying glass took the recipe", "book's place. Click here: it's open", "the next time you press E.");
+		Menu.actions(b, "Click: open the recipe book");
+		return b.setCallback((index, type, action, gui) -> {
+			Ui.click(this.viewer);
+			nl.libreria.chests.ChestSearch.openRecipeBook(this.viewer);
+		});
 	}
 
 	private GuiElementBuilder more(int page, int pages, int total) {
@@ -253,7 +275,7 @@ public final class ItemSearch extends AnvilInputGui {
 			if (type.isRight) {
 				Ui.click(this.viewer);
 				String typed = this.getInput();
-				ItemGui.open(this.viewer, stock.item(), "your items", () -> open(this.viewer, typed));
+				ItemGui.open(this.viewer, stock.item(), "your items", () -> open(this.viewer, typed, this.fromInventory));
 			} else if (type.isLeft) {
 				gui.close();
 				Locate.go(this.viewer, stock.sample(), stock.hits());

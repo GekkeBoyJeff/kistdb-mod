@@ -274,6 +274,15 @@ public final class Screens implements FabricClientGameTest {
 				ctx.getInput().scroll(-3);
 				ctx.waitTicks(20);
 				ctx.takeScreenshot("claim_view_zoomed");
+				// The mouse turns the view (a quarter turn to the right) and tilts it
+				float[] before = new float[1];
+				server.runOnServer(s -> before[0] = player.getYRot());
+				moveMouse(ctx, 600, 0);
+				ctx.waitTicks(15);
+				ctx.takeScreenshot("claim_view_turned");
+				server.runOnServer(s -> LOG.info("LIBRERIA-MAP-TURN yaw {} -> {}", before[0], player.getYRot()));
+				moveMouse(ctx, -600, 0);
+				ctx.waitTicks(10);
 				// Over to Steve's sloped land (east = left on the screen)
 				ctx.getInput().scroll(2);
 				ctx.getInput().holdKeyFor(o2 -> o2.keyLeft, 45);
@@ -485,6 +494,16 @@ public final class Screens implements FabricClientGameTest {
 	private static void camera(ClientGameTestContext ctx, CameraType type) {
 		ctx.runOnClient(c -> c.options.setCameraType(type));
 		ctx.waitTick();
+	}
+
+	/** Moves the mouse by this many pixels (TestInput.moveCursor, looked up by name). */
+	private static void moveMouse(ClientGameTestContext ctx, double dx, double dy) {
+		try {
+			Object input = ctx.getInput();
+			input.getClass().getMethod("moveCursor", double.class, double.class).invoke(input, dx, dy);
+		} catch (ReflectiveOperationException | RuntimeException e) {
+			LOG.warn("Could not move the mouse: {}", e.toString());
+		}
 	}
 
 	/** Types into the focused text field (TestInput.typeChars, looked up by name so a renamed API can't break the build). */
