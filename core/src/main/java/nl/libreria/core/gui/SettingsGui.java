@@ -1,18 +1,14 @@
 package nl.libreria.core.gui;
 
 import eu.pb4.sgui.api.elements.GuiElementBuilder;
-import eu.pb4.sgui.api.gui.SimpleGui;
 import java.util.List;
 import net.minecraft.ChatFormatting;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.inventory.MenuType;
-import net.minecraft.world.item.Items;
 import nl.libreria.core.Module;
 import nl.libreria.core.Setting;
 import nl.libreria.core.Ui;
 
-/** /libreria settings: eerst de modules, dan per module de instellingen (klik = wijzigen, rechtsklik = terug bij keuzes). */
+/** Settings: first pick a module, then flip its switches (icon on top, a green/red lamp underneath). */
 public final class SettingsGui {
 	private SettingsGui() {
 	}
@@ -21,77 +17,60 @@ public final class SettingsGui {
 		new ModulesPage(player).open();
 	}
 
-	private static final class ModulesPage extends SimpleGui {
+	private static final class ModulesPage extends Menu {
 		ModulesPage(ServerPlayer player) {
-			super(MenuType.GENERIC_9x3, player, false);
-			this.setTitle(Component.literal("Libreria – Settings"));
+			super(player, 5, "Settings");
 			List<Module> modules = Module.all().stream().filter(m -> !m.settings().isEmpty()).toList();
-			int[] order = {10, 11, 12, 13, 14, 15, 16, 1, 2, 3, 4, 5, 6, 7};
-			for (int i = 0; i < modules.size() && i < order.length; i++) {
+			// Up to 14 modules in two centred rows
+			int first = Math.min(7, modules.size());
+			int[] top = row(1, first);
+			int[] bottom = row(2, modules.size() - first);
+			for (int i = 0; i < modules.size() && i < 14; i++) {
 				Module m = modules.get(i);
-				GuiElementBuilder b = Ui.button(m.icon, m.name, ChatFormatting.GOLD);
-				for (String d : m.description) b.addLoreLine(Ui.text(d, ChatFormatting.GRAY));
-				b.addLoreLine(Ui.text(m.settings().size() + (m.settings().size() == 1 ? " setting" : " settings"), ChatFormatting.DARK_GRAY));
+				GuiElementBuilder b = button(m.icon, m.name, ChatFormatting.GOLD, m.description.toArray(String[]::new));
+				long on = m.settings().stream().filter(s -> s instanceof Setting.Toggle t && t.get(player)).count();
+				long toggles = m.settings().stream().filter(s -> s instanceof Setting.Toggle).count();
+				b.addLoreLine(net.minecraft.network.chat.Component.empty());
+				b.addLoreLine(Ui.text(m.settings().size() + (m.settings().size() == 1 ? " setting" : " settings")
+						+ (toggles > 0 ? " · " + on + "/" + toggles + " on" : ""), ChatFormatting.DARK_GRAY));
+				action(b, "Click: open");
 				b.setCallback((index, type, action, gui) -> {
 					Ui.click(player);
 					new ModulePage(player, m).open();
 				});
-				this.setSlot(order[i], b.build());
+				this.setSlot(i < 7 ? top[i] : bottom[i - 7], b);
 			}
-			this.setSlot(22, Ui.button(Items.ARROW, "Libreria menu", ChatFormatting.WHITE)
-					.setCallback((index, type, action, gui) -> HubGui.open(player)).build());
+			back("the Libreria menu", () -> HubGui.open(player));
+			closeButton();
+			help("Every player has their own settings.", "Nothing here affects other players.");
+			finish();
 		}
 	}
 
-	private static final class ModulePage extends SimpleGui {
+	private static final class ModulePage extends Menu {
 		private final Module module;
 
 		ModulePage(ServerPlayer player, Module module) {
-			super(MenuType.GENERIC_9x3, player, false);
+			super(player, Math.min(6, module.settings().size() > 7 ? 6 : 4), module.name + " · Settings");
 			this.module = module;
-			this.setTitle(Component.literal(module.name));
 			rebuild();
 		}
 
 		private void rebuild() {
-			ServerPlayer player = this.getPlayer();
+			clearContent();
 			List<Setting> settings = this.module.settings();
-			int[] order = {10, 11, 12, 13, 14, 15, 16, 1, 2, 3, 4, 5, 6, 7};
-			for (int i = 0; i < settings.size() && i < order.length; i++) {
-				this.setSlot(order[i], element(player, settings.get(i)).build());
+			int first = Math.min(7, settings.size());
+			int[] top = row(1, first);
+			int[] second = row(3, Math.max(0, Math.min(7, settings.size() - first)));
+			for (int i = 0; i < settings.size() && i < 14; i++) {
+				int slot = i < 7 ? top[i] : second[i - 7];
+				// Each setting: icon, with its lamp (or ◀ value ▶) directly below
+				setting(slot, settings.get(i), this::rebuild);
 			}
-			this.setSlot(22, Ui.button(Items.ARROW, "Back", ChatFormatting.WHITE)
-					.setCallback((index, type, action, gui) -> SettingsGui.open(player)).build());
-		}
-
-		private GuiElementBuilder element(ServerPlayer player, Setting s) {
-			GuiElementBuilder b = new GuiElementBuilder(s.icon).setName(Ui.text(s.label, ChatFormatting.WHITE));
-			for (String l : s.lore) b.addLoreLine(Ui.text(l, ChatFormatting.GRAY));
-			b.addLoreLine(Component.empty());
-			if (s instanceof Setting.Toggle t) {
-				boolean on = t.get(player);
-				b.addLoreLine(Ui.kv("Current: ", on ? "ON" : "OFF", on ? ChatFormatting.GREEN : ChatFormatting.RED));
-				b.addLoreLine(Ui.text("Click to toggle", ChatFormatting.DARK_GRAY));
-				if (on) b.glow();
-				b.setCallback((index, type, action, gui) -> {
-					t.set(player, !t.get(player));
-					Ui.click(player);
-					rebuild();
-				});
-			} else if (s instanceof Setting.Choice c) {
-				int current = c.index(player);
-				for (int i = 0; i < c.size(); i++) {
-					boolean sel = i == current;
-					b.addLoreLine(Ui.text((sel ? " ▶ " : "   ") + c.labelAt(i), sel ? ChatFormatting.GREEN : ChatFormatting.DARK_GRAY));
-				}
-				b.addLoreLine(Ui.text("Click: next · Right-click: previous", ChatFormatting.DARK_GRAY));
-				b.setCallback((index, type, action, gui) -> {
-					c.cycle(player, type.isRight ? -1 : 1);
-					Ui.click(player);
-					rebuild();
-				});
-			}
-			return b;
+			back("all settings", () -> SettingsGui.open(this.player));
+			closeButton();
+			help("Click a setting or the lamp below it", "to change it. Changes apply at once.");
+			finish();
 		}
 	}
 }

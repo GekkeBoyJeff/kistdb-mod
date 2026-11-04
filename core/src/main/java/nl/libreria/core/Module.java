@@ -25,7 +25,48 @@ public final class Module {
 	final List<HubEntry> hubEntries = new ArrayList<>();
 
 	/** Een knop in het Libreria-menu. */
-	public record HubEntry(Module module, Item icon, String name, ChatFormatting color, List<String> lore, Consumer<ServerPlayer> action) {
+	public record HubEntry(Module module, Category category, Item icon, String name, ChatFormatting color, List<String> lore,
+			Consumer<ServerPlayer> action) {
+	}
+
+	/** Rows in the Libreria menu. */
+	public enum Category {
+		ITEMS("Items & chests", "orange", ChatFormatting.GOLD),
+		WORLD("World & travel", "green", ChatFormatting.GREEN),
+		PROGRESS("Progress", "yellow", ChatFormatting.YELLOW),
+		YOU("You", "magenta", ChatFormatting.LIGHT_PURPLE);
+
+		public final String label;
+		public final String pane;
+		public final ChatFormatting color;
+
+		Category(String label, String pane, ChatFormatting color) {
+			this.label = label;
+			this.pane = pane;
+			this.color = color;
+		}
+
+		/** Default row for a module's buttons. */
+		static Category forModule(String id) {
+			return switch (id) {
+				case "chests", "graves", "tools" -> ITEMS;
+				case "claims", "waypoints" -> WORLD;
+				case "collector", "info" -> PROGRESS;
+				default -> YOU;
+			};
+		}
+	}
+
+	final List<String> commands = new ArrayList<>();
+
+	/** Command lines shown in the Help book of the Libreria menu, e.g. "/claim – claim this chunk". */
+	public Module commands(String... lines) {
+		this.commands.addAll(List.of(lines));
+		return this;
+	}
+
+	public List<String> commandHelp() {
+		return Collections.unmodifiableList(this.commands);
 	}
 
 	private Module(String id, String name, Item icon, List<String> description) {
@@ -68,7 +109,12 @@ public final class Module {
 
 	/** Voegt een knop toe aan het Libreria-menu. */
 	public void hubEntry(Item icon, String name, ChatFormatting color, Consumer<ServerPlayer> action, String... lore) {
-		this.hubEntries.add(new HubEntry(this, icon, name, color, List.of(lore), action));
+		this.hubEntries.add(new HubEntry(this, Category.forModule(this.id), icon, name, color, List.of(lore), action));
+	}
+
+	/** Same, but in a specific row of the menu. */
+	public void hubEntry(Category category, Item icon, String name, ChatFormatting color, Consumer<ServerPlayer> action, String... lore) {
+		this.hubEntries.add(new HubEntry(this, category, icon, name, color, List.of(lore), action));
 	}
 
 	public static List<HubEntry> allHubEntries() {

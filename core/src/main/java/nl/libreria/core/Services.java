@@ -85,6 +85,14 @@ public final class Services {
 
 		/** Gekozen titel voor boven je naam, of null. */
 		@Nullable Component title(ServerPlayer player);
+
+		/**
+		 * A short "player card": title, points, achievements and completion. Shown in the Libreria menu header and in
+		 * the look-at tooltip when you look at another player.
+		 */
+		default List<Component> card(ServerPlayer player) {
+			return List.of();
+		}
 	}
 
 	private static @Nullable Progress progress;

@@ -130,3 +130,7 @@ net.fabricmc.fabric.api.event.player.AttackBlockCallback
 eu.pb4.sgui.api.gui.SimpleGui
 eu.pb4.sgui.api.elements.GuiElementBuilder
 net.minecraft.world.inventory.AbstractContainerMenu
+? CriteriaTriggers
+? triggers/Criterion.class
+net.minecraft.advancements.triggers.Criterion
+net.minecraft.world.item.ItemStackTemplate
