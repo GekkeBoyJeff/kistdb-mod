@@ -27,6 +27,7 @@ public final class QuickMenu {
 		SERVICES.put("achievements", Services.MENU_ACHIEVEMENTS);
 		SERVICES.put("effects", Services.MENU_EFFECTS);
 		SERVICES.put("journal", Services.MENU_JOURNAL);
+		SERVICES.put("pets", Services.MENU_PETS);
 	}
 
 	private QuickMenu() {
@@ -40,6 +41,7 @@ public final class QuickMenu {
 		switch (what) {
 			case "settings" -> SettingsWindow.open(player);
 			case "links" -> Links.open(player);
+			case "chronicle" -> Chronicle.open(player);
 			case "start" -> Welcome.guide(player);
 			case "menu" -> HubGui.open(player);
 			default -> {

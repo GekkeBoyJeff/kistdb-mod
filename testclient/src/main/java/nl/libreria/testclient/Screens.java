@@ -344,6 +344,41 @@ public final class Screens implements FabricClientGameTest {
 			menu(ctx, server, player, "window_links", nl.libreria.core.Links::open);
 			menu(ctx, server, player, "window_start", nl.libreria.core.Welcome::guide);
 			menu(ctx, server, player, "window_journal", nl.libreria.info.Places::journal);
+			// A sword that just earned its name: the toast, then its tooltip in the inventory
+			safe("weapon", () -> {
+				server.runOnServer(s -> nl.libreria.info.InfoMod.debugLegend(player));
+				ctx.waitTicks(10);
+				ctx.takeScreenshot("weapon_named_toast");
+				ctx.waitTicks(60);
+				ctx.getInput().pressKey(o2 -> o2.keyInventory);
+				ctx.waitTicks(10);
+				double scale = ctx.computeOnClient(mc -> (double) mc.getWindow().getGuiScale());
+				int w = ctx.computeOnClient(mc -> mc.getWindow().getGuiScaledWidth());
+				int h = ctx.computeOnClient(mc -> mc.getWindow().getGuiScaledHeight());
+				int left = (w - 176) / 2, top = (h - 166) / 2;
+				ctx.getInput().setCursorPos((left + 16) * scale, (top + 150) * scale);
+				ctx.waitTicks(5);
+				ctx.takeScreenshot("weapon_tooltip");
+				ctx.getInput().setCursorPos(2, 2);
+				close(ctx, server, player);
+			});
+			// A wolf, tamed: it gets its name, then the Pets window and the chronicle
+			safe("pet", () -> {
+				run(server, "execute as @a at @s run summon minecraft:wolf ^ ^ ^3");
+				ctx.waitTicks(5);
+				server.runOnServer(s -> {
+					for (var t : player.level().getEntitiesOfClass(net.minecraft.world.entity.TamableAnimal.class,
+							player.getBoundingBox().inflate(8))) {
+						t.tame(player);
+						t.setOrderedToSit(true);
+					}
+				});
+				ctx.waitTicks(30);
+				ctx.takeScreenshot("pet_tamed");
+			});
+			menu(ctx, server, player, "window_pets", nl.libreria.core.Services.menu(nl.libreria.core.Services.MENU_PETS).orElse(p -> {
+			}));
+			menu(ctx, server, player, "window_chronicle", nl.libreria.core.Chronicle::open);
 			safe("welcome_card", () -> {
 				server.runOnServer(s -> nl.libreria.core.Welcome.card(player));
 				ctx.waitTicks(10);

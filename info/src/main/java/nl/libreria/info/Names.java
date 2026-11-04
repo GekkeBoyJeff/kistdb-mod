@@ -36,6 +36,10 @@ final class Names {
 		public Set<String> taken = new HashSet<>();
 		/** Every villager name in use (lower case). */
 		public Set<String> villagersTaken = new HashSet<>();
+		/** Every name a weapon earned (lower case); a weapon's name is never given again. */
+		public Set<String> weaponsTaken = new HashSet<>();
+		/** Every pet name in use (lower case). */
+		public Set<String> petsTaken = new HashSet<>();
 	}
 
 	static final WorldStore<Data> STORE = WorldStore.create("libreria/names.json", Data.class, Data::new);
@@ -50,6 +54,8 @@ final class Names {
 		if (d.villagers == null) d.villagers = new HashMap<>();
 		if (d.taken == null) d.taken = new HashSet<>();
 		if (d.villagersTaken == null) d.villagersTaken = new HashSet<>();
+		if (d.weaponsTaken == null) d.weaponsTaken = new HashSet<>();
+		if (d.petsTaken == null) d.petsTaken = new HashSet<>();
 		return d;
 	}
 
@@ -99,11 +105,24 @@ final class Names {
 
 	/** The area of {@code biome} you're in: an existing one nearby, or a new one with a fresh name. */
 	static Area area(String dim, String biome, int x, int z, long seed) {
+		String path = biome.substring(biome.indexOf(':') + 1);
+		PlaceNames.Land land = PlaceNames.land(path);
+		return nearby(dim, biome, x, z, land.radius(), seed ^ biome.hashCode(), title(path), (r, attempt) -> PlaceNames.area(land, r, attempt));
+	}
+
+	/** The peak, cavern or lake you're at: one already named nearby, or a new one. */
+	static Area landmark(String dim, PlaceNames.Landmark type, int x, int z, long seed) {
+		return nearby(dim, "libreria:" + type.name().toLowerCase(java.util.Locale.ROOT), x, z, type.radius, seed ^ type.ordinal() * 7919L,
+				type.label, (r, attempt) -> PlaceNames.landmark(type, r, attempt));
+	}
+
+	private static Area nearby(String dim, String key, int x, int z, int radius, long seed, String fallback,
+			BiFunction<Random, Integer, String> gen) {
 		Data d = data();
 		Area best = null;
 		double bestD = Double.MAX_VALUE;
 		for (Area a : d.areas) {
-			if (!a.dim.equals(dim) || !a.biome.equals(biome)) continue;
+			if (!a.dim.equals(dim) || !a.biome.equals(key)) continue;
 			double dx = a.x - x, dz = a.z - z, dd = dx * dx + dz * dz;
 			if (dd <= (double) a.radius * a.radius && dd < bestD) {
 				best = a;
@@ -111,15 +130,13 @@ final class Names {
 			}
 		}
 		if (best != null) return best;
-		String path = biome.substring(biome.indexOf(':') + 1);
-		PlaceNames.Land land = PlaceNames.land(path);
 		Area a = new Area();
 		a.dim = dim;
-		a.biome = biome;
+		a.biome = key;
 		a.x = x;
 		a.z = z;
-		a.radius = land.radius();
-		a.name = fresh(d.taken, seed ^ ((long) x << 32) ^ (z & 0xFFFFFFFFL) ^ biome.hashCode(), title(path), (r, attempt) -> PlaceNames.area(land, r, attempt));
+		a.radius = radius;
+		a.name = fresh(d.taken, seed ^ ((long) x << 32) ^ (z & 0xFFFFFFFFL), fallback, gen);
 		d.areas.add(a);
 		return a;
 	}
@@ -132,6 +149,23 @@ final class Names {
 		String name = fresh(d.villagersTaken, id.getMostSignificantBits() ^ id.getLeastSignificantBits(), "Villager", (r, attempt) -> PlaceNames.villager(r));
 		d.villagers.put(id, name);
 		return name;
+	}
+
+	/** A name for a weapon that earned one (never given twice, also not after the weapon is gone). */
+	static String weapon(UUID id, Weapons.Kind kind) {
+		return fresh(data().weaponsTaken, id.getMostSignificantBits() ^ id.getLeastSignificantBits(), "Nameless",
+				(r, attempt) -> Weapons.name(kind, r, attempt));
+	}
+
+	/** A name for a pet nobody else's pet has. */
+	static String pet(UUID id) {
+		return fresh(data().petsTaken, id.getMostSignificantBits() * 31 + id.getLeastSignificantBits(), "Buddy",
+				(r, attempt) -> PetNames.name(r, attempt));
+	}
+
+	/** A pet died: its name is free again. */
+	static void releasePet(String name) {
+		if (data().petsTaken.remove(name.toLowerCase(java.util.Locale.ROOT))) STORE.markDirty();
 	}
 
 	/** A named villager died: its name is free again. */

@@ -33,6 +33,28 @@ public final class InfoMod implements ModInitializer {
 	public static final Setting.Toggle HORSE = MODULE.toggle("paard", "Horse stats", true, Items.SADDLE,
 			"Speed, jump and health of horses,", "donkeys and mules. Sneak-right-click", "a horse for the full card.");
 
+	/** For the screenshot test: an enchanted sword with a long story, that just earned its name (in hotbar slot 1). */
+	public static void debugLegend(ServerPlayer p) {
+		var reg = p.level().registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.ENCHANTMENT);
+		java.util.function.Function<String, net.minecraft.core.Holder<net.minecraft.world.item.enchantment.Enchantment>> ench = id -> reg.getOrThrow(
+				net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.ENCHANTMENT,
+						net.minecraft.resources.Identifier.withDefaultNamespace(id)));
+		net.minecraft.world.item.ItemStack sword = new net.minecraft.world.item.ItemStack(Items.DIAMOND_SWORD);
+		net.minecraft.world.item.enchantment.EnchantmentHelper.updateEnchantments(sword, m -> {
+			m.set(ench.apply("sharpness"), 5);
+			m.set(ench.apply("unbreaking"), 3);
+			m.set(ench.apply("mending"), 1);
+			m.set(ench.apply("looting"), 3);
+			m.set(ench.apply("fire_aspect"), 2);
+		});
+		p.getInventory().setItem(0, sword);
+		net.minecraft.world.item.ItemStack held = p.getInventory().getItem(0);
+		for (int i = 0; i < 140; i++) Weapons.count(p, held, "zombie");
+		for (int i = 0; i < 45; i++) Weapons.count(p, held, "skeleton");
+		for (int i = 0; i < 12; i++) Weapons.count(p, held, "creeper");
+		Weapons.count(p, held, "wither");
+	}
+
 	@Override
 	public void onInitialize() {
 		MODULE.hubEntry(Items.WRITABLE_BOOK, "Statistics", ChatFormatting.AQUA, StatsGui::open,
@@ -40,8 +62,13 @@ public final class InfoMod implements ModInitializer {
 		Services.provideMenu(Services.MENU_STATS, StatsGui::open);
 		Services.provideMenu(Services.MENU_JOURNAL, Places::journal);
 		VillagerNames.init();
+		Weapons.init();
+		Pets.init();
+		Services.provideMenu(Services.MENU_PETS, Pets::open);
+		MODULE.hubEntry(Module.Category.WORLD, Items.LEAD, "Pets", ChatFormatting.LIGHT_PURPLE, Pets::open,
+				"Your tamed animals: where they are,", "with a beam to each. Also /pets.");
 		MODULE.hubEntry(Module.Category.WORLD, Items.WRITABLE_BOOK, "Journal", ChatFormatting.GOLD, Places::journal,
-				"Every village, temple and biome", "you found, with a beam to them.");
+				"Every village, temple, peak, lake and", "biome you found, with a beam to them.");
 
 		net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
 			Look.forget(handler.player.getUUID());
@@ -53,13 +80,15 @@ public final class InfoMod implements ModInitializer {
 			Leaderboards.clearAll();
 		});
 		MODULE.adminButton("Leaderboards", "Place a floating top ten in the world", Leaderboards::placeWindow);
-		MODULE.commands("/stats – your statistics", "/journal – places you found");
+		MODULE.commands("/stats – your statistics", "/journal – places you found", "/pets – your pets and where they are");
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
 			int tick = server.getTickCount();
 			if (tick % 2 == 0) Look.tick(server);
 			if (tick % 10 == 5) Held.tick(server);
 			Leaderboards.tick(server, tick);
 			if (tick % 10 == 7) Places.tick(server, tick);
+			if (tick % 20 == 11) Pets.tick(server, tick);
+			if (tick % 40 == 13) Weapons.tick(server);
 		});
 
 		UseEntityCallback.EVENT.register((player, world, hand, entity, hit) -> {
@@ -72,6 +101,10 @@ public final class InfoMod implements ModInitializer {
 		});
 
 		CommandRegistrationCallback.EVENT.register((dispatcher, registry, env) -> {
+			dispatcher.register(Commands.literal("pets").executes(ctx -> {
+				Pets.open(ctx.getSource().getPlayerOrException());
+				return 1;
+			}));
 			dispatcher.register(Commands.literal("journal").executes(ctx -> {
 				Places.journal(ctx.getSource().getPlayerOrException());
 				return 1;

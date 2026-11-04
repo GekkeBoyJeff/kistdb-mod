@@ -74,6 +74,8 @@ public final class Places {
 		@Nullable String biome;
 		int biomeSince;
 		boolean biomeShown;
+		@Nullable String landmark;
+		int landmarkMissed;
 		final Map<String, Integer> shownAt = new HashMap<>();
 	}
 
@@ -128,6 +130,10 @@ public final class Places {
 			st.place = key;
 			if (found != null) {
 				boolean isNew = remember(p, found.key(), found.name(), found.kind().label(), found.at());
+				if (found.kind().named() && nl.libreria.core.Chronicle.firstTime("place:" + found.key())) {
+					nl.libreria.core.Chronicle.write(p, nl.libreria.core.Chronicle.Kind.DISCOVERY, "discovered " + found.name() + ", "
+							+ article(found.kind().label()) + " " + found.kind().label().toLowerCase(java.util.Locale.ROOT), false);
+				}
 				if (mode == 0 || (mode == 1 && isNew)) {
 					show(p, st, found.key(), Component.literal(found.name()),
 							Component.literal(found.kind().named() ? found.kind().label() + (isNew ? " · discovered" : "")
@@ -137,6 +143,34 @@ public final class Places {
 			}
 		}
 		if (st.place != null) return;
+		// A peak, a cavern or a lake (looked for every two seconds)
+		if (now % 40 < 10) {
+			@Nullable Mark mark = landmarkAt(p, biome);
+			String markKey = null;
+			if (mark != null) {
+				Names.Area area = Names.landmark(dim, mark.type(), mark.at().getX(), mark.at().getZ(), level.getSeed());
+				markKey = "landmark|" + dim + "|" + area.biome + "|" + area.x + "," + area.z;
+				if (!markKey.equals(st.landmark)) {
+					String label = mark.type().label;
+					boolean isNew = remember(p, markKey, area.name, label, new BlockPos(area.x, mark.at().getY(), area.z));
+					if (nl.libreria.core.Chronicle.firstTime("place:" + markKey)) {
+						nl.libreria.core.Chronicle.write(p, nl.libreria.core.Chronicle.Kind.DISCOVERY, "discovered " + area.name + ", "
+								+ article(label) + " " + label.toLowerCase(java.util.Locale.ROOT), false);
+					}
+					if (mode == 0 || (mode == 1 && isNew)) {
+						show(p, st, markKey, Component.literal(area.name), Component.literal(label + (isNew ? " · discovered" : "")), now, isNew);
+						// No biome name right after it
+						st.biome = biome;
+						st.biomeShown = true;
+					}
+				}
+			}
+			// Stays "at the lake" until you're clearly away from it (no title again when you step back and forth)
+			if (markKey != null || st.landmarkMissed++ >= 3) {
+				st.landmark = markKey;
+				st.landmarkMissed = 0;
+			}
+		}
 		// A biome, once you've been in it a moment
 		if (biome == null || MINOR.contains(Identifier.parse(biome).getPath())) return;
 		if (!biome.equals(st.biome)) {
@@ -196,6 +230,132 @@ public final class Places {
 			if (best == null || (!best.kind().named() && kind.named())) best = f;
 		}
 		return best;
+	}
+
+	// ---------------------------------------------------------------- peaks, caverns and lakes
+
+	/** A landmark and the spot that names it (a peak's summit, the middle of a lake). */
+	record Mark(PlaceNames.Landmark type, BlockPos at) {
+	}
+
+	private static final Set<String> CAVE_BIOMES = Set.of("lush_caves", "dripstone_caves", "deep_dark");
+
+	/** The peak you stand on, the big cavern you're in or the lake you're at, or null. Only in the Overworld. */
+	static @Nullable Mark landmarkAt(ServerPlayer p, @Nullable String biome) {
+		ServerLevel level = p.level();
+		if (level.dimension() != net.minecraft.world.level.Level.OVERWORLD || p.isSpectator()) return null;
+		BlockPos pos = p.blockPosition();
+		Integer ground = height(level, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, pos.getX(), pos.getZ());
+		if (ground == null) return null;
+		String path = biome == null ? "" : biome.substring(biome.indexOf(':') + 1);
+		if (pos.getY() < ground - 15) {
+			return !CAVE_BIOMES.contains(path) && cavern(level, pos) ? new Mark(PlaceNames.Landmark.CAVE, pos) : null;
+		}
+		if (pos.getY() < ground - 4) return null;
+		if (ground >= level.getSeaLevel() + 50) {
+			BlockPos summit = summit(level, pos, ground);
+			if (summit != null) return new Mark(PlaceNames.Landmark.PEAK, summit);
+		}
+		if (!path.contains("ocean") && !path.contains("river") && !path.contains("beach") && !path.contains("swamp")
+				&& !path.contains("shore")) {
+			BlockPos middle = lake(level, pos);
+			if (middle != null) return new Mark(PlaceNames.Landmark.LAKE, middle);
+		}
+		return null;
+	}
+
+	/** You're at the top (the highest point within 16 blocks) of land that falls away on (almost) every side. */
+	private static @Nullable BlockPos summit(ServerLevel level, BlockPos pos, int ground) {
+		int best = ground, bx = pos.getX(), bz = pos.getZ();
+		for (int dx = -16; dx <= 16; dx += 4) {
+			for (int dz = -16; dz <= 16; dz += 4) {
+				Integer h = height(level, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, pos.getX() + dx, pos.getZ() + dz);
+				if (h == null) return null;
+				if (h > best) {
+					best = h;
+					bx = pos.getX() + dx;
+					bz = pos.getZ() + dz;
+				}
+			}
+		}
+		if (ground < best - 3) return null;
+		int lower = 0;
+		for (int i = 0; i < 16; i++) {
+			double a = Math.PI * 2 * i / 16;
+			Integer h = height(level, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, bx + (int) Math.round(Math.cos(a) * 40),
+					bz + (int) Math.round(Math.sin(a) * 40));
+			if (h == null) return null;
+			if (h > best) return null;
+			if (h <= best - 15) lower++;
+		}
+		return lower >= 12 ? new BlockPos(bx, best, bz) : null;
+	}
+
+	/** Mostly open space around you, deep underground: a big cave. */
+	private static boolean cavern(ServerLevel level, BlockPos pos) {
+		if (level.getChunkSource().getChunkNow((pos.getX() - 12) >> 4, (pos.getZ() - 12) >> 4) == null
+				|| level.getChunkSource().getChunkNow((pos.getX() + 12) >> 4, (pos.getZ() + 12) >> 4) == null) return false;
+		int open = 0, total = 0;
+		BlockPos.MutableBlockPos m = new BlockPos.MutableBlockPos();
+		for (int dx = -12; dx <= 12; dx += 4) {
+			for (int dz = -12; dz <= 12; dz += 4) {
+				for (int dy = -2; dy <= 10; dy += 4) {
+					total++;
+					if (level.getBlockState(m.set(pos.getX() + dx, pos.getY() + dy, pos.getZ() + dz)).isAir()) open++;
+				}
+			}
+		}
+		return open >= total * 0.55;
+	}
+
+	/** Lots of water around you (a third of the ground within 24 blocks): the middle of that water, or null. */
+	private static @Nullable BlockPos lake(ServerLevel level, BlockPos pos) {
+		int water = 0, total = 0;
+		long sx = 0, sz = 0;
+		int surface = pos.getY();
+		for (int dx = -24; dx <= 24; dx += 4) {
+			for (int dz = -24; dz <= 24; dz += 4) {
+				int x = pos.getX() + dx, z = pos.getZ() + dz;
+				Integer top = height(level, Heightmap.Types.MOTION_BLOCKING, x, z);
+				Integer floor = height(level, Heightmap.Types.OCEAN_FLOOR, x, z);
+				if (top == null || floor == null) return null;
+				total++;
+				if (top > floor && level.getFluidState(new BlockPos(x, top - 1, z)).is(net.minecraft.tags.FluidTags.WATER)) {
+					water++;
+					sx += x;
+					sz += z;
+					surface = top - 1;
+				}
+			}
+		}
+		if (water < total * 0.35) return null;
+		return new BlockPos((int) (sx / water), surface, (int) (sz / water));
+	}
+
+	private static @Nullable Integer height(ServerLevel level, Heightmap.Types type, int x, int z) {
+		if (level.getChunkSource().getChunkNow(x >> 4, z >> 4) == null) return null;
+		return level.getHeight(type, x, z);
+	}
+
+	static String article(String word) {
+		return "aeiouAEIOU".indexOf(word.charAt(0)) >= 0 ? "an" : "a";
+	}
+
+	/** The nearest place in this player's journal within 500 blocks (for "near Oakhaven"), or null. */
+	static @Nullable String nearest(ServerPlayer p, String dim, int x, int z) {
+		Place best = null;
+		double bestD = 500 * 500;
+		for (Place pl : STORE.get(p).places) {
+			if (!pl.dim.equals(dim)) continue;
+			double dx = pl.x - x, dz = pl.z - z, d = dx * dx + dz * dz;
+			// Villages, temples, peaks and lakes before stretches of land
+			if (pl.key.startsWith("area|")) d = d * 2 + 1;
+			if (d < bestD) {
+				bestD = d;
+				best = pl;
+			}
+		}
+		return best == null ? null : best.name;
 	}
 
 	private static @Nullable String biomeAt(ServerLevel level, BlockPos pos) {
@@ -268,6 +428,8 @@ public final class Places {
 			}
 			w.text(Ui.text(lines.toString(), ChatFormatting.GRAY));
 		}
+		w.button("Chronicle", "The story of this world", nl.libreria.core.Chronicle::open);
+		w.button("Pets", "Your tamed animals and where they are", Pets::open);
 		// A beam to the nearest few in this world
 		List<Place> here = new ArrayList<>();
 		for (Place pl : d.places) if (pl.dim.equals(dim)) here.add(pl);

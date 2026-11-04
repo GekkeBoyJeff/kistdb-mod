@@ -98,6 +98,25 @@
   {
    "label": [
     {
+     "text": "Chronicle",
+     "color": "#E3C08F"
+    }
+   ],
+   "tooltip": {
+    "text": "The story of this world: firsts, bosses, legends."
+   },
+   "width": 150,
+   "action": {
+    "type": "minecraft:custom",
+    "id": "libreria:quick",
+    "payload": {
+     "go": "chronicle"
+    }
+   }
+  },
+  {
+   "label": [
+    {
      "text": "Waypoints",
      "color": "#6FE0D0"
     }
@@ -111,6 +130,25 @@
     "id": "libreria:quick",
     "payload": {
      "go": "waypoints"
+    }
+   }
+  },
+  {
+   "label": [
+    {
+     "text": "Pets",
+     "color": "#FFB0C8"
+    }
+   ],
+   "tooltip": {
+    "text": "Your tamed animals and where they are."
+   },
+   "width": 150,
+   "action": {
+    "type": "minecraft:custom",
+    "id": "libreria:quick",
+    "payload": {
+     "go": "pets"
     }
    }
   },

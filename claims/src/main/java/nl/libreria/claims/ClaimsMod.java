@@ -443,6 +443,11 @@ public final class ClaimsMod implements ModInitializer {
 		showBorder(p, level, c, GREEN);
 		Ui.sound(p, net.minecraft.sounds.SoundEvents.PLAYER_LEVELUP, 0.5f, 1.6f);
 		LAST.remove(p.getUUID());
+		if (have == 0) {
+			int x = c.getMiddleBlockX(), z = c.getMiddleBlockZ();
+			nl.libreria.core.Chronicle.write(p, nl.libreria.core.Chronicle.Kind.MILESTONE, "settled down and claimed land at " + x + ", " + z
+					+ (level.dimension() == net.minecraft.world.level.Level.OVERWORLD ? "" : " in " + level.dimension().identifier().getPath().replace('_', ' ')), false);
+		}
 		return true;
 	}
 

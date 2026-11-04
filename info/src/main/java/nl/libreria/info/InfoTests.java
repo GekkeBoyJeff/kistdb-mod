@@ -5,6 +5,13 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.BeehiveBlock;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CropBlock;
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.ItemLore;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import nl.libreria.core.SelfTests;
 
 /** Zelftests voor de InfoMod-module (draaien alleen met -Dlibreria.selftest=true). */
@@ -58,6 +65,119 @@ final class InfoTests {
 			SelfTests.check(!Places.remember(p, "test|village|1,2", a, "Village", new BlockPos(20, 64, 40)), "second visit isn't");
 			Places.STORE.get(p).places.removeIf(pl -> pl.key.startsWith("test|"));
 		});
+		SelfTests.register("info.landmarks", level -> {
+			FakePlayer p = FakePlayer.get(level);
+			var stone = Blocks.STONE.defaultBlockState();
+			var water = Blocks.WATER.defaultBlockState();
+			// A lake: a pond of 49 by 49 in the ground
+			int lx = 2000, lz = 2000;
+			int gy = level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, lx, lz) - 1;
+			for (int dx = -24; dx <= 24; dx++) for (int dz = -24; dz <= 24; dz++) level.setBlock(new BlockPos(lx + dx, gy, lz + dz), water, 2);
+			p.setPos(lx + 0.5, gy + 1, lz + 0.5);
+			Places.Mark lake = Places.landmarkAt(p, "minecraft:plains");
+			SelfTests.check(lake != null && lake.type() == PlaceNames.Landmark.LAKE, "a lake: " + lake);
+			SelfTests.check(Places.landmarkAt(p, "minecraft:river") == null, "no lake in a river");
+			// A peak: a tall spire on flat land
+			int px = 2400, pz = 2400;
+			int base = level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, px, pz);
+			for (int dx = -2; dx <= 2; dx++) for (int dz = -2; dz <= 2; dz++) for (int y = base; y <= 130; y++) {
+				level.setBlock(new BlockPos(px + dx, y, pz + dz), stone, 2);
+			}
+			p.setPos(px + 0.5, 131, pz + 0.5);
+			Places.Mark peak = Places.landmarkAt(p, "minecraft:plains");
+			SelfTests.check(peak != null && peak.type() == PlaceNames.Landmark.PEAK, "a peak: " + peak);
+			p.setPos(px + 30.5, base, pz + 0.5);
+			SelfTests.check(Places.landmarkAt(p, "minecraft:plains") == null, "at its foot: nothing");
+			// A cavern: a big hollow room with a roof
+			int cx = 2800, cz = 2800, y0 = 140;
+			for (int dx = -14; dx <= 14; dx++) for (int dz = -14; dz <= 14; dz++) {
+				level.setBlock(new BlockPos(cx + dx, y0, cz + dz), stone, 2);
+				level.setBlock(new BlockPos(cx + dx, y0 + 20, cz + dz), stone, 2);
+				if (Math.abs(dx) == 14 || Math.abs(dz) == 14) for (int y = y0; y <= y0 + 20; y++) level.setBlock(new BlockPos(cx + dx, y, cz + dz), stone, 2);
+			}
+			p.setPos(cx + 0.5, y0 + 1, cz + 0.5);
+			Places.Mark cave = Places.landmarkAt(p, "minecraft:plains");
+			SelfTests.check(cave != null && cave.type() == PlaceNames.Landmark.CAVE, "a cavern: " + cave);
+			// Names: the same peak within its reach, a new one far away
+			Names.Area a1 = Names.landmark("test:dim", PlaceNames.Landmark.PEAK, 0, 0, 1);
+			Names.Area a2 = Names.landmark("test:dim", PlaceNames.Landmark.PEAK, 50, 20, 1);
+			Names.Area a3 = Names.landmark("test:dim", PlaceNames.Landmark.PEAK, 1000, 0, 1);
+			SelfTests.check(a1 == a2 && a1 != a3 && !a1.name.equals(a3.name), "peaks: " + a1.name + " / " + a3.name);
+			java.util.Set<String> lakes = new java.util.HashSet<>();
+			for (int i = 0; i < 300; i++) lakes.add(Names.landmark("test:dim", PlaceNames.Landmark.LAKE, i * 1000, 0, 3).name);
+			SelfTests.check(lakes.size() == 300, "300 lakes, 300 names: " + lakes.size() + ", e.g. " + lakes.iterator().next());
+			var d = Names.data();
+			d.areas.removeIf(ar -> ar.dim.equals("test:dim"));
+		});
+		SelfTests.register("info.weapons", level -> {
+			FakePlayer p = FakePlayer.get(level);
+			var access = level.registryAccess();
+			var reg = access.lookupOrThrow(net.minecraft.core.registries.Registries.ENCHANTMENT);
+			java.util.function.Function<String, net.minecraft.core.Holder<net.minecraft.world.item.enchantment.Enchantment>> ench = id -> reg.getOrThrow(
+					net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.ENCHANTMENT,
+							net.minecraft.resources.Identifier.withDefaultNamespace(id)));
+			ItemStack sword = new ItemStack(Items.DIAMOND_SWORD);
+			SelfTests.check(Weapons.potential(sword, access) == 7, "a sword carries 7 enchantments at most: " + Weapons.potential(sword, access));
+			SelfTests.check(Weapons.potential(new ItemStack(Items.TRIDENT), access) == 5,
+					"a trident 5 (Loyalty and Channeling, not Riptide): " + Weapons.potential(new ItemStack(Items.TRIDENT), access));
+			SelfTests.check(Weapons.quality(sword, access) == Weapons.Quality.PLAIN, "no enchantments: plain");
+			EnchantmentHelper.updateEnchantments(sword, m -> {
+				m.set(ench.apply("sharpness"), 5);
+				m.set(ench.apply("unbreaking"), 3);
+				m.set(ench.apply("mending"), 1);
+			});
+			SelfTests.check(Weapons.quality(sword, access) == Weapons.Quality.RARE, "three maxed: rare: " + Weapons.quality(sword, access));
+			EnchantmentHelper.updateEnchantments(sword, m -> {
+				m.set(ench.apply("looting"), 3);
+				m.set(ench.apply("fire_aspect"), 2);
+				m.set(ench.apply("knockback"), 2);
+				m.set(ench.apply("sweeping_edge"), 3);
+			});
+			SelfTests.check(Weapons.quality(sword, access) == Weapons.Quality.LEGENDARY, "everything maxed: legendary");
+			// Counting
+			for (int i = 0; i < 3; i++) Weapons.count(p, sword, "zombie");
+			SelfTests.check(Weapons.story(sword).getIntOr("total", 0) == 3, "three foes counted");
+			String lore = text(sword.getOrDefault(DataComponents.LORE, ItemLore.EMPTY).lines());
+			SelfTests.check(lore.contains("Foes felled 3") && lore.contains("Zombie 3") && lore.contains("Legendary"), "tooltip: " + lore);
+			SelfTests.check(sword.get(DataComponents.CUSTOM_NAME) == null, "no name yet");
+			// A boss: a name straight away, gold because everything on it is maxed
+			Weapons.count(p, sword, "wither");
+			Component name = sword.get(DataComponents.CUSTOM_NAME);
+			SelfTests.check(name != null && name.getString().equals(Weapons.story(sword).getStringOr("name", "")), "it earned a name: " + name);
+			SelfTests.check(name != null && net.minecraft.network.chat.TextColor.fromLegacyFormat(ChatFormatting.GOLD).equals(name.getStyle().getColor()),
+					"in gold: " + (name == null ? null : name.getStyle().getColor()));
+			lore = text(sword.getOrDefault(DataComponents.LORE, ItemLore.EMPTY).lines());
+			SelfTests.check(lore.contains("Slew the Wither") && lore.contains("Earned its name"), "tooltip after the boss: " + lore);
+			// A name a player gave stays; its colour follows the enchantments (none: white)
+			ItemStack bob = new ItemStack(Items.IRON_AXE);
+			bob.set(DataComponents.CUSTOM_NAME, Component.literal("Bob"));
+			Weapons.count(p, bob, "wither");
+			Component bobName = bob.get(DataComponents.CUSTOM_NAME);
+			SelfTests.check(bobName != null && bobName.getString().equals("Bob") && Weapons.story(bob).getBooleanOr("legend", false),
+					"Bob stays Bob: " + bobName);
+			SelfTests.check(net.minecraft.network.chat.TextColor.fromLegacyFormat(ChatFormatting.WHITE).equals(bobName.getStyle().getColor()), "Bob in white");
+			// Lore that was there stays; ours is replaced, not added again
+			ItemStack bow = new ItemStack(Items.BOW);
+			bow.set(DataComponents.LORE, new ItemLore(java.util.List.of(Component.literal("Made by Ann"))));
+			Weapons.count(p, bow, "skeleton");
+			int lines = bow.get(DataComponents.LORE).lines().size();
+			Weapons.count(p, bow, "skeleton");
+			var after = bow.get(DataComponents.LORE).lines();
+			SelfTests.check(after.size() == lines && after.get(0).getString().equals("Made by Ann"), "lore kept and replaced: " + text(after));
+			// Weapon names are never given twice
+			java.util.Set<String> names = new java.util.HashSet<>();
+			for (int i = 0; i < 300; i++) names.add(Names.weapon(java.util.UUID.nameUUIDFromBytes(("w" + i).getBytes()), Weapons.Kind.SWORD));
+			SelfTests.check(names.size() == 300, "300 weapons, 300 names: " + names.size() + ", e.g. " + names.iterator().next());
+			Names.data().weaponsTaken.clear();
+		});
+		SelfTests.register("info.pets", level -> {
+			java.util.Set<String> pets = new java.util.HashSet<>();
+			for (int i = 0; i < 400; i++) pets.add(Names.pet(java.util.UUID.nameUUIDFromBytes(("p" + i).getBytes())));
+			SelfTests.check(pets.size() == 400, "400 pets, 400 names: " + pets.size());
+			for (String n : pets) Names.releasePet(n);
+			SelfTests.check(Names.data().petsTaken.isEmpty(), "names free again");
+			SelfTests.check(Pets.egg("wolf").is(Items.WOLF_SPAWN_EGG) && Pets.egg("nothing").is(Items.LEAD), "spawn egg icons");
+		});
 		SelfTests.register("info.look-info", level -> {
 			FakePlayer p = FakePlayer.get(level);
 			BlockPos pos = new BlockPos(60, 120, 60);
@@ -93,6 +213,12 @@ final class InfoTests {
 	}
 
 	/** The whole card as one lower-case string ("" if there is no card). */
+	private static String text(java.util.List<Component> lines) {
+		StringBuilder b = new StringBuilder();
+		for (Component c : lines) b.append(c.getString()).append(" | ");
+		return b.toString();
+	}
+
 	private static String text(Look.Card card) {
 		return card == null ? "" : card.plain().toLowerCase(java.util.Locale.ROOT);
 	}

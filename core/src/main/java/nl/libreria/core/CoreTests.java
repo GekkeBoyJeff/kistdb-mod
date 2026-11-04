@@ -13,6 +13,20 @@ final class CoreTests {
 	}
 
 	static void register() {
+		SelfTests.register("core.chronicle", level -> {
+			Chronicle.Data d = Chronicle.data();
+			int before = d.entries.size();
+			Chronicle.write(null, "", Chronicle.Kind.WORLD, "A test moment", false);
+			SelfTests.check(d.entries.size() == before + 1 && d.entries.getLast().text.equals("A test moment"), "written down");
+			SelfTests.check(Chronicle.firstTime("test:first") && !Chronicle.firstTime("test:first"), "only the first is the first");
+			FakePlayer p = FakePlayer.get(level);
+			Chronicle.write(p, Chronicle.Kind.FIRST, "tested the chronicle", true);
+			SelfTests.check(Chronicle.line(d.entries.getLast(), false).getString().endsWith(p.getName().getString() + " tested the chronicle"),
+					"a line: " + Chronicle.line(d.entries.getLast(), false).getString());
+			Chronicle.open(p);
+			d.entries.removeIf(e -> e.text.equals("A test moment") || e.text.equals("tested the chronicle"));
+			d.firsts.remove("test:first");
+		});
 		SelfTests.register("core.settings", level -> {
 			FakePlayer p = FakePlayer.get(level);
 			boolean before = Libreria.HUB_BUTTON.get(p);

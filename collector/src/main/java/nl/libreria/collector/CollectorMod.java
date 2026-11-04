@@ -301,6 +301,10 @@ public final class CollectorMod implements ModInitializer {
 		Rarity r = a.rarity();
 		// The whole server sees it: a banner at the top of the screen and fireworks
 		Banner.add(p, a);
+		if (r.ordinal() >= Rarity.EPIC.ordinal()) {
+			nl.libreria.core.Chronicle.write(p, nl.libreria.core.Chronicle.Kind.ACHIEVEMENT, "earned the " + r.label.toLowerCase(java.util.Locale.ROOT)
+					+ " achievement \"" + a.name() + "\"", r.ordinal() >= Rarity.LEGENDARY.ordinal());
+		}
 		if (!BIG.get(p)) {
 			Hud.flash(p, Component.literal("✦ Achievement: ").withStyle(ChatFormatting.GRAY).append(Component.literal(a.name()).withStyle(r.color)));
 		}

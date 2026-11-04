@@ -58,6 +58,7 @@ public final class Libreria implements ModInitializer {
 			return m == null ? java.util.List.of() : java.util.List.of(m);
 		});
 		QuickMenu.init();
+		Chronicle.init();
 		// Opslag zo vroeg mogelijk klaarzetten, zodat modules ze in hun eigen SERVER_STARTED al kunnen lezen
 		ServerLifecycleEvents.SERVER_STARTING.register(s -> {
 			server = s;
@@ -102,6 +103,10 @@ public final class Libreria implements ModInitializer {
 		ServerTickEvents.END_SERVER_TICK.register(Libreria::tick);
 		CommandRegistrationCallback.EVENT.register((dispatcher, context, selection) -> {
 			// /libreria (or /lib) opens the menu, /libreria settings the per-player settings
+			dispatcher.register(Commands.literal("chronicle").executes(c -> {
+				Chronicle.open(c.getSource().getPlayerOrException());
+				return 1;
+			}));
 			for (String name : new String[] {"libreria", "lib"}) {
 				dispatcher.register(Commands.literal(name).executes(c -> {
 					HubGui.open(c.getSource().getPlayerOrException());
@@ -119,6 +124,9 @@ public final class Libreria implements ModInitializer {
 					return 1;
 				})).then(Commands.literal("links").executes(c -> {
 					Links.open(c.getSource().getPlayerOrException());
+					return 1;
+				})).then(Commands.literal("chronicle").executes(c -> {
+					Chronicle.open(c.getSource().getPlayerOrException());
 					return 1;
 				})).then(Commands.literal("start").executes(c -> {
 					Welcome.guide(c.getSource().getPlayerOrException());
@@ -138,6 +146,7 @@ public final class Libreria implements ModInitializer {
 		nl.libreria.core.gui.TopCard.tick(server, tick);
 		Welcome.tick(server, tick);
 		if (tick % 20 == 7) Afk.tick(server, tick);
+		if (tick % 1200 == 600) Chronicle.tick(server);
 		DeathRecap.tick(server, tick);
 		if (tick % 40 == 11) Tab.tick(server);
 		nl.libreria.core.gui.Caption.tick(server, tick);

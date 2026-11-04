@@ -166,6 +166,49 @@ final class PlaceNames {
 		return attempt < 40 ? name : pick(r, ADJECTIVES) + " " + join(r, pick(r, STEMS), AREA) + " " + feature;
 	}
 
+	// ---------------------------------------------------------------- landmarks
+
+	/** A peak, a cavern or a lake: found by the shape of the land, not by its biome. {@code radius}: how far one name reaches. */
+	enum Landmark {
+		PEAK("Peak", 96), CAVE("Cavern", 64), LAKE("Lake", 72);
+
+		final String label;
+		final int radius;
+
+		Landmark(String label, int radius) {
+			this.label = label;
+			this.radius = radius;
+		}
+	}
+
+	private static final String[] PEAK_ENDS = {"horn", "crown", "spire", "fang", "crest", "peak", "tor", "pike", "cap", "point"};
+	private static final String[] PEAKS = {"Peak", "Spire", "Crown", "Horn", "Summit", "Pinnacle", "Tooth"};
+	private static final String[] CAVE_ENDS = {"maw", "deep", "hollow", "delve", "warren", "vault", "gullet", "throat"};
+	private static final String[] CAVES = {"Hollow", "Cavern", "Deep", "Grotto", "Halls", "Vault", "Maw", "Undercroft"};
+	private static final String[] CAVE_WORDS = {"Echoing", "Dripping", "Silent", "Hollow", "Whispering", "Gaping", "Forgotten",
+			"Sunless", "Glittering", "Weeping", "Sleeping", "Hungry", "Shivering", "Lightless", "Endless", "Murmuring", "Hidden"};
+	private static final String[] LAKE_ENDS = {"mere", "water", "well", "pool", "tarn", "loch", "glass"};
+	private static final String[] LAKES = {"Lake", "Mere", "Waters", "Pool", "Tarn"};
+
+	/** "Mount Ravenfell", "Frostcrown", "the Echoing Hollow", "Lake Silvermere", "Mirrormere"… */
+	static String landmark(Landmark type, Random r, int attempt) {
+		int pattern = r.nextInt(100);
+		String name = switch (type) {
+			case PEAK -> pattern < 30 ? "Mount " + join(r, pick(r, STEMS), AREA)
+					: pattern < 60 ? join(r, pick(r, STEMS), PEAK_ENDS)
+					: pattern < 85 ? "the " + pick(r, ADJECTIVES) + " " + pick(r, PEAKS)
+					: pick(r, STEMS) + " " + pick(r, PEAKS);
+			case CAVE -> pattern < 45 ? "the " + pick(r, CAVE_WORDS) + " " + pick(r, CAVES)
+					: pattern < 75 ? join(r, pick(r, STEMS), CAVE_ENDS) + " " + pick(r, new String[] {"Cavern", "Caves", "Deep"})
+					: "the " + pick(r, ADJECTIVES) + " " + pick(r, CAVES);
+			case LAKE -> pattern < 35 ? "Lake " + join(r, pick(r, STEMS), LAKE_ENDS)
+					: pattern < 60 ? join(r, pick(r, STEMS), LAKE_ENDS)
+					: pattern < 85 ? "the " + pick(r, ADJECTIVES) + " " + pick(r, LAKES)
+					: pick(r, STEMS) + " " + pick(r, LAKES);
+		};
+		return attempt < 40 ? name : pick(r, new String[] {"Old ", "Great ", "Little ", "High ", "Low "}) + name.replaceFirst("^the ", "");
+	}
+
 	// ---------------------------------------------------------------- villagers
 
 	static final String[] FIRST = {"Alden", "Ada", "Agnes", "Alaric", "Alma", "Ambrose", "Anselm", "Ardith", "Arlo", "Astrid",
