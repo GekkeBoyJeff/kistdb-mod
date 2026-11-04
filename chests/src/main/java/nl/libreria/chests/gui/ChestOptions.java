@@ -76,7 +76,7 @@ public final class ChestOptions {
 	}
 
 	/** The item it holds most of, or the chest itself. */
-	static ItemStack icon(Store.Entry e) {
+	public static ItemStack icon(Store.Entry e) {
 		String best = null;
 		int most = 0;
 		for (var it : e.items.entrySet()) {
