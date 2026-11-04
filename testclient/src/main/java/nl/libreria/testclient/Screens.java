@@ -158,9 +158,12 @@ public final class Screens implements FabricClientGameTest {
 				ctx.getInput().holdKeyFor(o2 -> o2.keyRight, 25);
 				ctx.waitTicks(10);
 				ctx.takeScreenshot("claim_view_moved");
-				ctx.getInput().pressMouse(0);
-				ctx.waitTicks(16);
+				ctx.getInput().pressKey(o2 -> o2.keyAttack);
+				ctx.waitTicks(7);
 				ctx.takeScreenshot("claim_view_claimed");
+				ctx.getInput().scroll(-3);
+				ctx.waitTicks(20);
+				ctx.takeScreenshot("claim_view_zoomed");
 				ctx.getInput().holdKeyFor(o2 -> o2.keyShift, 4);
 				ctx.waitTicks(30);
 				ctx.takeScreenshot("claim_view_closed");

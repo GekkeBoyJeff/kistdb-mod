@@ -441,6 +441,13 @@ DYES = {
 }
 
 
+def empty_item():
+    """An item that draws nothing (the land map puts it in your hands so no arm hangs in front of the view)."""
+    base = os.path.join(OUT, 'assets', NS)
+    os.makedirs(os.path.join(base, 'items/gui'), exist_ok=True)
+    json.dump({'model': {'type': 'minecraft:empty'}}, open(os.path.join(base, 'items/gui/empty.json'), 'w'))
+
+
 def plaques():
     """Coloured glass panes in menus (headers, on/off lamps) become little coloured plaques on the parchment."""
     base = os.path.join(OUT, 'assets', NS)
@@ -622,6 +629,7 @@ def main():
     frames()
     filler_tile()
     plaques()
+    empty_item()
     os.makedirs(os.path.join(base, 'font'), exist_ok=True)
     json.dump({'providers': providers}, open(os.path.join(base, 'font/ui.json'), 'w'), indent=1)
     icon_map = hud_fonts()
