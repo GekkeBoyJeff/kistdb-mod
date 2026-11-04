@@ -167,10 +167,25 @@ public final class Screens implements FabricClientGameTest {
 				ctx.getInput().setCursorPos(2, 2);
 				noToasts(ctx);
 				ctx.takeScreenshot("items_window");
-				server.runOnServer(s -> nl.libreria.chests.gui.ItemSearch.open(player, "o"));
+				close(ctx, server, player);
+				// The whole way: open, type "dia" (results change while typing), click the first one
+				server.runOnServer(s -> nl.libreria.chests.gui.ItemSearch.open(player, ""));
 				ctx.waitTicks(10);
+				typeText(ctx, "dia");
+				ctx.waitTicks(10);
+				ctx.getInput().setCursorPos(2, 2);
 				noToasts(ctx);
 				ctx.takeScreenshot("items_search");
+				double scale = ctx.computeOnClient(mc -> (double) mc.getWindow().getGuiScale());
+				int w = ctx.computeOnClient(mc -> mc.getWindow().getGuiScaledWidth());
+				int h = ctx.computeOnClient(mc -> mc.getWindow().getGuiScaledHeight());
+				int left = (w - 176) / 2, top = (h - 166) / 2;
+				ctx.getInput().setCursorPos((left + 16) * scale, (top + 92) * scale);
+				ctx.waitTicks(3);
+				ctx.takeScreenshot("items_hover");
+				ctx.getInput().pressKey(o2 -> o2.keyAttack);
+				ctx.waitTicks(30);
+				ctx.takeScreenshot("items_located");
 				close(ctx, server, player);
 			});
 
@@ -340,6 +355,16 @@ public final class Screens implements FabricClientGameTest {
 	private static void camera(ClientGameTestContext ctx, CameraType type) {
 		ctx.runOnClient(c -> c.options.setCameraType(type));
 		ctx.waitTick();
+	}
+
+	/** Types into the focused text field (TestInput.typeChars, looked up by name so a renamed API can't break the build). */
+	private static void typeText(ClientGameTestContext ctx, String text) {
+		try {
+			Object input = ctx.getInput();
+			input.getClass().getMethod("typeChars", String.class).invoke(input, text);
+		} catch (ReflectiveOperationException | RuntimeException e) {
+			LOG.warn("Could not type {}: {}", text, e.toString());
+		}
 	}
 
 	private static void close(ClientGameTestContext ctx, TestServerContext server, ServerPlayer player) {

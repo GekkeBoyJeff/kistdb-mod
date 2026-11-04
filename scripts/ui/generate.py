@@ -494,10 +494,21 @@ def search_frame():
     for xx in range(-4, 180):
         img.putpixel((ox + xx, oy + 16), (170, 170, 170, 255))
         img.putpixel((ox + xx, oy + 17), (230, 230, 230, 255))
-    # Search row: a magnifying glass and "Search", with room before the text field (drawn by the screen itself)
-    draw_icon(img, MAGNIFIER, ox - 2, oy + 22)
-    draw_text(img, ox + 13, oy + 24, 'Search', (64, 64, 64))
-    hole(59, 20, 110, 16)
+    # One wide search bar: a magnifying glass and "Search" on the left, a thin divider, then the text you type (the
+    # screen's own text field shows through the hole; the pack draws that field black like this bar)
+    for yy in range(20, 36):
+        for xx in range(-3, 180):
+            edge = xx in (-3, 179) or yy in (20, 35)
+            img.putpixel((ox + xx, oy + yy), ((160, 160, 160) if edge else (0, 0, 0)) + (255,))
+    # The label part in a lighter grey, so it reads as a label and the black part as the field
+    for yy in range(21, 35):
+        for xx in range(-2, 52):
+            img.putpixel((ox + xx, oy + yy), (52, 52, 52, 255))
+    for yy in range(21, 35):
+        img.putpixel((ox + 52, oy + yy), (100, 100, 100, 255))
+    draw_icon(img, MAGNIFIER, ox + 0, oy + 22)
+    draw_text(img, ox + 15, oy + 24, 'Search', (205, 205, 205))
+    hole(60, 21, 108, 14)
     # Hints where the anvil's slots were
     box(-3, 41, 182, 24, (186, 186, 186))
     for i, line in enumerate(('Click an item: its chest lights up', 'Right-click: every chest with it')):
