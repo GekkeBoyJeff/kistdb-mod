@@ -195,6 +195,7 @@ public final class ClaimsMod implements ModInitializer {
 		nl.libreria.core.Hotkeys.register(ClaimView::onKey);
 		Hud.setHotbarButton(ClaimView::hotbarButton);
 		nl.libreria.core.Services.provideMenu(nl.libreria.core.Services.MENU_LAND_MAP, ClaimsMod::openMap);
+		nl.libreria.core.gui.Compass.addSource(ClaimsMod::compassMarker);
 		nl.libreria.core.Services.provideLand((level, pos) -> {
 			Claim c = claimAt(level, new ChunkPos(pos.getX() >> 4, pos.getZ() >> 4));
 			return c == null ? null : c.owner;
@@ -282,6 +283,28 @@ public final class ClaimsMod implements ModInitializer {
 	}
 
 	// ---------------------------------------------------------------- opslag
+
+	/** "Your land": the middle of your nearest chunk in this world, while you're not on your own land. */
+	static List<nl.libreria.core.gui.Compass.Marker> compassMarker(ServerPlayer p) {
+		ServerLevel level = p.level();
+		Claim here = claimAt(level, p.chunkPosition());
+		if (here != null && here.owner.equals(p.getUUID())) return List.of();
+		String prefix = level.dimension().identifier() + "|";
+		double best = Double.MAX_VALUE;
+		net.minecraft.world.phys.Vec3 at = null;
+		for (Map.Entry<String, Claim> e : STORE.get().claims.entrySet()) {
+			if (!e.getValue().owner.equals(p.getUUID()) || !e.getKey().startsWith(prefix)) continue;
+			String[] parts = e.getKey().substring(prefix.length()).split("\\|");
+			if (parts.length != 2) continue;
+			double x = Integer.parseInt(parts[0]) * 16 + 8, z = Integer.parseInt(parts[1]) * 16 + 8;
+			double d = (x - p.getX()) * (x - p.getX()) + (z - p.getZ()) * (z - p.getZ());
+			if (d < best) {
+				best = d;
+				at = new net.minecraft.world.phys.Vec3(x, p.getY(), z);
+			}
+		}
+		return at == null ? List.of() : List.of(new nl.libreria.core.gui.Compass.Marker(at, "house", 0x7CFC7C, "Your land"));
+	}
 
 	static String key(Level level, ChunkPos c) {
 		return level.dimension().identifier() + "|" + c.x() + "|" + c.z();

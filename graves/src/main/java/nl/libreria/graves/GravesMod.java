@@ -128,6 +128,17 @@ public final class GravesMod implements ModInitializer {
 			if (note != null) newPlayer.sendSystemMessage(note);
 		});
 
+		nl.libreria.core.gui.Compass.addSource(p -> {
+			List<nl.libreria.core.gui.Compass.Marker> out = new ArrayList<>();
+			String dim = p.level().dimension().identifier().toString();
+			for (Grave g : STORE.get().graves.values()) {
+				if (g.owner.equals(p.getUUID()) && g.dim.equals(dim)) {
+					out.add(new nl.libreria.core.gui.Compass.Marker(g.pos(), "grave", 0xD0D0D0, "Your grave"));
+				}
+			}
+			return out;
+		});
+
 		CommandRegistrationCallback.EVENT.register((dispatcher, registry, env) -> dispatcher.register(
 				Commands.literal("grave").executes(ctx -> {
 					listGraves(ctx.getSource().getPlayerOrException());

@@ -269,6 +269,13 @@ public final class Guide {
 		Ui.sound(player, SoundEvents.NOTE_BLOCK_CHIME, 0.5f, 1.8f);
 	}
 
+	/** The beam's target as a compass marker (same world only), or null. */
+	public static @Nullable nl.libreria.core.gui.Compass.Marker marker(ServerPlayer player) {
+		Beam b = ACTIVE.get(player.getUUID());
+		if (b == null || b.level != player.level()) return null;
+		return new nl.libreria.core.gui.Compass.Marker(b.center, "target", 0x55FFFF, b.what.getString());
+	}
+
 	public static boolean has(ServerPlayer player) {
 		return ACTIVE.containsKey(player.getUUID());
 	}

@@ -51,6 +51,11 @@ public final class Libreria implements ModInitializer {
 		Pack.init();
 		Links.init();
 		Welcome.init();
+		nl.libreria.core.gui.Compass.init();
+		nl.libreria.core.gui.Compass.addSource(p -> {
+			var m = Guide.marker(p);
+			return m == null ? java.util.List.of() : java.util.List.of(m);
+		});
 		QuickMenu.init();
 		// Opslag zo vroeg mogelijk klaarzetten, zodat modules ze in hun eigen SERVER_STARTED al kunnen lezen
 		ServerLifecycleEvents.SERVER_STARTING.register(s -> {
@@ -70,6 +75,7 @@ public final class Libreria implements ModInitializer {
 			Guide.clearAll();
 			Nameplate.clearAll();
 			nl.libreria.core.gui.TopCard.clearAll();
+			nl.libreria.core.gui.Compass.clearAll();
 			PlayerStore.saveDirtyAll();
 			WorldStore.saveAll();
 		});
@@ -79,6 +85,7 @@ public final class Libreria implements ModInitializer {
 			Guide.clearFlashes(id);
 			Hud.forget(id);
 			nl.libreria.core.gui.TopCard.forget(id);
+			nl.libreria.core.gui.Compass.forget(id);
 			Dialogs.forget(id);
 			Welcome.forget(id);
 			Nameplate.forget(id);
@@ -122,6 +129,7 @@ public final class Libreria implements ModInitializer {
 		Hud.tick(server, tick);
 		nl.libreria.core.gui.TopCard.tick(server, tick);
 		Welcome.tick(server, tick);
+		nl.libreria.core.gui.Compass.tick(server, tick);
 		if (tick % 1200 == 0) {
 			PlayerStore.saveDirtyAll();
 			WorldStore.saveAll();

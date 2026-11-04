@@ -249,6 +249,33 @@
    "chars": [
     "\ue0ec"
    ]
+  },
+  {
+   "type": "bitmap",
+   "file": "libreria:font/ui/compass_bar.png",
+   "height": 12,
+   "ascent": 9,
+   "chars": [
+    "\ue0ed"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "libreria:font/ui/compass_tick.png",
+   "height": 7,
+   "ascent": 7,
+   "chars": [
+    "\ue0ee"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "libreria:font/ui/compass_marks.png",
+   "height": 7,
+   "ascent": 7,
+   "chars": [
+    "\ue0ef\ue0f0\ue0f1\ue0f2\ue0f3\ue0f4"
+   ]
   }
  ]
 }

@@ -849,6 +849,53 @@ def draw_icon(img, rows, ox, oy):
                 img.putpixel((ox + x, oy + y), ICON_PAL[ch])
 
 
+COMPASS_W = 182
+
+COMPASS_MARKS = {
+    'diamond': ['...#...', '..###..', '.#####.', '#######', '.#####.', '..###..', '...#...'],
+    'house': ['...#...', '..###..', '.#####.', '#######', '.##.##.', '.##.##.', '.##.##.'],
+    'skull': ['.#####.', '#######', '#..#..#', '#######', '.#####.', '.#.#.#.', '.......'],
+    'grave': ['..###..', '.##.##.', '.#...#.', '.##.##.', '.##.##.', '.#####.', '#######'],
+    'target': ['..###..', '.#...#.', '#.....#', '#..#..#', '#.....#', '.#...#.', '..###..'],
+    'person': ['..###..', '..###..', '...#...', '.#####.', '...#...', '..#.#..', '.#...#.'],
+}
+
+
+def compass():
+    """The compass bar at the top of the screen: a dark strip that fades out at both ends, with a small gold notch in
+    the middle (where you look), tick marks, and white marker shapes the server tints (waypoints, your land, your
+    death point, graves, the beam you follow). The boss bar's title line runs through the middle of the strip."""
+    w, h = COMPASS_W, 12
+    strip = Image.new('RGBA', (w, h), (0, 0, 0, 0))
+    for x in range(w):
+        fade = min(1.0, x / 26, (w - 1 - x) / 26)
+        for y in range(h):
+            if y in (0, h - 1):
+                c = (255, 255, 255, int(55 * fade))
+            else:
+                c = (12, 12, 16, int(150 * fade))
+            strip.putpixel((x, y), c)
+    mid = w // 2
+    for x, y in ((mid - 2, 0), (mid - 1, 0), (mid, 0), (mid + 1, 0), (mid + 2, 0), (mid - 1, 1), (mid, 1), (mid + 1, 1), (mid, 2)):
+        strip.putpixel((x, y), (255, 190, 60, 255))
+    # Its top is 2 px above the title line, so the strip sits around the letters
+    bitmap('compass_bar', [('compass.bar', strip)], h, 9)
+    # A short tick in the middle of the title line (transparent above and below: a glyph can't hang lower than its height)
+    tick = Image.new('RGBA', (1, 7), (0, 0, 0, 0))
+    for y in (2, 3, 4):
+        tick.putpixel((0, y), (255, 255, 255, 255))
+    bitmap('compass_tick', [('compass.tick', tick)], 7, 7)
+    cells = []
+    for name, rows in COMPASS_MARKS.items():
+        im = Image.new('RGBA', (7, 7), (0, 0, 0, 0))
+        for y, row in enumerate(rows):
+            for x, ch in enumerate(row):
+                if ch == '#':
+                    im.putpixel((x, y), (255, 255, 255, 255))
+        cells.append(('compass.' + name, im))
+    bitmap('compass_marks', cells, 7, 7)
+
+
 def search_button():
     """The recipe book button in the inventory becomes a search button: Minecraft's own grey button with a
     magnifying glass (and the same blue when you hover it)."""
@@ -982,6 +1029,7 @@ def main():
     plaques()
     empty_item()
     claim_buildings()
+    compass()
     os.makedirs(os.path.join(base, 'font'), exist_ok=True)
     json.dump({'providers': providers}, open(os.path.join(base, 'font/ui.json'), 'w'), indent=1)
     icon_map = hud_fonts()
