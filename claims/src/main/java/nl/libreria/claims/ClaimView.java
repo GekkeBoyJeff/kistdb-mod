@@ -53,9 +53,9 @@ import org.joml.Vector3f;
 
 /**
  * The land map. Your camera swoops back and up into a third-person view over your own head and looks down at the
- * real world around you. Claimed chunks are coloured glass plates with a glowing edge (green = yours, blue = you may
- * build there, red = someone else's), each piece of land has a floating name, and a small marker shows where you
- * stand. The chunk in the middle of the screen is the cursor: WASD glides over the land (sprint = faster), click
+ * real world around you. Every piece of claimed land is fenced by a see-through curtain that follows the ground and
+ * has coloured motes floating over it (green = yours, blue = you may build there, red = someone else's), a floating
+ * name with its size, and a small marker shows where you stand. The chunk in the middle of the screen is the cursor: WASD glides over the land (sprint = faster), click
  * claims it (with a little celebration), right-click releases it, scroll zooms, sneak flies back down. Getting hurt
  * closes it at once.
  *
@@ -97,8 +97,15 @@ final class ClaimView {
 		}
 	}
 
+	/**
+	 * One straight piece of a border curtain: centre (x, z) at ground height y, along x or z, how long and tall.
+	 */
+	private record Seg(double x, double y, double z, double len, boolean alongX, Kind kind, float height) {
+	}
+
 	/** A change to a display that should start a few ticks from now (so the client first has the old state). */
-	private record Anim(DisplayElement el, int at, Vector3f translation, Vector3f scale, int duration, boolean remove) {
+	private record Anim(DisplayElement el, int at, @Nullable Vector3f translation, @Nullable Vector3f scale, int duration, boolean remove,
+			@Nullable Runnable apply) {
 	}
 
 	private static final class View {
@@ -107,10 +114,11 @@ final class ClaimView {
 		final Vec3 origin;
 		final ElementHolder holder = new ElementHolder();
 		final ItemDisplayElement cam = new ItemDisplayElement();
-		final BlockDisplayElement cursor = new BlockDisplayElement(glass("white").defaultBlockState());
 		final TextDisplayElement you = new TextDisplayElement();
-		final Map<Long, BlockDisplayElement> plates = new HashMap<>();
-		final Map<Long, Kind> kinds = new HashMap<>();
+		/** Border curtains of claimed land, and the ones around the cursor chunk. */
+		final Map<Seg, DisplayElement> walls = new HashMap<>();
+		final Map<Seg, DisplayElement> cursorWalls = new HashMap<>();
+		boolean pack;
 		final List<TextDisplayElement> labels = new ArrayList<>();
 		final Map<Long, Integer> tops = new HashMap<>();
 		final List<Anim> anims = new ArrayList<>();
@@ -193,15 +201,7 @@ final class ClaimView {
 		v.cam.setPitch(v.pitchStart);
 		v.holder.addElement(v.cam);
 
-		// The cursor: a glowing frame on the chunk in the middle of the screen
-		v.cursor.setGlowing(true);
-		v.cursor.setGlowColorOverride(0xFFFFFF);
-		v.cursor.setBrightness(FULL);
-		v.cursor.setTeleportDuration(2);
-		v.cursor.setViewRange(8f);
-		v.cursor.setTranslation(new Vector3f(8, 0, 8));
-		v.cursor.setScale(new Vector3f(0.01f, 0.14f, 0.01f));
-		v.holder.addElement(v.cursor);
+		v.pack = Pack.has(p);
 
 		// "You": a little marker over your head, so you can find yourself from up high
 		v.you.setText(Component.literal("▼").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD)
@@ -241,10 +241,11 @@ final class ClaimView {
 		if (v.closeAge < 0) {
 			v.closeAge = 0;
 			Ui.sound(p, SoundEvents.ELYTRA_FLYING, 0.18f, 2.0f);
-			for (BlockDisplayElement plate : v.plates.values()) animate(v, plate, 0, shrunk(), smallScale(), 7, false);
+			// The curtains sink into the ground
+			for (Map.Entry<Seg, DisplayElement> e : v.walls.entrySet()) lower(v, e.getKey(), e.getValue(), 0, 7);
+			for (Map.Entry<Seg, DisplayElement> e : v.cursorWalls.entrySet()) lower(v, e.getKey(), e.getValue(), 0, 5);
 			for (TextDisplayElement label : v.labels) label.setScale(new Vector3f(0.01f));
 			v.you.setScale(new Vector3f(0.01f));
-			animate(v, v.cursor, 0, new Vector3f(8, 0, 8), new Vector3f(0.01f, 0.14f, 0.01f), 6, false);
 		}
 	}
 
@@ -333,9 +334,8 @@ final class ClaimView {
 			if (!cc.equals(v.cursorChunk)) {
 				v.cursorChunk = cc;
 				placeCursor(v, cc, true);
-			} else if (v.age % 14 == 0) {
-				breathe(v);
 			}
+			if (v.age % 5 == 0) motes(v);
 			// The point the camera looks at follows the ground under the cursor, gently
 			v.curY = Mth.lerp(0.15, v.curY, top(v, cc));
 			v.dist = Mth.lerp(0.3, v.dist, v.targetDist);
@@ -434,7 +434,7 @@ final class ClaimView {
 		}
 		buildPlates(v, false);
 		placeCursor(v, c, false);
-		double y = top(v, c) + 0.6;
+		double y = top(v, c) + 1.2;
 		if (claim) {
 			edgeParticles(v, c, y, ParticleTypes.HAPPY_VILLAGER);
 			v.level.sendParticles(v.p, ParticleTypes.TOTEM_OF_UNDYING, true, true, c.getMinBlockX() + 8, y + 1, c.getMinBlockZ() + 8,
@@ -486,72 +486,162 @@ final class ClaimView {
 		return h;
 	}
 
-	private static Vector3f shrunk() {
-		return new Vector3f(8, 0, 8);
-	}
-
-	private static Vector3f smallScale() {
-		return new Vector3f(0.01f, 0.1f, 0.01f);
-	}
-
-	private static Vector3f full() {
-		return new Vector3f(0.12f, 0, 0.12f);
-	}
-
-	private static Vector3f fullScale() {
-		return new Vector3f(15.76f, 0.1f, 15.76f);
-	}
-
-	/** Coloured plates (with a glowing edge) on every claimed chunk around you, and the names. */
+	/**
+	 * The borders of everyone's land around you, as see-through curtains that follow the ground: bright at the bottom,
+	 * fading upwards. Only the outside edge of each piece of land gets a curtain, so you see whole areas, not tiles.
+	 * Kept pieces stay, new ones rise up, gone ones sink away.
+	 */
 	private static void buildPlates(View v, boolean opening) {
 		ChunkPos center = new ChunkPos(Mth.floor(v.origin.x) >> 4, Mth.floor(v.origin.z) >> 4);
+		Set<Seg> want = new HashSet<>();
 		for (int dx = -RADIUS; dx <= RADIUS; dx++) {
 			for (int dz = -RADIUS; dz <= RADIUS; dz++) {
 				ChunkPos c = new ChunkPos(center.x() + dx, center.z() + dz);
+				ClaimsMod.Claim cl = ClaimsMod.claimAt(v.level, c);
+				if (cl == null) continue;
 				Kind kind = kind(v, c);
-				long key = key(c);
-				BlockDisplayElement plate = v.plates.get(key);
-				if (kind == Kind.FREE) {
-					if (plate != null) {
-						v.plates.remove(key);
-						v.kinds.remove(key);
-						// Fold away, then gone
-						animate(v, plate, v.age + 1, shrunk(), smallScale(), 6, false);
-						animate(v, plate, v.age + 8, shrunk(), smallScale(), 0, true);
-					}
-					continue;
+				for (int side = 0; side < 4; side++) {
+					ChunkPos n = neighbour(c, side);
+					ClaimsMod.Claim nc = ClaimsMod.claimAt(v.level, n);
+					if (nc != null && nc.owner.equals(cl.owner)) continue;
+					edge(v, c, side, kind, 2.6f, want);
 				}
-				if (plate == null) {
-					plate = new BlockDisplayElement(kind.glass().defaultBlockState());
-					plate.setBrightness(FULL);
-					plate.setViewRange(8f);
-					plate.setGlowing(true);
-					plate.setGlowColorOverride(kind.color());
-					plate.setOffset(new Vec3(c.getMinBlockX(), top(v, c) + 0.06, c.getMinBlockZ()).subtract(v.origin));
-					plate.setTranslation(shrunk());
-					plate.setScale(smallScale());
-					v.holder.addElement(plate);
-					v.plates.put(key, plate);
-					// Pop in: a wave from where you stand when opening, a little bounce when you claim
-					int at = v.age + 1 + (opening ? 4 + (Math.abs(dx) + Math.abs(dz)) * 2 : 0);
-					if (opening) {
-						animate(v, plate, at, full(), fullScale(), 8, false);
-					} else {
-						animate(v, plate, at, new Vector3f(-0.9f, 0, -0.9f), new Vector3f(17.8f, 0.1f, 17.8f), 5, false);
-						animate(v, plate, at + 5, full(), fullScale(), 4, false);
-					}
-				} else if (v.kinds.get(key) != kind) {
-					plate.setBlockState(kind.glass().defaultBlockState());
-					plate.setGlowColorOverride(kind.color());
-				}
-				v.kinds.put(key, kind);
 			}
 		}
+		sync(v, v.walls, want, opening);
 		labels(v, center);
 	}
 
-	private static void animate(View v, DisplayElement el, int at, Vector3f translation, Vector3f scale, int duration, boolean remove) {
-		v.anims.add(new Anim(el, at, translation, scale, duration, remove));
+	private static ChunkPos neighbour(ChunkPos c, int side) {
+		return switch (side) {
+			case 0 -> new ChunkPos(c.x(), c.z() - 1); // north
+			case 1 -> new ChunkPos(c.x() + 1, c.z()); // east
+			case 2 -> new ChunkPos(c.x(), c.z() + 1); // south
+			default -> new ChunkPos(c.x() - 1, c.z()); // west
+		};
+	}
+
+	/** One side of a chunk as curtain pieces: one piece per run of blocks with the same ground height. */
+	private static void edge(View v, ChunkPos c, int side, Kind kind, float height, Set<Seg> out) {
+		int x0 = c.getMinBlockX(), z0 = c.getMinBlockZ();
+		boolean alongX = side == 0 || side == 2;
+		// The border line itself, nudged a hair inwards so two neighbours' curtains don't fight
+		double line = switch (side) {
+			case 0 -> z0 + 0.04;
+			case 1 -> x0 + 16 - 0.04;
+			case 2 -> z0 + 16 - 0.04;
+			default -> x0 + 0.04;
+		};
+		int start = 0;
+		int runY = ground(v, x0, z0, side, 0);
+		for (int i = 1; i <= 16; i++) {
+			int y = i < 16 ? ground(v, x0, z0, side, i) : Integer.MIN_VALUE;
+			if (y != runY) {
+				double mid = (alongX ? x0 : z0) + (start + i) / 2.0;
+				double len = i - start;
+				out.add(alongX ? new Seg(mid, runY, line, len, true, kind, height) : new Seg(line, runY, mid, len, false, kind, height));
+				start = i;
+				runY = y;
+			}
+		}
+	}
+
+	/** Ground height of block {@code i} along one side of a chunk (inside the chunk). */
+	private static int ground(View v, int x0, int z0, int side, int i) {
+		int x = switch (side) {
+			case 1 -> x0 + 15;
+			case 3 -> x0;
+			default -> x0 + i;
+		};
+		int z = switch (side) {
+			case 0 -> z0;
+			case 2 -> z0 + 15;
+			default -> z0 + i;
+		};
+		return v.level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z);
+	}
+
+	/** Make the shown pieces match {@code want}: new ones rise, gone ones sink and disappear. */
+	private static void sync(View v, Map<Seg, DisplayElement> shown, Set<Seg> want, boolean wave) {
+		for (Iterator<Map.Entry<Seg, DisplayElement>> it = shown.entrySet().iterator(); it.hasNext(); ) {
+			Map.Entry<Seg, DisplayElement> e = it.next();
+			if (want.contains(e.getKey())) continue;
+			lower(v, e.getKey(), e.getValue(), v.age + 1, 5);
+			animate(v, e.getValue(), v.age + 7, null, null, 0, true);
+			it.remove();
+		}
+		for (Seg s : want) {
+			if (shown.containsKey(s)) continue;
+			DisplayElement el = wall(v, s);
+			v.holder.addElement(el);
+			shown.put(s, el);
+			int delay = 1;
+			if (wave) delay += 4 + (int) (Math.hypot(s.x() - v.origin.x, s.z() - v.origin.z) / 6);
+			raise(v, s, el, v.age + delay, s.kind() == null ? 3 : 7);
+		}
+	}
+
+	/** A curtain piece, still flat on the ground (it rises with {@link #raise}). */
+	private static DisplayElement wall(View v, Seg s) {
+		DisplayElement el;
+		if (v.pack) {
+			ItemDisplayElement item = new ItemDisplayElement();
+			ItemStack stack = new ItemStack(Items.PAPER);
+			stack.set(DataComponents.ITEM_MODEL, Identifier.fromNamespaceAndPath("libreria", "claim/wall_" + wallName(s.kind())));
+			item.setItem(stack);
+			item.setItemDisplayContext(net.minecraft.world.item.ItemDisplayContext.NONE);
+			if (!s.alongX()) item.setLeftRotation(new org.joml.Quaternionf().rotateY((float) Math.PI / 2));
+			el = item;
+		} else {
+			el = new BlockDisplayElement(glass(s.kind() == null ? "yellow" : switch (s.kind()) {
+				case MINE -> "lime";
+				case TRUSTED -> "light_blue";
+				case OTHER -> "red";
+				case FREE -> "white";
+			}).defaultBlockState());
+		}
+		el.setBrightness(FULL);
+		el.setViewRange(8f);
+		el.setOffset(new Vec3(s.x(), s.y(), s.z()).subtract(v.origin));
+		shape(v, s, el, 0.02f);
+		return el;
+	}
+
+	private static String wallName(@Nullable Kind kind) {
+		if (kind == null) return "cursor";
+		return switch (kind) {
+			case MINE -> "mine";
+			case TRUSTED -> "trusted";
+			default -> "other";
+		};
+	}
+
+	/** Translation and scale for a curtain piece {@code h} tall. */
+	private static void shape(View v, Seg s, DisplayElement el, float h) {
+		float len = (float) s.len();
+		if (v.pack) {
+			// A 1x1 quad around the origin: stretch it and lift its bottom edge onto the ground
+			el.setScale(new Vector3f(len, h, 1));
+			el.setTranslation(new Vector3f(0, h / 2, 0));
+		} else if (s.alongX()) {
+			el.setScale(new Vector3f(len, h, 0.05f));
+			el.setTranslation(new Vector3f(-len / 2, 0, -0.025f));
+		} else {
+			el.setScale(new Vector3f(0.05f, h, len));
+			el.setTranslation(new Vector3f(-0.025f, 0, -len / 2));
+		}
+	}
+
+	private static void raise(View v, Seg s, DisplayElement el, int at, int duration) {
+		v.anims.add(new Anim(el, at, null, null, duration, false, () -> shape(v, s, el, s.height())));
+	}
+
+	private static void lower(View v, Seg s, DisplayElement el, int at, int duration) {
+		v.anims.add(new Anim(el, at, null, null, duration, false, () -> shape(v, s, el, 0.02f)));
+	}
+
+	private static void animate(View v, DisplayElement el, int at, @Nullable Vector3f translation, @Nullable Vector3f scale, int duration, boolean remove) {
+		v.anims.add(new Anim(el, at, translation, scale, duration, remove, null));
 	}
 
 	private static void runAnims(View v) {
@@ -564,8 +654,9 @@ final class ClaimView {
 				continue;
 			}
 			a.el().setInterpolationDuration(a.duration());
-			a.el().setTranslation(a.translation());
-			a.el().setScale(a.scale());
+			if (a.apply() != null) a.apply().run();
+			if (a.translation() != null) a.el().setTranslation(a.translation());
+			if (a.scale() != null) a.el().setScale(a.scale());
 			a.el().startInterpolation();
 		}
 	}
@@ -628,25 +719,28 @@ final class ClaimView {
 		}
 	}
 
-	/** The glowing frame on the chunk in the middle of the screen; it slides over and breathes softly. */
+	/** A low golden curtain around the chunk in the middle of the screen. */
 	private static void placeCursor(View v, ChunkPos c, boolean tick) {
-		Kind kind = kind(v, c);
-		v.cursor.setOffset(new Vec3(c.getMinBlockX(), top(v, c) + 0.12, c.getMinBlockZ()).subtract(v.origin));
-		v.cursor.setGlowColorOverride(kind == Kind.FREE ? 0xFFF2B0 : kind.color());
-		v.cursor.setInterpolationDuration(3);
-		v.cursor.setTranslation(new Vector3f(0.05f, 0, 0.05f));
-		v.cursor.setScale(new Vector3f(15.9f, 0.16f, 15.9f));
-		v.cursor.startInterpolation();
+		Set<Seg> want = new HashSet<>();
+		for (int side = 0; side < 4; side++) edge(v, c, side, null, 1.5f, want);
+		sync(v, v.cursorWalls, want, false);
 		if (tick) Ui.sound(v.p, SoundEvents.UI_BUTTON_CLICK.value(), 0.06f, 1.9f);
 	}
 
-	private static void breathe(View v) {
-		boolean in = (v.age / 14) % 2 == 0;
-		float m = in ? 0.6f : 0.05f;
-		v.cursor.setInterpolationDuration(14);
-		v.cursor.setTranslation(new Vector3f(m, 0, m));
-		v.cursor.setScale(new Vector3f(16 - 2 * m, 0.16f, 16 - 2 * m));
-		v.cursor.startInterpolation();
+	/** Soft coloured motes floating over claimed land near the middle of the screen, so whole areas read as claimed. */
+	private static void motes(View v) {
+		if (v.cursorChunk == null) return;
+		java.util.Random r = new java.util.Random(v.age * 31L + v.p.getId());
+		for (int dx = -4; dx <= 4; dx++) {
+			for (int dz = -4; dz <= 4; dz++) {
+				ChunkPos c = new ChunkPos(v.cursorChunk.x() + dx, v.cursorChunk.z() + dz);
+				Kind kind = kind(v, c);
+				if (kind == Kind.FREE) continue;
+				double x = c.getMinBlockX() + r.nextDouble() * 16, z = c.getMinBlockZ() + r.nextDouble() * 16;
+				double y = v.level.getHeight(Heightmap.Types.MOTION_BLOCKING, Mth.floor(x), Mth.floor(z)) + 0.4 + r.nextDouble() * 2.2;
+				v.level.sendParticles(v.p, new net.minecraft.core.particles.DustParticleOptions(kind.color(), 1.6f), true, true, x, y, z, 1, 0, 0.05, 0, 0);
+			}
+		}
 	}
 
 	/** What's in the middle of the screen, in the action bar. */

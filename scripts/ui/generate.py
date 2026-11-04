@@ -448,6 +448,38 @@ def empty_item():
     json.dump({'model': {'type': 'minecraft:empty'}}, open(os.path.join(base, 'items/gui/empty.json'), 'w'))
 
 
+WALLS = {'mine': (85, 255, 85), 'trusted': (85, 255, 255), 'other': (255, 85, 85), 'cursor': (255, 214, 110)}
+
+
+def claim_walls():
+    """Glowing see-through curtains for the land map: bright at the ground, fading out upwards. A flat quad (both
+    sides) that the server stretches along a claim's border."""
+    base = os.path.join(OUT, 'assets', NS)
+    for d in ('textures/item/claim', 'models/item/claim', 'items/claim'):
+        os.makedirs(os.path.join(base, d), exist_ok=True)
+    for name, c in WALLS.items():
+        img = Image.new('RGBA', (16, 32), (0, 0, 0, 0))
+        for y in range(32):
+            t = y / 31  # 0 at the top, 1 at the bottom
+            a = int(8 + 160 * (t ** 2.4))
+            col = lerp(c, (255, 255, 255), 0.18 * t)
+            if y >= 30:
+                a, col = 240, lerp(c, (255, 255, 255), 0.5)
+            elif y == 0:
+                a, col = 90, lerp(c, (255, 255, 255), 0.3)
+            for x in range(16):
+                img.putpixel((x, y), col + (a,))
+        img.save(os.path.join(base, f'textures/item/claim/wall_{name}.png'))
+        tex = f'{NS}:item/claim/wall_{name}'
+        face = {'texture': '#wall', 'uv': [0, 0, 16, 16]}
+        json.dump({'textures': {'wall': tex, 'particle': tex},
+                   'elements': [{'from': [0, 0, 8], 'to': [16, 16, 8], 'shade': False,
+                                 'faces': {'north': dict(face), 'south': dict(face)}}]},
+                  open(os.path.join(base, f'models/item/claim/wall_{name}.json'), 'w'))
+        json.dump({'model': {'type': 'minecraft:model', 'model': f'{NS}:item/claim/wall_{name}'}},
+                  open(os.path.join(base, f'items/claim/wall_{name}.json'), 'w'))
+
+
 def plaques():
     """Coloured glass panes in menus (headers, on/off lamps) become little coloured plaques on the parchment."""
     base = os.path.join(OUT, 'assets', NS)
@@ -616,7 +648,8 @@ def boss_bar():
 
 def main():
     base = os.path.join(OUT, 'assets', NS)
-    for sub in ('textures/font/ui', 'font', 'items/gui', 'models/item/gui', 'textures/item/gui'):
+    for sub in ('textures/font/ui', 'font', 'items/gui', 'models/item/gui', 'textures/item/gui', 'items/claim',
+                'models/item/claim', 'textures/item/claim'):
         shutil.rmtree(os.path.join(base, sub), ignore_errors=True)
     shutil.rmtree(os.path.join(OUT, 'assets', 'minecraft'), ignore_errors=True)
     spaces()
@@ -630,6 +663,7 @@ def main():
     filler_tile()
     plaques()
     empty_item()
+    claim_walls()
     os.makedirs(os.path.join(base, 'font'), exist_ok=True)
     json.dump({'providers': providers}, open(os.path.join(base, 'font/ui.json'), 'w'), indent=1)
     icon_map = hud_fonts()

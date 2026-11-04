@@ -146,3 +146,27 @@ net.minecraft.network.chat.FontDescription$Resource
 !net.minecraft.client.gui.font.providers.BitmapProvider$Glyph
 !net.minecraft.client.gui.font.glyphs.BakedSheetGlyph
 net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
+? server/dialog/
+net.minecraft.server.dialog.CommonDialogData
+net.minecraft.server.dialog.MultiActionDialog
+net.minecraft.server.dialog.NoticeDialog
+net.minecraft.server.dialog.ConfirmationDialog
+net.minecraft.server.dialog.ActionButton
+net.minecraft.server.dialog.CommonButtonData
+net.minecraft.server.dialog.Input
+net.minecraft.server.dialog.DialogAction
+net.minecraft.server.dialog.input.TextInput
+net.minecraft.server.dialog.body.PlainMessage
+net.minecraft.server.dialog.body.ItemBody
+net.minecraft.server.dialog.action.CommandTemplate
+net.minecraft.server.dialog.action.ParsedTemplate
+net.minecraft.server.dialog.action.StaticAction
+net.minecraft.server.dialog.action.CustomAll
+net.minecraft.server.network.ServerGamePacketListenerImpl
+net.minecraft.server.network.ServerCommonPacketListenerImpl
+net.minecraft.network.protocol.game.ServerboundRecipeBookChangeSettingsPacket
+net.minecraft.network.protocol.game.ClientboundRecipeBookSettingsPacket
+net.minecraft.stats.RecipeBookSettings
+net.minecraft.world.inventory.RecipeBookType
+net.minecraft.core.particles.DustParticleOptions
+net.minecraft.stats.ServerRecipeBook
