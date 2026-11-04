@@ -332,6 +332,20 @@ public final class Screens implements FabricClientGameTest {
 				ctx.takeScreenshot("welcome_card");
 				server.runOnServer(s -> nl.libreria.core.gui.TopCard.hide(player, "welcome"));
 			});
+			menu(ctx, server, player, "window_death_recap", p -> {
+				nl.libreria.core.DeathRecap.onDeath(p);
+				nl.libreria.core.DeathRecap.open(p);
+			});
+			safe("leaderboard_and_tab", () -> {
+				server.runOnServer(s -> nl.libreria.info.Leaderboards.place(player, nl.libreria.info.Leaderboards.Kind.PLAYTIME));
+				ctx.waitTicks(30);
+				ctx.takeScreenshot("leaderboard");
+				ctx.getInput().holdKey(o -> o.keyPlayerList);
+				ctx.waitTicks(45);
+				ctx.takeScreenshot("tab_list");
+				ctx.getInput().releaseKey(o -> o.keyPlayerList);
+				ctx.waitTicks(3);
+			});
 			safe("toast", () -> {
 				server.runOnServer(s -> nl.libreria.core.gui.Toast.show(player, net.minecraft.world.item.Items.GOLDEN_SHOVEL,
 						nl.libreria.core.gui.Toast.GOOD, "Chunk claimed", "12 of 40 chunks · /claim release to undo"));

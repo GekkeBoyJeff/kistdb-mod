@@ -100,6 +100,29 @@ public final class Services {
 		return out;
 	}
 
+	/** A button in the death recap window, e.g. "Beam to my grave". */
+	public record DeathAction(String label, String tooltip, Consumer<ServerPlayer> run) {
+	}
+
+	public interface DeathActions {
+		@Nullable DeathAction action(ServerPlayer player);
+	}
+
+	private static final List<DeathActions> DEATH_ACTIONS = new ArrayList<>();
+
+	public static void addDeathAction(DeathActions a) {
+		DEATH_ACTIONS.add(a);
+	}
+
+	public static List<DeathAction> deathActions(ServerPlayer player) {
+		List<DeathAction> out = new ArrayList<>();
+		for (DeathActions a : DEATH_ACTIONS) {
+			DeathAction act = a.action(player);
+			if (act != null) out.add(act);
+		}
+		return out;
+	}
+
 	// ---------------------------------------------------------------- voortgang (CollectorMod)
 
 	/** Voortgang van een speler; CollectorMod levert dit, ClaimsMod en NicknamesMod gebruiken het. */

@@ -95,7 +95,9 @@ public final class ItemSearch extends AnvilInputGui {
 	}
 
 	public static void open(ServerPlayer player, String typed) {
-		new ItemSearch(player, typed).open();
+		ItemSearch gui = new ItemSearch(player, typed);
+		gui.open();
+		gui.sendProperty(eu.pb4.sgui.api.ScreenProperty.LEVEL_COST, 0);
 	}
 
 	/** Pinned items first, then the most first, then by name. */
@@ -197,6 +199,8 @@ public final class ItemSearch extends AnvilInputGui {
 					text.isEmpty() ? "" : "Part of a name works too, like dia or oak."));
 		}
 		this.setSlot(2, filterButton());
+		// No "Enchantment Cost" over the summary bar: this anvil repairs nothing
+		if (this.isOpen()) this.sendProperty(eu.pb4.sgui.api.ScreenProperty.LEVEL_COST, 0);
 	}
 
 	private GuiElementBuilder more(int page, int pages, int total) {

@@ -51,6 +51,8 @@ public final class Libreria implements ModInitializer {
 		Pack.init();
 		Links.init();
 		Welcome.init();
+		Afk.init();
+		Tab.init();
 		nl.libreria.core.gui.Compass.init();
 		nl.libreria.core.gui.Compass.addSource(p -> {
 			var m = Guide.marker(p);
@@ -64,6 +66,12 @@ public final class Libreria implements ModInitializer {
 			WorldStore.initAll(s);
 		});
 		ServerLifecycleEvents.SERVER_STOPPED.register(s -> server = null);
+		net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.AFTER_DEATH.register((entity, source) -> {
+			if (entity instanceof ServerPlayer p) DeathRecap.onDeath(p);
+		});
+		net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
+			if (!alive) DeathRecap.onRespawn(newPlayer, newPlayer.level().getServer().getTickCount());
+		});
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, s) -> {
 			Links.send(handler.player);
 			Welcome.onJoin(handler.player, s.getTickCount());
@@ -88,6 +96,8 @@ public final class Libreria implements ModInitializer {
 			nl.libreria.core.gui.Compass.forget(id);
 			Dialogs.forget(id);
 			Welcome.forget(id);
+			Afk.forget(id);
+			DeathRecap.forget(id);
 			Nameplate.forget(id);
 			PlayerStore.unloadAll(id);
 		});
@@ -129,6 +139,9 @@ public final class Libreria implements ModInitializer {
 		Hud.tick(server, tick);
 		nl.libreria.core.gui.TopCard.tick(server, tick);
 		Welcome.tick(server, tick);
+		if (tick % 20 == 7) Afk.tick(server, tick);
+		DeathRecap.tick(server, tick);
+		if (tick % 40 == 11) Tab.tick(server);
 		nl.libreria.core.gui.Compass.tick(server, tick);
 		if (tick % 1200 == 0) {
 			PlayerStore.saveDirtyAll();

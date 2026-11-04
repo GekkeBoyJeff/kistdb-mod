@@ -30,9 +30,10 @@ public final class AdminWindow {
 		Window w = Window.of(Ui.text("⚙ Server settings", ChatFormatting.GOLD).withStyle(ChatFormatting.BOLD))
 				.text(Ui.text("Rules for everybody on this server. Only operators see this window.", ChatFormatting.GRAY));
 		for (Module m : Module.all()) {
-			if (m.serverSettings().isEmpty()) continue;
+			if (m.serverSettings().isEmpty() && m.adminButtons().isEmpty()) continue;
 			List<String> names = new ArrayList<>();
 			for (ServerSetting s : m.serverSettings()) names.add(s.label + ": " + s.display());
+			for (Module.SettingsButton b : m.adminButtons()) names.add(b.label());
 			w.button(Ui.text(m.name, ChatFormatting.WHITE), Ui.text(String.join("\n", names), ChatFormatting.GRAY), (p, v) -> open(p, m));
 		}
 		w.done().show(player);
@@ -49,6 +50,15 @@ public final class AdminWindow {
 				case ServerSetting.Toggle t -> w.toggle(s.key, label, t.get());
 				case ServerSetting.Text t -> w.field(s.key, label, t.get(), t.maxLength);
 			}
+		}
+		for (Module.SettingsButton b : module.adminButtons()) {
+			w.button(Ui.text(b.label() + " ▸", ChatFormatting.AQUA), Ui.text(b.tooltip(), ChatFormatting.GRAY), (p, v) -> {
+				if (allowed(p)) b.action().accept(p);
+			});
+		}
+		if (module.serverSettings().isEmpty()) {
+			w.back(AdminWindow::open).show(player);
+			return;
 		}
 		w.button(Ui.text("✔ Save", ChatFormatting.GREEN), Ui.text("Apply for everybody, right away", ChatFormatting.GRAY), (p, v) -> {
 			if (!allowed(p)) return;

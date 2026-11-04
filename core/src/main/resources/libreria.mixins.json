@@ -6,7 +6,8 @@
 		"ContainerClickMixin",
 		"CraftingTableTitleMixin",
 		"CustomClickActionMixin",
-		"PlayerActionMixin"
+		"PlayerActionMixin",
+		"TabNameMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

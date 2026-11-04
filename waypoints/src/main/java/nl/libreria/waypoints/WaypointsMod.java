@@ -139,6 +139,8 @@ public final class WaypointsMod implements ModInitializer {
 		ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
 			if (!alive) onRespawn(newPlayer);
 		});
+		Services.addDeathAction(p -> deathPoint(p) == null ? null
+				: new Services.DeathAction("Show the way back", "A beam to where you died", WaypointsMod::goDeath));
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> onJoin(handler.player));
 		CommandRegistrationCallback.EVENT.register((dispatcher, context, selection) -> {
 			// /waypoint (or /wp) opens the list; the sub-commands work on a waypoint by name
@@ -492,7 +494,7 @@ public final class WaypointsMod implements ModInitializer {
 	private static void onRespawn(ServerPlayer p) {
 		Point death = deathPoint(p);
 		if (death == null) return;
-		if (DEATH_MESSAGE.get(p)) {
+		if (DEATH_MESSAGE.get(p) && !nl.libreria.core.DeathRecap.enabled(p)) {
 			MutableComponent msg = Ui.prefix("Waypoints").append(Ui.text("You died at ", ChatFormatting.GRAY))
 					.append(Ui.text(death.x + " " + death.y + " " + death.z, ChatFormatting.WHITE))
 					.append(Ui.text(" (" + dimName(death.dim) + ") ", ChatFormatting.GRAY))
@@ -502,7 +504,7 @@ public final class WaypointsMod implements ModInitializer {
 			// Andere modules (zoals GravesMod) voegen hier hun regel toe
 			for (Component note : Services.deathNotes(p)) msg.append("\n").append(note);
 			p.sendSystemMessage(msg);
-		} else {
+		} else if (!nl.libreria.core.DeathRecap.enabled(p)) {
 			for (Component note : Services.deathNotes(p)) p.sendSystemMessage(note);
 		}
 		if (DEATH_BEAM.get(p) && dimOf(p.level()).equals(death.dim)) {

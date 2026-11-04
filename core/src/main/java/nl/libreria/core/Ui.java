@@ -68,7 +68,9 @@ public final class Ui {
 
 	/** Is this player an operator (allowed in the admin window)? */
 	public static boolean isOp(ServerPlayer player) {
-		return player.level().getServer().getPlayerList().isOp(player.nameAndId());
+		var server = player.level().getServer();
+		// Also the owner of a single-player world opened to LAN
+		return server.getPlayerList().isOp(player.nameAndId()) || server.isSingleplayerOwner(player.nameAndId());
 	}
 
 	/** Blok op ID (los van constante-namen die per versie kunnen wijzigen). */

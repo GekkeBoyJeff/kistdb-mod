@@ -61,7 +61,12 @@ public final class ComfortMod implements ModInitializer {
 			}
 			return InteractionResult.PASS;
 		});
-		net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents.END_SERVER_TICK.register(server -> tickDoors());
+		net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents.END_SERVER_TICK.register(server -> {
+			tickDoors();
+			if (server.getTickCount() % 10 == 3) Sleep.tick(server);
+		});
+		Sleep.init();
+		net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STARTED.register(Sleep::start);
 		registerTests();
 	}
 

@@ -52,6 +52,11 @@ public abstract sealed class ServerSetting permits ServerSetting.Number, ServerS
 		this.listeners.add(listener);
 	}
 
+	/** True while nobody changed it: it still has the value the module ships with. */
+	public boolean isDefault() {
+		return raw() == null;
+	}
+
 	/** The value as text, as shown in the admin window. */
 	public abstract String display();
 

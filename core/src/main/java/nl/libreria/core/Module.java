@@ -121,6 +121,17 @@ public final class Module {
 		return Collections.unmodifiableList(this.settingsButtons);
 	}
 
+	/** A button on this module's page in the admin window (e.g. "Place a leaderboard here"). Operators only. */
+	final List<SettingsButton> adminButtons = new ArrayList<>();
+
+	public void adminButton(String label, String tooltip, Consumer<ServerPlayer> action) {
+		this.adminButtons.add(new SettingsButton(label, tooltip, action));
+	}
+
+	public List<SettingsButton> adminButtons() {
+		return Collections.unmodifiableList(this.adminButtons);
+	}
+
 	// ---------------------------------------------------------------- server-wide settings (admin window)
 
 	final List<ServerSetting> serverSettings = new ArrayList<>();

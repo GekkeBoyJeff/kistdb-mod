@@ -36,13 +36,21 @@ public final class InfoMod implements ModInitializer {
 				"Playtime, distances, kills, most", "mined blocks and more.");
 		Services.provideMenu(Services.MENU_STATS, StatsGui::open);
 
-		net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> Look.forget(handler.player.getUUID()));
-		net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STOPPING.register(server -> Look.clearAll());
+		net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
+			Look.forget(handler.player.getUUID());
+			Leaderboards.record(handler.player);
+		});
+		net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
+			Look.clearAll();
+			Leaderboards.clearAll();
+		});
+		MODULE.adminButton("Leaderboards", "Place a floating top ten in the world", Leaderboards::placeWindow);
 		MODULE.commands("/stats – your statistics");
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
 			int tick = server.getTickCount();
 			if (tick % 2 == 0) Look.tick(server);
 			if (tick % 10 == 5) Held.tick(server);
+			Leaderboards.tick(server, tick);
 		});
 
 		UseEntityCallback.EVENT.register((player, world, hand, entity, hit) -> {
@@ -55,6 +63,17 @@ public final class InfoMod implements ModInitializer {
 		});
 
 		CommandRegistrationCallback.EVENT.register((dispatcher, registry, env) -> {
+			dispatcher.register(Commands.literal("leaderboard").executes(ctx -> {
+				ServerPlayer p = ctx.getSource().getPlayerOrException();
+				if (!nl.libreria.core.Ui.isOp(p)) return 0;
+				Leaderboards.placeWindow(p);
+				return 1;
+			}).then(Commands.literal("remove").executes(ctx -> {
+				ServerPlayer p = ctx.getSource().getPlayerOrException();
+				if (!nl.libreria.core.Ui.isOp(p)) return 0;
+				Leaderboards.removeNearest(p);
+				return 1;
+			})));
 			for (String name : new String[] {"stats", "statistics"}) {
 				dispatcher.register(Commands.literal(name).executes(ctx -> {
 					StatsGui.open(ctx.getSource().getPlayerOrException());

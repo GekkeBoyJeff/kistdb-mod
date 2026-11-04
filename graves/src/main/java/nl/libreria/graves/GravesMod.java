@@ -122,8 +122,14 @@ public final class GravesMod implements ModInitializer {
 
 		// Na respawnen: waar ligt je graf?
 		Services.addDeathNote(GravesMod::deathNote);
+		Services.addDeathAction(p -> {
+			Grave g = newestOf(p);
+			if (g == null || System.currentTimeMillis() - g.created > 60_000) return null;
+			return new Services.DeathAction("Beam to my grave", g.count() + (g.count() == 1 ? " item waits there" : " items wait there"),
+					pl -> beam(pl, g));
+		});
 		ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
-			if (alive || FabricLoader.getInstance().isModLoaded("libreria_waypoints")) return;
+			if (alive || FabricLoader.getInstance().isModLoaded("libreria_waypoints") || nl.libreria.core.DeathRecap.enabled(newPlayer)) return;
 			Component note = deathNote(newPlayer);
 			if (note != null) newPlayer.sendSystemMessage(note);
 		});
