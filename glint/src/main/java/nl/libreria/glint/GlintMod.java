@@ -59,8 +59,8 @@ public final class GlintMod implements ModInitializer {
 			"Every enchanted book gets its own cover", "with a symbol for its enchantment.");
 	public static final Setting.Toggle AURA = MODULE.toggle("particles", "Particles around players", true, Items.BLAZE_POWDER,
 			"Flames, snow, soul fire… around", "players with enchanted gear.");
-	public static final Setting.Toggle AURA_SELF = MODULE.toggle("particles_self", "Particles on yourself too", true, Items.GLOWSTONE_DUST,
-			"Also see your own particles (can be", "a bit busy in first person).");
+	public static final Setting.Toggle AURA_SELF = MODULE.toggle("particles_self", "Your own particles", true, Items.GLOWSTONE_DUST,
+			"Your weapon's particles in first person;", "your armour's only in third person (F5),", "so they never fill your view.");
 
 	/** Een effect-familie uit families.json (gegenereerd door tools/glans/generate.py). */
 	public record Family(String id, String group, String name, String enchants, int items, List<String> ids) {
@@ -110,7 +110,7 @@ public final class GlintMod implements ModInitializer {
 		FRAMES.onChange(p -> setOffPack(p, "frames", !FRAMES.get(p)));
 
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
-			if (server.getTickCount() % 10 == 0) Aura.tick(server);
+			if (server.getTickCount() % Aura.RUN == 0) Aura.tick(server);
 		});
 
 		GlintTests.register();

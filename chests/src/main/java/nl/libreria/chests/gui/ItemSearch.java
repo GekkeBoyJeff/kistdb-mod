@@ -87,7 +87,10 @@ public final class ItemSearch extends AnvilInputGui {
 		MutableComponent t = Component.empty()
 				.append(Glyphs.ui(Glyphs.space(-68) + Glyphs.g("frame.search") + Glyphs.space(nameX - 60 - (-68 + adv)), 0xFFFFFF));
 		t.append(name);
-		String summary = Fmt.count(this.all.size(), "kind", "kinds") + "  ·  " + Fmt.number(items) + (items == 1 ? " item" : " items");
+		java.util.Set<String> chests = new java.util.HashSet<>();
+		for (Search.Stock s : this.all) for (Search.Hit h : s.hits()) chests.add(h.entry().dim + h.entry().pos());
+		String summary = Fmt.number(items) + (items == 1 ? " item" : " items")
+				+ (chests.isEmpty() ? "" : "  ·  " + Fmt.count(chests.size(), "chest", "chests"));
 		int width = Glyphs.width(Component.literal(summary));
 		// In the dark bar (the font is moved down 65 px, from the title line into the bar)
 		t.append(Glyphs.ui(Glyphs.space((175 - width) - (nameX + Glyphs.width(name)))));
