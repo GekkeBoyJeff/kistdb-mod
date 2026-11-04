@@ -80,15 +80,17 @@ public final class ItemSearch extends AnvilInputGui {
 		long items = 0;
 		for (Search.Stock s : this.all) items += s.total();
 		int adv = Glyphs.advance("frame.search");
-		// The anvil writes its title at x 60: back to the screen's left edge, the screen, then over to x 8
-		MutableComponent t = Component.empty()
-				.append(Glyphs.ui(Glyphs.space(-60) + Glyphs.g("frame.search") + Glyphs.space(8 - (adv - 60)), 0xFFFFFF));
+		// The anvil writes its title at x 60. The screen starts 8 px left of the anvil's own left edge; after it,
+		// "Your items" centred on top, then the totals right-aligned in the dark bar.
 		Component name = Component.literal("Your items");
+		int nameX = (176 - Glyphs.width(name)) / 2;
+		MutableComponent t = Component.empty()
+				.append(Glyphs.ui(Glyphs.space(-68) + Glyphs.g("frame.search") + Glyphs.space(nameX - 60 - (-68 + adv)), 0xFFFFFF));
 		t.append(name);
 		String summary = Fmt.count(this.all.size(), "kind", "kinds") + "  ·  " + Fmt.number(items) + (items == 1 ? " item" : " items");
 		int width = Glyphs.width(Component.literal(summary));
-		// Right-aligned in the dark bar (the font is moved down 65 px, from the title line into the bar)
-		t.append(Glyphs.ui(Glyphs.space(165 - width - (8 + Glyphs.width(name)))));
+		// In the dark bar (the font is moved down 65 px, from the title line into the bar)
+		t.append(Glyphs.ui(Glyphs.space((175 - width) - (nameX + Glyphs.width(name)))));
 		t.append(Component.literal(summary).withStyle(st -> st.withFont(Glyphs.hud(6)).withColor(0xE6E6E6)));
 		return t;
 	}

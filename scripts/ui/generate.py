@@ -448,12 +448,18 @@ def draw_text(img, x, y, text, color):
         x += char_width(c)
 
 
+# The search screen is a bit bigger than the anvil under it: this much on each side (left/right, top/bottom)
+SEARCH_OX, SEARCH_OY = 8, 6
+
+
 def search_frame():
     """Your items: a search screen in Minecraft's own grey style, drawn by the title of an anvil screen (the only
-    screen with a text field) over the whole anvil. Holes where the text field and the 36 result slots are; the
-    anvil's own slots and hammer are covered. The dark bar above the results hides the anvil's "Inventory" label
-    (it's drawn in exactly that grey) and carries the summary the server writes into it."""
-    W, H = 176, 166
+    screen with a text field) over the whole anvil and a little beyond. Holes where the text field and the 36 result
+    slots are; the anvil's own slots and hammer are covered. The dark bar above the results hides the anvil's
+    "Inventory" label (it's drawn in exactly that grey) and carries the summary the server writes into it.
+    Coordinates below are the anvil screen's own (0, 0 = its top left)."""
+    W, H = 176 + 2 * SEARCH_OX, 166 + 2 * SEARCH_OY
+    ox, oy = SEARCH_OX, SEARCH_OY
     LIGHT, FILL, SHADE, BLACK = (255, 255, 255), (198, 198, 198), (85, 85, 85), (0, 0, 0)
     img = Image.new('RGBA', (W, H), FILL + (255,))
     for y in range(H):
@@ -471,35 +477,53 @@ def search_frame():
     def hole(hx, hy, hw, hh):
         for yy in range(hy, hy + hh):
             for xx in range(hx, hx + hw):
-                img.putpixel((xx, yy), (0, 0, 0, 0))
+                img.putpixel((ox + xx, oy + yy), (0, 0, 0, 0))
 
-    def inset(bx, by, bw, bh, fill):
+    def box(bx, by, bw, bh, fill, inset=True):
         for yy in range(by, by + bh):
             for xx in range(bx, bx + bw):
                 if xx == bx or yy == by:
-                    c = SHADE
+                    c = SHADE if inset else LIGHT
                 elif xx == bx + bw - 1 or yy == by + bh - 1:
-                    c = LIGHT
+                    c = LIGHT if inset else SHADE
                 else:
                     c = fill
-                img.putpixel((xx, yy), c + (255,))
+                img.putpixel((ox + xx, oy + yy), c + (255,))
 
-    # Search row: a magnifying glass, "Search", and the text field (drawn by the screen itself)
-    draw_icon(img, MAGNIFIER, 9, 22)
-    draw_text(img, 24, 24, 'Search', (64, 64, 64))
+    # A thin line under the title
+    for xx in range(-4, 180):
+        img.putpixel((ox + xx, oy + 16), (170, 170, 170, 255))
+        img.putpixel((ox + xx, oy + 17), (230, 230, 230, 255))
+    # Search row: a magnifying glass and "Search", with room before the text field (drawn by the screen itself)
+    draw_icon(img, MAGNIFIER, ox - 2, oy + 22)
+    draw_text(img, ox + 13, oy + 24, 'Search', (64, 64, 64))
     hole(59, 20, 110, 16)
     # Hints where the anvil's slots were
-    inset(7, 41, 162, 24, (181, 181, 181))
+    box(-3, 41, 182, 24, (186, 186, 186))
     for i, line in enumerate(('Click an item: its chest lights up', 'Right-click: every chest with it')):
-        draw_text(img, 88 - text_width(line) // 2, 44 + 10 * i, line, (80, 80, 80) if i == 0 else (110, 110, 110))
+        draw_text(img, ox + 88 - text_width(line) // 2, oy + 44 + 10 * i, line, (70, 70, 70) if i == 0 else (112, 112, 112))
     # The dark bar over the results (the anvil's "Inventory" label vanishes into it)
     for yy in range(68, 81):
-        for xx in range(7, 169):
-            img.putpixel((xx, yy), (64, 64, 64, 255))
+        for xx in range(-3, 179):
+            img.putpixel((ox + xx, oy + yy), (64, 64, 64, 255))
     # The 36 result slots: the anvil's own slots show through
     hole(7, 83, 162, 54)
     hole(7, 141, 162, 18)
     return img
+
+
+def anvil_field():
+    """The anvil's text field as a normal Minecraft text box (black with a grey border) instead of its tan one: the
+    search screen uses it, and real anvils get the same clean field."""
+    d = os.path.join(OUT, 'assets', 'minecraft', 'textures/gui/sprites/container/anvil')
+    os.makedirs(d, exist_ok=True)
+    for name, border in (('text_field', (160, 160, 160)), ('text_field_disabled', (90, 90, 90))):
+        img = Image.new('RGBA', (110, 16), (0, 0, 0, 255))
+        for y in range(16):
+            for x in range(110):
+                if x in (0, 109) or y in (0, 15):
+                    img.putpixel((x, y), border + (255,))
+        img.save(os.path.join(d, name + '.png'))
 
 
 def frames():
@@ -937,7 +961,8 @@ def main():
     pips()
     icons()
     frames()
-    bitmap('search_frame', [('frame.search', search_frame())], 166, 13)
+    # Its top is SEARCH_OY above the anvil's top; the title's baseline is 13 below that top
+    bitmap('search_frame', [('frame.search', search_frame())], 166 + 2 * SEARCH_OY, 13 + SEARCH_OY)
     filler_tile()
     plaques()
     empty_item()
@@ -948,6 +973,7 @@ def main():
     boss_bar()
     search_button()
     dialog_warning()
+    anvil_field()
     inventory_tab()
     hotbar_font()
     meta = {"hudLines": HUD_LINES, "icons": icon_map, 'lineHeight': LH, 'padX': PAD_X, 'padTop': PAD_TOP, 'padBottom': PAD_BOTTOM,

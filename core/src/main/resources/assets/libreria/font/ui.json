@@ -244,8 +244,8 @@
   {
    "type": "bitmap",
    "file": "libreria:font/ui/search_frame.png",
-   "height": 166,
-   "ascent": 13,
+   "height": 178,
+   "ascent": 19,
    "chars": [
     "\ue0ec"
    ]

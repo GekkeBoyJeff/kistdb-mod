@@ -182,3 +182,5 @@ net.fabricmc.fabric.api.client.gametest.v1.input.TestInput
 !net.minecraft.world.level.block.CraftingTableBlock
 !net.minecraft.client.gui.screens.inventory.InventoryScreen
 ? gametest/v1/.*Input
+net.fabricmc.fabric.api.client.gametest.v1.TestInput
+!net.minecraft.client.gui.screens.inventory.AnvilScreen
