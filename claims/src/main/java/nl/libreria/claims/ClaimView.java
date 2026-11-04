@@ -272,6 +272,7 @@ final class ClaimView {
 		}
 		if (v.closeAge < 0) {
 			v.closeAge = 0;
+			Hud.hide(p, HUD);
 			Ui.sound(p, SoundEvents.ELYTRA_FLYING, 0.18f, 2.0f);
 			// The curtains sink into the ground
 			for (Map.Entry<Piece, DisplayElement> e : v.walls.entrySet()) lower(v, e.getKey(), e.getValue(), 0, 7);
