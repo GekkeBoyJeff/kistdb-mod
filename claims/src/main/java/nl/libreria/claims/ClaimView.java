@@ -68,7 +68,7 @@ final class ClaimView {
 	static final int RADIUS = 8;
 	private static final int OPEN_TICKS = 28, CLOSE_TICKS = 16;
 	/** Camera distance (zoom) and how steep it looks down. */
-	private static final double MIN_D = 16, MAX_D = 96, START_D = 44;
+	private static final double MIN_D = 14, MAX_D = 90, START_D = 32;
 	private static final float PITCH = 56f;
 	private static final Identifier FREEZE = Identifier.fromNamespaceAndPath("libreria", "claim_view");
 	private static final Identifier EMPTY_MODEL = Identifier.fromNamespaceAndPath("libreria", "gui/empty");
@@ -675,11 +675,11 @@ final class ClaimView {
 
 	/** Names stay readable when you zoom out. */
 	private static float labelScale(View v) {
-		return (float) Math.max(1.5, v.targetDist / 11.0);
+		return (float) Math.max(2.0, v.targetDist / 6.0);
 	}
 
 	private static float youScale(View v) {
-		return (float) Math.max(1.2, v.targetDist / 16.0);
+		return (float) Math.max(1.5, v.targetDist / 10.0);
 	}
 
 	private static long key(ChunkPos c) {
