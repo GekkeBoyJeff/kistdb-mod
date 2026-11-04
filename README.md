@@ -19,8 +19,8 @@ Pick the modules you want. Each works on its own, and together they complement e
 2. If you used the old standalone **KistDB** mod, remove that jar. `libreria-chests` replaces it, and your chest data
    moves along automatically from `world/kistdb` to `world/libreria/chests`.
 3. Start the server. Players open everything with **`/libreria`** (or `/lib`), the **Quick Actions key (G)** (a
-   Libreria menu with the land map, your items, sorting, waypoints …; also a button in the pause menu), or the
-   Libreria button in the crafting output slot of their inventory. Per-player settings are under **`/libreria settings`**.
+   Libreria menu with the land map, your items, sorting, waypoints …; also a button in the pause menu). The crafting grid
+   in the inventory is left alone. Per-player settings are under **`/libreria settings`**.
 
 ## Modules
 
@@ -53,6 +53,8 @@ With the pack you get:
 - **Your items** from your inventory: the recipe book button becomes a magnifying glass (Minecraft's own grey button) that opens a scrollable window with everything you carry and everything in your chests (picture, name, count; hover for where, click to follow the beam), with a search field and sorting. Also `/chest` and `/chest find`.
 - **Sort button** on the left edge of the inventory window, in the same style: left-click sorts, right-click quick-stacks into nearby chests. The inventory screen has room for only one real button, so this one is drawn by the screen's title (the pack replaces the "Crafting" text with it; crafting tables get "Crafting Table" as their title instead) and works through a click outside the window with an empty hand, which vanilla ignores. So any such click outside the window sorts.
 - **Land map button** right of the hotbar with its key, drawn by the action bar text in a font that moves it down.
+- **Windows from the server** (dialogs: your items, the quick menu) without the warning icon Minecraft puts beside
+  their title.
 - **Glint**: rarity frames, enchant effects and book covers.
 
 - On first start, core writes `config/polymer/auto-host.json` with `enabled: true` and `required: false`. Set
