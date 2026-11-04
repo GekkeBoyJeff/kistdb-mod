@@ -120,7 +120,7 @@ public final class Screens implements FabricClientGameTest {
 				ctx.getInput().setCursorPos((left + 106) * scale, (top + 44) * scale);
 				ctx.waitTicks(5);
 				ctx.takeScreenshot("inventory_sort_tooltip");
-				ctx.getInput().pressMouse(org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LEFT);
+				ctx.getInput().pressKey(o2 -> o2.keyAttack);
 				ctx.waitTicks(10);
 				ctx.getInput().setCursorPos(2, 2);
 				ctx.waitTicks(2);
@@ -128,7 +128,7 @@ public final class Screens implements FabricClientGameTest {
 				// The magnifying glass (where the recipe book button is) opens your items
 				ctx.getInput().setCursorPos((left + 114) * scale, (top + 70) * scale);
 				ctx.waitTicks(3);
-				ctx.getInput().pressMouse(org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LEFT);
+				ctx.getInput().pressKey(o2 -> o2.keyAttack);
 				ctx.waitTicks(15);
 				ctx.getInput().setCursorPos(2, 2);
 				noToasts(ctx);

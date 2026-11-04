@@ -132,7 +132,7 @@ public final class ChestSearch {
 			Item item = Search.itemById(pick);
 			List<Search.Hit> hits = Search.find(p, item);
 			if (!hits.isEmpty()) {
-				p.closeDialog();
+				p.connection.send(net.minecraft.network.protocol.common.ClientboundClearDialogPacket.INSTANCE);
 				Locate.go(p, new ItemStack(item), hits);
 				return 1;
 			}

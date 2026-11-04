@@ -201,7 +201,7 @@ public final class Glyphs {
 	}
 
 	/** Item pictures at full size, for buttons in a window (a dialog). */
-	public static final FontDescription ICONS = new FontDescription.Resource(Identifier.fromNamespaceAndPath("libreria", "icons"));
+	public static final FontDescription ICON_FONT = new FontDescription.Resource(Identifier.fromNamespaceAndPath("libreria", "icons"));
 
 	/**
 	 * An item's picture inside a 20 px button of a window, followed by space up to {@code column} px; null when the
@@ -213,7 +213,7 @@ public final class Glyphs {
 		if (ic == null) return null;
 		int color = ic[1] == 1 ? 0x6AA84F : 0xFFFFFF;
 		return Component.empty()
-				.append(Component.literal(Character.toString(ic[0])).withStyle(st -> st.withFont(ICONS).withoutShadow().withColor(color)))
+				.append(Component.literal(Character.toString(ic[0])).withStyle(st -> st.withFont(ICON_FONT).withoutShadow().withColor(color)))
 				.append(ui(space(column - ic[2])));
 	}
 

@@ -36,7 +36,7 @@ final class CoreTests {
 			Guide.clear(p);
 			Hud.show(p, "test", Component.literal("hud"), Hud.PRIO_INFO, 20);
 			Hud.flash(p, Component.literal("flash"));
-			SelfTests.check(Hub.icon() != null && !Hub.icon().isEmpty(), "hub icon");
+			SelfTests.check(!Hub.icon(false).isEmpty() && !Hub.icon(true).isEmpty(), "hub icon");
 		});
 	}
 }
