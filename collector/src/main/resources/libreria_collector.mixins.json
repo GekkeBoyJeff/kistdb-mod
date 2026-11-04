@@ -2,7 +2,7 @@
 	"required": true,
 	"package": "nl.libreria.collector.mixin",
 	"compatibilityLevel": "JAVA_25",
-	"mixins": ["BredAnimalsMixin", "CuredMixin"],
+	"mixins": ["BredAnimalsMixin", "CuredMixin", "ServerAdvancementManagerAccessor"],
 	"injectors": {
 		"defaultRequire": 1
 	}

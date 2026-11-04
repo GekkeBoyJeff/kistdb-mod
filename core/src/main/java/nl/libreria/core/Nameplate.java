@@ -43,6 +43,7 @@ public final class Nameplate {
 		final ElementHolder holder = new ElementHolder();
 		final TextDisplayElement text = new TextDisplayElement();
 		@Nullable Component last;
+		@Nullable SelfAwareAttachment attachment;
 		int entityId;
 		boolean replacesName;
 		boolean sneaking;
@@ -114,9 +115,22 @@ public final class Nameplate {
 			plate.text.setSeeThrough(true);
 			plate.text.setViewRange(1.0f);
 			plate.holder.addElement(plate.text);
-			EntityAttachment.ofTicking(plate.holder, p);
+			plate.attachment = new SelfAwareAttachment(plate.holder, p);
 			VirtualEntityUtils.addVirtualPassenger(p, plate.text.getEntityId());
 			PLATES.put(p.getUUID(), plate);
+		}
+		// Third person: also show the plate to its owner (setting, default on)
+		boolean self = Libreria.OWN_PLATE.get(p);
+		if (plate.attachment != null && plate.attachment.showSelf != self) {
+			plate.attachment.showSelf = self;
+			if (self) {
+				plate.holder.startWatching(p);
+				// Resend the passenger list so the owner's client attaches the freshly spawned text
+				VirtualEntityUtils.removeVirtualPassenger(p, plate.text.getEntityId());
+				VirtualEntityUtils.addVirtualPassenger(p, plate.text.getEntityId());
+			} else {
+				plate.holder.stopWatching(p);
+			}
 		}
 		boolean sneak = p.isShiftKeyDown();
 		if (plate.replacesName != replaces || plate.last == null || plate.sneaking != sneak) {
@@ -155,6 +169,26 @@ public final class Nameplate {
 		}
 		sb.addPlayerToTeam(name, team);
 		return true;
+	}
+
+	/** Like a normal entity attachment, but the owner may watch too (vanilla never shows you your own name). */
+	static final class SelfAwareAttachment extends EntityAttachment {
+		private final ServerPlayer owner;
+		boolean showSelf;
+
+		SelfAwareAttachment(ElementHolder holder, ServerPlayer owner) {
+			super(holder, owner, true);
+			this.owner = owner;
+			this.attach();
+		}
+
+		@Override
+		public void updateCurrentlyTracking(java.util.Collection<net.minecraft.server.network.ServerGamePacketListenerImpl> current) {
+			// Let Polymer manage everyone else; the owner is handled by showSelf
+			List<net.minecraft.server.network.ServerGamePacketListenerImpl> others = new ArrayList<>();
+			for (var c : current) if (c != this.owner.connection) others.add(c);
+			super.updateCurrentlyTracking(others);
+		}
 	}
 
 	static void forget(UUID id) {

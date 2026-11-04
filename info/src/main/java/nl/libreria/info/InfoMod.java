@@ -19,10 +19,10 @@ import nl.libreria.core.Setting;
 public final class InfoMod implements ModInitializer {
 	public static final Module MODULE = Module.register("info", "Info", Items.SPYGLASS,
 			"See what you're looking at, what your", "compass and clock say, horse stats", "and your own statistics.");
-	public static final Setting.Choice LOOK = MODULE.choice("kijk", "Look info", Items.SPYGLASS, 1,
-			new int[] {0, 1, 2}, new String[] {"Off", "Only interesting", "Everything"},
-			"Shows what you're looking at above your", "hotbar: crop growth, honey, chest slots,",
-			"animal health, horse stats…", "'Everything' also shows plain blocks.");
+	public static final Setting.Choice LOOK = MODULE.choice("kijk", "Look info", Items.SPYGLASS, 2,
+			new int[] {0, 1, 2}, new String[] {"Off", "Only interesting things", "Everything"},
+			"A small tooltip above what you look at", "(within reach): crop growth, honey,", "chest slots, animal health, horse stats,",
+			"players' achievements…", "'Only interesting' skips plain blocks.");
 	public static final Setting.Toggle COMPASS = MODULE.toggle("kompas", "Compass info", true, Items.COMPASS,
 			"Compass in hand: direction, coordinates", "and biome. Recovery compass: distance", "to your death point. Lodestone compass:", "distance to its lodestone.");
 	public static final Setting.Toggle CLOCK = MODULE.toggle("klok", "Clock info", true, Items.CLOCK,
@@ -36,9 +36,12 @@ public final class InfoMod implements ModInitializer {
 				"Playtime, distances, kills, most", "mined blocks and more.");
 		Services.provideMenu(Services.MENU_STATS, StatsGui::open);
 
+		net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> Look.forget(handler.player.getUUID()));
+		net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STOPPING.register(server -> Look.clearAll());
+		MODULE.commands("/stats – your statistics");
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
 			int tick = server.getTickCount();
-			if (tick % 4 == 0) Look.tick(server);
+			if (tick % 2 == 0) Look.tick(server);
 			if (tick % 10 == 5) Held.tick(server);
 		});
 

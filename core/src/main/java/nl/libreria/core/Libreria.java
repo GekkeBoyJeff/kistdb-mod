@@ -30,6 +30,8 @@ public final class Libreria implements ModInitializer {
 			"General Libreria settings.");
 	public static final Setting.Toggle HUB_BUTTON = MODULE.toggle("knop", "Inventory button", true, Items.HOPPER,
 			"The glowing Libreria icon in the", "crafting output slot of your inventory.");
+	public static final Setting.Toggle OWN_PLATE = MODULE.toggle("eigen_naam", "Your own name tag", true, Items.NAME_TAG,
+			"See your own title and nickname above", "your head in third person (F5).");
 	public static final Setting.Choice GUIDE_SECONDS = MODULE.choice("straal", "Beam duration", Items.SPECTRAL_ARROW, 1,
 			new int[]{45, 90, 180, 300}, new String[]{"45 seconds", "90 seconds", "3 minutes", "5 minutes"},
 			"The beam also stops once you arrive.");

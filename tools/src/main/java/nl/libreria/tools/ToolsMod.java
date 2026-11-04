@@ -80,6 +80,8 @@ public final class ToolsMod implements ModInitializer {
 		AttackBlockCallback.EVENT.register((player, level, hand, pos, dir) -> {
 			if (level.isClientSide() || !(player instanceof ServerPlayer sp) || sp.isSpectator() || sp.isCreative()) return InteractionResult.PASS;
 			state(sp).hudUntil = now + 50;
+			// Only now, when you actually start mining, tell you if this tool won't drop the block
+			warnWrongTool(sp, level.getBlockState(pos));
 			return guard(sp) ? InteractionResult.PASS : InteractionResult.FAIL;
 		});
 		PlayerBlockBreakEvents.BEFORE.register((level, player, pos, state, be) -> {
@@ -315,5 +317,29 @@ public final class ToolsMod implements ModInitializer {
 					.append(Component.literal(" almost broken (" + rem + ")").withStyle(ChatFormatting.GOLD)), Hud.PRIO_WARNING, 60);
 			Ui.sound(p, SoundEvents.ITEM_BREAK, 0.5f, 1.4f);
 		}
+	}
+
+	/** "⚠ Won't drop with this tool – needs an iron pickaxe or better", only while mining. */
+	static void warnWrongTool(ServerPlayer p, net.minecraft.world.level.block.state.BlockState st) {
+		if (!st.requiresCorrectToolForDrops() || p.getMainHandItem().isCorrectToolForDrops(st)) return;
+		String need = neededTool(st);
+		Hud.show(p, "tools.wrongtool", Component.literal("⚠ ").withStyle(ChatFormatting.RED)
+				.append(st.getBlock().getName().copy().withStyle(ChatFormatting.WHITE))
+				.append(Component.literal(" won't drop" + (need == null ? " with this tool" : ": needs " + need)).withStyle(ChatFormatting.RED)),
+				Hud.PRIO_WARNING, 40);
+	}
+
+	/** E.g. "an iron pickaxe or better", or null if unknown. */
+	static String neededTool(net.minecraft.world.level.block.state.BlockState st) {
+		String tool = st.is(net.minecraft.tags.BlockTags.MINEABLE_WITH_PICKAXE) ? "pickaxe"
+				: st.is(net.minecraft.tags.BlockTags.MINEABLE_WITH_AXE) ? "axe"
+				: st.is(net.minecraft.tags.BlockTags.MINEABLE_WITH_SHOVEL) ? "shovel"
+				: st.is(net.minecraft.tags.BlockTags.MINEABLE_WITH_HOE) ? "hoe" : null;
+		if (tool == null) return null;
+		String tier = st.is(net.minecraft.tags.BlockTags.NEEDS_DIAMOND_TOOL) ? "diamond"
+				: st.is(net.minecraft.tags.BlockTags.NEEDS_IRON_TOOL) ? "iron"
+				: st.is(net.minecraft.tags.BlockTags.NEEDS_STONE_TOOL) ? "stone" : null;
+		if (tier == null) return "a " + tool;
+		return (tier.equals("iron") ? "an " : "a ") + tier + " " + tool + " or better";
 	}
 }

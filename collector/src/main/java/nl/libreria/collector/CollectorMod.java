@@ -50,8 +50,8 @@ public final class CollectorMod implements ModInitializer {
 			"Achievements without rewards: collect", "items, breed animals, rack up hours.", "Pick a title in its rarity's color.");
 	public static final Setting.Toggle SHOW_TITLE = MODULE.toggle("titel", "Title above your name", true, Items.NAME_TAG,
 			"Your chosen title floats above your", "name, in the color of its rarity.", "Choose one: /titles");
-	public static final Setting.Toggle BIG = MODULE.toggle("groot", "Big on-screen announcement", true, Items.FIREWORK_ROCKET,
-			"A title in the middle of the screen", "for a rare (or better) achievement.");
+	public static final Setting.Toggle BIG = MODULE.toggle("groot", "Big on-screen announcement", false, Items.FIREWORK_ROCKET,
+			"A title in the middle of the screen for", "rare (or better) achievements, on top of", "the advancement toast.");
 	public static final Setting.Toggle OTHERS = MODULE.toggle("anderen", "Others' achievements", true, Items.BELL,
 			"A chat message when someone else earns", "an uncommon (or better) achievement.");
 
@@ -97,10 +97,30 @@ public final class CollectorMod implements ModInitializer {
 			public @Nullable Component title(ServerPlayer player) {
 				return CollectorMod.title(player);
 			}
+
+			@Override
+			public List<Component> card(ServerPlayer player) {
+				return CollectorMod.card(player);
+			}
 		});
 		Nameplate.addLine("collector.title", 10, CollectorMod::title);
 
-		ServerLifecycleEvents.SERVER_STARTED.register(server -> Catalog.build());
+		// Build the catalogue once tags are loaded, then show everything in the vanilla advancements screen (L)
+		ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+			Catalog.build();
+			Advancements.inject(server);
+		});
+		ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resources, success) -> {
+			if (!success) return;
+			Catalog.build();
+			Advancements.inject(server);
+		});
+		net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
+			ServerPlayer p = handler.player;
+			scanNow(p);
+			check(p);
+			Advancements.sync(p);
+		});
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
 			int t = server.getTickCount();
 			if (t % 20 == 7) scanAll(server);
@@ -120,9 +140,26 @@ public final class CollectorMod implements ModInitializer {
 			dispatcher.register(Commands.literal("titles").executes(ctx -> {
 				AchievementsGui.openTitles(ctx.getSource().getPlayerOrException());
 				return 1;
-			}));
+			}).then(Commands.literal("set").then(Commands.argument("achievement", com.mojang.brigadier.arguments.StringArgumentType.word())
+					.suggests((ctx, b) -> {
+						ServerPlayer p = ctx.getSource().getPlayer();
+						if (p != null) for (String id : STORE.get(p).earned.keySet()) b.suggest(id);
+						return b.buildFuture();
+					})
+					.executes(ctx -> {
+						ServerPlayer p = ctx.getSource().getPlayerOrException();
+						setTitle(p, com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "achievement"));
+						return 1;
+					}))).then(Commands.literal("auto").executes(ctx -> {
+						setTitle(ctx.getSource().getPlayerOrException(), "");
+						return 1;
+					})).then(Commands.literal("none").executes(ctx -> {
+						setTitle(ctx.getSource().getPlayerOrException(), "-");
+						return 1;
+					})));
 		});
 
+		MODULE.commands("/achievements – your achievements", "/titles – choose your title", "L (advancements) – Libreria tabs");
 		CollectorTests.register();
 	}
 
@@ -151,7 +188,10 @@ public final class CollectorMod implements ModInitializer {
 			if (st.isEmpty()) continue;
 			if (d.items.add(BuiltInRegistries.ITEM.getKey(st.getItem()).getPath())) changed = true;
 		}
-		if (changed) STORE.markDirty(p);
+		if (changed) {
+			STORE.markDirty(p);
+			Advancements.itemsChanged(p);
+		}
 		return changed;
 	}
 
@@ -213,7 +253,10 @@ public final class CollectorMod implements ModInitializer {
 		}
 		if (fresh.isEmpty() && d.initialized) return;
 		long now = System.currentTimeMillis();
-		for (Achievement a : fresh) d.earned.put(a.id(), now);
+		for (Achievement a : fresh) {
+			d.earned.put(a.id(), now);
+			Advancements.complete(p, a);
+		}
 		STORE.markDirty(p);
 		if (!d.initialized) {
 			// Eerste keer: wat je al gedaan had stilletjes toekennen, geen spam
@@ -241,7 +284,13 @@ public final class CollectorMod implements ModInitializer {
 		else Ui.sound(p, SoundEvents.PLAYER_LEVELUP, 0.6f, 1.4f);
 
 		MutableComponent chip = chip(a);
-		p.sendSystemMessage(Ui.prefix("Collector").append(Ui.text("Achievement earned: ", ChatFormatting.GRAY)).append(chip));
+		p.sendSystemMessage(Ui.prefix("Collector").append(Ui.text("Achievement earned: ", ChatFormatting.GRAY)).append(chip)
+				.append(Component.literal("  "))
+				.append(Component.literal("[Use as title]").withStyle(s -> s.withColor(ChatFormatting.AQUA).withBold(true)
+						.withClickEvent(new net.minecraft.network.chat.ClickEvent.RunCommand("/titles set " + a.id()))
+						.withHoverEvent(new HoverEvent.ShowText(Component.literal("Show ").withStyle(ChatFormatting.GRAY)
+								.append(Component.literal("✦ " + a.name() + " ✦").withStyle(a.rarity().color))
+								.append(Component.literal(" above your name").withStyle(ChatFormatting.GRAY)))))));
 		if (r.ordinal() >= Rarity.UNCOMMON.ordinal()) {
 			Component msg = Ui.prefix("Collector").append(Nameplate.displayName(p).copy().withStyle(ChatFormatting.WHITE))
 					.append(Ui.text(" earned ", ChatFormatting.GRAY)).append(chip);
@@ -307,6 +356,41 @@ public final class CollectorMod implements ModInitializer {
 		Achievement a = titleAchievement(STORE.get(p));
 		if (a == null) return null;
 		return Component.literal("✦ " + a.name() + " ✦").withStyle(a.rarity().color);
+	}
+
+	/** Sets the title: an achievement id, "" for automatic (rarest) or "-" for none. */
+	public static void setTitle(ServerPlayer p, String id) {
+		Data d = STORE.get(p);
+		if (!id.isEmpty() && !id.equals("-") && !d.earned.containsKey(id)) {
+			p.sendSystemMessage(Ui.prefix("Collector").append(Ui.text("You haven't earned that achievement yet.", ChatFormatting.RED)));
+			return;
+		}
+		d.title = id;
+		STORE.markDirty(p);
+		Ui.sound(p, SoundEvents.ARMOR_EQUIP_GOLD.value(), 0.8f, 1.2f);
+		Component t = title(p);
+		p.sendSystemMessage(Ui.prefix("Collector").append(id.equals("-") ? Ui.text("You no longer show a title.", ChatFormatting.GRAY)
+				: Ui.text(id.isEmpty() ? "Automatic title (your rarest): " : "Your title is now ", ChatFormatting.GRAY)
+						.append(t == null ? Component.literal("none") : t)));
+		if (!SHOW_TITLE.get(p)) {
+			p.sendSystemMessage(Ui.text("Titles are hidden in your settings (Libreria settings → Collector).", ChatFormatting.DARK_GRAY));
+		}
+	}
+
+	/** Player card lines: points + achievements, completion bar, items collected. */
+	public static List<Component> card(ServerPlayer p) {
+		Data d = STORE.get(p);
+		int total = Math.max(1, Catalog.all().size());
+		int earned = 0;
+		for (String id : d.earned.keySet()) if (Catalog.get(id) != null) earned++;
+		int pct = (int) Math.floor(100.0 * earned / total);
+		List<Component> out = new ArrayList<>();
+		out.add(Component.literal("★ " + String.format(java.util.Locale.US, "%,d", points(d)) + " points").withStyle(ChatFormatting.GOLD)
+				.append(Component.literal(" · " + earned + "/" + total + " achievements").withStyle(ChatFormatting.GRAY)));
+		out.add(Component.literal("Completion " + pct + "% ").withStyle(ChatFormatting.WHITE).append(Ui.bar(earned / (double) total, 10)));
+		out.add(Component.literal("Items " + String.format(java.util.Locale.US, "%,d / %,d", Catalog.countAll(d), Catalog.allItems().size()))
+				.withStyle(ChatFormatting.GRAY));
+		return out;
 	}
 
 	/** yyyy-MM-dd, e.g. 2026-11-03. */
