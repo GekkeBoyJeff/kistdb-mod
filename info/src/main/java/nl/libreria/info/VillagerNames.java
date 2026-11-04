@@ -3,6 +3,8 @@ package nl.libreria.info;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.npc.villager.Villager;
 import net.minecraft.world.item.Items;
 import nl.libreria.core.Libreria;
@@ -33,6 +35,21 @@ final class VillagerNames {
 			} catch (RuntimeException e) {
 				Libreria.LOG.warn("Could not name villager {}", v.getUUID(), e);
 			}
+		});
+		// Villagers in chunks that are already loaded when an admin turns names on get theirs right away (the rest
+		// as their chunk loads)
+		ENABLED.onChange(() -> {
+			var server = Libreria.server();
+			if (server == null || !ENABLED.get()) return;
+			for (ServerLevel level : server.getAllLevels())
+				for (Entity e : level.getAllEntities())
+					if (e instanceof Villager v && !v.hasCustomName() && !v.entityTags().contains(TAG)) {
+						try {
+							name(v);
+						} catch (RuntimeException ex) {
+							Libreria.LOG.warn("Could not name villager {}", v.getUUID(), ex);
+						}
+					}
 		});
 		ServerLivingEntityEvents.AFTER_DEATH.register((entity, source) -> {
 			if (!(entity instanceof Villager v)) return;
