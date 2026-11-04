@@ -69,7 +69,6 @@ public final class ChestsMod implements ModInitializer {
 		// In het Libreria-menu en op de knop in het E-scherm
 		// The sort button beside your inventory window (left click sorts, right click quick-stacks into nearby chests)
 		Hub.setEdgeButton(Sorter::sortPlayer, QuickStack::run);
-		Hub.addHint("In chests: ⇅ or middle-click = sort");
 		MODULE.hubEntry(Items.SPYGLASS, "Your items", ChatFormatting.AQUA, ChestSearch::open,
 				"Everything on you and in your chests,", "searchable; click one to follow the beam.", "Also: the magnifying glass in your inventory.");
 		MODULE.hubEntry(Items.CHEST, "My chests", ChatFormatting.GOLD, ChestsGui::open,

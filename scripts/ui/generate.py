@@ -679,8 +679,6 @@ MAGNIFIER = ['..####......', '.#hhww#.....', '#hwwwwb#....', '#hwwwwb#....', '#w
              '.#wbbb#.....', '..####dD....', '......ddD...', '.......ddD..', '........ddD.', '.........dD.']
 SORT = ['..uU........', '.uuUU.......', 'uuuuUU..rR..', '..uU....rR..', '..uU....rR..', '..uU....rR..',
         '..uU....rR..', '..uU....rR..', '..uU....rR..', '..uU..rrrrRR', '.......rrRR.', '........rR..']
-MENU = ['..........', 'gggggggggg', 'gggggggggg', '..........', 'gggggggggg', 'gggggggggg', '..........',
-        'gggggggggg', 'gggggggggg', '..........']
 
 
 def vanilla_button(w, h, hi=False):
@@ -771,24 +769,12 @@ def inventory_tab():
         json.dump({'container.crafting': '\u00a7f' + back + tab}, open(os.path.join(ld, code + '.json'), 'w'))
 
 
-def inventory_buttons():
-    """The Libreria menu button in the crafting output slot: Minecraft's own grey button (18x18, over the slot)."""
-    base = os.path.join(OUT, 'assets', NS)
-    for d in ('textures/item/gui', 'models/item/gui', 'items/gui'):
-        os.makedirs(os.path.join(base, d), exist_ok=True)
-    img = vanilla_button(18, 18)
-    draw_icon(img, MENU, 4, 4)
-    img.save(os.path.join(base, 'textures/item/gui/btn_menu.png'))
-    json.dump({'parent': 'minecraft:item/generated', 'textures': {'layer0': f'{NS}:item/gui/btn_menu'},
-               'gui_light': 'front',
-               'display': {'gui': {'rotation': [0, 0, 0], 'translation': [0, 0, 0], 'scale': [1.125, 1.125, 1.125]}}},
-              open(os.path.join(base, 'models/item/gui/btn_menu.json'), 'w'))
-    # Only in menus: in a hand (or the off-hand slot of the HUD) it draws nothing
-    json.dump({'model': {'type': 'minecraft:select', 'property': 'minecraft:display_context',
-                         'cases': [{'when': 'gui', 'model': {'type': 'minecraft:model', 'model': f'{NS}:item/gui/btn_menu'}}],
-                         'fallback': {'type': 'minecraft:empty'}},
-               'oversized_in_gui': True},
-              open(os.path.join(base, 'items/gui/btn_menu.json'), 'w'))
+def dialog_warning():
+    """Windows a server sends (dialogs) get a warning button beside their title; the pack makes it invisible."""
+    d = os.path.join(OUT, 'assets', 'minecraft', 'textures/gui/sprites/dialog')
+    os.makedirs(d, exist_ok=True)
+    for name in ('warning_button', 'warning_button_disabled', 'warning_button_highlighted'):
+        Image.new('RGBA', (20, 20), (0, 0, 0, 0)).save(os.path.join(d, name + '.png'))
 
 
 def hotbar_font():
@@ -863,13 +849,13 @@ def main():
     filler_tile()
     plaques()
     empty_item()
-    inventory_buttons()
     claim_buildings()
     os.makedirs(os.path.join(base, 'font'), exist_ok=True)
     json.dump({'providers': providers}, open(os.path.join(base, 'font/ui.json'), 'w'), indent=1)
     icon_map = hud_fonts()
     boss_bar()
     search_button()
+    dialog_warning()
     inventory_tab()
     hotbar_font()
     meta = {"hudLines": HUD_LINES, "icons": icon_map, 'lineHeight': LH, 'padX': PAD_X, 'padTop': PAD_TOP, 'padBottom': PAD_BOTTOM,
