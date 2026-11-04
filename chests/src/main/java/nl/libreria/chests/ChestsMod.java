@@ -36,6 +36,8 @@ public final class ChestsMod implements ModInitializer {
 
 	public static final Module MODULE = Module.register("chests", "Chests", Items.CHEST,
 			"Sorting, searching your chests by icon", "and a beam to the right chest.");
+	public static final Setting.Toggle SORT_BUTTON = MODULE.toggle("sorteerknop", "Sort button in chests", true, Items.CHEST,
+			"A ⇅ Sort button in the last empty", "slot of chests, barrels and boxes.", "Right-click: deposit matching items.");
 	public static final Setting.Toggle MIDDLE_CLICK = MODULE.toggle("middelklik", "Middle-click sorts", true, Items.HOPPER,
 			"Middle-click sorts the open chest,", "or your inventory if you click there.");
 	public static final Setting.Toggle DOUBLE_CLICK = MODULE.toggle("dubbelklik", "Double-click empty slot sorts", true, Items.HOPPER_MINECART,
@@ -54,6 +56,7 @@ public final class ChestsMod implements ModInitializer {
 		ServerLifecycleEvents.SERVER_STOPPING.register(server -> Store.saveAll());
 		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
 			Tracker.forget(handler.player);
+			SortButton.forget(handler.player);
 			Store.unload(handler.player.getUUID());
 		});
 		ServerTickEvents.END_SERVER_TICK.register(ChestsMod::tick);
@@ -63,15 +66,23 @@ public final class ChestsMod implements ModInitializer {
 
 		// In het Libreria-menu en op de knop in het E-scherm
 		Hub.setPrimary("sort inventory", Sorter::sortPlayer);
-		Hub.addHint("In a chest: middle-click = sort");
+		Hub.addHint("In chests: ⇅ or middle-click = sort");
 		MODULE.hubEntry(Items.SPYGLASS, "Search chests", ChatFormatting.AQUA, p -> OverviewGui.open(p, ""),
-				"Everything in your chests, as icons.", "Click an item: beam to the chest.");
+				"Everything in your chests, as icons.", "Search by name, beam to the chest.");
 		MODULE.hubEntry(Items.CHEST, "My chests", ChatFormatting.GOLD, ChestsGui::open,
-				"View contents from afar,", "beam to them, toggle noIndex.");
+				"See inside your chests from afar,", "beam to them, skip them in search.");
 		MODULE.hubEntry(Items.CHEST_MINECART, "Quick stack", ChatFormatting.GREEN, QuickStack::run,
 				"Puts inventory items into nearby chests", "that already have them (not your hotbar).");
 		MODULE.hubEntry(Items.HOPPER, "Sort inventory", ChatFormatting.YELLOW, Sorter::sortPlayer,
 				"Merges and sorts stacks.", "Your hotbar stays as it is.");
+
+		MODULE.commands(
+				"/chest – search your chests",
+				"/chest search <item> – find an item",
+				"/chest where <item> – all its chests",
+				"/chest sort – sort your inventory",
+				"/chest noindex – skip/unskip a chest",
+				"/chest stop – stop the beam");
 
 		ClickRouter.register(ChestsMod::onClick);
 		// Voor andere modules: "waar ligt dit item?" en het zoekmenu
@@ -85,9 +96,10 @@ public final class ChestsMod implements ModInitializer {
 		LOG.info("Libreria Chests loaded");
 	}
 
-	/** Middelklik (of dubbelklik op een leeg slot) sorteert de container of je inventory. */
+	/** De ⇅-knop in kisten; middelklik (of dubbelklik op een leeg slot) sorteert de container of je inventory. */
 	private static boolean onClick(ServerPlayer player, AbstractContainerMenu menu, int slot, ContainerInput input, int button) {
 		if (slot < 0 || slot >= menu.slots.size()) return false;
+		if (SortButton.supports(menu) && SortButton.onClick(player, menu, slot, input, button)) return true;
 		boolean supported = menu == player.inventoryMenu || menu instanceof ChestMenu || menu instanceof ShulkerBoxMenu;
 		if (!supported) return false;
 		boolean middle = input == ContainerInput.CLONE && !player.hasInfiniteMaterials() && MIDDLE_CLICK.get(player);
@@ -111,6 +123,7 @@ public final class ChestsMod implements ModInitializer {
 		int tick = server.getTickCount();
 		for (ServerPlayer player : server.getPlayerList().getPlayers()) {
 			Tracker.tick(player, tick);
+			SortButton.tick(player);
 		}
 		if (tick % 1200 == 0) Store.saveDirty();
 	}

@@ -26,7 +26,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
-import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.core.registries.Registries;
@@ -63,8 +62,8 @@ public final class GravesMod implements ModInitializer {
 	public static final Module MODULE = Module.register("graves", "Graves", Items.SKELETON_SKULL,
 			"Your items go into a grave when you die", "instead of dropping. Off by default.");
 	public static final Setting.Toggle ENABLED = MODULE.toggle("aan", "Grave on death", false, Items.SKELETON_SKULL,
-			"Your items stay safe in a grave at your", "death point. Only you can open it, and",
-			"everything returns to the same slots.", "XP still drops on the ground as usual.");
+			"Your items stay safe in a grave where", "you die. Only you can open it, and",
+			"everything returns to the same slots.", "XP still drops as usual.");
 
 	// ---------------------------------------------------------------- opslag
 
@@ -107,7 +106,10 @@ public final class GravesMod implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		MODULE.hubEntry(Items.SKELETON_SKULL, "My graves", ChatFormatting.GRAY, GravesMod::listGraves,
-				"Beam to a grave with your items.", "Graves on/off: see Settings → Graves.");
+				"Where your graves are; beam to one.", "Turn graves on or off there too.");
+		MODULE.commands(
+				"/grave – your graves",
+				"/grave beam – beam to the newest");
 		ServerLifecycleEvents.SERVER_STARTED.register(s -> server = s);
 		ServerLifecycleEvents.SERVER_STOPPING.register(s -> {
 			SHOWN.values().forEach(ElementHolder::destroy);
@@ -133,7 +135,9 @@ public final class GravesMod implements ModInitializer {
 				}).then(Commands.literal("beam").executes(ctx -> {
 					ServerPlayer p = ctx.getSource().getPlayerOrException();
 					Grave g = newestOf(p);
-					if (g == null) p.sendSystemMessage(Ui.prefix("Graves").append(Ui.text("You don't have a grave.", ChatFormatting.GRAY)));
+					if (g == null) p.sendSystemMessage(Ui.prefix("Graves").append(Ui.text(ENABLED.get(p)
+							? "You don't have a grave."
+							: "You don't have a grave. Graves are off: turn them on in /grave.", ChatFormatting.GRAY)));
 					else beam(p, g);
 					return 1;
 				}))));
@@ -336,30 +340,16 @@ public final class GravesMod implements ModInitializer {
 	static void beam(ServerPlayer p, Grave g) {
 		ServerLevel level = levelOf(p.level().getServer(), g.dim);
 		if (level != p.level()) {
-			p.sendSystemMessage(Ui.prefix("Graves").append(Ui.text("Your grave is in another dimension.", ChatFormatting.GOLD)));
+			p.sendSystemMessage(Ui.prefix("Graves").append(Ui.text("Your grave is in the " + GravesGui.dimension(g.dim)
+					+ ". Go there to get a beam.", ChatFormatting.GOLD)));
 			return;
 		}
 		Guide.toPoint(p, level, g.pos().add(0, 0.5, 0), new ItemStack(Items.SKELETON_SKULL), Component.literal("Your grave"), 0);
 	}
 
+	/** "My graves" (menu): location, items and age of each grave; click one to beam to it. */
 	static void listGraves(ServerPlayer p) {
-		List<Grave> mine = new ArrayList<>();
-		for (Grave g : STORE.get().graves.values()) if (g.owner.equals(p.getUUID())) mine.add(g);
-		if (mine.isEmpty()) {
-			p.sendSystemMessage(Ui.prefix("Graves").append(Ui.text(ENABLED.get(p)
-					? "You have no graves. Good!"
-					: "You have no graves. Graves are off: turn them on in /libreria settings → Graves.", ChatFormatting.GRAY)));
-			return;
-		}
-		mine.sort((a, b) -> Long.compare(b.created, a.created));
-		MutableComponent msg = Ui.prefix("Graves").append(Ui.text("Your graves:", ChatFormatting.WHITE));
-		for (Grave g : mine) {
-			msg.append("\n").append(Component.literal(" ☠ " + (int) g.x + " " + (int) g.y + " " + (int) g.z + " · " + items(g.count()))
-					.withStyle(ChatFormatting.GRAY));
-		}
-		msg.append("\n").append(Component.literal(" [beam to the newest]").withStyle(s -> s.withColor(ChatFormatting.AQUA)
-				.withClickEvent(new ClickEvent.RunCommand("/grave beam"))));
-		p.sendSystemMessage(msg);
+		GravesGui.open(p);
 	}
 
 	static @Nullable ServerLevel levelOf(@Nullable MinecraftServer s, String dim) {

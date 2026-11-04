@@ -1,7 +1,6 @@
 package nl.libreria.info;
 
 import eu.pb4.sgui.api.elements.GuiElementBuilder;
-import eu.pb4.sgui.api.gui.SimpleGui;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -17,21 +16,23 @@ import net.minecraft.stats.ServerStatsCounter;
 import net.minecraft.stats.StatType;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import nl.libreria.core.Services;
 import nl.libreria.core.Ui;
 import nl.libreria.core.gui.HubGui;
+import nl.libreria.core.gui.Menu;
 
-/** Je vanilla-statistieken, maar leesbaar: in uren, kilometers en top-lijstjes. */
-final class StatsGui extends SimpleGui {
+/**
+ * Your vanilla statistics, but readable: hours, kilometers and top lists. A player card at the top, then one row per
+ * section (General, Combat, Travel, Top lists) with a coloured label on both sides.
+ */
+final class StatsGui extends Menu {
 	private static final Locale EN = Locale.US;
 
 	private StatsGui(ServerPlayer player) {
-		super(MenuType.GENERIC_9x6, player, false);
-		this.setTitle(Component.literal("Statistics – " + player.getName().getString()));
+		super(player, 6, "Statistics");
 		build();
 	}
 
@@ -39,13 +40,22 @@ final class StatsGui extends SimpleGui {
 		new StatsGui(player).open();
 	}
 
-	// ---------------------------------------------------------------- opmaak
+	// ---------------------------------------------------------------- formatting
 
 	static String num(long n) {
 		return String.format(EN, "%,d", n);
 	}
 
-	/** Ticks naar "3 d 4 h", "12 h 5 min" of "35 min". */
+	static String times(long n) {
+		return num(n) + (n == 1 ? " time" : " times");
+	}
+
+	/** Damage stats are stored in tenths of a health point; a heart is two health points. */
+	static String hearts(long tenths) {
+		return num(tenths / 20) + " ❤";
+	}
+
+	/** Ticks to "3 d 4 h", "12 h 5 min" or "35 min". */
 	static String time(long ticks) {
 		long min = ticks / 20 / 60;
 		long h = min / 60, d = h / 24;
@@ -54,136 +64,282 @@ final class StatsGui extends SimpleGui {
 		return min + " min";
 	}
 
-	/** Centimeters naar meters of kilometers. */
+	/** Centimeters to meters or kilometers. */
 	static String dist(long cm) {
 		double m = cm / 100.0;
 		return m >= 1000 ? String.format(EN, "%.1f km", m / 1000) : String.format(EN, "%.0f m", m);
 	}
 
 	private int custom(Identifier stat) {
-		return this.getPlayer().getStats().getValue(Stats.CUSTOM, stat);
+		return this.player.getStats().getValue(Stats.CUSTOM, stat);
 	}
 
-	private void stat(int slot, Item icon, String name, String value, String... lore) {
-		GuiElementBuilder b = new GuiElementBuilder(icon).setName(Ui.text(name, ChatFormatting.YELLOW))
-				.addLoreLine(Ui.text(value, ChatFormatting.WHITE)).hideDefaultTooltip();
-		for (String l : lore) b.addLoreLine(Ui.text(l, ChatFormatting.GRAY));
-		this.setSlot(slot, b.build());
+	/** Custom stat by id, for stats we don't reference by constant (unknown ids simply count as 0). */
+	private int custom(String id) {
+		return custom(Identifier.withDefaultNamespace(id));
 	}
 
-	// ---------------------------------------------------------------- hoofdpagina
+	/**
+	 * A stat: bold name in the section colour, the value as the first lore line (skipped when empty), then grey
+	 * "key: value" details.
+	 */
+	private static GuiElementBuilder stat(Item icon, String name, ChatFormatting color, String value, Component... details) {
+		GuiElementBuilder b = button(icon, name, color);
+		if (!value.isEmpty()) b.addLoreLine(Ui.text(value, ChatFormatting.WHITE));
+		for (Component d : details) b.addLoreLine(d);
+		return b;
+	}
+
+	private static Component kv(String key, String value) {
+		return Ui.kv(key, value, ChatFormatting.WHITE);
+	}
+
+	/** One section row: a labelled pane on the left and right, the items centred in between. */
+	private void section(int r, String pane, String label, ChatFormatting color, List<GuiElementBuilder> items, String... headerLore) {
+		for (int col : new int[] {0, 8}) {
+			GuiElementBuilder h = header(pane, label, color);
+			for (String l : headerLore) h.addLoreLine(Ui.text(l, ChatFormatting.GRAY));
+			this.setSlot(r * 9 + col, h);
+		}
+		int[] slots = row(r, items.size());
+		for (int i = 0; i < slots.length; i++) this.setSlot(slots[i], items.get(i));
+	}
+
+	// ---------------------------------------------------------------- main page
 
 	private void build() {
-		ServerPlayer p = this.getPlayer();
-		stat(0, Items.CLOCK, "Playtime", time(custom(Stats.PLAY_TIME)),
-				"Since your last death: " + time(custom(Stats.TIME_SINCE_DEATH)),
-				"Since you last slept: " + time(custom(Stats.TIME_SINCE_REST)));
-		stat(1, Items.SKELETON_SKULL, "Died", num(custom(Stats.DEATHS)) + " times");
-		stat(2, Items.IRON_SWORD, "Mobs killed", num(custom(Stats.MOB_KILLS)),
-				"Players: " + num(custom(Stats.PLAYER_KILLS)));
-		stat(3, Items.WHEAT, "Animals bred", num(custom(Stats.ANIMALS_BRED)));
-		long walked = (long) custom(Stats.WALK_ONE_CM) + custom(Stats.SPRINT_ONE_CM) + custom(Stats.CROUCH_ONE_CM);
-		stat(4, Items.LEATHER_BOOTS, "Walked", dist(walked),
-				"Swum: " + dist(custom(Stats.SWIM_ONE_CM)),
-				"Flown (elytra): " + dist(custom(Stats.AVIATE_ONE_CM)),
-				"On horseback: " + dist(custom(Stats.HORSE_ONE_CM)),
-				"By boat: " + dist(custom(Stats.BOAT_ONE_CM)),
-				"By minecart: " + dist(custom(Stats.MINECART_ONE_CM)),
-				"Fallen: " + dist(custom(Stats.FALL_ONE_CM)),
-				"Climbed: " + dist(custom(Stats.CLIMB_ONE_CM)));
-		stat(5, Items.FISHING_ROD, "Fish caught", num(custom(Stats.FISH_CAUGHT)));
-		stat(6, Items.EMERALD, "Villager trades", num(custom(Stats.TRADED_WITH_VILLAGER)) + " times",
-				"Talked to: " + num(custom(Stats.TALKED_TO_VILLAGER)) + " times");
-		stat(7, Ui.item("red_bed"), "Slept in a bed", num(custom(Stats.SLEEP_IN_BED)) + " times");
-		stat(8, Items.ENCHANTING_TABLE, "Enchanted", num(custom(Stats.ENCHANT_ITEM)) + " items");
+		ServerPlayer p = this.player;
+		ChatFormatting general = ChatFormatting.YELLOW, combat = ChatFormatting.RED, travel = ChatFormatting.GREEN;
 
-		stat(9, Items.DIAMOND_SWORD, "Damage dealt", num(custom(Stats.DAMAGE_DEALT) / 20) + " ❤");
-		stat(10, Items.SHIELD, "Damage taken", num(custom(Stats.DAMAGE_TAKEN) / 20) + " ❤",
-				"Blocked by shield: " + num(custom(Stats.DAMAGE_BLOCKED_BY_SHIELD) / 20) + " ❤");
-		stat(11, Items.RABBIT_FOOT, "Jumped", num(custom(Stats.JUMP)) + " times");
-		stat(12, Items.CAKE, "Cake slices eaten", num(custom(Stats.EAT_CAKE_SLICE)));
-		stat(13, Items.CHEST, "Chests opened", num(custom(Stats.OPEN_CHEST)),
-				"Barrels: " + num(custom(Stats.OPEN_BARREL)),
-				"Shulker boxes: " + num(custom(Stats.OPEN_SHULKER_BOX)),
-				"Ender chest: " + num(custom(Stats.OPEN_ENDERCHEST)));
-		stat(14, Items.BELL, "Raids won", num(custom(Stats.RAID_WIN)),
-				"Started: " + num(custom(Stats.RAID_TRIGGER)));
-		stat(15, Items.JUKEBOX, "Discs played", num(custom(Stats.PLAY_RECORD)));
-		stat(16, Items.FLOWER_POT, "Flowers potted", num(custom(Stats.POT_FLOWER)));
-		stat(17, Items.TARGET, "Targets hit", num(custom(Stats.TARGET_HIT)));
+		long onFoot = (long) custom(Stats.WALK_ONE_CM) + custom(Stats.SPRINT_ONE_CM) + custom(Stats.CROUCH_ONE_CM);
+		long water = (long) custom(Stats.SWIM_ONE_CM) + custom("walk_under_water_one_cm") + custom("walk_on_water_one_cm");
+		long riding = (long) custom(Stats.HORSE_ONE_CM) + custom("pig_one_cm") + custom("strider_one_cm")
+				+ custom("happy_ghast_one_cm") + custom("nautilus_one_cm");
+		long traveled = onFoot + water + riding + custom(Stats.AVIATE_ONE_CM) + custom(Stats.BOAT_ONE_CM)
+				+ custom(Stats.MINECART_ONE_CM) + custom(Stats.CLIMB_ONE_CM);
 
-		top(28, Items.DIAMOND_PICKAXE, "Most mined", Stats.BLOCK_MINED, b -> new ItemStack(b.asItem()), b -> b.getName());
-		top(29, Items.CRAFTING_TABLE, "Most crafted", Stats.ITEM_CRAFTED, ItemStack::new, i -> new ItemStack(i).getHoverName());
-		top(30, Items.GOLDEN_APPLE, "Most used", Stats.ITEM_USED, ItemStack::new, i -> new ItemStack(i).getHoverName());
-		top(31, Items.HOPPER, "Most picked up", Stats.ITEM_PICKED_UP, ItemStack::new, i -> new ItemStack(i).getHoverName());
-		top(32, Items.ANVIL, "Items broken", Stats.ITEM_BROKEN, ItemStack::new, i -> new ItemStack(i).getHoverName());
-		top(33, Items.ZOMBIE_HEAD, "Most killed", Stats.ENTITY_KILLED, StatsGui::egg, EntityType::getDescription);
-		top(34, Items.WITHER_SKELETON_SKULL, "Killed by", Stats.ENTITY_KILLED_BY, StatsGui::egg, EntityType::getDescription);
+		// ---- Header: your player card
+		GuiElementBuilder head = new GuiElementBuilder(Items.PLAYER_HEAD).setProfile(p.getGameProfile())
+				.setName(title(p.getName().getString(), ChatFormatting.GOLD)).hideDefaultTooltip();
+		head.addLoreLine(kv("Playtime: ", time(custom(Stats.PLAY_TIME))));
+		head.addLoreLine(kv("Traveled: ", dist(traveled)));
+		head.addLoreLine(kv("Since your last death: ", time(custom(Stats.TIME_SINCE_DEATH))));
+		head.addLoreLine(kv("Since you last slept: ", time(custom(Stats.TIME_SINCE_REST))));
+		Services.progress().ifPresent(pr -> {
+			List<Component> card = pr.card(p);
+			if (card.isEmpty()) return;
+			head.addLoreLine(Component.empty());
+			card.forEach(head::addLoreLine);
+		});
+		this.setSlot(4, head);
 
-		this.setSlot(45, Ui.button(Items.ARROW, "Back to Libreria", ChatFormatting.GRAY)
-				.setCallback((i, t, a, g) -> HubGui.open(p)).build());
-		Services.menu(Services.MENU_ACHIEVEMENTS).ifPresent(open -> this.setSlot(49,
-				Ui.button(Items.NETHER_STAR, "Achievements & collection", ChatFormatting.GOLD)
-						.addLoreLine(Ui.text("What you've collected so far", ChatFormatting.GRAY))
-						.addLoreLine(Ui.text("and what you're still missing.", ChatFormatting.GRAY))
-						.glow().setCallback((i, t, a, g) -> open.accept(p)).build()));
+		// ---- General
+		section(1, "yellow", "General", general, List.of(
+				stat(Items.EMERALD, "Villager trades", general, times(custom(Stats.TRADED_WITH_VILLAGER)),
+						kv("Talked to villagers: ", times(custom(Stats.TALKED_TO_VILLAGER)))),
+				stat(Ui.item("red_bed"), "Slept in a bed", general, times(custom(Stats.SLEEP_IN_BED))),
+				stat(Items.ENCHANTING_TABLE, "Items enchanted", general, num(custom(Stats.ENCHANT_ITEM))),
+				stat(Items.WHEAT, "Animals bred", general, num(custom(Stats.ANIMALS_BRED))),
+				stat(Items.FISHING_ROD, "Fish caught", general, num(custom(Stats.FISH_CAUGHT))),
+				stat(Items.CHEST, "Chests opened", general, num(custom(Stats.OPEN_CHEST)),
+						kv("Barrels: ", num(custom(Stats.OPEN_BARREL))),
+						kv("Shulker boxes: ", num(custom(Stats.OPEN_SHULKER_BOX))),
+						kv("Ender chest: ", num(custom(Stats.OPEN_ENDERCHEST)))),
+				stat(Items.CAKE, "Fun facts", general, "",
+						kv("Cake slices eaten: ", num(custom(Stats.EAT_CAKE_SLICE))),
+						kv("Discs played: ", num(custom(Stats.PLAY_RECORD))),
+						kv("Note blocks played: ", num(custom("play_noteblock"))),
+						kv("Bells rung: ", num(custom("bell_ring"))),
+						kv("Flowers potted: ", num(custom(Stats.POT_FLOWER))))));
+
+		// ---- Combat
+		section(2, "red", "Combat", combat, List.of(
+				stat(Items.IRON_SWORD, "Mobs killed", combat, num(custom(Stats.MOB_KILLS)),
+						kv("Players killed: ", num(custom(Stats.PLAYER_KILLS)))),
+				stat(Items.SKELETON_SKULL, "Deaths", combat, times(custom(Stats.DEATHS))),
+				stat(Items.DIAMOND_SWORD, "Damage dealt", combat, hearts(custom(Stats.DAMAGE_DEALT))),
+				stat(Items.SHIELD, "Damage taken", combat, hearts(custom(Stats.DAMAGE_TAKEN)),
+						kv("Blocked by shield: ", hearts(custom(Stats.DAMAGE_BLOCKED_BY_SHIELD)))),
+				stat(Items.BELL, "Raids won", combat, num(custom(Stats.RAID_WIN)),
+						kv("Raids started: ", num(custom(Stats.RAID_TRIGGER)))),
+				stat(Items.TARGET, "Targets hit", combat, num(custom(Stats.TARGET_HIT)))));
+
+		// ---- Travel
+		List<Component> flight = new ArrayList<>();
+		if (custom("fly_one_cm") > 0) flight.add(kv("Creative flight: ", dist(custom("fly_one_cm"))));
+		List<Component> rides = new ArrayList<>();
+		rides.add(kv("Horses: ", dist(custom(Stats.HORSE_ONE_CM))));
+		ride(rides, "Pigs: ", "pig_one_cm");
+		ride(rides, "Striders: ", "strider_one_cm");
+		ride(rides, "Happy ghasts: ", "happy_ghast_one_cm");
+		ride(rides, "Nautiluses: ", "nautilus_one_cm");
+		section(3, "lime", "Travel", travel, List.of(
+				stat(Items.LEATHER_BOOTS, "On foot", travel, dist(onFoot),
+						kv("Walking: ", dist(custom(Stats.WALK_ONE_CM))),
+						kv("Sprinting: ", dist(custom(Stats.SPRINT_ONE_CM))),
+						kv("Sneaking: ", dist(custom(Stats.CROUCH_ONE_CM)))),
+				stat(Ui.item("water_bucket"), "In the water", travel, dist(water),
+						kv("Swimming: ", dist(custom(Stats.SWIM_ONE_CM))),
+						kv("Walking under water: ", dist(custom("walk_under_water_one_cm"))),
+						kv("Walking on water: ", dist(custom("walk_on_water_one_cm")))),
+				stat(Ui.item("elytra"), "Elytra flight", travel, dist(custom(Stats.AVIATE_ONE_CM)), flight.toArray(Component[]::new)),
+				stat(Ui.item("saddle"), "Riding", travel, dist(riding), rides.toArray(Component[]::new)),
+				stat(Ui.item("oak_boat"), "By boat", travel, dist(custom(Stats.BOAT_ONE_CM))),
+				stat(Ui.item("minecart"), "By minecart", travel, dist(custom(Stats.MINECART_ONE_CM))),
+				stat(Items.RABBIT_FOOT, "Jumped", travel, times(custom(Stats.JUMP)),
+						kv("Fallen: ", dist(custom(Stats.FALL_ONE_CM))),
+						kv("Climbed: ", dist(custom(Stats.CLIMB_ONE_CM))))));
+
+		// ---- Top lists
+		section(4, "light_blue", "Top lists", ChatFormatting.AQUA, List.of(
+				top(Items.DIAMOND_PICKAXE, "Most mined", "Mined", "Mine some blocks first!",
+						Stats.BLOCK_MINED, b -> new ItemStack(b.asItem()), b -> b.getName()),
+				top(Items.CRAFTING_TABLE, "Most crafted", "Crafted", "Craft something first!",
+						Stats.ITEM_CRAFTED, ItemStack::new, it -> new ItemStack(it).getHoverName()),
+				top(Items.GOLDEN_APPLE, "Most used", "Used", "Use some items first!",
+						Stats.ITEM_USED, ItemStack::new, it -> new ItemStack(it).getHoverName()),
+				top(Items.HOPPER, "Most picked up", "Picked up", "Pick up some items first!",
+						Stats.ITEM_PICKED_UP, ItemStack::new, it -> new ItemStack(it).getHoverName()),
+				top(Items.ANVIL, "Items broken", "Broken", "No tools broken yet. Nice!",
+						Stats.ITEM_BROKEN, ItemStack::new, it -> new ItemStack(it).getHoverName()),
+				top(Items.ZOMBIE_HEAD, "Most killed", "Killed", "Defeat some mobs first!",
+						Stats.ENTITY_KILLED, StatsGui::egg, EntityType::getDescription),
+				top(Items.WITHER_SKELETON_SKULL, "Killed by", "Killed you", "Nothing has killed you yet!",
+						Stats.ENTITY_KILLED_BY, StatsGui::egg, EntityType::getDescription)),
+				"Click one for the full ranking.");
+
+		// ---- Navigation bar
+		back("the Libreria menu", () -> HubGui.open(p));
+		Services.menu(Services.MENU_ACHIEVEMENTS).ifPresent(achievements -> this.setSlot(navRow() + 2,
+				actions(button(Items.NETHER_STAR, "Achievements", ChatFormatting.GOLD,
+						"What you've collected so far", "and what you're still missing."), "Click: open")
+						.glow().setCallback((i, t, a, g) -> {
+							Ui.click(p);
+							achievements.accept(p);
+						})));
+		closeButton();
+		help("All your vanilla statistics,", "grouped and easy to read.", "Hover an icon for the details.", "",
+				"Top lists: click one for the full", "ranking. Also: /stats");
+		finish();
 	}
 
-	/** Spawn-ei als icoon voor een mob, anders een naamkaartje. */
+	/** Adds "Pigs: 1.2 km" to a lore list, but only for mounts you've actually ridden. */
+	private void ride(List<Component> lines, String label, String stat) {
+		int cm = custom(stat);
+		if (cm > 0) lines.add(kv(label, dist(cm)));
+	}
+
+	/** Spawn egg as the icon for a mob (a head for players), otherwise a name tag. */
 	static ItemStack egg(EntityType<?> type) {
+		if (type == EntityType.PLAYER) return new ItemStack(Items.PLAYER_HEAD);
 		Identifier id = BuiltInRegistries.ENTITY_TYPE.getKey(type);
 		Item egg = BuiltInRegistries.ITEM.getOptional(Identifier.fromNamespaceAndPath(id.getNamespace(), id.getPath() + "_spawn_egg")).orElse(Items.NAME_TAG);
 		return new ItemStack(egg);
 	}
 
-	private <T> void top(int slot, Item icon, String name, StatType<T> type, Function<T, ItemStack> iconOf, Function<T, Component> nameOf) {
-		ServerPlayer p = this.getPlayer();
-		this.setSlot(slot, Ui.button(icon, name, ChatFormatting.AQUA)
-				.addLoreLine(Ui.text("Click: the top 45", ChatFormatting.GRAY))
-				.setCallback((i, t, a, g) -> {
-					Ui.click(p);
-					TopGui.open(p, name, type, iconOf, nameOf);
-				}).build());
+	/** A top-list button: shows your #1 and the total, click for the full paged list. */
+	private <T> GuiElementBuilder top(Item icon, String name, String verb, String empty, StatType<T> type,
+			Function<T, ItemStack> iconOf, Function<T, Component> nameOf) {
+		TopList list = collect(this.player, name, icon, verb, empty, type, iconOf, nameOf);
+		GuiElementBuilder b = button(icon, name, ChatFormatting.AQUA);
+		if (list.entries().isEmpty()) {
+			b.addLoreLine(Ui.text("Nothing yet", ChatFormatting.DARK_GRAY));
+		} else {
+			Entry first = list.entries().get(0);
+			b.addLoreLine(Ui.text("#1 ", ChatFormatting.GOLD).append(first.name().copy().withStyle(ChatFormatting.WHITE))
+					.append(Ui.text(" · " + num(first.count()), ChatFormatting.GRAY)));
+			b.addLoreLine(kv("Total: ", num(list.total())));
+			b.addLoreLine(kv("Different kinds: ", num(list.entries().size())));
+		}
+		actions(b, "Click: see the full list");
+		b.setCallback((i, t, a, g) -> {
+			Ui.click(this.player);
+			// Collect again, so the list is fresh
+			new TopGui(this.player, collect(this.player, name, icon, verb, empty, type, iconOf, nameOf)).open();
+		});
+		return b;
 	}
 
-	// ---------------------------------------------------------------- top-lijst
+	// ---------------------------------------------------------------- top list
 
-	private static final class TopGui extends SimpleGui {
-		private <T> TopGui(ServerPlayer player, String name, StatType<T> type, Function<T, ItemStack> iconOf, Function<T, Component> nameOf) {
-			super(MenuType.GENERIC_9x6, player, false);
-			ServerStatsCounter stats = player.getStats();
-			Registry<T> registry = type.getRegistry();
-			record Row<T>(T value, int count) {
-			}
-			List<Row<T>> rows = new ArrayList<>();
-			long total = 0;
-			for (T value : registry) {
-				int c = stats.getValue(type, value);
-				if (c > 0) {
-					rows.add(new Row<>(value, c));
-					total += c;
-				}
-			}
-			rows.sort(Comparator.comparingInt((Row<T> r) -> r.count()).reversed());
-			this.setTitle(Component.literal(name + " (" + num(total) + ")"));
-			for (int i = 0; i < Math.min(45, rows.size()); i++) {
-				Row<T> r = rows.get(i);
-				ItemStack st = iconOf.apply(r.value());
-				if (st.isEmpty()) st = new ItemStack(Items.BARRIER);
-				this.setSlot(i, GuiElementBuilder.from(st).setCount(1)
-						.setName(Component.literal("#" + (i + 1) + " ").withStyle(ChatFormatting.GOLD).append(nameOf.apply(r.value()).copy().withStyle(ChatFormatting.WHITE)))
-						.setLore(List.of(Ui.text(num(r.count()) + "×", ChatFormatting.YELLOW)))
-						.hideDefaultTooltip().build());
-			}
-			if (rows.isEmpty()) {
-				this.setSlot(22, Ui.button(Ui.item("gray_dye"), "Nothing yet", ChatFormatting.GRAY).build());
-			}
-			this.setSlot(49, Ui.button(Items.ARROW, "Back", ChatFormatting.GRAY)
-					.setCallback((i, t, a, g) -> StatsGui.open(player)).build());
+	private record Entry(ItemStack icon, Component name, int count) {
+	}
+
+	/** A sorted top list (most first) with everything the menu needs to show it. */
+	private record TopList(String title, Item icon, String verb, String empty, List<Entry> entries, long total) {
+	}
+
+	private static <T> TopList collect(ServerPlayer player, String title, Item icon, String verb, String empty, StatType<T> type,
+			Function<T, ItemStack> iconOf, Function<T, Component> nameOf) {
+		ServerStatsCounter stats = player.getStats();
+		Registry<T> registry = type.getRegistry();
+		List<Entry> entries = new ArrayList<>();
+		long total = 0;
+		for (T value : registry) {
+			int c = stats.getValue(type, value);
+			if (c <= 0) continue;
+			ItemStack st = iconOf.apply(value);
+			if (st.isEmpty()) st = new ItemStack(Items.PAPER);
+			entries.add(new Entry(st, nameOf.apply(value), c));
+			total += c;
+		}
+		entries.sort(Comparator.comparingInt((Entry e) -> e.count()).reversed());
+		return new TopList(title, icon, verb, empty, entries, total);
+	}
+
+	/** The full ranking, 28 per page (rows 2–5, columns 2–8), with a summary on top. */
+	private static final class TopGui extends Menu {
+		private static final int PER_PAGE = 28;
+		private final TopList list;
+
+		TopGui(ServerPlayer player, TopList list) {
+			super(player, 6, "Statistics · " + list.title());
+			this.list = list;
+			back("Statistics", () -> StatsGui.open(player));
+			closeButton();
+			help("Ranked from most to least.", "Hover an icon for the exact count",
+					"and its share of the total.", "", "Use ◀ ▶ below to turn pages.");
+			show(0);
 		}
 
-		static <T> void open(ServerPlayer player, String name, StatType<T> type, Function<T, ItemStack> iconOf, Function<T, Component> nameOf) {
-			new TopGui(player, name, type, iconOf, nameOf).open();
+		private void show(int requested) {
+			List<Entry> entries = this.list.entries();
+			int pages = Math.max(1, (entries.size() + PER_PAGE - 1) / PER_PAGE);
+			int page = Math.max(0, Math.min(pages - 1, requested));
+			clearContent();
+			// Reset the page buttons; pages() only places the ones that apply
+			for (int s : new int[] {2, 3, 5}) this.clearSlot(navRow() + s);
+
+			// Summary on top
+			GuiElementBuilder sum = button(this.list.icon(), this.list.title(), ChatFormatting.AQUA);
+			sum.addLoreLine(Ui.kv("Total: ", num(this.list.total()), ChatFormatting.WHITE));
+			sum.addLoreLine(Ui.kv("Different kinds: ", num(entries.size()), ChatFormatting.WHITE));
+			if (!entries.isEmpty()) {
+				int from = page * PER_PAGE + 1, to = Math.min(entries.size(), (page + 1) * PER_PAGE);
+				sum.addLoreLine(Ui.kv("Showing: ", "#" + from + " – #" + to, ChatFormatting.WHITE));
+			}
+			this.setSlot(4, sum);
+
+			if (entries.isEmpty()) {
+				this.setSlot(22, button(Ui.item("gray_dye"), "Nothing here yet", ChatFormatting.GRAY, this.list.empty()));
+			}
+			for (int i = 0; i < PER_PAGE; i++) {
+				int idx = page * PER_PAGE + i;
+				if (idx >= entries.size()) break;
+				Entry e = entries.get(idx);
+				int rank = idx + 1;
+				boolean podium = rank <= 3;
+				GuiElementBuilder b = GuiElementBuilder.from(e.icon().copy()).setCount(1).hideDefaultTooltip()
+						.setName(Ui.text("#" + rank + " ", podium ? ChatFormatting.GOLD : ChatFormatting.YELLOW)
+								.append(e.name().copy().withStyle(ChatFormatting.WHITE)));
+				b.addLoreLine(Ui.kv(this.list.verb() + ": ", num(e.count()), ChatFormatting.YELLOW));
+				double share = this.list.total() > 0 ? 100.0 * e.count() / this.list.total() : 0;
+				b.addLoreLine(Ui.text(String.format(EN, "%.1f%% of the total", share), ChatFormatting.DARK_GRAY));
+				if (podium) b.glow();
+				this.setSlot((1 + i / 7) * 9 + 1 + i % 7, b);
+			}
+			pages(page, pages, this::show);
+			finish();
 		}
 	}
 }

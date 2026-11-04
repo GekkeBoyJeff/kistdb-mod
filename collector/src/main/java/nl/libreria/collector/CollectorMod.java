@@ -80,6 +80,8 @@ public final class CollectorMod implements ModInitializer {
 	public void onInitialize() {
 		MODULE.hubEntry(Items.NETHER_STAR, "Achievements", ChatFormatting.GOLD, AchievementsGui::open,
 				"See what you've collected and what's", "still missing, and pick your title.");
+		MODULE.hubEntry(nl.libreria.core.Module.Category.YOU, Items.NAME_TAG, "Title", ChatFormatting.LIGHT_PURPLE,
+				AchievementsGui::openTitles, "Choose the title that floats", "above your name.");
 		Services.provideMenu(Services.MENU_ACHIEVEMENTS, AchievementsGui::open);
 		Services.provideProgress(new Services.Progress() {
 			@Override

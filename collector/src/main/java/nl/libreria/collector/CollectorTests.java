@@ -57,5 +57,13 @@ final class CollectorTests {
 			SelfTests.check(CollectorMod.titleAchievement(d).rarity() == Rarity.MYTHIC, "title is now mythic");
 			p.getInventory().clearContent();
 		});
+		SelfTests.register("collector.advancements", level -> {
+			if (Catalog.all().isEmpty()) Catalog.build();
+			if (Advancements.holder("verzamel.wol") == null) Advancements.inject(level.getServer());
+			var mgr = level.getServer().getAdvancements();
+			SelfTests.check(mgr.get(Advancements.idOf("verzamel.wol")) != null, "wool collection is an advancement");
+			SelfTests.check(mgr.tree().get(Advancements.idOf("verzamel.wol")) != null, "and it's in the advancement tree");
+			SelfTests.check(mgr.get(net.minecraft.resources.Identifier.fromNamespaceAndPath("libreria", "collector/verzamelen")) != null, "Collecting tab exists");
+		});
 	}
 }

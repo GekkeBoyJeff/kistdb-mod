@@ -17,6 +17,11 @@ public final class SettingsGui {
 		new ModulesPage(player).open();
 	}
 
+	/** Opens one module's settings directly (Back goes to the list of all settings). */
+	public static void open(ServerPlayer player, Module module) {
+		new ModulePage(player, module).open();
+	}
+
 	private static final class ModulesPage extends Menu {
 		ModulesPage(ServerPlayer player) {
 			super(player, 5, "Settings");

@@ -7,6 +7,9 @@ import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.CompoundContainer;
 import net.minecraft.world.Container;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.inventory.ChestMenu;
+import net.minecraft.world.inventory.ShulkerBoxMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
@@ -104,6 +107,43 @@ final class ChestsTests {
 			Store.remove(p.getUUID(), e);
 			p.getInventory().clearContent();
 			clear(level, ab);
+		});
+
+		SelfTests.register("chests.sort-button", level -> {
+			FakePlayer p = FakePlayer.get(level);
+			p.getInventory().clearContent();
+			SimpleContainer box = new SimpleContainer(27);
+			ChestMenu menu = ChestMenu.threeRows(1, p.getInventory(), box);
+			SelfTests.check(SortButton.containerSlots(menu) == 27, "27 container slots");
+			SelfTests.check(SortButton.buttonSlot(menu) == 26, "empty chest: button in the last slot");
+			box.setItem(26, new ItemStack(Items.STONE));
+			box.setItem(25, new ItemStack(Items.DIRT));
+			box.setItem(3, new ItemStack(Items.DIRT));
+			// The player's own inventory (slots after the chest) never counts
+			p.getInventory().setItem(35, new ItemStack(Items.STONE));
+			SelfTests.check(SortButton.buttonSlot(menu) == 24, "partly filled: last empty slot is 24");
+			for (int i = 0; i < 27; i++) box.setItem(i, new ItemStack(Items.COBBLESTONE));
+			SelfTests.check(SortButton.buttonSlot(menu) == -1, "full chest: no button");
+			box.setItem(10, ItemStack.EMPTY);
+			SelfTests.check(SortButton.buttonSlot(menu) == 10, "only slot 10 free: button there");
+			ShulkerBoxMenu shulker = new ShulkerBoxMenu(2, p.getInventory(), new SimpleContainer(27));
+			SelfTests.check(SortButton.supports(shulker) && SortButton.buttonSlot(shulker) == 26, "shulker box: last slot");
+
+			// Right-click on the button: deposit matching items, never from the hotbar
+			box.clearContent();
+			p.getInventory().clearContent();
+			box.setItem(0, new ItemStack(Items.COBBLESTONE, 10));
+			p.getInventory().setItem(12, new ItemStack(Items.COBBLESTONE, 30));
+			p.getInventory().setItem(13, new ItemStack(Items.DIRT, 5));
+			p.getInventory().setItem(2, new ItemStack(Items.COBBLESTONE, 7));
+			int moved = SortButton.deposit(p, box);
+			SelfTests.check(moved == 30, "30 deposited, got " + moved);
+			SelfTests.check(p.getInventory().getItem(12).isEmpty(), "slot 12 empty");
+			SelfTests.check(p.getInventory().getItem(13).getCount() == 5, "dirt stays (not in the chest)");
+			SelfTests.check(p.getInventory().getItem(2).getCount() == 7, "hotbar untouched");
+			SelfTests.check(box.getItem(0).is(Items.COBBLESTONE) && box.getItem(0).getCount() == 40, "chest has 40");
+			SelfTests.check(SortButton.buttonSlot(menu) == 26, "button back in the last slot");
+			p.getInventory().clearContent();
 		});
 	}
 }

@@ -83,7 +83,8 @@ public final class QuickStack {
 		return moved;
 	}
 
-	private static boolean contains(List<Container> cs, ItemStack stack) {
+	/** True if one of the containers already holds this item (same item and components). */
+	static boolean contains(List<Container> cs, ItemStack stack) {
 		for (Container c : cs) {
 			for (int i = 0; i < c.getContainerSize(); i++) {
 				if (ItemStack.isSameItemSameComponents(c.getItem(i), stack)) return true;

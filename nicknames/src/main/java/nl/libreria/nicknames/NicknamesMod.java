@@ -27,7 +27,8 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class NicknamesMod implements ModInitializer {
 	public static final Module MODULE = Module.register("nicknames", "Nicknames", Items.NAME_TAG,
-			"A nickname above your head, in the", "tab list and in chat. Unlock colors", "with achievements.");
+			"A nickname above your head, in the", "tab list and in chat. Unlock colors", "with achievements.")
+			.commands("/nick – choose a nickname", "/nick <name> – set it right away", "/nick reset – use your real name");
 
 	/** Kleur + de zeldzaamheid (0 = gewoon … 5 = mythisch) die je nodig hebt. */
 	public record Color(String key, String label, @Nullable ChatFormatting format, int rarity, String dye) {
@@ -92,7 +93,7 @@ public final class NicknamesMod implements ModInitializer {
 
 	/** Beste zeldzaamheid van de speler; zonder CollectorMod is alles vrij. */
 	public static int unlocked(ServerPlayer p) {
-		return Services.progress().map(pr -> pr.bestRarity(p)).orElse(5);
+		return Services.progress().map(pr -> Math.max(0, pr.bestRarity(p))).orElse(5);
 	}
 
 	/** @return null als de naam mag, anders de reden */

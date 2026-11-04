@@ -3,7 +3,7 @@
 	"id": "libreria_claims",
 	"version": "${version}",
 	"name": "Libreria Claims",
-	"description": "Claim chunks from a map GUI. Your budget grows with playtime and achievement points (Collector). Protects against others building, opening chests and touching animals. Server-side; requires Libreria Core.",
+	"description": "Protect your base: type /claim in a chunk, or claim chunks on a map. Your budget grows with playtime and achievement points (Collector). Protects against others building, opening chests and touching animals. Server-side; requires Libreria Core.",
 	"authors": ["Jeffrey"],
 	"license": "MIT",
 	"environment": "*",

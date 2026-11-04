@@ -20,10 +20,11 @@ import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import nl.libreria.chests.gui.ItemGui;
 import nl.libreria.chests.gui.Locate;
 import nl.libreria.chests.gui.OverviewGui;
 
-/** /chest – voor iedereen (geen op-rechten nodig). */
+/** /chest – voor iedereen (geen op-rechten nodig). Help-regels staan in ChestsMod (MODULE.commands). */
 public final class ChestCommands {
 	private ChestCommands() {
 	}
@@ -37,6 +38,9 @@ public final class ChestCommands {
 				.then(Commands.literal("search")
 						.then(Commands.argument("item", ItemArgument.item(context))
 								.executes(ChestCommands::find)))
+				.then(Commands.literal("where")
+						.then(Commands.argument("item", ItemArgument.item(context))
+								.executes(ChestCommands::where)))
 				.then(Commands.literal("sort")
 						.executes(c -> Sorter.sortPlayer(c.getSource().getPlayerOrException()) ? 1 : 0))
 				.then(Commands.literal("stop")
@@ -55,6 +59,13 @@ public final class ChestCommands {
 		ServerPlayer p = c.getSource().getPlayerOrException();
 		ItemStack query = ItemArgument.getItem(c, "item").createItemStack(1);
 		Locate.go(p, query, Search.find(p, query.getItem()));
+		return 1;
+	}
+
+	/** The "Where is" menu for one item: every chest that has it. */
+	private static int where(CommandContext<CommandSourceStack> c) throws CommandSyntaxException {
+		ServerPlayer p = c.getSource().getPlayerOrException();
+		ItemGui.open(p, ItemArgument.getItem(c, "item").createItemStack(1).getItem());
 		return 1;
 	}
 

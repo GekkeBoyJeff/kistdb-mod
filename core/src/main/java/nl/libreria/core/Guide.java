@@ -165,7 +165,8 @@ public final class Guide {
 		e.setGlowColorOverride(color);
 		e.setBrightness(new Brightness(15, 15));
 		e.setViewRange(8f);
-		e.setDisplaySize(3f, 2f);
+		// Culling box as big as the outline (a chunk border is 16 wide), so it doesn't vanish when a corner is off-screen
+		e.setDisplaySize((float) Math.max(box.getXsize(), box.getZsize()) * 2 + 2, (float) box.getYsize() + 2);
 		return e;
 	}
 
