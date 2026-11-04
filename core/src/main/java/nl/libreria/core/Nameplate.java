@@ -1,7 +1,6 @@
 package nl.libreria.core;
 
 import eu.pb4.polymer.virtualentity.api.ElementHolder;
-import eu.pb4.polymer.virtualentity.api.VirtualEntityUtils;
 import eu.pb4.polymer.virtualentity.api.attachment.EntityAttachment;
 import eu.pb4.polymer.virtualentity.api.elements.TextDisplayElement;
 import java.util.ArrayList;
@@ -13,6 +12,7 @@ import java.util.Objects;
 import java.util.UUID;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.protocol.game.ClientboundSetPassengersPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.ServerScoreboard;
 import net.minecraft.server.level.ServerPlayer;
@@ -45,6 +45,8 @@ public final class Nameplate {
 		@Nullable Component last;
 		@Nullable SelfAwareAttachment attachment;
 		int entityId;
+		int age;
+		boolean linked;
 		boolean replacesName;
 		boolean sneaking;
 	}
@@ -114,10 +116,18 @@ public final class Nameplate {
 			plate.text.setBillboardMode(Display.BillboardConstraints.CENTER);
 			plate.text.setSeeThrough(true);
 			plate.text.setViewRange(1.0f);
-			plate.holder.addElement(plate.text);
+			// A real passenger of the player: the client keeps it exactly above the head (no position packets that
+			// would make it lag behind or jump around)
+			plate.text.setSendPositionUpdates(false);
+			plate.holder.addPassengerElement(plate.text);
 			plate.attachment = new SelfAwareAttachment(plate.holder, p);
-			VirtualEntityUtils.addVirtualPassenger(p, plate.text.getEntityId());
 			PLATES.put(p.getUUID(), plate);
+		}
+		// Players who were already near get the passenger link once the holder is set up
+		if (!plate.linked && plate.age++ >= 1) {
+			ClientboundSetPassengersPacket link = new ClientboundSetPassengersPacket(p);
+			for (var watcher : plate.holder.getWatchingPlayers()) watcher.send(link);
+			plate.linked = true;
 		}
 		// Third person: also show the plate to its owner (setting, default on)
 		boolean self = Libreria.OWN_PLATE.get(p);
@@ -125,9 +135,8 @@ public final class Nameplate {
 			plate.attachment.showSelf = self;
 			if (self) {
 				plate.holder.startWatching(p);
-				// Resend the passenger list so the owner's client attaches the freshly spawned text
-				VirtualEntityUtils.removeVirtualPassenger(p, plate.text.getEntityId());
-				VirtualEntityUtils.addVirtualPassenger(p, plate.text.getEntityId());
+				// Tell the owner's client that the text rides on their own player
+				p.connection.send(new ClientboundSetPassengersPacket(p));
 			} else {
 				plate.holder.stopWatching(p);
 			}
@@ -135,7 +144,7 @@ public final class Nameplate {
 		boolean sneak = p.isShiftKeyDown();
 		if (plate.replacesName != replaces || plate.last == null || plate.sneaking != sneak) {
 			// Vervangt het de naam, dan op naamhoogte; anders erboven
-			plate.text.setTranslation(new Vector3f(0, replaces ? 0.25f : 0.55f, 0));
+			plate.text.setTranslation(new Vector3f(0, replaces ? 0.3f : 0.8f, 0));
 			// Sneaken: net als vanilla niet door muren heen en wat doffer
 			plate.text.setSeeThrough(!sneak);
 			plate.text.setTextOpacity((byte) (sneak ? 0x80 : 0xFF));
