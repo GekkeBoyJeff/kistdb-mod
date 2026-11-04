@@ -64,10 +64,10 @@ final class ClaimView {
 
 		Block glass() {
 			return switch (this) {
-				case MINE -> Blocks.LIME_STAINED_GLASS;
-				case TRUSTED -> Blocks.LIGHT_BLUE_STAINED_GLASS;
-				case OTHER -> Blocks.RED_STAINED_GLASS;
-				case FREE -> Blocks.WHITE_STAINED_GLASS;
+				case MINE -> glass("lime");
+				case TRUSTED -> glass("light_blue");
+				case OTHER -> glass("red");
+				case FREE -> glass("white");
 			};
 		}
 
@@ -87,7 +87,7 @@ final class ClaimView {
 		final Vec3 origin;
 		final ElementHolder holder = new ElementHolder();
 		final ItemDisplayElement cam = new ItemDisplayElement();
-		final BlockDisplayElement cursor = new BlockDisplayElement(Blocks.WHITE_STAINED_GLASS.defaultBlockState());
+		final BlockDisplayElement cursor = new BlockDisplayElement(glass("white").defaultBlockState());
 		final Map<Long, BlockDisplayElement> plates = new HashMap<>();
 		final List<TextDisplayElement> labels = new ArrayList<>();
 		final Map<Long, Integer> tops = new HashMap<>();
@@ -118,6 +118,10 @@ final class ClaimView {
 	}
 
 	private static final Map<UUID, View> VIEWS = new HashMap<>();
+
+	private static Block glass(String color) {
+		return net.minecraft.core.registries.BuiltInRegistries.BLOCK.getValue(Identifier.withDefaultNamespace(color + "_stained_glass"));
+	}
 
 	private ClaimView() {
 	}

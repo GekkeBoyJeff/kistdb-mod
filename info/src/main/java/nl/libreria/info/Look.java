@@ -125,7 +125,7 @@ final class Look {
 	private static final Map<UUID, Tip> TIPS = new HashMap<>();
 	/** The top-of-screen tooltip: a boss bar whose title is the card (its bar is invisible with the pack). */
 	private static final class Top {
-		final ServerBossEvent bar = new ServerBossEvent(Component.empty(), BossEvent.BossBarColor.WHITE, BossEvent.BossBarOverlay.PROGRESS);
+		final ServerBossEvent bar = new ServerBossEvent(UUID.randomUUID(), Component.empty(), BossEvent.BossBarColor.WHITE, BossEvent.BossBarOverlay.PROGRESS);
 		@Nullable String shown;
 		boolean visible;
 	}
