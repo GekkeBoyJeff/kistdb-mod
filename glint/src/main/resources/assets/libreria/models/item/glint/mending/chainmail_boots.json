@@ -1,6 +1,1 @@
-{
- "parent": "minecraft:item/generated",
- "textures": {
-  "layer0": "libreria:item/glint/mending/chainmail_boots"
- }
-}
+{"parent":"minecraft:item/generated","textures":{"layer0":"libreria:item/glint/mending/chainmail_boots"}}

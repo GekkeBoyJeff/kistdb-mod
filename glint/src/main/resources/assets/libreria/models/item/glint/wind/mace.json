@@ -1,6 +1,1 @@
-{
- "parent": "minecraft:item/handheld_mace",
- "textures": {
-  "layer0": "libreria:item/glint/wind/mace"
- }
-}
+{"parent":"minecraft:item/handheld_mace","textures":{"layer0":"libreria:item/glint/wind/mace"}}

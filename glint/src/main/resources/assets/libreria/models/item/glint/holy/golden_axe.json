@@ -1,6 +1,1 @@
-{
- "parent": "minecraft:item/handheld",
- "textures": {
-  "layer0": "libreria:item/glint/holy/golden_axe"
- }
-}
+{"parent":"minecraft:item/handheld","textures":{"layer0":"libreria:item/glint/holy/golden_axe"}}

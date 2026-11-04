@@ -1,6 +1,1 @@
-{
- "parent": "minecraft:item/generated",
- "textures": {
-  "layer0": "libreria:item/glint/book/binding_curse"
- }
-}
+{"parent":"minecraft:item/generated","textures":{"layer0":"libreria:item/glint/book/binding_curse"}}

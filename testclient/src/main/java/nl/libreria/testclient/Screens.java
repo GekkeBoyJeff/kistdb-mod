@@ -34,7 +34,7 @@ public final class Screens implements FabricClientGameTest {
 				.adjustSettings(s -> s.setGameMode(WorldCreationUiState.SelectedGameMode.SURVIVAL)).create()) {
 			TestServerContext server = sp.getServer();
 			sp.getConnection().waitForChunksRender();
-			ServerPlayer player = sp.getConnection().getServerPlayer();
+			ServerPlayer player = server.computeOnServer(s -> sp.getConnection().getServerPlayer());
 			BlockPos o = server.computeOnServer(s -> player.blockPosition());
 			int x = o.getX(), y = o.getY(), z = o.getZ();
 

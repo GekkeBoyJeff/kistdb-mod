@@ -1,6 +1,1 @@
-{
- "parent": "minecraft:item/handheld",
- "textures": {
-  "layer0": "libreria:item/glint/haste/netherite_pickaxe"
- }
-}
+{"parent":"minecraft:item/handheld","textures":{"layer0":"libreria:item/glint/haste/netherite_pickaxe"}}

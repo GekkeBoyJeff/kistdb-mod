@@ -1,6 +1,1 @@
-{
- "parent": "minecraft:item/generated",
- "textures": {
-  "layer0": "libreria:item/glint/curse/shears"
- }
-}
+{"parent":"minecraft:item/generated","textures":{"layer0":"libreria:item/glint/curse/shears"}}

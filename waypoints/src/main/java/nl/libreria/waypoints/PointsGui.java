@@ -75,7 +75,7 @@ public final class PointsGui extends Menu {
 		String title = "Waypoints · " + this.tab.shortLabel + " ("
 				+ (this.tab == Tab.MINE ? mine.size() + "/" + WaypointsMod.MAX_POINTS : String.valueOf(shown.size())) + ")";
 		// A new title re-opens the screen (cursor jumps), so only when it really changes
-		if (this.getTitle() == null || !title.equals(this.getTitle().getString())) this.setTitle(Component.literal(title));
+		if (!title.equals(this.plainTitle().getString())) this.setTitle(Component.literal(title));
 
 		// Top row: ✚ new (left), the three filter tabs (middle), last death point (right)
 		newButton(mine.size());

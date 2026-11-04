@@ -1,6 +1,1 @@
-{
- "parent": "minecraft:item/handheld_rod",
- "textures": {
-  "layer0": "libreria:item/glint/sturdy/fishing_rod"
- }
-}
+{"parent":"minecraft:item/handheld_rod","textures":{"layer0":"libreria:item/glint/sturdy/fishing_rod"}}

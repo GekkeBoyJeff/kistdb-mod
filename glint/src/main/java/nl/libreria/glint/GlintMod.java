@@ -52,7 +52,9 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class GlintMod implements ModInitializer {
 	public static final Module MODULE = Module.register("glint", "Glint", Items.ENCHANTED_BOOK,
-			"Enchant effects on your items, custom", "textures per enchanted book and", "particles around players. No install.");
+			"Enchant effects and rarity frames on", "your items, custom book covers and", "particles around players. No install.");
+	public static final Setting.Toggle FRAMES = MODULE.toggle("frames", "Rarity frames", true, Items.ITEM_FRAME,
+			"A light border around uncommon, rare", "and epic items in your inventory;", "rare and epic ones sparkle.");
 	public static final Setting.Toggle BOOKS = MODULE.toggle("books", "Custom book textures", true, Items.BOOK,
 			"Every enchanted book gets its own cover", "with a symbol for its enchantment.");
 	public static final Setting.Toggle AURA = MODULE.toggle("particles", "Particles around players", true, Items.BLAZE_POWDER,
@@ -105,6 +107,7 @@ public final class GlintMod implements ModInitializer {
 			for (String pack : OFF_PACKS.keySet()) p.connection.send(new ClientboundResourcePackPopPacket(Optional.of(packUuid(pack))));
 		});
 		BOOKS.onChange(p -> setOffPack(p, "books", !BOOKS.get(p)));
+		FRAMES.onChange(p -> setOffPack(p, "frames", !FRAMES.get(p)));
 
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
 			if (server.getTickCount() % 10 == 0) Aura.tick(server);
@@ -155,6 +158,7 @@ public final class GlintMod implements ModInitializer {
 		Path dir = FabricLoader.getInstance().getGameDir().resolve("polymer/libreria_glint");
 		List<String> packs = new ArrayList<>(FAMILIES.keySet());
 		packs.add("books");
+		packs.add("frames");
 		try {
 			Files.createDirectories(dir);
 			for (String pack : packs) {
@@ -188,6 +192,7 @@ public final class GlintMod implements ModInitializer {
 		Data d = STORE.get(player);
 		for (String fam : FAMILIES.keySet()) if (d.off.contains(fam) && OFF_PACKS.containsKey(fam)) out.add(fam);
 		if (!BOOKS.get(player) && OFF_PACKS.containsKey("books")) out.add("books");
+		if (!FRAMES.get(player) && OFF_PACKS.containsKey("frames")) out.add("frames");
 		return out;
 	}
 

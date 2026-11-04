@@ -93,6 +93,20 @@ public final class Services {
 		default List<Component> card(ServerPlayer player) {
 			return List.of();
 		}
+
+		/** The numbers behind the card (for drawing it with pictures), or null. */
+		default @Nullable CardData cardData(ServerPlayer player) {
+			return null;
+		}
+
+		/** Colour (0xRRGGBB) of the rarity of the player's title, or -1. */
+		default int titleColor(ServerPlayer player) {
+			return -1;
+		}
+	}
+
+	/** Points, achievements earned of total, items collected of total. */
+	public record CardData(int points, int earned, int total, int items, int itemsTotal) {
 	}
 
 	private static @Nullable Progress progress;

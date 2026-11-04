@@ -104,6 +104,22 @@ public final class CollectorMod implements ModInitializer {
 			public List<Component> card(ServerPlayer player) {
 				return CollectorMod.card(player);
 			}
+
+			@Override
+			public Services.CardData cardData(ServerPlayer player) {
+				Data d = STORE.get(player);
+				int earned = 0;
+				for (String id : d.earned.keySet()) if (Catalog.get(id) != null) earned++;
+				return new Services.CardData(CollectorMod.points(d), earned, Math.max(1, Catalog.all().size()),
+						Catalog.countAll(d), Catalog.allItems().size());
+			}
+
+			@Override
+			public int titleColor(ServerPlayer player) {
+				Achievement a = titleAchievement(STORE.get(player));
+				Integer c = a == null ? null : a.rarity().color.getColor();
+				return c == null ? -1 : c;
+			}
 		});
 		Nameplate.addLine("collector.title", 10, CollectorMod::title);
 

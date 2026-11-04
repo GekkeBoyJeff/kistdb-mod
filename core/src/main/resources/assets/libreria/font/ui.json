@@ -1,0 +1,245 @@
+{
+ "providers": [
+  {
+   "type": "space",
+   "advances": {
+    "\ue000": 1,
+    "\ue001": -1,
+    "\ue002": 2,
+    "\ue003": -2,
+    "\ue004": 4,
+    "\ue005": -4,
+    "\ue006": 8,
+    "\ue007": -8,
+    "\ue008": 16,
+    "\ue009": -16,
+    "\ue00a": 32,
+    "\ue00b": -32,
+    "\ue00c": 64,
+    "\ue00d": -64,
+    "\ue00e": 128,
+    "\ue00f": -128,
+    "\ue010": 256,
+    "\ue011": -256,
+    "\ue012": 512,
+    "\ue013": -512
+   }
+  },
+  {
+   "type": "bitmap",
+   "file": "libreria:font/ui/panel_2.png",
+   "height": 31,
+   "ascent": 23,
+   "chars": [
+    "\ue014\ue015\ue016\ue017\ue018\ue019\ue01a\ue01b\ue01c"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "libreria:font/ui/panel_3.png",
+   "height": 41,
+   "ascent": 33,
+   "chars": [
+    "\ue01d\ue01e\ue01f\ue020\ue021\ue022\ue023\ue024\ue025"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "libreria:font/ui/panel_4.png",
+   "height": 51,
+   "ascent": 43,
+   "chars": [
+    "\ue026\ue027\ue028\ue029\ue02a\ue02b\ue02c\ue02d\ue02e"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "libreria:font/ui/panel_5.png",
+   "height": 61,
+   "ascent": 53,
+   "chars": [
+    "\ue02f\ue030\ue031\ue032\ue033\ue034\ue035\ue036\ue037"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "libreria:font/ui/panel_6.png",
+   "height": 71,
+   "ascent": 63,
+   "chars": [
+    "\ue038\ue039\ue03a\ue03b\ue03c\ue03d\ue03e\ue03f\ue040"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "libreria:font/ui/panel_7.png",
+   "height": 81,
+   "ascent": 73,
+   "chars": [
+    "\ue041\ue042\ue043\ue044\ue045\ue046\ue047\ue048\ue049"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "libreria:font/ui/panel_8.png",
+   "height": 91,
+   "ascent": 83,
+   "chars": [
+    "\ue04a\ue04b\ue04c\ue04d\ue04e\ue04f\ue050\ue051\ue052"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "libreria:font/ui/panel_9.png",
+   "height": 101,
+   "ascent": 93,
+   "chars": [
+    "\ue053\ue054\ue055\ue056\ue057\ue058\ue059\ue05a\ue05b"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "libreria:font/ui/panel_10.png",
+   "height": 111,
+   "ascent": 103,
+   "chars": [
+    "\ue05c\ue05d\ue05e\ue05f\ue060\ue061\ue062\ue063\ue064"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "libreria:font/ui/panel_11.png",
+   "height": 121,
+   "ascent": 113,
+   "chars": [
+    "\ue065\ue066\ue067\ue068\ue069\ue06a\ue06b\ue06c\ue06d"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "libreria:font/ui/panel_12.png",
+   "height": 131,
+   "ascent": 123,
+   "chars": [
+    "\ue06e\ue06f\ue070\ue071\ue072\ue073\ue074\ue075\ue076"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "libreria:font/ui/panel_13.png",
+   "height": 141,
+   "ascent": 133,
+   "chars": [
+    "\ue077\ue078\ue079\ue07a\ue07b\ue07c\ue07d\ue07e\ue07f"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "libreria:font/ui/panel_14.png",
+   "height": 151,
+   "ascent": 143,
+   "chars": [
+    "\ue080\ue081\ue082\ue083\ue084\ue085\ue086\ue087\ue088"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "libreria:font/ui/gem.png",
+   "height": 15,
+   "ascent": 15,
+   "chars": [
+    "\ue089"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "libreria:font/ui/slot.png",
+   "height": 20,
+   "ascent": 8,
+   "chars": [
+    "\ue08a"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "libreria:font/ui/divider.png",
+   "height": 5,
+   "ascent": 4,
+   "chars": [
+    "\ue08b\ue08c\ue08d\ue08e\ue08f\ue090\ue091\ue092\ue093\ue094"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "libreria:font/ui/pips.png",
+   "height": 6,
+   "ascent": 6,
+   "chars": [
+    "\ue095\ue096"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "libreria:font/ui/icons.png",
+   "height": 8,
+   "ascent": 7,
+   "chars": [
+    "\ue097\ue098\ue099\ue09a\ue09b\ue09c\ue09d\ue09e\ue09f\ue0a0\ue0a1\ue0a2\ue0a3\ue0a4\ue0a5\ue0a6"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "libreria:font/ui/frame_1.png",
+   "height": 132,
+   "ascent": 13,
+   "chars": [
+    "\ue0a7\ue0a8\ue0a9\ue0aa\ue0ab\ue0ac\ue0ad\ue0ae\ue0af\ue0b0\ue0b1"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "libreria:font/ui/frame_2.png",
+   "height": 150,
+   "ascent": 13,
+   "chars": [
+    "\ue0b2\ue0b3\ue0b4\ue0b5\ue0b6\ue0b7\ue0b8\ue0b9\ue0ba\ue0bb\ue0bc"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "libreria:font/ui/frame_3.png",
+   "height": 168,
+   "ascent": 13,
+   "chars": [
+    "\ue0bd\ue0be\ue0bf\ue0c0\ue0c1\ue0c2\ue0c3\ue0c4\ue0c5\ue0c6\ue0c7"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "libreria:font/ui/frame_4.png",
+   "height": 186,
+   "ascent": 13,
+   "chars": [
+    "\ue0c8\ue0c9\ue0ca\ue0cb\ue0cc\ue0cd\ue0ce\ue0cf\ue0d0\ue0d1\ue0d2"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "libreria:font/ui/frame_5.png",
+   "height": 204,
+   "ascent": 13,
+   "chars": [
+    "\ue0d3\ue0d4\ue0d5\ue0d6\ue0d7\ue0d8\ue0d9\ue0da\ue0db\ue0dc\ue0dd"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "libreria:font/ui/frame_6.png",
+   "height": 222,
+   "ascent": 13,
+   "chars": [
+    "\ue0de\ue0df\ue0e0\ue0e1\ue0e2\ue0e3\ue0e4\ue0e5\ue0e6\ue0e7\ue0e8"
+   ]
+  }
+ ]
+}

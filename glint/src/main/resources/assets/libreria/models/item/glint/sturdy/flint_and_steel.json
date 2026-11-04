@@ -1,6 +1,1 @@
-{
- "parent": "minecraft:item/generated",
- "textures": {
-  "layer0": "libreria:item/glint/sturdy/flint_and_steel"
- }
-}
+{"parent":"minecraft:item/generated","textures":{"layer0":"libreria:item/glint/sturdy/flint_and_steel"}}

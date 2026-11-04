@@ -61,7 +61,7 @@ final class EditGui extends Menu {
 		for (int i = 0; i < this.rows * 9; i++) this.clearSlot(i);
 		String title = "Waypoints · Edit · " + this.pt.name;
 		// A new title re-opens the screen (cursor jumps), so only when it really changes
-		if (this.getTitle() == null || !title.equals(this.getTitle().getString())) this.setTitle(Component.literal(title));
+		if (!title.equals(this.plainTitle().getString())) this.setTitle(Component.literal(title));
 		boolean xaero = WaypointsMod.XAERO.get(this.player);
 
 		// Top: the waypoint itself

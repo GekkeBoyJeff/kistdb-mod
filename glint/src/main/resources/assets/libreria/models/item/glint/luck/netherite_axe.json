@@ -1,6 +1,1 @@
-{
- "parent": "minecraft:item/handheld",
- "textures": {
-  "layer0": "libreria:item/glint/luck/netherite_axe"
- }
-}
+{"parent":"minecraft:item/handheld","textures":{"layer0":"libreria:item/glint/luck/netherite_axe"}}

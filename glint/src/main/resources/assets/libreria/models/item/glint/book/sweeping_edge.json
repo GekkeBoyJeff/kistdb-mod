@@ -1,6 +1,1 @@
-{
- "parent": "minecraft:item/generated",
- "textures": {
-  "layer0": "libreria:item/glint/book/sweeping_edge"
- }
-}
+{"parent":"minecraft:item/generated","textures":{"layer0":"libreria:item/glint/book/sweeping_edge"}}

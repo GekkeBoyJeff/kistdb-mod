@@ -8,11 +8,13 @@ import eu.pb4.sgui.api.elements.GuiElementBuilder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -20,6 +22,8 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.util.Brightness;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.AgeableMob;
 import net.minecraft.world.entity.Display;
@@ -34,9 +38,11 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.Rarity;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.block.BeehiveBlock;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CocoaBlock;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.NetherWartBlock;
@@ -51,42 +57,65 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import nl.libreria.core.Pack;
 import nl.libreria.core.Services;
+import nl.libreria.core.gui.Glyphs;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
 /**
  * Look info: a small floating card above the block, animal or player you are looking at (like Jade, without a client
- * mod). The card has the thing's icon on the left, a bold coloured name, detail lines with little bars, and a thin
- * coloured frame (purple for blocks, green for animals, red for monsters, gold for players). Only within your reach,
- * hidden while a container menu is open, and only visible to you.
+ * mod). With the Libreria resource pack it is an "adventure" card: a dark leather panel with a bronze frame, the
+ * thing's icon in a little slot, a gem in the colour of its grade (only rare things get a coloured gem), an ornamental
+ * rule and rows with small pictures and pips. Without the pack it falls back to a plain dark card. Only within your
+ * reach, hidden while a container menu is open, and only visible to you.
  */
 final class Look {
-	/** What the player looks at: where the card floats, its icon, frame colour and lines. */
-	record Target(Vec3 anchor, ItemStack icon, int frame, List<Component> lines) {
+	/** One detail row: a little picture, a label, an optional bar and a value. */
+	record Row(String icon, String symbol, String label, double fraction, int barColor, int segments, Component value) {
+		static Row text(String icon, String symbol, String label, Component value) {
+			return new Row(icon, symbol, label, -1, 0, 0, value);
+		}
+
+		static Row bar(String icon, String symbol, String label, double fraction, int segments, Component value) {
+			return new Row(icon, symbol, label, fraction, barColor(fraction), segments, value);
+		}
+
+		String plain() {
+			return (label + " " + value.getString()).trim();
+		}
 	}
 
-	// Frame colours (ARGB)
-	static final int FRAME_BLOCK = 0xFF5A2DBE;
-	static final int FRAME_ANIMAL = 0xFF2E9B57;
-	static final int FRAME_MONSTER = 0xFFB0302A;
-	static final int FRAME_PLAYER = 0xFFD9A21E;
+	/** What the card shows. accent = colour of the grade gem (-1 = plain bronze). */
+	record Card(ItemStack icon, int accent, Component name, Component subtitle, List<Row> rows) {
+		String plain() {
+			StringBuilder b = new StringBuilder(name.getString()).append('\n').append(subtitle.getString());
+			for (Row r : rows) b.append('\n').append(r.plain());
+			return b.toString();
+		}
+	}
+
+	/** Where the card floats. */
+	record Target(Vec3 anchor, Card card) {
+	}
+
+	static final int BRONZE = 0xF2C36B;
+	static final int RED = 0xFF5555, GREEN = 0x55FF55, YELLOW = 0xFFFF55, AQUA = 0x55FFFF, PINK = 0xFF55FF, GOLD = 0xFFAA00;
 
 	/** Size of the card (text scale; 1 = name-tag size). */
 	private static final float SCALE = 0.42f;
 	/** One font pixel in blocks at scale 1. */
 	private static final float PX = 0.025f;
+	private static final Brightness FULL = new Brightness(15, 15);
 
 	private static final class Tip {
 		final ElementHolder holder = new ElementHolder();
-		final TextDisplayElement frame = new TextDisplayElement();
+		final TextDisplayElement panel = new TextDisplayElement();
 		final TextDisplayElement text = new TextDisplayElement();
 		final ItemDisplayElement icon = new ItemDisplayElement();
 		ServerLevel level;
 		Vec3 anchor = Vec3.ZERO;
-		@Nullable Component shown;
-		int shownFrame;
-		ItemStack shownIcon = ItemStack.EMPTY;
+		@Nullable String shown;
 	}
 
 	private static final Map<UUID, Tip> TIPS = new HashMap<>();
@@ -110,21 +139,19 @@ final class Look {
 		Tip tip = new Tip();
 		tip.level = p.level();
 		tip.anchor = anchor;
-		for (TextDisplayElement t : new TextDisplayElement[] {tip.frame, tip.text}) {
+		for (TextDisplayElement t : new TextDisplayElement[] {tip.panel, tip.text}) {
 			t.setBillboardMode(Display.BillboardConstraints.CENTER);
-			t.setLineWidth(400);
-			t.setSeeThrough(true);
+			t.setLineWidth(1000);
+			t.setSeeThrough(false);
 			t.setTeleportDuration(2);
-			t.setShadow(true);
-			t.setTextAlignment(Display.TextDisplay.Align.LEFT);
+			t.setBrightness(FULL);
+			t.setBackground(0);
 		}
-		// The frame: same text, but invisible, on a coloured background that is a bit larger
-		tip.frame.setTextOpacity((byte) 8);
-		tip.text.setBackground(0xF0100010);
 		tip.icon.setBillboardMode(Display.BillboardConstraints.CENTER);
 		tip.icon.setItemDisplayContext(ItemDisplayContext.GUI);
 		tip.icon.setTeleportDuration(2);
-		tip.holder.addElement(tip.frame);
+		tip.icon.setBrightness(FULL);
+		tip.holder.addElement(tip.panel);
 		tip.holder.addElement(tip.text);
 		tip.holder.addElement(tip.icon);
 		new ManualAttachment(tip.holder, tip.level, () -> tip.anchor);
@@ -138,11 +165,10 @@ final class Look {
 			if (tip != null && tip.shown != null) {
 				tip.text.setText(Component.empty());
 				tip.text.setBackground(0);
-				tip.frame.setText(Component.empty());
-				tip.frame.setBackground(0);
+				tip.panel.setText(Component.empty());
+				tip.panel.setBackground(0);
 				tip.icon.setItem(ItemStack.EMPTY);
 				tip.shown = null;
-				tip.shownIcon = ItemStack.EMPTY;
 				tip.holder.tick();
 			}
 			return;
@@ -153,47 +179,137 @@ final class Look {
 			TIPS.put(p.getUUID(), tip);
 		}
 		tip.anchor = t.anchor();
-		Component text = join(t.lines());
-		boolean hasIcon = !t.icon().isEmpty();
-		if (!Objects.equals(text, tip.shown) || tip.shownFrame != t.frame() || !ItemStack.isSameItemSameComponents(tip.shownIcon, t.icon())) {
-			layout(tip, t, text, hasIcon);
-			tip.shown = text;
-			tip.shownFrame = t.frame();
-			tip.shownIcon = t.icon().copy();
+		boolean pack = Pack.has(p);
+		Card c = t.card();
+		String key = pack + "|" + c.accent() + "|" + c.name().getString() + "|" + c.subtitle().getString() + "|" + rowsKey(c.rows())
+				+ "|" + BuiltInRegistries.ITEM.getKey(c.icon().getItem()) + c.icon().getComponentsPatch();
+		if (!Objects.equals(key, tip.shown)) {
+			if (pack) layoutPack(tip, c);
+			else layoutPlain(tip, c);
+			tip.shown = key;
 		}
 		tip.holder.tick();
 	}
 
-	/** Size the frame around the text and put the icon on the left, vertically centred. */
-	private static void layout(Tip tip, Target t, Component text, boolean hasIcon) {
-		int widthPx = 0;
-		for (Component line : t.lines()) widthPx = Math.max(widthPx, width(line));
-		int lines = t.lines().size();
-		// Room on the left for the icon: indent every line with spaces (a space is 4 px)
-		int iconPx = hasIcon ? 22 : 0;
-		widthPx += iconPx;
-		int heightPx = lines * 10 + 1;
-		float w = (widthPx + 2) * PX * SCALE, h = heightPx * PX * SCALE;
-		Component padded = hasIcon ? indent(t.lines(), iconPx) : text;
+	private static String rowsKey(List<Row> rows) {
+		StringBuilder b = new StringBuilder();
+		for (Row r : rows) b.append(r.icon()).append(r.label()).append(r.fraction()).append(r.value().getString()).append(';');
+		return b.toString();
+	}
 
-		tip.text.setText(padded);
-		tip.text.setBackground(0xF0100010);
+	/** With the resource pack: panel + gem + slot + rule + rows with pictures. */
+	private static void layoutPack(Tip tip, Card c) {
+		boolean hasIcon = !c.icon().isEmpty();
+		int indent = hasIcon ? 24 : 0;
+		List<MutableComponent> rows = new ArrayList<>();
+		for (Row r : c.rows()) rows.add(packRow(r));
+
+		// Exact width of the content
+		int nameW = indent + Glyphs.width(c.name());
+		int subW = indent + Glyphs.width(c.subtitle());
+		int innerW = Math.max(Math.max(nameW, subW), Glyphs.width(rows)) + 2;
+		innerW = Math.max(innerW, 64);
+		int gemX = innerW / 2 - 3;
+
+		List<Component> lines = new ArrayList<>();
+		int gem = c.accent() < 0 ? BRONZE : c.accent();
+		MutableComponent first = Component.empty()
+				.append(Glyphs.ui(Glyphs.space(gemX) + Glyphs.g("gem") + Glyphs.space(-(gemX + Glyphs.advance("gem"))), gem));
+		if (hasIcon) first.append(Glyphs.ui(Glyphs.g("slot") + Glyphs.space(indent - Glyphs.advance("slot"))));
+		first.append(c.name());
+		lines.add(first);
+		lines.add(Component.empty().append(Glyphs.ui(Glyphs.space(indent))).append(c.subtitle()));
+		if (!rows.isEmpty()) {
+			// The rule is exactly as wide as the card, which also pins the text box to the panel
+			lines.add(Glyphs.divider(innerW));
+			lines.addAll(rows);
+		}
+		int n = lines.size();
+
+		tip.text.setText(join(lines));
+		tip.text.setTextAlignment(Display.TextDisplay.Align.LEFT);
+		tip.text.setShadow(true);
+		tip.text.setBackground(0);
+		tip.text.setTextOpacity((byte) -1);
 		tip.text.setScale(new Vector3f(SCALE));
 		tip.text.setTranslation(new Vector3f(0, 0, 0));
 
-		// Frame: 2 px border on every side, slightly behind the card
+		tip.panel.setText(Glyphs.panel(n, innerW));
+		tip.panel.setTextAlignment(Display.TextDisplay.Align.CENTER);
+		tip.panel.setShadow(false);
+		tip.panel.setBackground(0);
+		tip.panel.setTextOpacity((byte) -1);
+		tip.panel.setScale(new Vector3f(SCALE));
+		tip.panel.setTranslation(new Vector3f(0, 0, -0.012f));
+
+		if (hasIcon) {
+			// The slot spans the first two lines; the text box is centred: its left edge is at 1 - innerW/2
+			int contentH = n * Glyphs.lineHeight - 1;
+			float s = PX * SCALE;
+			float x = (1 - innerW / 2f + 10) * s;
+			float y = (contentH - 9) * s;
+			float size = 16 * s;
+			tip.icon.setItem(c.icon());
+			tip.icon.setScale(new Vector3f(size, size, 0.001f));
+			tip.icon.setTranslation(new Vector3f(x, y, 0.012f));
+		} else {
+			tip.icon.setItem(ItemStack.EMPTY);
+		}
+	}
+
+	private static MutableComponent packRow(Row r) {
+		MutableComponent out = Component.empty().append(Glyphs.icon(r.icon()));
+		if (!r.label().isEmpty()) out.append(Component.literal(r.label() + " ").withStyle(ChatFormatting.GRAY));
+		if (r.fraction() >= 0) {
+			int full = (int) Math.round(Math.max(0, Math.min(1, r.fraction())) * r.segments());
+			out.append(Glyphs.pips(full, r.segments(), r.barColor())).append(Component.literal(" "));
+		}
+		return out.append(r.value());
+	}
+
+	/** Without the pack: a plain dark card with a thin bronze (or grade coloured) frame. */
+	private static void layoutPlain(Tip tip, Card c) {
+		boolean hasIcon = !c.icon().isEmpty();
+		List<Component> lines = new ArrayList<>();
+		lines.add(c.name());
+		lines.add(c.subtitle());
+		for (Row r : c.rows()) {
+			MutableComponent line = Component.literal(r.symbol() + " ").withStyle(s -> s.withColor(r.barColor() == 0 ? 0xAAAAAA : r.barColor()));
+			if (!r.label().isEmpty()) line.append(Component.literal(r.label() + " ").withStyle(ChatFormatting.GRAY));
+			if (r.fraction() >= 0) line.append(bar(r.fraction(), r.segments())).append(Component.literal(" "));
+			lines.add(line.append(r.value()));
+		}
+		int iconPx = hasIcon ? 22 : 0;
+		int widthPx = 0;
+		for (Component l : lines) widthPx = Math.max(widthPx, Glyphs.width(l));
+		widthPx += iconPx;
+		int heightPx = lines.size() * Glyphs.lineHeight + 1;
+		float w = (widthPx + 2) * PX * SCALE, h = heightPx * PX * SCALE;
+		Component padded = hasIcon ? indent(lines, iconPx) : join(lines);
+
+		tip.text.setText(padded);
+		tip.text.setTextAlignment(Display.TextDisplay.Align.LEFT);
+		tip.text.setShadow(true);
+		tip.text.setBackground(0xF0201510);
+		tip.text.setTextOpacity((byte) -1);
+		tip.text.setScale(new Vector3f(SCALE));
+		tip.text.setTranslation(new Vector3f(0, 0, 0));
+
+		// Frame: same text, invisible, on a slightly larger coloured background behind the card
 		float border = 2 * PX * SCALE;
-		tip.frame.setText(padded);
-		tip.frame.setBackground(t.frame());
-		tip.frame.setScale(new Vector3f(SCALE * (w + 2 * border) / w, SCALE * (h + 2 * border) / h, SCALE));
-		tip.frame.setTranslation(new Vector3f(0, -border, -0.01f));
+		tip.panel.setText(padded);
+		tip.panel.setTextAlignment(Display.TextDisplay.Align.LEFT);
+		tip.panel.setShadow(false);
+		tip.panel.setTextOpacity((byte) 8);
+		tip.panel.setBackground(0xFF000000 | (c.accent() < 0 ? 0xA8803C : c.accent()));
+		tip.panel.setScale(new Vector3f(SCALE * (w + 2 * border) / w, SCALE * (h + 2 * border) / h, SCALE));
+		tip.panel.setTranslation(new Vector3f(0, -border, -0.012f));
 
 		if (hasIcon) {
 			float iconSize = 16 * PX * SCALE * 1.25f;
-			tip.icon.setItem(t.icon());
+			tip.icon.setItem(c.icon());
 			tip.icon.setScale(new Vector3f(iconSize, iconSize, 0.001f));
-			// Text is centred on the anchor: the left edge is at -w/2
-			tip.icon.setTranslation(new Vector3f(-w / 2 + iconPx * PX * SCALE / 2 + PX * SCALE, h - Math.min(h / 2, 6 * PX * SCALE * 1.6f), 0.01f));
+			tip.icon.setTranslation(new Vector3f(-w / 2 + iconPx * PX * SCALE / 2 + PX * SCALE, h - Math.min(h / 2, 6 * PX * SCALE * 1.6f), 0.012f));
 		} else {
 			tip.icon.setItem(ItemStack.EMPTY);
 		}
@@ -208,25 +324,6 @@ final class Look {
 			out.append(Component.literal(pad)).append(lines.get(i));
 		}
 		return out;
-	}
-
-	/** Rough width of a line in font pixels (Minecraft's default font). */
-	static int width(Component c) {
-		String s = c.getString();
-		boolean bold = c.getStyle().isBold() || c.getSiblings().stream().anyMatch(x -> x.getStyle().isBold());
-		int w = 0;
-		for (int i = 0; i < s.length(); i++) {
-			char ch = s.charAt(i);
-			int cw;
-			if ("il!.,:;|'".indexOf(ch) >= 0) cw = 2;
-			else if ("I[]t ".indexOf(ch) >= 0) cw = 4;
-			else if ("fk\"()*<>{}".indexOf(ch) >= 0) cw = 5;
-			else if (ch == '@' || ch == '~') cw = 7;
-			else if (ch > 0x2000) cw = 8; // symbols like ❤ ▮ ✔
-			else cw = 6;
-			w += cw + (bold ? 1 : 0);
-		}
-		return w;
 	}
 
 	static void forget(UUID id) {
@@ -255,20 +352,17 @@ final class Look {
 				e -> !e.isSpectator() && e.isPickable() && !e.isInvisible(), blockDistSq);
 		if (eh != null) {
 			Entity e = eh.getEntity();
-			List<Component> lines = describeEntity(p, e, all);
-			if (lines == null) return null;
+			Card card = describeEntity(p, e, all);
+			if (card == null) return null;
 			// Above the head; for players also above their name tag and title
 			double up = e instanceof Player ? 1.25 : 0.4;
-			int frame = e instanceof Player ? FRAME_PLAYER : e instanceof Enemy ? FRAME_MONSTER : FRAME_ANIMAL;
-			return new Target(e.position().add(0, e.getBbHeight() + up, 0), iconOf(e), frame, lines);
+			return new Target(e.position().add(0, e.getBbHeight() + up, 0), card);
 		}
 		if (bh.getType() != HitResult.Type.BLOCK) return null;
 		BlockPos pos = bh.getBlockPos();
-		List<Component> lines = describeBlock(p, level, pos, all);
-		if (lines == null) return null;
-		BlockState st = level.getBlockState(pos);
-		Item item = st.getBlock().asItem();
-		return new Target(anchorFor(level, pos, bh, eye), item == Items.AIR ? ItemStack.EMPTY : new ItemStack(item), FRAME_BLOCK, lines);
+		Card card = describeBlock(p, level, pos, all);
+		if (card == null) return null;
+		return new Target(anchorFor(level, pos, bh, eye), card);
 	}
 
 	/** Above the block if there is room, otherwise just in front of the face you're looking at. */
@@ -294,60 +388,60 @@ final class Look {
 
 	// ---------------------------------------------------------------- players and animals
 
-	static @Nullable List<Component> describeEntity(ServerPlayer viewer, Entity e, boolean all) {
-		List<Component> lines = new ArrayList<>();
+	static @Nullable Card describeEntity(ServerPlayer viewer, Entity e, boolean all) {
+		List<Row> rows = new ArrayList<>();
 		if (e instanceof ServerPlayer other) {
 			// Players: who they are and how far they got (no health)
-			lines.add(other.getDisplayName().copy().withStyle(ChatFormatting.BOLD));
-			Services.progress().ifPresent(pr -> {
-				Component title = pr.title(other);
-				if (title != null) lines.add(title);
-				lines.addAll(pr.card(other));
-			});
-			return lines;
+			Component name = other.getDisplayName().copy().withStyle(ChatFormatting.BOLD);
+			var pr = Services.progress();
+			Component title = pr.map(x -> x.title(other)).orElse(null);
+			int accent = pr.map(x -> x.titleColor(other)).orElse(-1);
+			Component sub = title != null ? title : Component.literal("Player").withStyle(ChatFormatting.GRAY);
+			Services.CardData d = pr.map(x -> x.cardData(other)).orElse(null);
+			if (d != null) {
+				rows.add(Row.text("star", "★", "", Component.literal(String.format(Locale.US, "%,d", d.points()) + " points").withStyle(ChatFormatting.GOLD)));
+				rows.add(new Row("trophy", "✦", "Achievements", d.earned() / (double) d.total(), GOLD, 10,
+						Component.literal(d.earned() + "/" + d.total()).withStyle(ChatFormatting.WHITE)));
+				rows.add(Row.text("stack", "▣", "Items", Component.literal(String.format(Locale.US, "%,d / %,d", d.items(), d.itemsTotal()))
+						.withStyle(ChatFormatting.WHITE)));
+			}
+			return new Card(iconOf(e), accent, name, sub, rows);
 		}
-		ChatFormatting nameColor = e instanceof Enemy ? ChatFormatting.RED : ChatFormatting.GREEN;
+		boolean hostile = e instanceof Enemy;
 		if (!(e instanceof LivingEntity living)) {
 			if (!all) return null;
-			lines.add(e.getDisplayName().copy().withStyle(ChatFormatting.WHITE, ChatFormatting.BOLD));
-			return lines;
+			return new Card(ItemStack.EMPTY, -1, e.getDisplayName().copy().withStyle(ChatFormatting.WHITE, ChatFormatting.BOLD),
+					Component.literal("Entity").withStyle(ChatFormatting.GRAY), rows);
 		}
-		lines.add(e.getDisplayName().copy().withStyle(nameColor, ChatFormatting.BOLD));
-		lines.add(hearts(living.getHealth(), living.getMaxHealth()));
+		Component name = e.getDisplayName().copy().withStyle(hostile ? ChatFormatting.RED : ChatFormatting.GREEN, ChatFormatting.BOLD);
+		Component sub = Component.literal(hostile ? "Hostile" : "Passive").withStyle(hostile ? ChatFormatting.DARK_RED : ChatFormatting.DARK_GREEN);
+		float hp = living.getHealth(), max = living.getMaxHealth();
+		rows.add(new Row("heart", "❤", "", max <= 0 ? 0 : hp / max, RED, 8,
+				Component.literal(Horses.fmt(hp / 2.0) + "/" + Horses.fmt(max / 2.0)).withStyle(ChatFormatting.WHITE)));
 		if (e instanceof AgeableMob mob) {
 			int age = mob.getAge();
-			if (age < 0) lines.add(Component.literal("✿ Baby · grows up in " + minutes(-age)).withStyle(ChatFormatting.AQUA));
-			else if (e instanceof Animal a && a.isInLove()) lines.add(Component.literal("❤ In love").withStyle(ChatFormatting.LIGHT_PURPLE));
-			else if (e instanceof Animal && age > 0) lines.add(Component.literal("⌛ Can breed again in " + minutes(age)).withStyle(ChatFormatting.GRAY));
+			if (age < 0) rows.add(Row.text("baby", "✿", "Baby", Component.literal("· grows up in " + minutes(-age)).withStyle(ChatFormatting.AQUA)));
+			else if (e instanceof Animal a && a.isInLove()) rows.add(Row.text("love", "❤", "", Component.literal("In love").withStyle(ChatFormatting.LIGHT_PURPLE)));
+			else if (e instanceof Animal && age > 0) rows.add(Row.text("time", "⌛", "Breed again in", Component.literal(minutes(age)).withStyle(ChatFormatting.WHITE)));
 		}
 		if (e instanceof AbstractHorse horse && InfoMod.HORSE.get(viewer) && !horse.isBaby()) {
-			lines.add(Component.literal("» Speed ").withStyle(ChatFormatting.GRAY)
-					.append(Component.literal(Horses.fmt(Horses.speed(horse)) + " m/s").withStyle(ChatFormatting.WHITE)));
-			lines.add(Component.literal("⤒ Jump ").withStyle(ChatFormatting.GRAY)
-					.append(Component.literal(Horses.fmt(Horses.jump(horse)) + " blocks").withStyle(ChatFormatting.WHITE)));
+			rows.add(Row.text("speed", "»", "Speed", Component.literal(Horses.fmt(Horses.speed(horse)) + " m/s").withStyle(ChatFormatting.WHITE)));
+			rows.add(Row.text("jump", "⤒", "Jump", Component.literal(Horses.fmt(Horses.jump(horse)) + " blocks").withStyle(ChatFormatting.WHITE)));
 		}
-		return lines;
+		return new Card(iconOf(e), -1, name, sub, rows);
 	}
 
-	/** "❤ ▮▮▮▮▮▮▯▯ 7/10". */
-	static MutableComponent hearts(float health, float max) {
-		double f = max <= 0 ? 0 : health / max;
-		return Component.literal("❤ ").withStyle(ChatFormatting.RED)
-				.append(bar(f, 8))
-				.append(Component.literal(" " + Horses.fmt(health / 2.0) + "/" + Horses.fmt(max / 2.0)).withStyle(ChatFormatting.WHITE));
-	}
-
-	/** Coloured bar without the grey "empty" part looking too heavy. */
+	/** Old-style bar for the card without the pack. */
 	static MutableComponent bar(double fraction, int segments) {
 		fraction = Math.max(0, Math.min(1, fraction));
 		int full = (int) Math.round(fraction * segments);
-		ChatFormatting color = fraction > 0.66 ? ChatFormatting.GREEN : fraction > 0.33 ? ChatFormatting.YELLOW : ChatFormatting.RED;
-		return Component.literal("▮".repeat(full)).withStyle(color).append(Component.literal("▮".repeat(segments - full)).withStyle(ChatFormatting.DARK_GRAY));
+		int color = barColor(fraction);
+		return Component.literal("▮".repeat(full)).withStyle(s -> s.withColor(color))
+				.append(Component.literal("▮".repeat(segments - full)).withStyle(ChatFormatting.DARK_GRAY));
 	}
 
-	private static MutableComponent row(String label, double fraction, String value, ChatFormatting valueColor) {
-		return Component.literal(label + " ").withStyle(ChatFormatting.GRAY).append(bar(fraction, 8))
-				.append(Component.literal(" " + value).withStyle(valueColor));
+	static int barColor(double fraction) {
+		return fraction > 0.66 ? GREEN : fraction > 0.33 ? YELLOW : RED;
 	}
 
 	private static String minutes(int ticks) {
@@ -357,49 +451,59 @@ final class Look {
 
 	// ---------------------------------------------------------------- blocks
 
-	static @Nullable List<Component> describeBlock(ServerPlayer p, ServerLevel level, BlockPos pos, boolean all) {
+	static @Nullable Card describeBlock(ServerPlayer p, ServerLevel level, BlockPos pos, boolean all) {
 		BlockState st = level.getBlockState(pos);
 		if (st.isAir()) return null;
 		Block block = st.getBlock();
-		List<Component> details = new ArrayList<>();
+		List<Row> rows = new ArrayList<>();
+		String kind = null;
 
 		// Crop growth
 		if (block instanceof CropBlock || block instanceof StemBlock || block instanceof SweetBerryBushBlock
-				|| block instanceof NetherWartBlock || block instanceof CocoaBlock || block == net.minecraft.world.level.block.Blocks.PITCHER_CROP) {
+				|| block instanceof NetherWartBlock || block instanceof CocoaBlock || block == Blocks.PITCHER_CROP) {
+			kind = "Crop";
 			IntegerProperty age = intProperty(st, "age");
 			if (age != null) {
 				int v = st.getValue(age);
 				int max = age.getPossibleValues().get(age.getPossibleValues().size() - 1);
-				if (v >= max && !(block instanceof StemBlock)) details.add(Component.literal("✔ Ripe – ready to harvest").withStyle(ChatFormatting.GREEN));
-				else details.add(row("Growth", (double) v / max, Math.round(100.0 * v / max) + "%", ChatFormatting.YELLOW));
+				if (v >= max && !(block instanceof StemBlock)) {
+					rows.add(new Row("check", "✔", "", -1, GREEN, 0, Component.literal("Ripe – ready to harvest").withStyle(ChatFormatting.GREEN)));
+				} else {
+					rows.add(Row.bar("sprout", "✿", "Growth", (double) v / max, 8,
+							Component.literal(Math.round(100.0 * v / max) + "%").withStyle(ChatFormatting.YELLOW)));
+				}
 			}
 		}
 		// Honey
 		if (block instanceof BeehiveBlock) {
+			kind = "Bees";
 			int honey = st.getValue(BeehiveBlock.HONEY_LEVEL);
-			details.add(honey >= BeehiveBlock.MAX_HONEY_LEVELS
-					? Component.literal("✔ Full of honey").withStyle(ChatFormatting.GOLD)
-					: row("Honey", (double) honey / BeehiveBlock.MAX_HONEY_LEVELS, honey + "/" + BeehiveBlock.MAX_HONEY_LEVELS, ChatFormatting.YELLOW));
+			rows.add(honey >= BeehiveBlock.MAX_HONEY_LEVELS
+					? new Row("check", "✔", "", -1, GOLD, 0, Component.literal("Full of honey").withStyle(ChatFormatting.GOLD))
+					: Row.bar("drop", "◆", "Honey", (double) honey / BeehiveBlock.MAX_HONEY_LEVELS, BeehiveBlock.MAX_HONEY_LEVELS,
+							Component.literal(honey + "/" + BeehiveBlock.MAX_HONEY_LEVELS).withStyle(ChatFormatting.YELLOW)));
 		}
 		// Composter
-		if (block == net.minecraft.world.level.block.Blocks.COMPOSTER) {
+		if (block == Blocks.COMPOSTER) {
+			kind = "Farming";
 			IntegerProperty lvl = intProperty(st, "level");
 			if (lvl != null) {
 				int v = st.getValue(lvl);
-				details.add(v >= 8 ? Component.literal("✔ Bone meal ready").withStyle(ChatFormatting.GREEN)
-						: row("Compost", v / 7.0, v + "/7", ChatFormatting.YELLOW));
+				rows.add(v >= 8 ? new Row("check", "✔", "", -1, GREEN, 0, Component.literal("Bone meal ready").withStyle(ChatFormatting.GREEN))
+						: Row.bar("sprout", "✿", "Compost", v / 7.0, 7, Component.literal(v + "/7").withStyle(ChatFormatting.YELLOW)));
 			}
 		}
 		// Redstone signal
 		IntegerProperty power = intProperty(st, "power");
 		if (power != null) {
+			if (kind == null) kind = "Redstone";
 			int v = st.getValue(power);
-			details.add(Component.literal("⚡ Power ").withStyle(ChatFormatting.GRAY)
-					.append(Component.literal(String.valueOf(v)).withStyle(v > 0 ? ChatFormatting.RED : ChatFormatting.DARK_GRAY)));
+			rows.add(Row.text("bolt", "⚡", "Power", Component.literal(String.valueOf(v)).withStyle(v > 0 ? ChatFormatting.RED : ChatFormatting.DARK_GRAY)));
 		}
 		// How full a chest, furnace, hopper… is
 		BlockEntity be = level.getBlockEntity(pos);
 		if (be instanceof Container c && c.getContainerSize() > 0) {
+			if (kind == null) kind = "Storage";
 			int used = 0, items = 0;
 			for (int i = 0; i < c.getContainerSize(); i++) {
 				ItemStack s = c.getItem(i);
@@ -408,16 +512,58 @@ final class Look {
 					items += s.getCount();
 				}
 			}
-			details.add(row("Slots", (double) used / c.getContainerSize(), used + "/" + c.getContainerSize(),
-					used >= c.getContainerSize() ? ChatFormatting.GOLD : ChatFormatting.WHITE));
-			if (items > 0) details.add(Component.literal("▣ " + items + (items == 1 ? " item" : " items")).withStyle(ChatFormatting.GRAY));
+			int size = c.getContainerSize();
+			Row slots = Row.bar("chest", "▣", "Slots", (double) used / size, 8,
+					Component.literal(used + "/" + size).withStyle(used >= size ? ChatFormatting.GOLD : ChatFormatting.WHITE));
+			// A full chest is good news, not a warning: keep the pips neutral
+			rows.add(new Row(slots.icon(), slots.symbol(), slots.label(), slots.fraction(), used >= size ? GOLD : AQUA, 8, slots.value()));
+			if (items > 0) rows.add(Row.text("stack", "▣", "Items", Component.literal(String.format(Locale.US, "%,d", items)).withStyle(ChatFormatting.WHITE)));
 		}
 
-		if (details.isEmpty() && !all) return null;
-		List<Component> lines = new ArrayList<>();
-		lines.add(block.getName().copy().withStyle(ChatFormatting.WHITE, ChatFormatting.BOLD));
-		lines.addAll(details);
-		return lines;
+		if (rows.isEmpty() && !all) return null;
+		Item item = block.asItem();
+		ItemStack icon = item == Items.AIR ? ItemStack.EMPTY : new ItemStack(item);
+		int grade = icon.isEmpty() ? 0 : icon.getOrDefault(DataComponents.RARITY, Rarity.COMMON).ordinal();
+		int accent = gradeColor(grade);
+		Component name = block.getName().copy().withStyle(s -> s.withBold(true).withColor(accent < 0 ? 0xFFFFFF : accent));
+		Component sub;
+		if (grade > 0) {
+			sub = Component.literal("◆ " + gradeName(grade)).withStyle(s -> s.withColor(accent));
+		} else {
+			String tool = tool(st);
+			sub = Component.literal(kind != null ? kind + (tool.isEmpty() ? "" : " · " + tool) : (tool.isEmpty() ? "Block" : tool))
+					.withStyle(ChatFormatting.GRAY);
+		}
+		return new Card(icon, accent, name, sub, rows);
+	}
+
+	/** Grade (vanilla rarity) colour, or -1 for common things. */
+	static int gradeColor(int grade) {
+		return switch (grade) {
+			case 1 -> YELLOW;
+			case 2 -> AQUA;
+			case 3 -> PINK;
+			default -> -1;
+		};
+	}
+
+	static String gradeName(int grade) {
+		return switch (grade) {
+			case 1 -> "Uncommon";
+			case 2 -> "Rare";
+			case 3 -> "Epic";
+			default -> "Common";
+		};
+	}
+
+	/** "Pickaxe · iron or better", "Axe", "" (anything works). */
+	static String tool(BlockState st) {
+		String kind = st.is(BlockTags.MINEABLE_WITH_PICKAXE) ? "Pickaxe" : st.is(BlockTags.MINEABLE_WITH_AXE) ? "Axe"
+				: st.is(BlockTags.MINEABLE_WITH_SHOVEL) ? "Shovel" : st.is(BlockTags.MINEABLE_WITH_HOE) ? "Hoe" : "";
+		if (kind.isEmpty() || !st.requiresCorrectToolForDrops()) return kind;
+		String tier = st.is(BlockTags.NEEDS_DIAMOND_TOOL) ? "diamond" : st.is(BlockTags.NEEDS_IRON_TOOL) ? "iron"
+				: st.is(BlockTags.NEEDS_STONE_TOOL) ? "stone" : "";
+		return tier.isEmpty() ? kind : kind + " · " + tier + "+";
 	}
 
 	static @Nullable IntegerProperty intProperty(BlockState st, String name) {
@@ -427,7 +573,7 @@ final class Look {
 		return null;
 	}
 
-	static Component join(List<Component> lines) {
+	static Component join(List<? extends Component> lines) {
 		MutableComponent out = Component.empty();
 		for (int i = 0; i < lines.size(); i++) {
 			if (i > 0) out.append("\n");

@@ -12,6 +12,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
+import nl.libreria.core.Pack;
 import nl.libreria.core.Setting;
 import nl.libreria.core.Ui;
 
@@ -31,12 +32,40 @@ public abstract class Menu extends SimpleGui {
 
 	protected final ServerPlayer player;
 	protected final int rows;
+	/** Does the player have the Libreria resource pack? Then the menu gets its tool's frame and seamless filler. */
+	protected final boolean pack;
+	private Component plainTitle = Component.empty();
 
 	protected Menu(ServerPlayer player, int rows, String title) {
 		super(TYPES[Math.max(1, Math.min(6, rows)) - 1], player, false);
 		this.player = player;
 		this.rows = Math.max(1, Math.min(6, rows));
+		this.pack = Pack.has(player);
 		this.setTitle(Component.literal(title));
+	}
+
+	/** Sets the title; with the pack it is drawn in white on the tool's coloured ribbon, inside the tool's frame. */
+	@Override
+	public void setTitle(Component title) {
+		this.plainTitle = title;
+		if (this.pack) {
+			Component white = Component.literal(title.getString()).withStyle(s -> s.withColor(0xFFFFFF));
+			super.setTitle(Glyphs.framedTitle(theme(), this.rows, white));
+		} else {
+			super.setTitle(title);
+		}
+	}
+
+	/** The title without the frame (what the player reads). */
+	public Component plainTitle() {
+		return this.plainTitle;
+	}
+
+	/** Frame theme: the Libreria module this menu belongs to (from its package, e.g. nl.libreria.claims). */
+	protected String theme() {
+		String[] parts = this.getClass().getPackageName().split("\\.");
+		String module = parts.length > 2 ? parts[2] : "core";
+		return module.equals("core") ? "libreria" : module;
 	}
 
 	// ---------------------------------------------------------------- layout
@@ -51,10 +80,13 @@ public abstract class Menu extends SimpleGui {
 		return (this.rows - 1) * 9;
 	}
 
-	/** Fills every slot that is still empty: dark glass above, black glass in the navigation bar. */
+	/**
+	 * Fills every slot that is still empty: with the pack a piece of the frame's parchment (the slot disappears),
+	 * otherwise dark glass above and black glass in the navigation bar.
+	 */
 	protected void finish() {
 		for (int i = 0; i < this.rows * 9; i++) {
-			if (this.getGuiElement(i) == null) this.setSlot(i, i >= navRow() ? NAV_FILL : FILL);
+			if (this.getGuiElement(i) == null) this.setSlot(i, this.pack ? TILE : i >= navRow() ? NAV_FILL : FILL);
 		}
 	}
 
@@ -65,6 +97,8 @@ public abstract class Menu extends SimpleGui {
 
 	private static final eu.pb4.sgui.api.elements.GuiElement FILL = new GuiElementBuilder(Ui.item("gray_stained_glass_pane")).hideTooltip().build();
 	private static final eu.pb4.sgui.api.elements.GuiElement NAV_FILL = new GuiElementBuilder(Ui.item("black_stained_glass_pane")).hideTooltip().build();
+	private static final eu.pb4.sgui.api.elements.GuiElement TILE = new GuiElementBuilder(Items.PAPER)
+			.model(net.minecraft.resources.Identifier.fromNamespaceAndPath("libreria", "gui/tile")).hideTooltip().build();
 
 	/** A decorative filler in a custom colour, e.g. to separate sections. */
 	public static GuiElementBuilder pane(String color) {

@@ -29,8 +29,12 @@ from PIL import Image
 
 VANILLA = sys.argv[1] if len(sys.argv) > 1 else '/home/claude/ref/assets/assets/minecraft'
 OUT = sys.argv[2] if len(sys.argv) > 2 else os.path.join(os.path.dirname(__file__), '../../glint/src/main/resources')
+SUMMARY = sys.argv[3] if len(sys.argv) > 3 else '/home/claude/ref/summary/item_components/data.json'
 NS = 'libreria'
 FRAMES = 8
+GRADES = ['common', 'uncommon', 'rare', 'epic']
+# Border colour per grade (the same colours Minecraft uses for item names)
+GRADE_COLOR = {'uncommon': (255, 255, 85), 'rare': (85, 255, 255), 'epic': (255, 85, 255)}
 PACK_FORMAT = 97
 
 # ------------------------------------------------------------------ families en betoveringen
@@ -661,12 +665,109 @@ def book(color, emblem):
     return img
 
 
+# ------------------------------------------------------------------ grade frames (inventory)
+
+SPARKLE_FRAMES = 24
+
+
+def sparkle(img, cx, cy, t, color):
+    """A 4-point twinkle at (cx, cy); t in 0..1 is how bright it is right now."""
+    if t <= 0:
+        return
+    core = (255, 255, 255, int(255 * t))
+    arm = color + (int(220 * t),)
+    tip = color + (int(110 * t),)
+    put(img, 0, cx, cy, core)
+    for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+        put(img, 0, cx + dx, cy + dy, arm)
+        if t > 0.55:
+            put(img, 0, cx + 2 * dx, cy + 2 * dy, tip)
+
+
+def ring(img, f, color, outer, inner):
+    """Soft rounded border: outer ring + a fainter ring just inside."""
+    for i in range(16):
+        for (x, y) in ((i, 0), (i, 15), (0, i), (15, i)):
+            if (x, y) in ((0, 0), (15, 0), (0, 15), (15, 15)):
+                continue
+            put(img, f, x, y, color + (outer,))
+        for (x, y) in ((i, 1), (i, 14), (1, i), (14, i)):
+            if 1 <= x <= 14 and 1 <= y <= 14 and (x, y) not in ((1, 1), (14, 1), (1, 14), (14, 14)):
+                put(img, f, x, y, color + (inner,))
+    # corners of the inner ring catch a little light
+    for (x, y) in ((1, 1), (14, 1), (1, 14), (14, 14)):
+        put(img, f, x, y, color + (outer,))
+
+
+def perimeter(n):
+    """Point n (0..59) walking around the border."""
+    n %= 60
+    if n < 15:
+        return n, 0
+    if n < 30:
+        return 15, n - 15
+    if n < 45:
+        return 15 - (n - 30), 15
+    return 0, 15 - (n - 45)
+
+
+def grade_frame(grade):
+    color = GRADE_COLOR[grade]
+    if grade == 'uncommon':
+        img = Image.new('RGBA', (16, 16), (0, 0, 0, 0))
+        ring(img, 0, color, 105, 30)
+        return img, False
+    frames = SPARKLE_FRAMES
+    img = Image.new('RGBA', (16, 16 * frames), (0, 0, 0, 0))
+    for f in range(frames):
+        ring(img, f, color, 140 if grade == 'rare' else 165, 40 if grade == 'rare' else 55)
+        sub = Image.new('RGBA', (16, 16), (0, 0, 0, 0))
+        if grade == 'rare':
+            # one twinkle in the top-right corner, now and then
+            t = max(0.0, math.sin(math.pi * (f - 2) / 8)) if 2 <= f < 10 else 0
+            sparkle(sub, 13, 2, t, color)
+        else:
+            # a glint running around the border and two twinkles taking turns
+            for k in range(3):
+                x, y = perimeter(f * 60 // frames + k)
+                put(sub, 0, x, y, (255, 255, 255, 120 + 45 * k))
+            t1 = max(0.0, math.sin(math.pi * (f - 1) / 7)) if 1 <= f < 8 else 0
+            t2 = max(0.0, math.sin(math.pi * (f - 13) / 7)) if 13 <= f < 20 else 0
+            sparkle(sub, 12, 3, t1, color)
+            sparkle(sub, 3, 12, t2, color)
+        img.alpha_composite(sub, (0, 16 * f))
+    return img, True
+
+
+def frame_node(item, rarity):
+    """The border for an item: its own grade, one higher when enchanted (like the colour of its name)."""
+    base = GRADES.index(rarity.get(item, 'common'))
+    bumped = {0: 2, 1: 2, 2: 3, 3: 3}[base]
+
+    def ref(g):
+        if g == 0:
+            return {'type': 'minecraft:empty'}
+        return {'type': 'minecraft:model', 'model': f'{NS}:item/frame/{GRADES[g]}',
+                'transformation': {'translation': [0, 0, 0.12], 'left_rotation': [0, 0, 0, 1],
+                                   'right_rotation': [0, 0, 0, 1], 'scale': [1, 1, 1]}}
+
+    return {'type': 'minecraft:condition', 'property': 'minecraft:component', 'predicate': 'minecraft:enchantments',
+            'value': [{}], 'on_true': ref(bumped), 'on_false': ref(base)}
+
+
+def with_frame(model, item, rarity):
+    """Only in inventories and the hotbar (display context gui) the border is drawn on top of the item."""
+    return {'type': 'minecraft:select', 'property': 'minecraft:display_context',
+            'cases': [{'when': 'gui', 'model': {'type': 'minecraft:composite', 'models': [model, frame_node(item, rarity)]}}],
+            'fallback': model}
+
+
 # ------------------------------------------------------------------ uitvoer
 
 def write_json(path, data):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, 'w') as f:
-        json.dump(data, f, indent=1)
+        json.dump(data, f, separators=(',', ':'))
 
 
 def write_png(path, img, animated):
@@ -700,6 +801,20 @@ def main():
 
     empty = Image.new('RGBA', (16, 16), (0, 0, 0, 0))
     write_png(os.path.join(assets, NS, 'textures/item/glint/empty.png'), empty, False)
+
+    rarity = {k: v.get('minecraft:rarity', 'common') for k, v in json.load(open(SUMMARY)).items()}
+    frame_paths = []
+    for grade in ('uncommon', 'rare', 'epic'):
+        img, animated = grade_frame(grade)
+        path = os.path.join(assets, NS, f'textures/item/frame/{grade}.png')
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        img.save(path, optimize=True)
+        if animated:
+            write_json(path + '.mcmeta', {'animation': {'frametime': 3}})
+        write_json(os.path.join(assets, NS, f'models/item/frame/{grade}.json'),
+                   {'parent': 'minecraft:item/generated', 'textures': {'layer0': f'{NS}:item/frame/{grade}'}})
+        frame_paths.append(f'assets/{NS}/models/item/frame/{grade}.json')
+    written = set()
 
     overlay_models = {f: [] for f in FAMILIES}
     count_items = 0
@@ -750,8 +865,9 @@ def main():
                             'cases': [{'when': ['gui', 'ground', 'fixed', 'on_shelf'], 'model': node}],
                             'fallback': {'type': 'minecraft:empty'}}
                 layers.append(node)
-        definition['model'] = {'type': 'minecraft:composite', 'models': layers}
+        definition['model'] = with_frame({'type': 'minecraft:composite', 'models': layers}, item, rarity)
         write_json(os.path.join(assets, 'minecraft/items', fname), definition)
+        written.add(fname)
         count_items += 1
 
     # Skill books: eerste betovering in de lijst bepaalt het plaatje
@@ -766,7 +882,17 @@ def main():
                 'value': [{'enchantments': 'minecraft:' + ench}],
                 'on_true': {'type': 'minecraft:model', 'model': f'{NS}:item/glint/book/{ench}'},
                 'on_false': node}
-    write_json(os.path.join(assets, 'minecraft/items/enchanted_book.json'), {'model': node})
+    write_json(os.path.join(assets, 'minecraft/items/enchanted_book.json'), {'model': with_frame(node, 'enchanted_book', rarity)})
+    written.add('enchanted_book.json')
+
+    # Every other item only gets the grade border
+    for fname in sorted(os.listdir(items_dir)):
+        if fname in written or not fname.endswith('.json'):
+            continue
+        definition = json.load(open(os.path.join(items_dir, fname)))
+        definition['model'] = with_frame(definition['model'], fname[:-5], rarity)
+        with open(os.path.join(assets, 'minecraft/items', fname), 'w') as f:
+            json.dump(definition, f, separators=(',', ':'))
 
     # "Uit"-pakketjes: per familie de overlay-modellen vervangen door een leeg model
     off_dir = os.path.join(OUT, 'glint/off')
@@ -782,7 +908,11 @@ def main():
                 z.writestr(p, empty_model)
     with zipfile.ZipFile(os.path.join(off_dir, 'books.zip'), 'w', zipfile.ZIP_DEFLATED) as z:
         z.writestr('pack.mcmeta', json.dumps(mcmeta))
-        z.writestr('assets/minecraft/items/enchanted_book.json', json.dumps({'model': vanilla_book}))
+        z.writestr('assets/minecraft/items/enchanted_book.json', json.dumps({'model': with_frame(vanilla_book, 'enchanted_book', rarity)}))
+    with zipfile.ZipFile(os.path.join(off_dir, 'frames.zip'), 'w', zipfile.ZIP_DEFLATED) as z:
+        z.writestr('pack.mcmeta', json.dumps(mcmeta))
+        for p in frame_paths:
+            z.writestr(p, empty_model)
 
     write_json(os.path.join(OUT, 'glint/families.json'),
                {f: {'group': g, 'name': n, 'enchantments': e, 'items': len(overlay_models[f]),

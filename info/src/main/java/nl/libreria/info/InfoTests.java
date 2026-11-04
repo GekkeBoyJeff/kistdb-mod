@@ -2,7 +2,6 @@ package nl.libreria.info;
 
 import net.fabricmc.fabric.api.entity.FakePlayer;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.BeehiveBlock;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CropBlock;
@@ -48,11 +47,8 @@ final class InfoTests {
 		});
 	}
 
-	/** All tooltip lines as one lower-case string ("" if there is no tooltip). */
-	private static String text(java.util.List<Component> lines) {
-		if (lines == null) return "";
-		StringBuilder b = new StringBuilder();
-		for (Component c : lines) b.append(c.getString()).append('\n');
-		return b.toString().toLowerCase(java.util.Locale.ROOT);
+	/** The whole card as one lower-case string ("" if there is no card). */
+	private static String text(Look.Card card) {
+		return card == null ? "" : card.plain().toLowerCase(java.util.Locale.ROOT);
 	}
 }
