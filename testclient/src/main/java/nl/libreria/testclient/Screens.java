@@ -11,6 +11,7 @@ import net.minecraft.client.CameraType;
 import net.minecraft.client.gui.screens.worldselection.WorldCreationUiState;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
+import nl.libreria.claims.ClaimsMod;
 import nl.libreria.collector.CollectorMod;
 import nl.libreria.core.Module;
 import nl.libreria.core.gui.HubGui;
@@ -133,6 +134,36 @@ public final class Screens implements FabricClientGameTest {
 				ctx.takeScreenshot("advancements");
 				ctx.setScreen(() -> null);
 				ctx.waitTicks(5);
+			});
+
+			// The land map: camera flies up, claims are coloured plates
+			safe("claim_view", () -> {
+				server.runOnServer(s -> {
+					var lvl = player.level();
+					var here = player.chunkPosition();
+					java.util.UUID steve = java.util.UUID.nameUUIDFromBytes("Steve".getBytes());
+					java.util.UUID alex = java.util.UUID.nameUUIDFromBytes("Alex".getBytes());
+					ClaimsMod.debugClaim(lvl, here, player.getUUID(), player.getName().getString());
+					ClaimsMod.debugClaim(lvl, new net.minecraft.world.level.ChunkPos(here.x(), here.z() - 1), player.getUUID(), player.getName().getString());
+					ClaimsMod.debugClaim(lvl, new net.minecraft.world.level.ChunkPos(here.x() + 2, here.z()), steve, "Steve");
+					ClaimsMod.debugClaim(lvl, new net.minecraft.world.level.ChunkPos(here.x() + 2, here.z() + 1), steve, "Steve");
+					ClaimsMod.debugClaim(lvl, new net.minecraft.world.level.ChunkPos(here.x() - 2, here.z() + 1), alex, "Alex");
+					ClaimsMod.openMap(player);
+				});
+				ctx.waitTicks(12);
+				ctx.takeScreenshot("claim_view_opening");
+				ctx.waitTicks(40);
+				noToasts(ctx);
+				ctx.takeScreenshot("claim_view");
+				ctx.getInput().moveCursor(260, 160);
+				ctx.waitTicks(12);
+				ctx.takeScreenshot("claim_view_moved");
+				ctx.getInput().pressMouse(0);
+				ctx.waitTicks(16);
+				ctx.takeScreenshot("claim_view_claimed");
+				ctx.getInput().holdKeyFor(o2 -> o2.keyShift, 4);
+				ctx.waitTicks(30);
+				ctx.takeScreenshot("claim_view_closed");
 			});
 
 			// Every menu

@@ -20,10 +20,12 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerBossEvent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.Brightness;
+import net.minecraft.world.BossEvent;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.AgeableMob;
 import net.minecraft.world.entity.Display;
@@ -96,8 +98,8 @@ final class Look {
 		}
 	}
 
-	/** Where the card floats. */
-	record Target(Vec3 anchor, Card card) {
+	/** Where the card floats. hud = shown at the top of the screen instead (blocks and things that aren't alive). */
+	record Target(Vec3 anchor, Card card, boolean hud) {
 	}
 
 	static final int BRONZE = 0xF2C36B;
@@ -121,6 +123,14 @@ final class Look {
 	}
 
 	private static final Map<UUID, Tip> TIPS = new HashMap<>();
+	/** The top-of-screen tooltip: a boss bar whose title is the card (its bar is invisible with the pack). */
+	private static final class Top {
+		final ServerBossEvent bar = new ServerBossEvent(Component.empty(), BossEvent.BossBarColor.WHITE, BossEvent.BossBarOverlay.PROGRESS);
+		@Nullable String shown;
+		boolean visible;
+	}
+
+	private static final Map<UUID, Top> TOPS = new HashMap<>();
 
 	private Look() {
 	}
@@ -130,8 +140,10 @@ final class Look {
 			int mode = InfoMod.LOOK.get(p);
 			// A chest, furnace… is open (your own inventory screen is invisible to the server)
 			boolean menuOpen = p.containerMenu != p.inventoryMenu;
-			Target t = mode == 0 || p.isSpectator() || menuOpen ? null : target(p, mode == 2);
-			show(p, t);
+			Target t = mode == 0 || p.isSpectator() || menuOpen || Services.inCamera(p) ? null : target(p, mode == 2);
+			boolean top = t != null && t.hud() && Pack.has(p);
+			show(p, top ? null : t);
+			showTop(p, top ? t.card() : null);
 		}
 	}
 
@@ -333,11 +345,99 @@ final class Look {
 	static void forget(UUID id) {
 		Tip tip = TIPS.remove(id);
 		if (tip != null) tip.holder.destroy();
+		Top top = TOPS.remove(id);
+		if (top != null) top.bar.removeAllPlayers();
 	}
 
 	static void clearAll() {
 		TIPS.values().forEach(t -> t.holder.destroy());
 		TIPS.clear();
+		TOPS.values().forEach(t -> t.bar.removeAllPlayers());
+		TOPS.clear();
+	}
+
+	// ---------------------------------------------------------------- the card at the top of the screen
+
+	private static void showTop(ServerPlayer p, @Nullable Card c) {
+		Top top = TOPS.get(p.getUUID());
+		if (c == null) {
+			if (top != null && top.visible) {
+				top.bar.removePlayer(p);
+				top.visible = false;
+				top.shown = null;
+			}
+			return;
+		}
+		if (top == null) {
+			top = new Top();
+			top.bar.setProgress(0f);
+			TOPS.put(p.getUUID(), top);
+		}
+		String key = c.accent() + "|" + c.name().getString() + "|" + c.subtitle().getString() + "|" + rowsKey(c.rows())
+				+ "|" + BuiltInRegistries.ITEM.getKey(c.icon().getItem());
+		if (!key.equals(top.shown)) {
+			top.bar.setName(topCard(c));
+			top.shown = key;
+		}
+		if (!top.visible) {
+			top.bar.addPlayer(p);
+			top.visible = true;
+		}
+	}
+
+	/**
+	 * The card as one line of text: the panel, then every line in its own font (each font is moved down one line),
+	 * jumping back to the left edge with negative space in between. Ends at the panel's right edge so the boss bar
+	 * centres it.
+	 */
+	static Component topCard(Card c) {
+		int[] icon = c.icon().isEmpty() ? null : Glyphs.icon(c.icon().getItem());
+		boolean slot = !c.icon().isEmpty();
+		int indent = slot ? 24 : 0;
+		List<MutableComponent> rows = new ArrayList<>();
+		for (Row r : c.rows()) rows.add(packRow(r));
+		int innerW = Math.max(Math.max(indent + Glyphs.width(c.name()), indent + Glyphs.width(c.subtitle())), Glyphs.width(rows)) + 2;
+		innerW = Math.max(innerW, 64);
+		int gemX = innerW / 2 - 3;
+
+		List<Component> lines = new ArrayList<>();
+		List<Integer> widths = new ArrayList<>();
+		int gem = c.accent() < 0 ? BRONZE : c.accent();
+		MutableComponent first = Component.empty()
+				.append(Glyphs.ui(Glyphs.space(gemX) + Glyphs.g("gem") + Glyphs.space(-(gemX + Glyphs.advance("gem"))), gem));
+		if (slot) {
+			first.append(Glyphs.ui(Glyphs.g("slot") + Glyphs.space(2 - Glyphs.advance("slot"))));
+			int iconAdv = 0;
+			if (icon != null) {
+				first.append(Glyphs.ui(Character.toString(icon[0]), icon[1] == 1 ? 0x6AA84F : 0xFFFFFF));
+				iconAdv = icon[2];
+			}
+			first.append(Glyphs.ui(Glyphs.space(indent - 2 - iconAdv)));
+		}
+		first.append(c.name());
+		lines.add(first);
+		widths.add(indent + Glyphs.width(c.name()));
+		lines.add(Component.empty().append(Glyphs.ui(Glyphs.space(indent))).append(c.subtitle()));
+		widths.add(indent + Glyphs.width(c.subtitle()));
+		if (!rows.isEmpty()) {
+			lines.add(Glyphs.divider(innerW));
+			widths.add(innerW);
+			for (MutableComponent r : rows) {
+				lines.add(r);
+				widths.add(Glyphs.width(r));
+			}
+		}
+		int n = Math.min(lines.size(), Glyphs.hudLines);
+		int wp = innerW + 2 * Glyphs.padX;
+		MutableComponent out = Component.empty();
+		out.append(Glyphs.inFont(Glyphs.panel(n, innerW), Glyphs.hud(0), true));
+		out.append(Glyphs.ui(Glyphs.space(-wp)));
+		for (int k = 0; k < n; k++) {
+			out.append(Glyphs.ui(Glyphs.space(Glyphs.padX)));
+			out.append(Glyphs.inFont(lines.get(k), Glyphs.hud(k), true));
+			out.append(Glyphs.ui(Glyphs.space(-(Glyphs.padX + widths.get(k)))));
+		}
+		return out.append(Glyphs.ui(Glyphs.space(wp)));
 	}
 
 	// ---------------------------------------------------------------- what are you looking at?
@@ -360,13 +460,13 @@ final class Look {
 			if (card == null) return null;
 			// Above the head; for players also above their name tag and title
 			double up = e instanceof Player ? 1.25 : 0.4;
-			return new Target(e.position().add(0, e.getBbHeight() + up, 0), card);
+			return new Target(e.position().add(0, e.getBbHeight() + up, 0), card, !(e instanceof LivingEntity));
 		}
 		if (bh.getType() != HitResult.Type.BLOCK) return null;
 		BlockPos pos = bh.getBlockPos();
 		Card card = describeBlock(p, level, pos, all);
 		if (card == null) return null;
-		return new Target(anchorFor(level, pos, bh, eye), card);
+		return new Target(anchorFor(level, pos, bh, eye), card, true);
 	}
 
 	/** Above the block if there is room, otherwise just in front of the face you're looking at. */
@@ -414,10 +514,12 @@ final class Look {
 		boolean hostile = e instanceof Enemy;
 		if (!(e instanceof LivingEntity living)) {
 			if (!all) return null;
-			return new Card(ItemStack.EMPTY, -1, e.getDisplayName().copy().withStyle(ChatFormatting.WHITE, ChatFormatting.BOLD),
+			Item item = e.getPickResult() == null ? Items.AIR : e.getPickResult().getItem();
+			return new Card(item == Items.AIR ? ItemStack.EMPTY : new ItemStack(item), -1,
+					Component.literal(e.getDisplayName().getString()).withStyle(ChatFormatting.WHITE, ChatFormatting.BOLD),
 					Component.literal("Entity").withStyle(ChatFormatting.GRAY), rows);
 		}
-		Component name = e.getDisplayName().copy().withStyle(hostile ? ChatFormatting.RED : ChatFormatting.GREEN, ChatFormatting.BOLD);
+		Component name = Component.literal(e.getDisplayName().getString()).withStyle(hostile ? ChatFormatting.RED : ChatFormatting.GREEN, ChatFormatting.BOLD);
 		Component sub = Component.literal(hostile ? "Hostile" : "Passive").withStyle(hostile ? ChatFormatting.DARK_RED : ChatFormatting.DARK_GREEN);
 		float hp = living.getHealth(), max = living.getMaxHealth();
 		rows.add(new Row("heart", "❤", "", max <= 0 ? 0 : hp / max, RED, 8,
@@ -530,7 +632,8 @@ final class Look {
 		ItemStack icon = item == Items.AIR ? ItemStack.EMPTY : new ItemStack(item);
 		int grade = icon.isEmpty() ? 0 : icon.getOrDefault(DataComponents.RARITY, Rarity.COMMON).ordinal();
 		int accent = gradeColor(grade);
-		Component name = block.getName().copy().withStyle(s -> s.withBold(true).withColor(accent < 0 ? 0xFFFFFF : accent));
+		// Literal (the server's English) so the card's width is known to the pixel on every client
+		Component name = Component.literal(block.getName().getString()).withStyle(s -> s.withBold(true).withColor(accent < 0 ? 0xFFFFFF : accent));
 		Component sub;
 		if (grade > 0) {
 			sub = Component.literal("◆ " + gradeName(grade)).withStyle(s -> s.withColor(accent));

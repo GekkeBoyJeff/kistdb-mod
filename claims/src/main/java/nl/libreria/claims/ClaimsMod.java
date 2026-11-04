@@ -127,8 +127,10 @@ public final class ClaimsMod implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-		MODULE.hubEntry(Items.FILLED_MAP, "Land claims", ChatFormatting.GREEN, MapGui::open,
-				"Protect your base from others.", "See and claim land on a map.", "", "Or stand in your base: /claim");
+		MODULE.hubEntry(Items.FILLED_MAP, "Land map", ChatFormatting.GREEN, ClaimView::open,
+				"Fly up and see your land and others'", "from above. Click chunks to claim them.", "", "Or stand in your base: /claim");
+		MODULE.hubEntry(Items.NAME_TAG, "Trusted players", ChatFormatting.AQUA, MapGui.TrustGui::open,
+				"Who may build in your land, and", "whether visitors may use doors.");
 
 		PlayerBlockBreakEvents.BEFORE.register((world, player, pos, state, be) -> {
 			if (!(player instanceof ServerPlayer sp) || allowed(sp, world, pos, Action.BUILD)) return true;
@@ -137,6 +139,7 @@ public final class ClaimsMod implements ModInitializer {
 		});
 		UseBlockCallback.EVENT.register((player, world, hand, hit) -> {
 			if (world.isClientSide() || !(player instanceof ServerPlayer sp)) return InteractionResult.PASS;
+			if (ClaimView.isOpen(sp)) return InteractionResult.FAIL;
 			BlockPos pos = hit.getBlockPos();
 			BlockState st = world.getBlockState(pos);
 			Action action = isSwitch(st) ? Action.SWITCH : Action.BUILD;
@@ -148,6 +151,11 @@ public final class ClaimsMod implements ModInitializer {
 		});
 		UseItemCallback.EVENT.register((player, world, hand) -> {
 			if (world.isClientSide() || !(player instanceof ServerPlayer sp)) return InteractionResult.PASS;
+			// Land map open: right-click releases the chunk under the crosshair, nothing else happens
+			if (ClaimView.isOpen(sp)) {
+				if (hand == net.minecraft.world.InteractionHand.MAIN_HAND) ClaimView.onUse(sp);
+				return InteractionResult.FAIL;
+			}
 			if (!(sp.getItemInHand(hand).getItem() instanceof BucketItem)) return InteractionResult.PASS;
 			BlockHitResult hit = world.clip(new ClipContext(sp.getEyePosition(), sp.getEyePosition().add(sp.getViewVector(1f).scale(sp.blockInteractionRange())),
 					ClipContext.Block.OUTLINE, ClipContext.Fluid.ANY, sp));
@@ -169,6 +177,12 @@ public final class ClaimsMod implements ModInitializer {
 			return allowed(sp, world, entity.blockPosition(), Action.BUILD) ? InteractionResult.PASS : deny(sp, entity.blockPosition());
 		});
 
+		ServerTickEvents.END_SERVER_TICK.register(ClaimView::tick);
+		// Getting hurt closes the land map at once
+		net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.AFTER_DAMAGE.register((entity, source, base, taken, blocked) -> {
+			if (entity instanceof ServerPlayer sp && ClaimView.isOpen(sp)) ClaimView.close(sp, true);
+		});
+		net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STOPPING.register(server -> ClaimView.closeAll());
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
 			int tick = server.getTickCount();
 			if (tick % 10 != 0) return;
@@ -186,6 +200,7 @@ public final class ClaimsMod implements ModInitializer {
 			if (!STORE.get().tipped.contains(id)) TIP_AT.put(id, server.getTickCount() + TIP_DELAY);
 		});
 		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
+			ClaimView.forget(handler.player);
 			UUID id = handler.player.getUUID();
 			LAST.remove(id);
 			HINTED.remove(id);
@@ -196,7 +211,7 @@ public final class ClaimsMod implements ModInitializer {
 				Commands.literal("claim").executes(ctx -> claimHere(ctx.getSource().getPlayerOrException()))
 						.then(Commands.literal("here").executes(ctx -> claimHere(ctx.getSource().getPlayerOrException())))
 						.then(Commands.literal("map").executes(ctx -> {
-							MapGui.open(ctx.getSource().getPlayerOrException());
+							ClaimView.open(ctx.getSource().getPlayerOrException());
 							return 1;
 						}))
 						.then(Commands.literal("release").executes(ctx -> releaseHere(ctx.getSource().getPlayerOrException())))
@@ -229,6 +244,20 @@ public final class ClaimsMod implements ModInitializer {
 								untrustCommand(ctx.getSource().getPlayerOrException(), StringArgumentType.getString(ctx, "player")))))));
 
 		ClaimsTests.register();
+	}
+
+	/** For the screenshot test: put a claim of someone else down. */
+	public static void debugClaim(ServerLevel level, ChunkPos c, UUID owner, String name) {
+		Claim cl = new Claim();
+		cl.owner = owner;
+		cl.ownerName = name;
+		cl.since = System.currentTimeMillis();
+		STORE.get().claims.put(key(level, c), cl);
+	}
+
+	/** For the screenshot test. */
+	public static void openMap(ServerPlayer p) {
+		ClaimView.open(p);
 	}
 
 	// ---------------------------------------------------------------- opslag
@@ -329,7 +358,7 @@ public final class ClaimsMod implements ModInitializer {
 				msg(p, "This chunk is already yours.", ChatFormatting.GRAY);
 			} else {
 				p.sendSystemMessage(Ui.prefix("Claims").append(Ui.text("This chunk belongs to " + existing.ownerName + ". ", ChatFormatting.GOLD))
-						.append(Ui.text("Free land shows as blocks on the map. ", ChatFormatting.GRAY)).append(mapButton()));
+						.append(Ui.text("Free land has no colour on the land map. ", ChatFormatting.GRAY)).append(mapButton()));
 			}
 			return false;
 		}
@@ -374,7 +403,7 @@ public final class ClaimsMod implements ModInitializer {
 		ChunkPos c = p.chunkPosition();
 		Claim existing = claimAt(level, c);
 		if (existing != null && existing.owner.equals(p.getUUID())) {
-			MapGui.open(p);
+			ClaimView.open(p);
 			return 1;
 		}
 		if (!claim(p, level, c)) return 0;

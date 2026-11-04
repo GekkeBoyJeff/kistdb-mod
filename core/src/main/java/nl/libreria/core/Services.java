@@ -109,6 +109,18 @@ public final class Services {
 	public record CardData(int points, int earned, int total, int items, int itemsTotal) {
 	}
 
+	/** Players whose camera a module has taken over (e.g. the claims map): no look-at tooltip for them. */
+	private static final java.util.Set<java.util.UUID> CAMERA = new java.util.HashSet<>();
+
+	public static void setCamera(java.util.UUID player, boolean busy) {
+		if (busy) CAMERA.add(player);
+		else CAMERA.remove(player);
+	}
+
+	public static boolean inCamera(ServerPlayer player) {
+		return CAMERA.contains(player.getUUID());
+	}
+
 	private static @Nullable Progress progress;
 
 	public static void provideProgress(Progress p) {

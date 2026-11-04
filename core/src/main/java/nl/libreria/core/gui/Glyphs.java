@@ -31,6 +31,9 @@ public final class Glyphs {
 	private static final Map<String, int[]> GLYPHS = new HashMap<>();
 	private static final Map<Integer, Integer> ADVANCE_BY_CP = new HashMap<>();
 	private static final Map<Integer, Integer> WIDTHS = new HashMap<>();
+	/** Item id (without "minecraft:") → {codepoint, tinted, advance} of its 16x16 icon in the top tooltip fonts. */
+	private static final Map<String, int[]> ICONS = new HashMap<>();
+	public static int hudLines = 12;
 	private static int defaultWidth = 8;
 	public static int lineHeight = 10;
 	public static int padX = 6;
@@ -54,6 +57,13 @@ public final class Glyphs {
 				int[] g = {a.get(0).getAsInt(), a.get(1).getAsInt()};
 				GLYPHS.put(e.getKey(), g);
 				ADVANCE_BY_CP.put(g[0], g[1]);
+			}
+			if (meta.has("hudLines")) hudLines = meta.get("hudLines").getAsInt();
+			if (meta.has("icons")) {
+				for (var e : meta.getAsJsonObject("icons").entrySet()) {
+					JsonArray a = e.getValue().getAsJsonArray();
+					ICONS.put(e.getKey(), new int[] {a.get(0).getAsInt(), a.get(1).getAsInt(), a.size() > 2 ? a.get(2).getAsInt() : 17});
+				}
 			}
 			JsonObject w = read("/libreria/font_widths.json");
 			defaultWidth = w.get("default").getAsInt();
@@ -183,6 +193,32 @@ public final class Glyphs {
 		int w = innerW + 2 * padX;
 		String back = g("space-1");
 		return ui(g("panel" + n + ".l") + back + tiles("panel" + n + ".m", w - 12) + g("panel" + n + ".r") + back);
+	}
+
+	/** Font for line {@code line} of the top-of-screen tooltip (everything moved down one line per font). */
+	public static FontDescription hud(int line) {
+		return new FontDescription.Resource(Identifier.fromNamespaceAndPath("libreria", "hud" + line));
+	}
+
+	/** {codepoint, tinted (1/0), advance} of an item's icon for the top tooltip, or null. */
+	@org.jetbrains.annotations.Nullable
+	public static int[] icon(net.minecraft.world.item.Item item) {
+		Identifier id = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(item);
+		return id.getNamespace().equals("minecraft") ? ICONS.get(id.getPath()) : null;
+	}
+
+	/**
+	 * The same text in another font (deeply: every part). Pictures from the UI font lose their shadow when
+	 * {@code noShadowOnPictures} is set (a boss bar title always draws a shadow).
+	 */
+	public static MutableComponent inFont(Component c, FontDescription font, boolean noShadowOnPictures) {
+		Style st = c.getStyle();
+		boolean picture = st.getFont() instanceof FontDescription.Resource r && r.id().getNamespace().equals("libreria");
+		Style ns = st.withFont(font);
+		if (picture && noShadowOnPictures) ns = ns.withoutShadow();
+		MutableComponent out = c.plainCopy().setStyle(ns);
+		for (Component sib : c.getSiblings()) out.append(inFont(sib, font, noShadowOnPictures));
+		return out;
 	}
 
 	/** A container title with the themed frame of a tool drawn behind the whole window. */

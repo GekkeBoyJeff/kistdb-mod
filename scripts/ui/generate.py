@@ -16,6 +16,11 @@ import sys
 from PIL import Image
 
 OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(os.path.dirname(__file__), '../../core/src/main/resources')
+VANILLA = sys.argv[2] if len(sys.argv) > 2 else '/home/claude/ref/assets/assets/minecraft'
+# Top-of-screen tooltip (a boss bar title): number of lines and where the panel starts (screen pixels)
+HUD_LINES = 12
+HUD_NAME_Y = 3
+HUD_PANEL_TOP = 2
 NS = 'libreria'
 
 # Line height of a text display (font line height + 1)
@@ -471,10 +476,142 @@ def plaques():
                   open(os.path.join(base, f'items/gui/pane_{name}.json'), 'w'), indent=1)
 
 
+# ------------------------------------------------------------------ top-of-screen tooltip (boss bar title)
+
+def resolve_textures(model_id, depth=0):
+    """Texture variables of a vanilla model, following parents."""
+    if depth > 12 or not model_id or model_id.startswith('builtin/') or model_id.startswith('minecraft:builtin/'):
+        return {}
+    path = model_id.split(':')[-1]
+    f = os.path.join(VANILLA, 'models', path + '.json')
+    if not os.path.exists(f):
+        return {}
+    m = json.load(open(f))
+    tex = dict(resolve_textures(m.get('parent'), depth + 1)) if m.get('parent') else {}
+    tex.update(m.get('textures', {}))
+    return tex
+
+
+def first_model(node):
+    """The first plain model a (possibly nested) item model definition points at."""
+    if not isinstance(node, dict):
+        return None
+    t = node.get('type', '').replace('minecraft:', '')
+    if t == 'model':
+        return node.get('model')
+    if t == 'special':
+        return node.get('base')
+    order = []
+    if t == 'select':
+        order = [node.get('fallback')] + [c.get('model') for c in node.get('cases', [])]
+    elif t == 'condition':
+        order = [node.get('on_false'), node.get('on_true')]
+    elif t == 'composite':
+        order = node.get('models', [])
+    elif t == 'range_dispatch':
+        order = [node.get('fallback')] + [e.get('model') for e in node.get('entries', [])]
+    for n in order:
+        r = first_model(n)
+        if r:
+            return r
+    return None
+
+
+def icon_texture(item):
+    d = json.load(open(os.path.join(VANILLA, 'items', item + '.json')))
+    mid = first_model(d['model'])
+    if not mid:
+        return None, False
+    tinted = False
+    tex = resolve_textures(mid)
+
+    def deref(v, n=0):
+        while isinstance(v, str) and v.startswith('#') and n < 8:
+            v = tex.get(v[1:])
+            n += 1
+        return v
+
+    for key in ('layer0', 'all', 'side', 'front', 'texture', 'cross', 'plant', 'pattern', 'top', 'end', 'particle'):
+        v = deref(tex.get(key))
+        if isinstance(v, str) and not v.startswith('#'):
+            v = v if ':' in v else 'minecraft:' + v
+            png = os.path.join(VANILLA, 'textures', v.split(':')[1] + '.png')
+            if os.path.exists(png):
+                if any(w in v for w in ('leaves', 'grass_block_top', 'vine', 'lily_pad', 'fern', 'short_grass', 'tall_grass')):
+                    tinted = True
+                return v, tinted
+    return None, False
+
+
+def hud_fonts():
+    """libreria:hud0..hudN: the vanilla font and our pictures moved down one tooltip line each, so a boss bar title
+    (a single line of text at the top of the screen) can draw a whole card. Same characters as libreria:ui."""
+    default = json.load(open(os.path.join(VANILLA, 'font/include/default.json')))['providers']
+    ui = [p for p in providers if p['type'] == 'bitmap' and not p['file'].split('/')[-1].startswith(('panel_', 'frame_'))]
+    space = [p for p in providers if p['type'] == 'space']
+    base = os.path.join(OUT, 'assets', NS, 'font')
+    icons = {}
+    # Block and item icons (vanilla textures, referenced, not copied) for the slot on the first line
+    icon_providers = []
+    items_dir = os.path.join(VANILLA, 'items')
+    for fname in sorted(os.listdir(items_dir)):
+        item = fname[:-5]
+        tex, tinted = icon_texture(item)
+        if not tex:
+            continue
+        png = os.path.join(VANILLA, 'textures', tex.split(':')[1] + '.png')
+        im = Image.open(png)
+        if im.width == 0 or im.height % im.width:
+            continue
+        frames = im.height // im.width
+        cp = next_cp()
+        chars = [chr(cp)] + ['\u0000'] * (frames - 1)
+        icon_providers.append({'type': 'bitmap', 'file': tex + '.png', 'height': 16, 'ascent': 0, 'chars': chars})
+        # Advance like Minecraft: rightmost non-transparent column of the first frame, scaled to 16 px, plus 1
+        first = im.convert('RGBA').crop((0, 0, im.width, im.width))
+        w = actual_width(first, 0, first.width, first.height)
+        icons[item] = [cp, 1 if tinted else 0, int(0.5 + w * 16 / im.width) + 1]
+    pad_top = PAD_TOP
+    for k in range(HUD_LINES):
+        shift = (HUD_PANEL_TOP + pad_top + LH * k) - HUD_NAME_Y
+        provs = [{'type': 'space', 'advances': {' ': 4, '\u200c': 0}}] + space
+        for p in default:
+            q = dict(p)
+            q['ascent'] = p.get('ascent', 7) - shift
+            provs.append(q)
+        for p in ui:
+            q = dict(p)
+            q['ascent'] = p['ascent'] - shift
+            provs.append(q)
+        if k == 0:
+            # The panel: its top just below the top of the screen
+            for p in providers:
+                if p['type'] == 'bitmap' and p['file'].split('/')[-1].startswith('panel_'):
+                    q = dict(p)
+                    q['ascent'] = HUD_NAME_Y + 7 - HUD_PANEL_TOP
+                    provs.append(q)
+            # Icons: 16x16 in the middle of the slot (slot top = line top - 1, so icon top = line top + 2)
+            for p in icon_providers:
+                q = dict(p)
+                q['ascent'] = HUD_NAME_Y + 7 - (HUD_PANEL_TOP + pad_top + 2)
+                provs.append(q)
+        json.dump({'providers': provs}, open(os.path.join(base, f'hud{k}.json'), 'w'))
+    return icons
+
+
+def boss_bar():
+    """The boss bar of the top tooltip uses the white colour; the pack makes white bars invisible (only the title)."""
+    d = os.path.join(OUT, 'assets', 'minecraft', 'textures/gui/sprites/boss_bar')
+    os.makedirs(d, exist_ok=True)
+    for name in ('white_background', 'white_progress'):
+        Image.new('RGBA', (182, 5), (0, 0, 0, 0)).save(os.path.join(d, name + '.png'))
+
+
 def main():
     base = os.path.join(OUT, 'assets', NS)
     for sub in ('textures/font/ui', 'font', 'items/gui', 'models/item/gui', 'textures/item/gui'):
         shutil.rmtree(os.path.join(base, sub), ignore_errors=True)
+    shutil.rmtree(os.path.join(OUT, 'assets', 'minecraft'), ignore_errors=True)
     spaces()
     panels()
     gem()
@@ -487,7 +624,9 @@ def main():
     plaques()
     os.makedirs(os.path.join(base, 'font'), exist_ok=True)
     json.dump({'providers': providers}, open(os.path.join(base, 'font/ui.json'), 'w'), indent=1)
-    meta = {'lineHeight': LH, 'padX': PAD_X, 'padTop': PAD_TOP, 'padBottom': PAD_BOTTOM,
+    icon_map = hud_fonts()
+    boss_bar()
+    meta = {"hudLines": HUD_LINES, "icons": icon_map, 'lineHeight': LH, 'padX': PAD_X, 'padTop': PAD_TOP, 'padBottom': PAD_BOTTOM,
             'panelLines': [min(PANEL_LINES), max(PANEL_LINES)], 'themes': list(THEMES), 'glyphs': glyphs}
     os.makedirs(os.path.join(OUT, NS), exist_ok=True)
     json.dump(meta, open(os.path.join(OUT, NS, 'ui_glyphs.json'), 'w'), indent=1)
