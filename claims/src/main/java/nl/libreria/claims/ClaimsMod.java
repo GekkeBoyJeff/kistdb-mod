@@ -96,7 +96,7 @@ public final class ClaimsMod implements ModInitializer {
 	static final ServerSetting.Number HOURS = MODULE.serverNumber("budget_hours", "Hours per extra chunk", Items.CLOCK,
 			2, 1, 24, 1, "hours", "One more chunk per this many", "hours played.");
 	static final ServerSetting.Number POINTS = MODULE.serverNumber("budget_points", "Points per extra chunk", Items.GOLD_INGOT,
-			20, 5, 200, 5, "points", "One more chunk per this many", "achievement points.");
+			40, 5, 400, 5, "points", "One more chunk per this many", "achievement points.");
 	static final ServerSetting.Number LIMIT = MODULE.serverNumber("budget_max", "Most chunks per player", Items.BEACON,
 			400, 16, 1024, 8, "chunks", "Nobody gets more than this.");
 	static final int TICKS_PER_HOUR = 72000;
