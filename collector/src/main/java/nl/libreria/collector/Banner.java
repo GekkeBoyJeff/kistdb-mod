@@ -78,7 +78,9 @@ final class Banner {
 		ServerPlayer who = server.getPlayerList().getPlayer(next.who());
 		for (ServerPlayer p : server.getPlayerList().getPlayers()) {
 			if (!CollectorMod.BIG.get(p)) continue;
-			TopCard.show(p, CHANNEL, card(next, p.getUUID().equals(next.who())), 50, ticks);
+			boolean self = p.getUUID().equals(next.who());
+			if (!self && r.ordinal() < Rarity.RARE.ordinal()) continue;
+			TopCard.show(p, CHANNEL, card(next, self), 50, ticks);
 			boolean seesRockets = who != null && p.level() == who.level() && p.distanceTo(who) < SEE;
 			sounds(p, r, seesRockets);
 		}
@@ -95,7 +97,9 @@ final class Banner {
 				.append(Component.literal(" earned it  ·  ").withStyle(ChatFormatting.GRAY))
 				.append(Component.literal(r.label).withStyle(r.color))
 				.append(Component.literal("  ·  +" + r.points + (r.points == 1 ? " point" : " points")).withStyle(ChatFormatting.GRAY));
-		List<TopCard.Row> rows = List.of(TopCard.Row.text("trophy", "", Component.literal(a.description()).withStyle(ChatFormatting.GRAY)));
+		String grade = Catalog.gradeText(a);
+		List<TopCard.Row> rows = List.of(TopCard.Row.text("trophy", "", Component.literal(a.description()
+				+ (grade == null ? "" : "  ·  " + grade)).withStyle(ChatFormatting.GRAY)));
 		return new TopCard.Card(new ItemStack(a.icon()), rgb == null ? -1 : rgb, name, subtitle, rows);
 	}
 
@@ -128,6 +132,8 @@ final class Banner {
 		RandomSource random = level.getRandom();
 		List<ServerPlayer> viewers = new ArrayList<>();
 		for (ServerPlayer p : level.players()) {
+			// Rockets for everyone around only for the rare ones; the rest only for whoever earned it
+			if (p != who && r.ordinal() < Rarity.RARE.ordinal()) continue;
 			if (p.distanceTo(who) < SEE) viewers.add(p);
 		}
 		if (viewers.isEmpty()) return;

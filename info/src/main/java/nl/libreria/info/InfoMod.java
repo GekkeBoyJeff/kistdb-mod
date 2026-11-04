@@ -61,6 +61,36 @@ public final class InfoMod implements ModInitializer {
 				"Playtime, distances, kills, most", "mined blocks and more.");
 		Services.provideMenu(Services.MENU_STATS, StatsGui::open);
 		Services.provideMenu(Services.MENU_JOURNAL, Places::journal);
+		Services.provideDiscoveries(new Services.Discoveries() {
+			@Override
+			public int places(ServerPlayer player) {
+				return Places.STORE.get(player).places.size();
+			}
+
+			@Override
+			public int biomes(ServerPlayer player) {
+				return Places.STORE.get(player).biomes.size();
+			}
+
+			@Override
+			public int ofKind(ServerPlayer player, String kind) {
+				int n = 0;
+				for (Places.Place pl : Places.STORE.get(player).places) if (pl.kind.equals(kind)) n++;
+				return n;
+			}
+
+			@Override
+			public int structureKinds(ServerPlayer player) {
+				java.util.Set<String> all = PlaceNames.structureLabels(), seen = new java.util.HashSet<>();
+				for (Places.Place pl : Places.STORE.get(player).places) if (all.contains(pl.kind)) seen.add(pl.kind);
+				return seen.size();
+			}
+
+			@Override
+			public int structureKindsTotal() {
+				return PlaceNames.structureLabels().size();
+			}
+		});
 		VillagerNames.init();
 		Weapons.init();
 		Pets.init();

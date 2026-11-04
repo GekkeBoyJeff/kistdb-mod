@@ -95,6 +95,16 @@ final class PlaceNames {
 	private PlaceNames() {
 	}
 
+	/** Every kind of structure that gets a title (Village, Stronghold, Shipwreck…), for "found every kind". */
+	static java.util.Set<String> structureLabels() {
+		java.util.Set<String> out = new java.util.TreeSet<>();
+		for (Kind k : KINDS.values()) out.add(k.label());
+		out.add("Ruined Portal");
+		out.add("Shipwreck");
+		out.add("Ocean Ruins");
+		return out;
+	}
+
 	/** The kind of a structure id like "village_plains" or "ruined_portal_desert", or null for no title. */
 	static @Nullable Kind kind(String path) {
 		Kind k = KINDS.get(path);

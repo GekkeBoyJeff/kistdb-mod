@@ -12,18 +12,31 @@ import org.jetbrains.annotations.Nullable;
 public record Achievement(String id, Category category, String name, String description, Item icon, Rarity rarity,
 		Goal goal, @Nullable List<String> items) {
 
+	/**
+	 * The tabs. The enum names are stored nowhere but in the advancement ids of the tab roots, so they can be renamed
+	 * freely; what players earned is kept by achievement id.
+	 */
 	public enum Category {
-		VERZAMELEN("Collecting", "Items you ever had in your inventory"),
-		FOKKEN("Breeding", "Animals and villagers"),
-		TIJD("Playtime", "Time on the server"),
-		AVONTUUR("Adventure", "Mining, fighting, traveling…");
+		VERZAMELEN("Collecting", "Items you ever had in your inventory", "chest", "gui/advancements/backgrounds/stone"),
+		MIJNBOUW("Mining", "Stone, ore and everything you dig", "iron_pickaxe", "block/deepslate"),
+		GEVECHT("Combat", "Monsters, bosses and raids", "iron_sword", "gui/advancements/backgrounds/nether"),
+		FOKKEN("Farming & animals", "Crops, breeding, fishing and villagers", "wheat", "gui/advancements/backgrounds/husbandry"),
+		ONTDEKKEN("Exploring", "Travel, places and the far corners", "compass", "gui/advancements/backgrounds/adventure"),
+		MAKEN("Crafting & building", "What you make, place and use", "crafting_table", "block/oak_planks"),
+		TIJD("Playtime & life", "Time here, eating, sleeping, staying alive", "clock", "gui/advancements/backgrounds/end");
 
 		public final String label;
 		public final String hint;
+		/** Item id of the tab's icon. */
+		public final String icon;
+		/** Texture behind the tab in the advancements screen (L). */
+		public final String background;
 
-		Category(String label, String hint) {
+		Category(String label, String hint, String icon, String background) {
 			this.label = label;
 			this.hint = hint;
+			this.icon = icon;
+			this.background = background;
 		}
 	}
 

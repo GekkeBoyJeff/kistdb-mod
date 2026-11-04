@@ -379,6 +379,22 @@ public final class Screens implements FabricClientGameTest {
 			menu(ctx, server, player, "window_pets", nl.libreria.core.Services.menu(nl.libreria.core.Services.MENU_PETS).orElse(p -> {
 			}));
 			menu(ctx, server, player, "window_chronicle", nl.libreria.core.Chronicle::open);
+			// The mining achievements, one icon per ladder, with the grades in the tooltip
+			safe("achievements_mining", () -> {
+				server.runOnServer(s -> nl.libreria.collector.gui.AchievementsGui.openCategory(player,
+						nl.libreria.collector.Achievement.Category.MIJNBOUW));
+				ctx.waitTicks(12);
+				noToasts(ctx);
+				double scale = ctx.computeOnClient(mc -> (double) mc.getWindow().getGuiScale());
+				int w = ctx.computeOnClient(mc -> mc.getWindow().getGuiScaledWidth());
+				int h = ctx.computeOnClient(mc -> mc.getWindow().getGuiScaledHeight());
+				int left = (w - 176) / 2, top = (h - 222) / 2;
+				ctx.getInput().setCursorPos((left + 16) * scale, (top + 26) * scale);
+				ctx.waitTicks(5);
+				ctx.takeScreenshot("achievements_mining");
+				ctx.getInput().setCursorPos(2, 2);
+				close(ctx, server, player);
+			});
 			safe("welcome_card", () -> {
 				server.runOnServer(s -> nl.libreria.core.Welcome.card(player));
 				ctx.waitTicks(10);

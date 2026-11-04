@@ -48,9 +48,9 @@ public final class CollectorMod implements ModInitializer {
 	public static final Setting.Toggle SHOW_TITLE = MODULE.toggle("titel", "Title above your name", true, Items.NAME_TAG,
 			"Your chosen title floats above your", "name, in the color of its rarity.", "Choose one: /titles");
 	public static final Setting.Toggle BIG = MODULE.toggle("groot", "Achievement banner", true, Items.FIREWORK_ROCKET,
-			"A banner at the top of your screen and", "fireworks when anyone (you too) earns", "an achievement.");
+			"A banner at the top of your screen and", "fireworks when you earn an achievement,", "or someone else a rare (or better) one.");
 	public static final Setting.Toggle OTHERS = MODULE.toggle("anderen", "Others' achievements", true, Items.BELL,
-			"A chat message when someone else earns", "an uncommon (or better) achievement.");
+			"A chat message when someone else earns", "a rare (or better) achievement.");
 
 	public static final class Data {
 		/** Item-ID's (zonder "minecraft:") die je ooit in je inventory had. */
@@ -64,6 +64,8 @@ public final class CollectorMod implements ModInitializer {
 		/** "" = automatisch (hoogste), "-" = geen titel, anders een prestatie-ID. */
 		public String title = "";
 		public boolean initialized;
+		/** {@link Catalog#signature()} at the last check: when it changes, new achievements are given quietly. */
+		public int catalog;
 	}
 
 	public static final PlayerStore<Data> STORE = PlayerStore.create("libreria/collector", Data.class, Data::new, d -> {
@@ -262,25 +264,31 @@ public final class CollectorMod implements ModInitializer {
 
 	static void check(ServerPlayer p) {
 		if (Catalog.all().isEmpty()) return;
+		Catalog.fresh();
 		Data d = STORE.get(p);
 		List<Achievement> fresh = new ArrayList<>();
 		for (Achievement a : Catalog.all()) {
 			if (d.earned.containsKey(a.id())) continue;
 			if (a.current(p, d) >= a.target()) fresh.add(a);
 		}
-		if (fresh.isEmpty() && d.initialized) return;
+		boolean firstTime = !d.initialized, newCatalog = d.catalog != Catalog.signature();
+		if (fresh.isEmpty() && !firstTime && !newCatalog) return;
 		long now = System.currentTimeMillis();
 		for (Achievement a : fresh) {
 			d.earned.put(a.id(), now);
 			Advancements.complete(p, a);
 		}
 		STORE.markDirty(p);
-		if (!d.initialized) {
-			// Eerste keer: wat je al gedaan had stilletjes toekennen, geen spam
+		if (firstTime || newCatalog) {
+			// What you had already done is given quietly: no banners, fireworks or chat for each one
 			d.initialized = true;
+			d.catalog = Catalog.signature();
 			if (!fresh.isEmpty()) {
-				p.sendSystemMessage(Ui.prefix("Collector").append(Ui.text("You've already earned " + fresh.size()
-						+ (fresh.size() == 1 ? " achievement" : " achievements") + "! See them with /achievements.", ChatFormatting.GOLD)));
+				String what = fresh.size() == 1 ? " achievement" : " achievements";
+				p.sendSystemMessage(Ui.prefix("Collector").append(Ui.text(firstTime
+						? "You've already earned " + fresh.size() + what + "! See them with /achievements."
+						: "There are new achievements, and you had already done enough for " + fresh.size() + what
+								+ ". See them with /achievements.", ChatFormatting.GOLD)));
 			}
 			return;
 		}
@@ -319,7 +327,8 @@ public final class CollectorMod implements ModInitializer {
 						.withHoverEvent(new HoverEvent.ShowText(Component.literal("Show ").withStyle(ChatFormatting.GRAY)
 								.append(Component.literal("✦ " + a.name() + " ✦").withStyle(a.rarity().color))
 								.append(Component.literal(" above your name").withStyle(ChatFormatting.GRAY)))))));
-		if (r.ordinal() >= Rarity.UNCOMMON.ordinal()) {
+		// Others hear about the rare ones (with this many achievements, every common one would be a lot of chat)
+		if (r.ordinal() >= Rarity.RARE.ordinal()) {
 			Component msg = Ui.prefix("Collector").append(Nameplate.displayName(p).copy().withStyle(ChatFormatting.WHITE))
 					.append(Ui.text(" earned ", ChatFormatting.GRAY)).append(chip);
 			for (ServerPlayer other : p.level().getServer().getPlayerList().getPlayers()) {

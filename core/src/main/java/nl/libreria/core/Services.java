@@ -173,6 +173,34 @@ public final class Services {
 		return CAMERA.contains(player.getUUID());
 	}
 
+	/** What a player discovered (Info's journal): for exploring achievements. */
+	public interface Discoveries {
+		/** Places in the journal: villages, temples, peaks, lakes, stretches of land. */
+		int places(ServerPlayer player);
+
+		/** Different biomes visited. */
+		int biomes(ServerPlayer player);
+
+		/** Places of one kind ("Village", "Peak", "Lake", "Cavern", "Ancient City"…). */
+		int ofKind(ServerPlayer player, String kind);
+
+		/** Different kinds of structure found. */
+		int structureKinds(ServerPlayer player);
+
+		/** How many kinds of structure there are to find. */
+		int structureKindsTotal();
+	}
+
+	private static @Nullable Discoveries discoveries;
+
+	public static void provideDiscoveries(Discoveries d) {
+		discoveries = d;
+	}
+
+	public static Optional<Discoveries> discoveries() {
+		return Optional.ofNullable(discoveries);
+	}
+
 	private static @Nullable Progress progress;
 
 	public static void provideProgress(Progress p) {

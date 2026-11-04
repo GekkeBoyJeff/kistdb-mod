@@ -35,6 +35,11 @@ public final class AchievementsGui {
 		new Main(player).open();
 	}
 
+	/** One category's page (also for the screenshot test). */
+	public static void openCategory(ServerPlayer player, Category c) {
+		new CategoryPage(player, c, 0).open();
+	}
+
 	public static void openTitles(ServerPlayer player) {
 		new Titles(player, 0).open();
 	}
@@ -55,12 +60,23 @@ public final class AchievementsGui {
 
 	/** An achievement: glowing and in its rarity colour when earned, grey with a progress bar while you work on it. */
 	static GuiElementBuilder icon(ServerPlayer p, CollectorMod.Data d, Achievement a) {
+		GuiElementBuilder b = base(p, d, a);
+		boolean done = d.earned.containsKey(a.id());
+		b.addLoreLine(Component.empty());
+		if (a.isCollection()) Menu.action(b, "Click: see what you have and miss");
+		if (done) Menu.action(b, (a.isCollection() ? "Right-click" : "Click") + ": use as title ✦ " + a.name() + " ✦");
+		return b;
+	}
+
+	/** Name, rarity and grade, what to do, and how far you are (no click hints). */
+	static GuiElementBuilder base(ServerPlayer p, CollectorMod.Data d, Achievement a) {
 		Long at = d.earned.get(a.id());
 		boolean done = at != null;
 		long cur = a.current(p, d), target = a.target();
+		String grade = Catalog.gradeText(a);
 		GuiElementBuilder b = new GuiElementBuilder(a.icon())
 				.setName(Ui.text((done ? "✔ " : "") + a.name(), done ? a.rarity().color : ChatFormatting.GRAY).withStyle(ChatFormatting.BOLD))
-				.addLoreLine(Ui.text(a.rarity().label, a.rarity().color))
+				.addLoreLine(Ui.text(a.rarity().label + (grade == null ? "" : "  ·  " + grade), a.rarity().color))
 				.addLoreLine(Ui.text(a.description(), ChatFormatting.GRAY))
 				.addLoreLine(Component.empty())
 				.addLoreLine(Component.empty().append(Ui.bar(target == 0 ? 1 : (double) cur / target, 12))
@@ -70,9 +86,6 @@ public final class AchievementsGui {
 			b.addLoreLine(Ui.text("Earned on " + CollectorMod.date(at), ChatFormatting.DARK_GRAY));
 			b.glow();
 		}
-		b.addLoreLine(Component.empty());
-		if (a.isCollection()) Menu.action(b, "Click: see what you have and miss");
-		if (done) Menu.action(b, (a.isCollection() ? "Right-click" : "Click") + ": use as title ✦ " + a.name() + " ✦");
 		return b;
 	}
 
@@ -106,14 +119,13 @@ public final class AchievementsGui {
 			}));
 
 			// Categories
-			Item[] icons = {Items.CHEST, Items.WHEAT, Items.CLOCK, Items.IRON_SWORD};
-			int[] slots = row(3, 4);
 			Category[] cats = Category.values();
-			for (int i = 0; i < cats.length; i++) {
+			int[] slots = row(3, cats.length);
+			for (int i = 0; i < cats.length && i < slots.length; i++) {
 				Category c = cats[i];
 				List<Achievement> list = Catalog.of(c);
 				int got = earnedIn(d, list);
-				GuiElementBuilder b = button(icons[i], c.label, ChatFormatting.YELLOW, c.hint);
+				GuiElementBuilder b = button(Ui.item(c.icon), c.label, ChatFormatting.YELLOW, c.hint);
 				b.addLoreLine(Component.empty().append(Ui.bar(list.isEmpty() ? 0 : (double) got / list.size(), 12))
 						.append(Ui.text("  " + got + " / " + list.size(), ChatFormatting.WHITE)));
 				actions(b, "Click: open");
@@ -168,27 +180,53 @@ public final class AchievementsGui {
 	private static final class CategoryPage extends Menu {
 		CategoryPage(ServerPlayer p, Category c, int page) {
 			super(p, 6, "Achievements · " + c.label);
+			Catalog.fresh();
 			CollectorMod.Data d = CollectorMod.STORE.get(p);
-			List<Achievement> list = new ArrayList<>(Catalog.of(c));
-			// What you're closest to first; earned ones at the end
-			list.sort(Comparator.<Achievement>comparingInt(a -> d.earned.containsKey(a.id()) ? 1 : 0)
-					.thenComparingDouble(a -> -((double) a.current(p, d) / Math.max(1, a.target())))
-					.thenComparingInt(a -> a.rarity().ordinal()));
+			// One icon per ladder: the grade you're working on (or the top one, once you have them all)
+			List<List<Achievement>> ladders = new ArrayList<>();
+			java.util.Set<String> seen = new java.util.HashSet<>();
+			for (Achievement a : Catalog.of(c)) {
+				List<Achievement> ladder = Catalog.ladder(a);
+				if (seen.add(ladder.get(0).id())) ladders.add(ladder);
+			}
+			// What you're closest to first; finished ladders at the end
+			ladders.sort(Comparator.<List<Achievement>>comparingInt(l -> next(d, l) == null ? 1 : 0)
+					.thenComparingDouble(l -> {
+						Achievement n = next(d, l);
+						return n == null ? 0 : -((double) n.current(p, d) / Math.max(1, n.target()));
+					}));
 			int per = contentSize();
-			int pages = Math.max(1, (list.size() + per - 1) / per);
+			int pages = Math.max(1, (ladders.size() + per - 1) / per);
 			int pg = Math.min(page, pages - 1);
 			for (int i = 0; i < per; i++) {
 				int idx = pg * per + i;
-				if (idx >= list.size()) break;
-				Achievement a = list.get(idx);
-				GuiElementBuilder b = icon(p, d, a);
-				boolean done = d.earned.containsKey(a.id());
+				if (idx >= ladders.size()) break;
+				List<Achievement> ladder = ladders.get(idx);
+				Achievement shown = next(d, ladder) != null ? next(d, ladder) : ladder.get(ladder.size() - 1);
+				Achievement best = best(d, ladder);
+				GuiElementBuilder b = ladder.size() > 1 ? base(p, d, shown) : icon(p, d, shown);
+				if (ladder.size() > 1) {
+					b.addLoreLine(Component.empty());
+					b.addLoreLine(Ui.text("Grades", ChatFormatting.WHITE));
+					for (int g = 0; g < ladder.size(); g++) {
+						Achievement a = ladder.get(g);
+						boolean got = d.earned.containsKey(a.id());
+						b.addLoreLine(Component.empty()
+								.append(Ui.text(got ? " ✔ " : " ✘ ", got ? ChatFormatting.GREEN : ChatFormatting.DARK_GRAY))
+								.append(Ui.text(roman(g + 1) + "  ", ChatFormatting.DARK_GRAY))
+								.append(Ui.text(a.name(), got ? a.rarity().color : ChatFormatting.GRAY))
+								.append(Ui.text("  " + num(a.target()), ChatFormatting.DARK_GRAY)));
+					}
+					b.addLoreLine(Component.empty());
+					if (shown.isCollection()) Menu.action(b, "Click: see what you have and miss");
+					if (best != null) Menu.action(b, (shown.isCollection() ? "Right-click" : "Click") + ": use ✦ " + best.name() + " ✦ as title");
+				}
 				b.setCallback((x, t, act, g) -> {
-					if (a.isCollection() && !t.isRight) {
+					if (shown.isCollection() && !t.isRight) {
 						Ui.click(p);
-						new ItemsPage(p, a.name(), a, a.items(), Filter.ALL, 0, () -> new CategoryPage(p, c, pg).open()).open();
-					} else if (done) {
-						CollectorMod.setTitle(p, a.id());
+						new ItemsPage(p, shown.name(), shown, shown.items(), Filter.ALL, 0, () -> new CategoryPage(p, c, pg).open()).open();
+					} else if (best != null) {
+						CollectorMod.setTitle(p, best.id());
 						new CategoryPage(p, c, pg).open();
 					}
 				});
@@ -197,8 +235,37 @@ public final class AchievementsGui {
 			back("achievements", () -> AchievementsGui.open(p));
 			pages(pg, pages, n -> new CategoryPage(p, c, n).open());
 			closeButton();
-			help("Sorted by how close you are.", "Earned ones glow and come last.", "", "Click an earned one to use it", "as your title.");
+			help("One icon per achievement, with its", "grades: mine 100 stone, then 1,000,", "then 10,000… Every grade is a title.", "",
+					"Sorted by how close you are.", "Click one you earned to use it", "as your title.");
 			finish();
+		}
+
+		/** The lowest grade not yet earned, or null if you have them all. */
+		private static Achievement next(CollectorMod.Data d, List<Achievement> ladder) {
+			for (Achievement a : ladder) if (!d.earned.containsKey(a.id())) return a;
+			return null;
+		}
+
+		/** The highest grade earned, or null. */
+		private static Achievement best(CollectorMod.Data d, List<Achievement> ladder) {
+			Achievement best = null;
+			for (Achievement a : ladder) if (d.earned.containsKey(a.id())) best = a;
+			return best;
+		}
+
+		private static String roman(int n) {
+			return switch (n) {
+				case 1 -> "I";
+				case 2 -> "II";
+				case 3 -> "III";
+				case 4 -> "IV";
+				case 5 -> "V";
+				case 6 -> "VI";
+				case 7 -> "VII";
+				case 8 -> "VIII";
+				case 9 -> "IX";
+				default -> Integer.toString(n);
+			};
 		}
 	}
 

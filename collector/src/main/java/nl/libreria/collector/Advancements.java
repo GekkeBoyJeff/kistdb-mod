@@ -71,21 +71,11 @@ final class Advancements {
 	}
 
 	private static Item rootIcon(Category c) {
-		return switch (c) {
-			case VERZAMELEN -> Items.CHEST;
-			case FOKKEN -> Items.WHEAT;
-			case TIJD -> Items.CLOCK;
-			case AVONTUUR -> Items.IRON_SWORD;
-		};
+		return nl.libreria.core.Ui.item(c.icon);
 	}
 
 	private static String background(Category c) {
-		return switch (c) {
-			case VERZAMELEN -> "gui/advancements/backgrounds/stone";
-			case FOKKEN -> "gui/advancements/backgrounds/husbandry";
-			case TIJD -> "gui/advancements/backgrounds/end";
-			case AVONTUUR -> "gui/advancements/backgrounds/adventure";
-		};
+		return c.background;
 	}
 
 	private static List<AdvancementHolder> build() {
@@ -104,20 +94,12 @@ final class Advancements {
 			out.add(root);
 		}
 
-		// Chains: same id prefix with numeric (or "alles") suffix, ordered by target, e.g. items.50 → items.150 → …
-		Map<String, List<Achievement>> chains = new LinkedHashMap<>();
-		for (Achievement a : Catalog.all()) {
-			if (a.isCollection() && !a.id().startsWith("items.")) continue;
-			int dot = a.id().lastIndexOf('.');
-			String suffix = a.id().substring(dot + 1);
-			if (dot > 0 && (suffix.chars().allMatch(Character::isDigit) || suffix.equals("alles"))) {
-				chains.computeIfAbsent(a.id().substring(0, dot), k -> new ArrayList<>()).add(a);
-			}
-		}
+		// Ladders: every grade hangs under the one before it (stone 100 → 1,000 → 10,000)
 		Map<String, String> parentOf = new HashMap<>();
-		for (List<Achievement> chain : chains.values()) {
-			chain.sort(Comparator.comparingLong(Achievement::target));
-			for (int i = 1; i < chain.size(); i++) parentOf.put(chain.get(i).id(), chain.get(i - 1).id());
+		for (Achievement a : Catalog.all()) {
+			List<Achievement> ladder = Catalog.ladder(a);
+			int i = ladder.indexOf(a);
+			if (i > 0) parentOf.put(a.id(), ladder.get(i - 1).id());
 		}
 
 		// Parents first, so every holder can point at its parent
@@ -128,8 +110,9 @@ final class Advancements {
 			String parent = parentOf.get(a.id());
 			b.parent(parent != null && BY_ID.containsKey(parent) ? BY_ID.get(parent) : ROOTS.get(a.category()));
 			Rarity r = a.rarity();
+			String grade = Catalog.gradeText(a);
 			MutableComponent desc = Component.literal(a.description()).withStyle(ChatFormatting.GRAY)
-					.append(Component.literal("\n" + r.label).withStyle(r.color))
+					.append(Component.literal("\n" + r.label + (grade == null ? "" : " · " + grade)).withStyle(r.color))
 					.append(Component.literal(" · title ✦ " + a.name() + " ✦").withStyle(ChatFormatting.DARK_GRAY));
 			boolean secret = a.id().equals("fok.blauw") || a.id().equals("items.drakenei");
 			b.display(a.icon(), Component.literal(a.name()).withStyle(r.color), desc, frame(r), true, false, secret);
