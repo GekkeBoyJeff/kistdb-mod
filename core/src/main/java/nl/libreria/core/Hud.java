@@ -92,6 +92,8 @@ public final class Hud {
 			}
 		}
 		if (bestLine == null) {
+			// Taken away on purpose (not run out): clear it at once instead of letting it fade for 3 seconds
+			if (!periodic && s.shown != null) player.connection.send(new ClientboundSetActionBarTextPacket(Component.empty()));
 			s.shown = null;
 			s.shownText = null;
 			return;
