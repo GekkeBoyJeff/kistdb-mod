@@ -315,6 +315,12 @@ public final class Screens implements FabricClientGameTest {
 				ctx.takeScreenshot("place_title_fading_in");
 				ctx.waitTicks(30);
 				ctx.takeScreenshot("place_title");
+				// A villager with its own name, three blocks ahead
+				run(server, "execute as @a at @s run summon minecraft:villager ^ ^ ^3");
+				ctx.waitTicks(40);
+				ctx.takeScreenshot("villager_name");
+				run(server, "kill @e[type=minecraft:villager]");
+				ctx.waitTicks(3);
 			});
 
 			// Windows (dialogs): settings, effects, admin, links, getting started
