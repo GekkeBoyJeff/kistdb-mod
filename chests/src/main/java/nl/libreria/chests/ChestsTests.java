@@ -137,6 +137,15 @@ final class ChestsTests {
 			SelfTests.check(p.getInventory().getItem(2).getCount() == 7, "hotbar untouched");
 			SelfTests.check(Integer.valueOf(40).equals(Containers.summarize(Containers.read(level, a)).get("minecraft:cobblestone")), "chest has 40");
 
+			// Someone else's chest (placed by them) gets nothing, even though it's in your index
+			BlockPos key = Containers.keyOf(level, a);
+			ChestOwners.setPlacer(level, key, java.util.UUID.nameUUIDFromBytes("someone".getBytes()));
+			p.getInventory().setItem(12, new ItemStack(Items.COBBLESTONE, 3));
+			SelfTests.check(QuickStack.run(p) == 0 && p.getInventory().getItem(12).getCount() == 3, "someone else's chest is skipped");
+			ChestOwners.setPlacer(level, key, p.getUUID());
+			SelfTests.check(ChestOwners.isOwn(p, level, key), "a chest you placed is yours");
+			ChestOwners.setPlacer(level, key, null);
+
 			Store.Entry e = Store.get(p.getUUID()).find(Store.dimId(level), Containers.keyOf(level, a));
 			SelfTests.check(e != null, "chest in index");
 			e.noIndex = true;

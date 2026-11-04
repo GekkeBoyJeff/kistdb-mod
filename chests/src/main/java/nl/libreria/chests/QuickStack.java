@@ -19,8 +19,8 @@ import nl.libreria.core.Hud;
 import nl.libreria.core.Ui;
 
 /**
- * Snel opbergen: items uit je inventory (niet je hotbar) gaan naar kisten in de buurt die dat item al bevatten.
- * Alleen kisten uit je eigen ChestsMod en niet op noIndex.
+ * Quick stack: items from your inventory (not your hotbar) go into chests nearby that already hold that item. Only
+ * chests from your own chest index, not on noIndex, and only your own ({@link ChestOwners}): never someone else's.
  */
 public final class QuickStack {
 	private record Target(Store.Entry entry, List<Container> containers, double distance) {
@@ -42,6 +42,8 @@ public final class QuickStack {
 			BlockPos key = e.pos();
 			double d = pos.distanceTo(Vec3.atCenterOf(key));
 			if (d > radius || !Containers.isLoaded(level, key)) continue;
+			// Only your own chests: never someone else's, also not one of theirs you once opened
+			if (!ChestOwners.isOwn(player, level, key)) continue;
 			List<Container> cs = Containers.containersOf(level, key);
 			if (!cs.isEmpty()) targets.add(new Target(e, cs, d));
 		}
@@ -76,7 +78,7 @@ public final class QuickStack {
 			Hud.flash(player, Component.literal("✔ Stored " + moved + (moved == 1 ? " item" : " items") + " in " + used.size() + (used.size() == 1 ? " chest" : " chests"))
 					.withStyle(ChatFormatting.GREEN));
 		} else if (targets.isEmpty()) {
-			Hud.flash(player, Component.literal("No chests from your chest index within " + radius + " blocks").withStyle(ChatFormatting.GRAY));
+			Hud.flash(player, Component.literal("None of your own chests within " + radius + " blocks").withStyle(ChatFormatting.GRAY));
 		} else {
 			Hud.flash(player, Component.literal("Nothing to stack: no nearby chest has these items yet").withStyle(ChatFormatting.GRAY));
 		}

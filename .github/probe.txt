@@ -1,4 +1,1 @@
-!net.minecraft.client.player.LocalPlayer
-!net.minecraft.client.MouseHandler
-? TestInputImpl
-? /TestInput\.class
+net.minecraft.world.item.component.ItemLore

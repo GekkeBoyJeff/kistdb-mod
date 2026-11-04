@@ -3,6 +3,7 @@
 	"package": "nl.libreria.chests.mixin",
 	"compatibilityLevel": "JAVA_25",
 	"mixins": [
+		"ChestPlacedMixin",
 		"PlaceRecipeMixin",
 		"RecipeBookButtonMixin"
 	],

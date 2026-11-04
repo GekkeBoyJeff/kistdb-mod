@@ -277,11 +277,15 @@ public final class Screens implements FabricClientGameTest {
 				// The mouse turns the view (a quarter turn to the right) and tilts it
 				float[] before = new float[1];
 				server.runOnServer(s -> before[0] = player.getYRot());
-				moveMouse(ctx, 600, 0);
+				boolean riding = ctx.computeOnClient(mc -> mc.player != null && mc.player.isPassenger());
+				// Turning the client's own player is what the mouse does (here without a real mouse)
+				float startYaw = ctx.computeOnClient(mc -> mc.player.getYRot());
+				float startPitch = ctx.computeOnClient(mc -> mc.player.getXRot());
+				ctx.getInput().lookAt(startYaw + 70, startPitch + 15);
 				ctx.waitTicks(15);
 				ctx.takeScreenshot("claim_view_turned");
-				server.runOnServer(s -> LOG.info("LIBRERIA-MAP-TURN yaw {} -> {}", before[0], player.getYRot()));
-				moveMouse(ctx, -600, 0);
+				server.runOnServer(s -> LOG.info("LIBRERIA-MAP-TURN riding {} yaw {} -> {}", riding, before[0], player.getYRot()));
+				ctx.getInput().lookAt(startYaw, startPitch);
 				ctx.waitTicks(10);
 				// Over to Steve's sloped land (east = left on the screen)
 				ctx.getInput().scroll(2);
