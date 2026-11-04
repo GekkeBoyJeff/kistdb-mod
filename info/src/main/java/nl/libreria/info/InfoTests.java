@@ -33,6 +33,18 @@ final class InfoTests {
 			java.util.Set<String> people = new java.util.HashSet<>();
 			for (int i = 0; i < 300; i++) people.add(Names.villager(java.util.UUID.nameUUIDFromBytes(("v" + i).getBytes())));
 			SelfTests.check(people.size() == 300, "300 villagers, 300 names: " + people.size());
+			// Running out of names never stalls or crashes: a pool of one gives "Same", "Same II", "Same III"…
+			java.util.Set<String> pool = new java.util.HashSet<>();
+			java.util.List<String> got = new java.util.ArrayList<>();
+			for (int i = 0; i < 30; i++) got.add(Names.fresh(pool, i, "Fallback", (r, attempt) -> "Same"));
+			SelfTests.check(got.get(0).equals("Same") && got.get(1).equals("Same II") && got.get(2).equals("Same III")
+					&& new java.util.HashSet<>(got).size() == 30, "an empty pool numbers its names: " + got.subList(0, 4) + "… " + got.get(29));
+			// A broken or empty generator falls back to the plain name
+			String broken = Names.fresh(pool, 1, "Fallback", (r, attempt) -> {
+				throw new IllegalStateException("test");
+			});
+			String empty = Names.fresh(pool, 2, "Fallback", (r, attempt) -> null);
+			SelfTests.check(broken.equals("Fallback") && empty.equals("Fallback II"), "a broken generator: " + broken + ", " + empty);
 			// Clean up the test names
 			var d = Names.data();
 			d.places.keySet().removeIf(k -> k.startsWith("test|"));

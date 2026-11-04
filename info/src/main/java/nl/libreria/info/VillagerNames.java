@@ -5,6 +5,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.npc.villager.Villager;
 import net.minecraft.world.item.Items;
+import nl.libreria.core.Libreria;
 import nl.libreria.core.ServerSetting;
 
 /**
@@ -22,13 +23,24 @@ final class VillagerNames {
 	}
 
 	static void init() {
+		// Both run inside chunk loading and combat: a naming hiccup is logged and the villager stays nameless, it
+		// never takes the server down
 		ServerEntityEvents.ENTITY_LOAD.register((entity, level) -> {
-			if (!(entity instanceof Villager v) || !ENABLED.get()) return;
-			if (v.hasCustomName() || v.entityTags().contains(TAG)) return;
-			name(v);
+			if (!(entity instanceof Villager v)) return;
+			try {
+				if (!ENABLED.get() || v.hasCustomName() || v.entityTags().contains(TAG)) return;
+				name(v);
+			} catch (RuntimeException e) {
+				Libreria.LOG.warn("Could not name villager {}", v.getUUID(), e);
+			}
 		});
 		ServerLivingEntityEvents.AFTER_DEATH.register((entity, source) -> {
-			if (entity instanceof Villager v && v.entityTags().contains(TAG)) Names.releaseVillager(v.getUUID());
+			if (!(entity instanceof Villager v)) return;
+			try {
+				if (v.entityTags().contains(TAG)) Names.releaseVillager(v.getUUID());
+			} catch (RuntimeException e) {
+				Libreria.LOG.warn("Could not free the name of villager {}", v.getUUID(), e);
+			}
 		});
 	}
 

@@ -375,8 +375,10 @@ final class Look {
 			Entity e = eh.getEntity();
 			Card card = describeEntity(p, e, all);
 			if (card == null) return null;
-			// Above the head; for players also above their name tag and title
-			double up = e instanceof Player ? 1.25 : 0.4;
+			// Above the head. The vanilla name tag (players, and any mob with its own name such as a
+			// named villager) floats half a block above the head while you look at it, so the card
+			// goes above that; players also get room for a scoreboard line under their name.
+			double up = e instanceof Player ? 1.25 : e.hasCustomName() ? 0.9 : 0.4;
 			return new Target(e.position().add(0, e.getBbHeight() + up, 0), card, !(e instanceof LivingEntity));
 		}
 		if (bh.getType() != HitResult.Type.BLOCK) return null;

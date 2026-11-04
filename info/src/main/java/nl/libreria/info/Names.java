@@ -53,20 +53,36 @@ final class Names {
 		return d;
 	}
 
-	/** Tries names from the seed until one is free; {@code gen} gets the random source and the attempt number. */
-	private static String fresh(Set<String> taken, long seed, BiFunction<Random, Integer, String> gen) {
+	/**
+	 * Tries names from the seed until one is free; {@code gen} gets the random source and the attempt number. This
+	 * never fails and never hangs: when the pools run dry (only in a world with tens of thousands of names) it numbers
+	 * the last try ("Ashford II", "Ashford III"…), and if a generator throws or gives nothing it uses {@code fallback}.
+	 */
+	static String fresh(Set<String> taken, long seed, String fallback, BiFunction<Random, Integer, String> gen) {
 		Random r = new Random(seed * 0x9E3779B97F4A7C15L + 0x632BE59BD9B4E019L);
 		String name = null;
 		for (int attempt = 0; attempt < 400; attempt++) {
-			name = gen.apply(r, attempt);
-			if (!taken.contains(name.toLowerCase(java.util.Locale.ROOT))) break;
+			String tried;
+			try {
+				tried = gen.apply(r, attempt);
+			} catch (RuntimeException e) {
+				nl.libreria.core.Libreria.LOG.warn("Name generator failed; using \"{}\"", fallback, e);
+				break;
+			}
+			if (tried == null || tried.isBlank()) break;
+			name = tried.strip();
+			if (!taken.contains(key(name))) break;
 		}
-		// After 400 tries (only in a world with tens of thousands of names) a number makes it unique
+		if (name == null) name = fallback;
 		String base = name;
-		for (int n = 2; taken.contains(name.toLowerCase(java.util.Locale.ROOT)); n++) name = base + " " + roman(n);
-		taken.add(name.toLowerCase(java.util.Locale.ROOT));
+		for (int n = 2; taken.contains(key(name)); n++) name = base + " " + roman(n);
+		taken.add(key(name));
 		STORE.markDirty();
 		return name;
+	}
+
+	private static String key(String name) {
+		return name.toLowerCase(java.util.Locale.ROOT);
 	}
 
 	/** The name of a structure (the same every time; picked the first time). */
@@ -75,7 +91,7 @@ final class Names {
 		Data d = data();
 		String name = d.places.get(key);
 		if (name == null) {
-			name = fresh(d.taken, seed, (r, attempt) -> PlaceNames.structure(kind, r, attempt));
+			name = fresh(d.taken, seed, kind.label(), (r, attempt) -> PlaceNames.structure(kind, r, attempt));
 			d.places.put(key, name);
 		}
 		return name;
@@ -103,7 +119,7 @@ final class Names {
 		a.x = x;
 		a.z = z;
 		a.radius = land.radius();
-		a.name = fresh(d.taken, seed ^ ((long) x << 32) ^ (z & 0xFFFFFFFFL) ^ biome.hashCode(), (r, attempt) -> PlaceNames.area(land, r, attempt));
+		a.name = fresh(d.taken, seed ^ ((long) x << 32) ^ (z & 0xFFFFFFFFL) ^ biome.hashCode(), title(path), (r, attempt) -> PlaceNames.area(land, r, attempt));
 		d.areas.add(a);
 		return a;
 	}
@@ -113,7 +129,7 @@ final class Names {
 		Data d = data();
 		String have = d.villagers.get(id);
 		if (have != null) return have;
-		String name = fresh(d.villagersTaken, id.getMostSignificantBits() ^ id.getLeastSignificantBits(), (r, attempt) -> PlaceNames.villager(r));
+		String name = fresh(d.villagersTaken, id.getMostSignificantBits() ^ id.getLeastSignificantBits(), "Villager", (r, attempt) -> PlaceNames.villager(r));
 		d.villagers.put(id, name);
 		return name;
 	}
@@ -132,8 +148,20 @@ final class Names {
 		return data().villagers.get(id);
 	}
 
+	/** "dark_forest" → "Dark Forest". */
+	private static String title(String path) {
+		StringBuilder b = new StringBuilder();
+		for (String w : path.split("_")) {
+			if (w.isEmpty()) continue;
+			if (!b.isEmpty()) b.append(' ');
+			b.append(Character.toUpperCase(w.charAt(0))).append(w.substring(1));
+		}
+		return b.isEmpty() ? "The Wilds" : b.toString();
+	}
+
 	private static String roman(int n) {
-		String[] r = {"", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"};
+		String[] r = {"", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII", "XIV", "XV",
+				"XVI", "XVII", "XVIII", "XIX", "XX"};
 		return n < r.length ? r[n] : Integer.toString(n);
 	}
 }
