@@ -39,7 +39,8 @@ public final class TopCard {
 
 	public static final int BRONZE = 0xF2C36B;
 
-	private record Entry(Card card, int priority, int until) {
+	/** A card, or (for {@link #showText}) just a line of text. */
+	private record Entry(@Nullable Card card, @Nullable Component text, int priority, int until) {
 	}
 
 	private static final class Top {
@@ -68,7 +69,18 @@ public final class TopCard {
 			t.bar.setProgress(0f);
 			return t;
 		});
-		top.cards.put(channel, new Entry(card, priority, ticks < 0 ? -1 : now + ticks));
+		top.cards.put(channel, new Entry(card, null, priority, ticks < 0 ? -1 : now + ticks));
+		update(p, top);
+	}
+
+	/** Just a line of text at the top, without a panel (with the pack; e.g. a place name). */
+	public static void showText(ServerPlayer p, String channel, Component text, int priority, int ticks) {
+		Top top = TOPS.computeIfAbsent(p.getUUID(), k -> {
+			Top t = new Top();
+			t.bar.setProgress(0f);
+			return t;
+		});
+		top.cards.put(channel, new Entry(null, text, priority, ticks < 0 ? -1 : now + ticks));
 		update(p, top);
 	}
 
@@ -113,9 +125,14 @@ public final class TopCard {
 		}
 		Card c = best.card();
 		boolean pack = nl.libreria.core.Pack.has(p);
-		String key = pack + "|" + key(c);
+		String key = pack + "|" + (c == null ? "text|" + best.text().getString() + best.text().hashCode() : key(c));
 		if (!key.equals(top.shown)) {
-			if (pack) {
+			if (c == null) {
+				// A plain line: the pack makes the white bar invisible
+				top.bar.setName(best.text());
+				top.bar.setColor(BossEvent.BossBarColor.WHITE);
+				top.bar.setProgress(0f);
+			} else if (pack) {
 				// The pack makes white bars invisible: only the card
 				top.bar.setName(compose(c));
 				top.bar.setColor(BossEvent.BossBarColor.WHITE);

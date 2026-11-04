@@ -270,10 +270,10 @@ public final class Guide {
 	}
 
 	/** The beam's target as a compass marker (same world only), or null. */
-	public static @Nullable nl.libreria.core.gui.Compass.Marker marker(ServerPlayer player) {
+	public static @Nullable nl.libreria.core.gui.Markers.Marker marker(ServerPlayer player) {
 		Beam b = ACTIVE.get(player.getUUID());
 		if (b == null || b.level != player.level()) return null;
-		return new nl.libreria.core.gui.Compass.Marker(b.center, "target", 0x55FFFF, b.what.getString());
+		return new nl.libreria.core.gui.Markers.Marker(b.center, "target", 0x55FFFF, b.what.getString());
 	}
 
 	public static boolean has(ServerPlayer player) {

@@ -184,7 +184,7 @@ public final class WaypointsMod implements ModInitializer {
 		MODULE.hubEntry(Items.SKELETON_SKULL, "To your death point", ChatFormatting.RED, WaypointsMod::goDeath,
 				"A beam to where you last died.");
 		Services.provideMenu(Services.MENU_WAYPOINTS, PointsGui::open);
-		nl.libreria.core.gui.Compass.addSource(WaypointsMod::compassMarkers);
+		nl.libreria.core.gui.Markers.addSource(WaypointsMod::compassMarkers);
 		WaypointsTests.register();
 	}
 
@@ -218,18 +218,18 @@ public final class WaypointsMod implements ModInitializer {
 	}
 
 	/** Waypoints you can see in this world (yours aqua, others' blue), and your death point (red). */
-	static List<nl.libreria.core.gui.Compass.Marker> compassMarkers(ServerPlayer p) {
-		List<nl.libreria.core.gui.Compass.Marker> out = new ArrayList<>();
+	static List<nl.libreria.core.gui.Markers.Marker> compassMarkers(ServerPlayer p) {
+		List<nl.libreria.core.gui.Markers.Marker> out = new ArrayList<>();
 		String dim = dimOf(p.level());
 		for (Point pt : visible(p)) {
 			if (!pt.dim.equals(dim)) continue;
 			Vec3 at = Vec3.atCenterOf(pt.pos());
 			if (at.distanceToSqr(p.position()) > 4000.0 * 4000.0) continue;
-			out.add(new nl.libreria.core.gui.Compass.Marker(at, "diamond", pt.ownedBy(p.getUUID()) ? 0x55FFFF : 0xA9B6FF, pt.name));
+			out.add(new nl.libreria.core.gui.Markers.Marker(at, "diamond", pt.ownedBy(p.getUUID()) ? 0x55FFFF : 0xA9B6FF, pt.name));
 		}
 		Point death = PLAYERS.get(p).death;
 		if (death != null && death.dim.equals(dim)) {
-			out.add(new nl.libreria.core.gui.Compass.Marker(Vec3.atCenterOf(death.pos()), "skull", 0xFF6B6B, "Death point"));
+			out.add(new nl.libreria.core.gui.Markers.Marker(Vec3.atCenterOf(death.pos()), "skull", 0xFF6B6B, "Death point"));
 		}
 		return out;
 	}

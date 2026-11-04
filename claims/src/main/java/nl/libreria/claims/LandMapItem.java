@@ -29,7 +29,7 @@ import net.minecraft.world.level.saveddata.maps.MapDecorationTypes;
 import net.minecraft.world.level.saveddata.maps.MapId;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import nl.libreria.core.Ui;
-import nl.libreria.core.gui.Compass;
+import nl.libreria.core.gui.Markers;
 
 /**
  * A land map to hold: a real map item (nothing to install) showing the land around you, 128 blocks across, with every
@@ -210,9 +210,9 @@ public final class LandMapItem {
 		List<MapDecoration> out = new ArrayList<>();
 		// You, in the middle, pointing where you look
 		out.add(deco(MapDecorationTypes.PLAYER, p.getX(), p.getZ(), d, p.getYRot(), null));
-		List<Compass.Marker> markers = new ArrayList<>(Compass.markersFor(p));
+		List<Markers.Marker> markers = new ArrayList<>(Markers.forPlayer(p));
 		markers.addAll(ClaimsMod.friends(p));
-		for (Compass.Marker m : markers) {
+		for (Markers.Marker m : markers) {
 			Holder<MapDecorationType> type = switch (m.glyph()) {
 				case "skull" -> MapDecorationTypes.RED_X;
 				case "person" -> MapDecorationTypes.BLUE_MARKER;

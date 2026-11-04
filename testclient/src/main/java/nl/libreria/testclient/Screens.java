@@ -303,12 +303,12 @@ public final class Screens implements FabricClientGameTest {
 				});
 				ctx.getInput().lookAt(0, 0);
 				ctx.waitTicks(10);
-				ctx.takeScreenshot("compass_bar");
+				ctx.takeScreenshot("top_of_screen");
 				// A place name fading in under the compass, then the journal
 				server.runOnServer(s -> {
-					nl.libreria.info.Places.remember(player, "screens|village", "Eikendal", "Village", player.blockPosition().offset(120, 0, -40));
-					nl.libreria.info.Places.remember(player, "screens|temple", "Zonnegraf", "Desert Temple", player.blockPosition().offset(-900, 0, 300));
-					nl.libreria.core.gui.Compass.caption(player, net.minecraft.network.chat.Component.literal("Eikendal"),
+					nl.libreria.info.Places.remember(player, "screens|village", "Oakhaven", "Village", player.blockPosition().offset(120, 0, -40));
+					nl.libreria.info.Places.remember(player, "screens|temple", "Sunhollow", "Desert Temple", player.blockPosition().offset(-900, 0, 300));
+					nl.libreria.core.gui.Caption.show(player, net.minecraft.network.chat.Component.literal("Oakhaven"),
 							net.minecraft.network.chat.Component.literal("Village · discovered"));
 				});
 				ctx.waitTicks(6);

@@ -145,9 +145,7 @@ public final class Glyphs {
 	public static int width(Component c) {
 		int[] total = {0};
 		c.visit((FormattedText.StyledContentConsumer<Object>) (style, text) -> {
-			// Our picture fonts measure by the glyph table; libreria:caption is the normal font moved down
-			boolean ui = style.getFont() instanceof FontDescription.Resource r && r.id().getNamespace().equals("libreria")
-					&& !r.id().getPath().equals("caption");
+			boolean ui = style.getFont() instanceof FontDescription.Resource r && r.id().getNamespace().equals("libreria");
 			boolean bold = style.isBold();
 			text.codePoints().forEach(cp -> {
 				if (ui) {

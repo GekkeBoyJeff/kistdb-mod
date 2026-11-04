@@ -6,7 +6,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import nl.libreria.core.gui.Compass;
 
 /** Zelftests van de kern (alleen in de CI). */
 final class CoreTests {
@@ -37,22 +36,12 @@ final class CoreTests {
 			SelfTests.check(!discord.isSet(), "reset clears it");
 			SelfTests.check(ServerSetting.all().size() >= 6, "settings registered: " + ServerSetting.all().size());
 		});
-		SelfTests.register("core.compass", level -> {
-			// Minecraft yaw: 0 = south, 90 = west, -90 = east, 180 = north
-			SelfTests.check(Compass.heading(0f) == 180 && Compass.heading(90f) == 270 && Compass.heading(-90f) == 90
-					&& Compass.heading(180f) == 0, "headings");
-			Vec3 o = Vec3.ZERO;
-			SelfTests.check(Math.round(Compass.bearing(o, new Vec3(0, 0, -10))) == 0 && Math.round(Compass.bearing(o, new Vec3(10, 0, 0))) == 90,
-					"bearings");
-			SelfTests.check(Compass.delta(10, 350) == 20 && Compass.delta(350, 10) == -20, "turn the short way");
+		SelfTests.register("core.caption", level -> {
 			FakePlayer p = FakePlayer.get(level);
-			p.setYRot(37f);
-			int empty = nl.libreria.core.gui.Glyphs.width(Compass.compose(p, java.util.List.of()));
-			int full = nl.libreria.core.gui.Glyphs.width(Compass.compose(p, java.util.List.of(
-					new Compass.Marker(p.position().add(5, 0, 5), "diamond", 0x55FFFF, "Home"),
-					new Compass.Marker(p.position().add(-40, 0, 3), "skull", 0xFF5555, "Death point"))));
-			SelfTests.check(empty == full && empty == nl.libreria.core.gui.Glyphs.advance("compass.bar"),
-					"the strip always has the same width: " + empty + " / " + full);
+			nl.libreria.core.gui.Caption.show(p, Component.literal("Oakhaven"), Component.literal("Village"));
+			nl.libreria.core.gui.Caption.forget(p.getUUID());
+			var marks = nl.libreria.core.gui.Markers.forPlayer(p);
+			SelfTests.check(marks != null, "markers for a player");
 		});
 		SelfTests.register("core.beam", level -> {
 			FakePlayer p = FakePlayer.get(level);

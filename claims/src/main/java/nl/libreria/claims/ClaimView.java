@@ -872,12 +872,12 @@ final class ClaimView {
 		}
 		// Waypoints, your death point, graves… and friends who want to be seen, as small flags in the view
 		double reach = (RADIUS + 1) * 16;
-		List<nl.libreria.core.gui.Compass.Marker> markers = new ArrayList<>(nl.libreria.core.gui.Compass.markersFor(v.p));
+		List<nl.libreria.core.gui.Markers.Marker> markers = new ArrayList<>(nl.libreria.core.gui.Markers.forPlayer(v.p));
 		markers.addAll(ClaimsMod.friends(v.p));
-		for (nl.libreria.core.gui.Compass.Marker m : markers) {
+		for (nl.libreria.core.gui.Markers.Marker m : markers) {
 			if (Math.abs(m.pos().x - v.origin.x) > reach || Math.abs(m.pos().z - v.origin.z) > reach) continue;
 			MutableComponent text = Component.empty();
-			if (v.pack) text.append(nl.libreria.core.gui.Glyphs.ui(nl.libreria.core.gui.Glyphs.g("compass." + m.glyph()) + " ", m.color()));
+			if (v.pack) text.append(nl.libreria.core.gui.Glyphs.ui(nl.libreria.core.gui.Glyphs.g("mark." + m.glyph()) + " ", m.color()));
 			text.append(Component.literal(m.name()).withStyle(s -> s.withColor(m.color())));
 			TextDisplayElement label = new TextDisplayElement(text);
 			label.setBillboardMode(Display.BillboardConstraints.CENTER);

@@ -53,8 +53,7 @@ public final class Libreria implements ModInitializer {
 		Welcome.init();
 		Afk.init();
 		Tab.init();
-		nl.libreria.core.gui.Compass.init();
-		nl.libreria.core.gui.Compass.addSource(p -> {
+		nl.libreria.core.gui.Markers.addSource(p -> {
 			var m = Guide.marker(p);
 			return m == null ? java.util.List.of() : java.util.List.of(m);
 		});
@@ -83,7 +82,6 @@ public final class Libreria implements ModInitializer {
 			Guide.clearAll();
 			Nameplate.clearAll();
 			nl.libreria.core.gui.TopCard.clearAll();
-			nl.libreria.core.gui.Compass.clearAll();
 			PlayerStore.saveDirtyAll();
 			WorldStore.saveAll();
 		});
@@ -93,7 +91,7 @@ public final class Libreria implements ModInitializer {
 			Guide.clearFlashes(id);
 			Hud.forget(id);
 			nl.libreria.core.gui.TopCard.forget(id);
-			nl.libreria.core.gui.Compass.forget(id);
+			nl.libreria.core.gui.Caption.forget(id);
 			Dialogs.forget(id);
 			Welcome.forget(id);
 			Afk.forget(id);
@@ -142,7 +140,7 @@ public final class Libreria implements ModInitializer {
 		if (tick % 20 == 7) Afk.tick(server, tick);
 		DeathRecap.tick(server, tick);
 		if (tick % 40 == 11) Tab.tick(server);
-		nl.libreria.core.gui.Compass.tick(server, tick);
+		nl.libreria.core.gui.Caption.tick(server, tick);
 		if (tick % 1200 == 0) {
 			PlayerStore.saveDirtyAll();
 			WorldStore.saveAll();

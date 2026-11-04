@@ -15,6 +15,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -30,12 +31,13 @@ import nl.libreria.core.Guide;
 import nl.libreria.core.PlayerStore;
 import nl.libreria.core.Ui;
 import nl.libreria.core.dialog.Window;
-import nl.libreria.core.gui.Compass;
+import nl.libreria.core.gui.Caption;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Place names, Skyrim-style but quiet: walk into a village, a temple or a new biome and its name fades in, small, just
- * under the compass at the top of the screen, and fades out again. Every place you find goes into your journal.
+ * Place names, quietly: walk into a village, a temple or another stretch of land and its name fades in, small, at the
+ * top of the screen, and fades out again. Every village and temple and every stretch of forest, desert or sea has its
+ * own name, never used twice ({@link Names}). Every place you find goes into your journal.
  */
 public final class Places {
 	/** One place in your journal. */
@@ -144,12 +146,16 @@ public final class Places {
 		} else if (!st.biomeShown && now - st.biomeSince >= BIOME_SETTLE) {
 			st.biomeShown = true;
 			Data d = STORE.get(p);
-			boolean isNew = d.biomes.add(biome);
-			if (isNew) STORE.markDirty(p);
+			if (d.biomes.add(biome)) STORE.markDirty(p);
+			// The stretch of this biome you're in has its own name (Ashglen Forest, the Whispering Woods…)
+			Names.Area area = Names.area(dim, biome, p.getBlockX(), p.getBlockZ(), level.getSeed());
+			String areaKey = "area|" + dim + "|" + biome + "|" + area.x + "," + area.z;
+			boolean isNew = remember(p, areaKey, area.name, biomeName(biome), new BlockPos(area.x, p.getBlockY(), area.z));
 			if (mode == 0 || (mode == 1 && isNew)) {
 				Identifier id = Identifier.parse(biome);
-				show(p, st, "biome:" + biome, Component.translatable("biome." + id.getNamespace() + "." + id.getPath()),
-						isNew ? Component.literal("discovered") : null, now, isNew);
+				MutableComponent kind = Component.translatable("biome." + id.getNamespace() + "." + id.getPath());
+				if (isNew) kind.append(" · discovered");
+				show(p, st, areaKey, Component.literal(area.name), kind, now, isNew);
 			}
 		}
 	}
@@ -158,7 +164,7 @@ public final class Places {
 		Integer last = st.shownAt.get(key);
 		if (!force && last != null && now - last < AGAIN_AFTER) return;
 		st.shownAt.put(key, now);
-		Compass.caption(p, name, kind == null || kind.getString().isEmpty() ? null : kind);
+		Caption.show(p, name, kind == null || kind.getString().isEmpty() ? null : kind);
 	}
 
 	static void forget(UUID id) {
@@ -185,7 +191,7 @@ public final class Places {
 			String key = level.dimension().identifier() + "|" + id + "|" + c.x() + "," + c.z();
 			var box = start.getBoundingBox();
 			BlockPos at = new BlockPos((box.minX() + box.maxX()) / 2, box.minY(), (box.minZ() + box.maxZ()) / 2);
-			Found f = new Found(key, PlaceNames.name(kind, seed), kind, at);
+			Found f = new Found(key, Names.place(key, kind, seed), kind, at);
 			// Named places before plain ones (a ruined portal inside a village is still the village)
 			if (best == null || (!best.kind().named() && kind.named())) best = f;
 		}
@@ -195,6 +201,18 @@ public final class Places {
 	private static @Nullable String biomeAt(ServerLevel level, BlockPos pos) {
 		Holder<Biome> b = level.getBiome(pos);
 		return b.unwrapKey().map(k -> k.identifier().toString()).orElse(null);
+	}
+
+	/** "dark_forest" → "Dark Forest" (for the journal, which stores plain text). */
+	static String biomeName(String biome) {
+		String path = biome.substring(biome.indexOf(':') + 1);
+		StringBuilder b = new StringBuilder();
+		for (String w : path.split("_")) {
+			if (w.isEmpty()) continue;
+			if (!b.isEmpty()) b.append(' ');
+			b.append(Character.toUpperCase(w.charAt(0))).append(w.substring(1));
+		}
+		return b.toString();
 	}
 
 	static String dimension(String dim) {
@@ -233,8 +251,8 @@ public final class Places {
 		w.text(Ui.text(d.places.size() + (d.places.size() == 1 ? " place" : " places") + " found · " + d.biomes.size() + " of "
 				+ biomesTotal + " biomes", ChatFormatting.GRAY));
 		if (d.places.isEmpty()) {
-			w.text(Ui.text("Nothing yet. Walk into a village, a temple or a new biome: its name appears under the compass, "
-					+ "and it's written down here.", ChatFormatting.GRAY));
+			w.text(Ui.text("Nothing yet. Walk into a village, a temple or another stretch of land: its name appears at the "
+					+ "top of your screen, and it's written down here.", ChatFormatting.GRAY));
 		}
 		String dim = p.level().dimension().identifier().toString();
 		Map<String, List<Place>> byKind = new LinkedHashMap<>();

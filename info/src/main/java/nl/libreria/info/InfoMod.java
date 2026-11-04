@@ -29,7 +29,7 @@ public final class InfoMod implements ModInitializer {
 			"Clock in hand: time of day, how long", "until night or day, and whether", "you can sleep.");
 	public static final Setting.Choice PLACES = MODULE.choice("places", "Place names", Items.FILLED_MAP, 0,
 			new int[] {0, 1, 2}, new String[] {"Always", "Only new places", "Off"},
-			"Walk into a village, a temple or a new", "biome: its name fades in, small, under", "the compass. Everything goes in your journal.");
+			"Walk into a village, a temple or another", "stretch of land: its name fades in, small,", "at the top. Everything goes in your journal.");
 	public static final Setting.Toggle HORSE = MODULE.toggle("paard", "Horse stats", true, Items.SADDLE,
 			"Speed, jump and health of horses,", "donkeys and mules. Sneak-right-click", "a horse for the full card.");
 
@@ -39,6 +39,7 @@ public final class InfoMod implements ModInitializer {
 				"Playtime, distances, kills, most", "mined blocks and more.");
 		Services.provideMenu(Services.MENU_STATS, StatsGui::open);
 		Services.provideMenu(Services.MENU_JOURNAL, Places::journal);
+		VillagerNames.init();
 		MODULE.hubEntry(Module.Category.WORLD, Items.WRITABLE_BOOK, "Journal", ChatFormatting.GOLD, Places::journal,
 				"Every village, temple and biome", "you found, with a beam to them.");
 

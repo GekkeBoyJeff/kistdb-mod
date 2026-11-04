@@ -199,7 +199,7 @@ public final class ClaimsMod implements ModInitializer {
 		nl.libreria.core.Hotkeys.register(ClaimView::onKey);
 		Hud.setHotbarButton(ClaimView::hotbarButton);
 		nl.libreria.core.Services.provideMenu(nl.libreria.core.Services.MENU_LAND_MAP, ClaimsMod::openMap);
-		nl.libreria.core.gui.Compass.addSource(ClaimsMod::compassMarker);
+		nl.libreria.core.gui.Markers.addSource(ClaimsMod::compassMarker);
 		nl.libreria.core.Services.provideLand((level, pos) -> {
 			Claim c = claimAt(level, new ChunkPos(pos.getX() >> 4, pos.getZ() >> 4));
 			return c == null ? null : c.owner;
@@ -295,17 +295,17 @@ public final class ClaimsMod implements ModInitializer {
 	// ---------------------------------------------------------------- opslag
 
 	/** Players in your world who chose to be seen on land maps (not you). */
-	static List<nl.libreria.core.gui.Compass.Marker> friends(ServerPlayer p) {
-		List<nl.libreria.core.gui.Compass.Marker> out = new ArrayList<>();
+	static List<nl.libreria.core.gui.Markers.Marker> friends(ServerPlayer p) {
+		List<nl.libreria.core.gui.Markers.Marker> out = new ArrayList<>();
 		for (ServerPlayer o : p.level().players()) {
 			if (o == p || o.isSpectator() || !SHOW_ME.get(o)) continue;
-			out.add(new nl.libreria.core.gui.Compass.Marker(o.position(), "person", 0xFFE68A, o.getName().getString()));
+			out.add(new nl.libreria.core.gui.Markers.Marker(o.position(), "person", 0xFFE68A, o.getName().getString()));
 		}
 		return out;
 	}
 
 	/** "Your land": the middle of your nearest chunk in this world, while you're not on your own land. */
-	static List<nl.libreria.core.gui.Compass.Marker> compassMarker(ServerPlayer p) {
+	static List<nl.libreria.core.gui.Markers.Marker> compassMarker(ServerPlayer p) {
 		ServerLevel level = p.level();
 		Claim here = claimAt(level, p.chunkPosition());
 		if (here != null && here.owner.equals(p.getUUID())) return List.of();
@@ -323,7 +323,7 @@ public final class ClaimsMod implements ModInitializer {
 				at = new net.minecraft.world.phys.Vec3(x, p.getY(), z);
 			}
 		}
-		return at == null ? List.of() : List.of(new nl.libreria.core.gui.Compass.Marker(at, "house", 0x7CFC7C, "Your land"));
+		return at == null ? List.of() : List.of(new nl.libreria.core.gui.Markers.Marker(at, "house", 0x7CFC7C, "Your land"));
 	}
 
 	static String key(Level level, ChunkPos c) {
