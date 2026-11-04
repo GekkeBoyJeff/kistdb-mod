@@ -340,10 +340,10 @@ public final class Screens implements FabricClientGameTest {
 				server.runOnServer(s -> nl.libreria.info.Leaderboards.place(player, nl.libreria.info.Leaderboards.Kind.PLAYTIME));
 				ctx.waitTicks(30);
 				ctx.takeScreenshot("leaderboard");
-				ctx.getInput().holdKey(o -> o.keyPlayerList);
+				ctx.getInput().holdKey(opts -> opts.keyPlayerList);
 				ctx.waitTicks(45);
 				ctx.takeScreenshot("tab_list");
-				ctx.getInput().releaseKey(o -> o.keyPlayerList);
+				ctx.getInput().releaseKey(opts -> opts.keyPlayerList);
 				ctx.waitTicks(3);
 			});
 			safe("toast", () -> {

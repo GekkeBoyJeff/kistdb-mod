@@ -15,9 +15,10 @@ import nl.libreria.core.Hud;
 import nl.libreria.core.Ui;
 
 /**
- * Hotbar refill: when you use up the last block, food or arrow of a stack in your hotbar (or a tool breaks), the next
- * stack of the same thing moves in: first from your own inventory, then from your supply chests. Only when it was
- * really used up (the game's "used"/"broken" statistics went up), never when you just moved or dropped it.
+ * Hotbar refill from supply chests: when you use up the last block, food or arrow of a stack in your hotbar (or a tool
+ * breaks) and your inventory has no more, a new stack comes from your supply chests. Only when it was really used up
+ * (the game's "used"/"broken" statistics went up), never when you just moved or dropped it. Refilling from your own
+ * inventory is the Tools module's job; without Tools, this class does that too.
  */
 public final class Refill {
 	/** What a hotbar slot held last tick, with the statistics at that moment. */
@@ -25,6 +26,8 @@ public final class Refill {
 	}
 
 	private static final Map<UUID, Seen[]> LAST = new HashMap<>();
+	/** With the Tools module, refilling from the inventory is its job; this class only adds the supply chests. */
+	private static final boolean TOOLS = net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("libreria_tools");
 
 	private Refill() {
 	}
@@ -59,10 +62,11 @@ public final class Refill {
 
 	private static void refill(ServerPlayer p, int slot, Seen s) {
 		Inventory inv = p.getInventory();
-		// 1. From your own inventory (not the hotbar)
+		// 1. From your own inventory (not the hotbar). The Tools module does this itself when it's installed.
 		for (int i = 35; i >= 9; i--) {
 			ItemStack st = inv.getItem(i);
 			if (!st.isEmpty() && same(st, s)) {
+				if (TOOLS) return;
 				inv.setItem(slot, st);
 				inv.setItem(i, ItemStack.EMPTY);
 				inv.setChanged();

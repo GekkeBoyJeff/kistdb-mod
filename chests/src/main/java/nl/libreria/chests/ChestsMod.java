@@ -58,8 +58,8 @@ public final class ChestsMod implements ModInitializer {
 			"A small picture above each of your", "chests: what it holds most of.", "Only you see them.");
 	public static final Setting.Toggle CRAFT = MODULE.toggle("craft_supply", "Craft from supply chests", true, Items.CRAFTING_TABLE,
 			"Clicking a recipe in the recipe book", "takes what you miss from your", "supply chests.");
-	public static final Setting.Toggle REFILL = MODULE.toggle("refill", "Refill your hotbar", true, Items.BUNDLE,
-			"A used-up stack in your hotbar is", "refilled from your inventory, then", "from your supply chests.");
+	public static final Setting.Toggle REFILL = MODULE.toggle("refill", "Refill from supply chests", true, Items.BUNDLE,
+			"A used-up stack in your hotbar that your", "inventory has no more of is refilled", "from your supply chests.");
 	public static final nl.libreria.core.ServerSetting.Number SUPPLY_RANGE = MODULE.serverNumber("supply_range", "Supply chest range",
 			Items.CHEST, 24, 4, 64, 4, "blocks", "How near supply chests must be for", "crafting and hotbar refills.");
 
