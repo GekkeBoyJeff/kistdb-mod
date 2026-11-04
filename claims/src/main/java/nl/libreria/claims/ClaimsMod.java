@@ -195,6 +195,10 @@ public final class ClaimsMod implements ModInitializer {
 		nl.libreria.core.Hotkeys.register(ClaimView::onKey);
 		Hud.setHotbarButton(ClaimView::hotbarButton);
 		nl.libreria.core.Services.provideMenu(nl.libreria.core.Services.MENU_LAND_MAP, ClaimsMod::openMap);
+		nl.libreria.core.Services.provideLand((level, pos) -> {
+			Claim c = claimAt(level, new ChunkPos(pos.getX() >> 4, pos.getZ() >> 4));
+			return c == null ? null : c.owner;
+		});
 		// Getting hurt closes the land map at once
 		net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.AFTER_DAMAGE.register((entity, source, base, taken, blocked) -> {
 			if (entity instanceof ServerPlayer sp && ClaimView.isOpen(sp)) ClaimView.close(sp, true);

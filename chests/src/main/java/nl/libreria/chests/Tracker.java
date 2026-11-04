@@ -110,6 +110,13 @@ public final class Tracker {
 		}
 	}
 
+	/** The chest this player has open right now (its key position), or null. */
+	public static @org.jetbrains.annotations.Nullable BlockPos openChest(ServerPlayer player) {
+		Open open = OPEN.get(player.getUUID());
+		if (open == null || player.containerMenu == player.inventoryMenu || !Store.dimId(player.level()).equals(open.dim())) return null;
+		return open.key();
+	}
+
 	static void forget(ServerPlayer player) {
 		OPEN.remove(player.getUUID());
 		TOGGLE_COOLDOWN.remove(player.getUUID());

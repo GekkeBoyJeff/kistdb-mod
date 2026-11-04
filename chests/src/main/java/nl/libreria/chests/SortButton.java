@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
@@ -25,6 +26,7 @@ import net.minecraft.world.level.block.entity.BarrelBlockEntity;
 import nl.libreria.core.ClickRouter;
 import nl.libreria.core.Hud;
 import nl.libreria.core.Ui;
+import nl.libreria.chests.gui.ChestOptions;
 
 /**
  * A "⇅ Sort" button in every open chest, barrel, ender chest or shulker box. Same trick as the Libreria button in the
@@ -133,6 +135,9 @@ public final class SortButton {
 		List<Component> lore = new ArrayList<>();
 		lore.add(Ui.text("▸ Click: sort this " + kind, ChatFormatting.YELLOW));
 		lore.add(Ui.text("▸ Right-click: deposit matching items", ChatFormatting.YELLOW));
+		if (!(menu.getSlot(0).container instanceof PlayerEnderChestContainer)) {
+			lore.add(Ui.text("▸ Shift-click: options (supply chest, label)", ChatFormatting.YELLOW));
+		}
 		lore.add(Component.empty());
 		lore.add(Ui.text("Deposit: adds items it already has", ChatFormatting.GRAY));
 		lore.add(Ui.text("from your inventory, not the hotbar.", ChatFormatting.GRAY));
@@ -160,6 +165,14 @@ public final class SortButton {
 
 		Ui.click(player);
 		Container container = menu.getSlot(slot).container;
+		if (input == ContainerInput.QUICK_MOVE) {
+			// Shift-click: this chest's options (supply chest, label, search)
+			BlockPos key = Tracker.openChest(player);
+			if (key != null) {
+				ChestOptions.open(player, player.level(), key);
+				return true;
+			}
+		}
 		if (button == 1) {
 			int moved = deposit(player, container);
 			if (moved > 0) {

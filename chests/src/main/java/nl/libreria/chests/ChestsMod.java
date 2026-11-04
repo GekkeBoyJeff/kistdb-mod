@@ -54,13 +54,27 @@ public final class ChestsMod implements ModInitializer {
 			new int[]{6, 10, 16, 24}, new String[]{"6 blocks", "10 blocks", "16 blocks", "24 blocks"},
 			"How far chests can be for quick stack.");
 
+	public static final Setting.Toggle LABELS = MODULE.toggle("labels", "Labels above your chests", true, Items.ITEM_FRAME,
+			"A small picture above each of your", "chests: what it holds most of.", "Only you see them.");
+	public static final Setting.Toggle CRAFT = MODULE.toggle("craft_supply", "Craft from supply chests", true, Items.CRAFTING_TABLE,
+			"Clicking a recipe in the recipe book", "takes what you miss from your", "supply chests.");
+	public static final Setting.Toggle REFILL = MODULE.toggle("refill", "Refill your hotbar", true, Items.BUNDLE,
+			"A used-up stack in your hotbar is", "refilled from your inventory, then", "from your supply chests.");
+	public static final nl.libreria.core.ServerSetting.Number SUPPLY_RANGE = MODULE.serverNumber("supply_range", "Supply chest range",
+			Items.CHEST, 24, 4, 64, 4, "blocks", "How near supply chests must be for", "crafting and hotbar refills.");
+
 	@Override
 	public void onInitialize() {
 		ServerLifecycleEvents.SERVER_STARTED.register(Store::init);
-		ServerLifecycleEvents.SERVER_STOPPING.register(server -> Store.saveAll());
+		ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
+			Labels.clearAll();
+			Store.saveAll();
+		});
 		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
 			Tracker.forget(handler.player);
 			SortButton.forget(handler.player);
+			Labels.forget(handler.player.getUUID());
+			Refill.forget(handler.player.getUUID());
 			Store.unload(handler.player.getUUID());
 		});
 		ServerTickEvents.END_SERVER_TICK.register(ChestsMod::tick);
@@ -130,6 +144,8 @@ public final class ChestsMod implements ModInitializer {
 		for (ServerPlayer player : server.getPlayerList().getPlayers()) {
 			Tracker.tick(player, tick);
 			SortButton.tick(player);
+			Refill.tick(player);
+			if ((tick + player.getId()) % 20 == 0) Labels.tick(player);
 		}
 		if (tick % 1200 == 0) Store.saveDirty();
 	}

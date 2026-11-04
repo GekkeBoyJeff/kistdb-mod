@@ -39,6 +39,44 @@ final class ChestsTests {
 	}
 
 	static void register() {
+		SelfTests.register("chests.supply", level -> {
+			FakePlayer p = FakePlayer.get(level);
+			BlockPos at = new BlockPos(40, 120, 40);
+			level.getChunk(at.getX() >> 4, at.getZ() >> 4);
+			level.setBlock(at, Ui.block("chest"), 3);
+			Container c = (Container) level.getBlockEntity(at);
+			c.setItem(0, new ItemStack(Items.OAK_LOG, 20));
+			c.setItem(1, new ItemStack(Items.TORCH, 30));
+			p.teleportTo(at.getX() + 2, at.getY(), at.getZ());
+			Store.track(p.getUUID(), level, at, "minecraft:chest");
+			Store.Entry e = Store.get(p.getUUID()).find(Store.dimId(level), at);
+			SelfTests.check(e != null && !e.supply, "a new chest is no supply chest");
+			e.supply = true;
+			var before = nl.libreria.core.Services.land();
+			try {
+				// Someone else's land: never used
+				nl.libreria.core.Services.provideLand((l, pos) -> java.util.UUID.randomUUID());
+				SelfTests.check(Supply.chests(p).isEmpty(), "not on your land: not used");
+				// Your land: used
+				nl.libreria.core.Services.provideLand((l, pos) -> p.getUUID());
+				SelfTests.check(Supply.chests(p).size() == 1, "on your land: used");
+				SelfTests.check(Supply.available(p, st -> st.is(Items.OAK_LOG)) == 20, "20 logs available");
+				List<ItemStack> got = new java.util.ArrayList<>();
+				int took = Supply.take(p, st -> st.is(Items.OAK_LOG), 8, part -> {
+					got.add(part.copy());
+					return ItemStack.EMPTY;
+				});
+				SelfTests.check(took == 8 && got.stream().mapToInt(ItemStack::getCount).sum() == 8, "took 8 logs");
+				SelfTests.check(c.getItem(0).getCount() == 12, "12 logs left in the chest");
+				// No room: what didn't fit goes back
+				took = Supply.take(p, st -> st.is(Items.TORCH), 30, part -> part.split(Math.max(0, part.getCount() - 5)));
+				SelfTests.check(took == 5 && c.getItem(1).getCount() == 25, "only what fits is taken: " + took);
+			} finally {
+				before.ifPresent(nl.libreria.core.Services::provideLand);
+				Store.remove(p.getUUID(), e);
+				clear(level, at);
+			}
+		});
 		SelfTests.register("chests.double-chest-sort", level -> {
 			BlockPos[] ab = doubleChest(level, new BlockPos(8, 120, 8));
 			BlockPos a = ab[0];

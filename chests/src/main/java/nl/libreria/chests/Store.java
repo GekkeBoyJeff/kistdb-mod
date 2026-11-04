@@ -42,6 +42,10 @@ public final class Store {
 		public Map<String, Integer> items = new LinkedHashMap<>();
 		/** Tijdstip (ms) waarop de inhoud het laatst gelezen is. */
 		public long seen;
+		/** Crafting and hotbar refills may take from this chest (only while it stands on your own land). Off by default. */
+		public boolean supply;
+		/** No floating label above this chest. */
+		public boolean noLabel;
 
 		public BlockPos pos() {
 			return new BlockPos(this.x, this.y, this.z);
@@ -54,6 +58,8 @@ public final class Store {
 
 	public static final class PlayerData {
 		public List<Entry> entries = new ArrayList<>();
+		/** Item IDs pinned to the top of the search screen. */
+		public java.util.Set<String> favourites = new java.util.LinkedHashSet<>();
 		transient boolean dirty;
 
 		public @Nullable Entry find(String dim, BlockPos pos) {
@@ -128,6 +134,7 @@ public final class Store {
 					PlayerData data = GSON.fromJson(r, PlayerData.class);
 					if (data != null) {
 						if (data.entries == null) data.entries = new ArrayList<>();
+						if (data.favourites == null) data.favourites = new java.util.LinkedHashSet<>();
 						for (Entry e : data.entries) {
 							if (e.items == null) e.items = new LinkedHashMap<>();
 						}

@@ -37,8 +37,39 @@ public final class ItemSearch extends AnvilInputGui {
 	private static final int MAX_SHOWN = 999;
 	private static final Identifier EMPTY = Identifier.fromNamespaceAndPath("libreria", "gui/empty");
 
+	/** What the results show (the button in the anvil's result slot cycles through these). */
+	enum Filter {
+		ALL("All items", Items.CHEST), FAVOURITES("Pinned", Items.NETHER_STAR), BLOCKS("Blocks", Items.GRASS_BLOCK),
+		GEAR("Tools & gear", Items.IRON_PICKAXE), FOOD("Food", Items.BREAD), MATERIALS("Materials", Items.IRON_INGOT);
+
+		final String label;
+		final net.minecraft.world.item.Item icon;
+
+		Filter(String label, net.minecraft.world.item.Item icon) {
+			this.label = label;
+			this.icon = icon;
+		}
+
+		boolean test(Search.Stock s, java.util.Set<String> pinned) {
+			ItemStack st = s.sample();
+			boolean block = st.getItem() instanceof net.minecraft.world.item.BlockItem;
+			boolean gear = st.has(DataComponents.MAX_DAMAGE) || st.has(DataComponents.TOOL) || st.has(DataComponents.WEAPON)
+					|| st.has(DataComponents.EQUIPPABLE);
+			boolean food = st.has(DataComponents.FOOD);
+			return switch (this) {
+				case ALL -> true;
+				case FAVOURITES -> pinned.contains(id(s));
+				case BLOCKS -> block && !gear;
+				case GEAR -> gear;
+				case FOOD -> food;
+				case MATERIALS -> !block && !gear && !food;
+			};
+		}
+	}
+
 	private final ServerPlayer viewer;
 	private final boolean pack;
+	private Filter filter = Filter.ALL;
 	/** Everything on you and in your chests nearby, read once, so typing stays instant. */
 	private final List<Search.Stock> all;
 	private String shown = "\u0000";
@@ -49,8 +80,7 @@ public final class ItemSearch extends AnvilInputGui {
 		this.viewer = player;
 		this.pack = Pack.has(player);
 		this.all = new ArrayList<>(Search.stock(player, ""));
-		this.all.sort(Comparator.comparingLong(Search.Stock::total).reversed()
-				.thenComparing(s -> s.sample().getHoverName().getString().toLowerCase(Locale.ROOT)));
+		sortAll();
 		this.setTitle(title());
 		String text = typed == null ? "" : typed;
 		this.setDefaultInputValue(text);
@@ -66,6 +96,41 @@ public final class ItemSearch extends AnvilInputGui {
 
 	public static void open(ServerPlayer player, String typed) {
 		new ItemSearch(player, typed).open();
+	}
+
+	/** Pinned items first, then the most first, then by name. */
+	private void sortAll() {
+		java.util.Set<String> pinned = pinned();
+		this.all.sort(Comparator.<Search.Stock>comparingInt(s -> pinned.contains(id(s)) ? 0 : 1)
+				.thenComparing(Comparator.comparingLong(Search.Stock::total).reversed())
+				.thenComparing(s -> s.sample().getHoverName().getString().toLowerCase(Locale.ROOT)));
+	}
+
+	private java.util.Set<String> pinned() {
+		return nl.libreria.chests.Store.get(this.viewer.getUUID()).favourites;
+	}
+
+	private static String id(Search.Stock s) {
+		return net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(s.item()).toString();
+	}
+
+	/** The filter button, in the anvil's result slot (the pack gives it a little panel of its own). */
+	private GuiElementBuilder filterButton() {
+		GuiElementBuilder b = new GuiElementBuilder(this.filter.icon).setName(Ui.text("Show: " + this.filter.label, ChatFormatting.YELLOW)
+				.withStyle(ChatFormatting.BOLD)).hideDefaultTooltip();
+		for (Filter f : Filter.values()) {
+			boolean sel = f == this.filter;
+			b.addLoreLine(Ui.text((sel ? "▶ " : "   ") + f.label, sel ? ChatFormatting.GREEN : ChatFormatting.GRAY));
+		}
+		Menu.actions(b, "Click: next", "Right-click: previous");
+		return b.setCallback((index, type, action, gui) -> {
+			Ui.click(this.viewer);
+			Filter[] all = Filter.values();
+			this.filter = all[Math.floorMod(this.filter.ordinal() + (type.isRight ? -1 : 1), all.length)];
+			this.page = 0;
+			this.shown = "\u0000";
+			render(this.getInput());
+		});
 	}
 
 	@Override
@@ -101,12 +166,14 @@ public final class ItemSearch extends AnvilInputGui {
 	/** The results for what's typed now. */
 	private void render(String input) {
 		String text = input == null ? "" : input.trim();
-		String key = text.toLowerCase(Locale.ROOT) + "|" + this.page;
+		String key = text.toLowerCase(Locale.ROOT) + "|" + this.page + "|" + this.filter;
 		if (key.equals(this.shown)) return;
 		this.shown = key;
 		String lower = text.toLowerCase(Locale.ROOT);
 		List<Search.Stock> matches = new ArrayList<>();
+		java.util.Set<String> pinned = pinned();
 		for (Search.Stock s : this.all) {
+			if (!this.filter.test(s, pinned)) continue;
 			if (lower.isEmpty() || Search.matches(s.item(), lower)) matches.add(s);
 		}
 		// More than fit: the last slot turns the page
@@ -129,7 +196,7 @@ public final class ItemSearch extends AnvilInputGui {
 					ChatFormatting.RED, text.isEmpty() ? "Open a chest: it's added to your index." : "Not on you, nor in your chests nearby.",
 					text.isEmpty() ? "" : "Part of a name works too, like dia or oak."));
 		}
-		this.setSlot(2, ItemStack.EMPTY);
+		this.setSlot(2, filterButton());
 	}
 
 	private GuiElementBuilder more(int page, int pages, int total) {
@@ -147,19 +214,34 @@ public final class ItemSearch extends AnvilInputGui {
 	private GuiElementBuilder element(Search.Stock stock) {
 		int shownCount = (int) Math.max(1, Math.min(stock.total(), MAX_SHOWN));
 		int chests = stock.hits().size();
+		boolean pin = pinned().contains(id(stock));
 		GuiElementBuilder b = GuiElementBuilder.from(stock.sample().copyWithCount(shownCount)).hideDefaultTooltip();
-		b.setName(stock.sample().getHoverName().copy().withStyle(st -> st.withItalic(false)));
+		MutableComponent name = Component.empty();
+		if (pin) name.append(Ui.text("★ ", ChatFormatting.GOLD));
+		b.setName(name.append(stock.sample().getHoverName().copy().withStyle(st -> st.withItalic(false))));
 		if (stock.total() > MAX_SHOWN) b.addLoreLine(Ui.kv("Total: ", Fmt.number(stock.total()), ChatFormatting.WHITE));
 		if (stock.carried() > 0) b.addLoreLine(Ui.kv("On you: ", Fmt.number(stock.carried()), ChatFormatting.GREEN));
 		if (chests > 0) {
 			Search.Hit near = stock.hits().getFirst();
 			b.addLoreLine(Ui.kv("In chests: ", Fmt.number(stock.stored()) + " in " + Fmt.count(chests, "chest", "chests"), ChatFormatting.GOLD));
 			b.addLoreLine(Ui.kv("Nearest: ", Fmt.distance(this.viewer, near.entry(), near.distance()), ChatFormatting.YELLOW));
-			Menu.actions(b, "Click: light up the nearest chest", "Right-click: every chest with it");
+			Menu.actions(b, "Click: light up the nearest chest", "Right-click: every chest with it",
+					pin ? "Shift-click: unpin" : "Shift-click: pin to the top");
 		} else {
 			b.addLoreLine(Ui.text("All of it is on you", ChatFormatting.DARK_GRAY));
+			Menu.actions(b, pin ? "Shift-click: unpin" : "Shift-click: pin to the top");
 		}
 		return b.setCallback((index, type, action, gui) -> {
+			if (type.shift) {
+				var data = nl.libreria.chests.Store.get(this.viewer.getUUID());
+				if (!data.favourites.remove(id(stock))) data.favourites.add(id(stock));
+				data.markDirty();
+				Ui.sound(this.viewer, SoundEvents.NOTE_BLOCK_PLING.value(), 0.4f, pin ? 0.8f : 1.5f);
+				sortAll();
+				this.shown = "\u0000";
+				render(this.getInput());
+				return;
+			}
 			if (chests == 0) {
 				Ui.sound(this.viewer, SoundEvents.UI_BUTTON_CLICK.value(), 0.4f, 0.7f);
 				return;

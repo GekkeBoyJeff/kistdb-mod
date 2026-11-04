@@ -509,10 +509,14 @@ def search_frame():
     draw_icon(img, MAGNIFIER, ox + 0, oy + 22)
     draw_text(img, ox + 15, oy + 24, 'Search', (205, 205, 205))
     hole(60, 21, 108, 14)
-    # Hints where the anvil's slots were
-    box(-3, 41, 182, 24, (186, 186, 186))
-    for i, line in enumerate(('Click an item: its chest lights up', 'Right-click: every chest with it')):
-        draw_text(img, ox + 88 - text_width(line) // 2, oy + 44 + 10 * i, line, (70, 70, 70) if i == 0 else (112, 112, 112))
+    # Hints where the anvil's first two slots were
+    box(-3, 41, 132, 24, (186, 186, 186))
+    for i, line in enumerate(('Click: light up its chest', 'Right-click: all  Shift: pin')):
+        draw_text(img, ox + 2, oy + 44 + 10 * i, line, (70, 70, 70) if i == 0 else (112, 112, 112))
+    # The filter button lives in the anvil's result slot: a little panel with "Show" next to it
+    box(130, 41, 50, 24, (186, 186, 186))
+    hole(133, 46, 18, 18)
+    draw_text(img, ox + 153, oy + 51, 'Show', (70, 70, 70))
     # The dark bar over the results (the anvil's "Inventory" label vanishes into it)
     for yy in range(68, 81):
         for xx in range(-3, 179):

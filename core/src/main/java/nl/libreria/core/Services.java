@@ -55,6 +55,29 @@ public final class Services {
 		return Optional.ofNullable(MENUS.get(key));
 	}
 
+	// ---------------------------------------------------------------- land (ClaimsMod)
+
+	/** Who owns land; ClaimsMod provides it. Chests use it: crafting and refilling only take from your own land. */
+	public interface Land {
+		/** The owner of the chunk at {@code pos}, or null for free land. */
+		@Nullable java.util.UUID ownerAt(net.minecraft.server.level.ServerLevel level, net.minecraft.core.BlockPos pos);
+	}
+
+	private static @Nullable Land land;
+
+	public static void provideLand(Land l) {
+		land = l;
+	}
+
+	public static Optional<Land> land() {
+		return Optional.ofNullable(land);
+	}
+
+	/** Is {@code pos} on land that {@code player} claimed? False when there are no claims on this server. */
+	public static boolean onOwnLand(ServerPlayer player, net.minecraft.server.level.ServerLevel level, net.minecraft.core.BlockPos pos) {
+		return land != null && player.getUUID().equals(land.ownerAt(level, pos));
+	}
+
 	// ---------------------------------------------------------------- sterfbericht
 
 	/** Extra regel in het bericht na respawnen (bijvoorbeeld "je spullen liggen in je graf"). */
