@@ -18,8 +18,9 @@ Pick the modules you want. Each works on its own, and together they complement e
    - the modules you want (see below)
 2. If you used the old standalone **KistDB** mod, remove that jar. `libreria-chests` replaces it, and your chest data
    moves along automatically from `world/kistdb` to `world/libreria/chests`.
-3. Start the server. Players open everything with **`/libreria`** (or `/lib`), or with the **button in the crafting
-   output slot** of their inventory: left-click sorts, right-click opens the Libreria menu.
+3. Start the server. Players open everything with **`/libreria`** (or `/lib`), or with the **buttons in the empty crafting
+   grid** of their inventory: the Libreria menu (output slot), **Sort inventory** and **Quick stack** (right above the
+   search button). Putting a real item in the grid still crafts as usual; the buttons step aside meanwhile.
    Per-player settings are under **`/libreria settings`**.
 
 ## Modules
@@ -27,7 +28,7 @@ Pick the modules you want. Each works on its own, and together they complement e
 | Jar | What it does | Commands |
 |---|---|---|
 | **libreria-core** | Menu, per-player settings, beams to locations, shared action-bar line, name plates, storage, the resource pack (themed menu frames per tool) | `/libreria`, `/lib`, `/libreria settings` |
-| **libreria-chests** | An index of your chests: search (with beam and distance), a **⇅ Sort** button in every chest, barrel and shulker box (left-click sorts, right-click deposits matching items), middle-click sorting, quick stack, and noIndex per chest (sneak + left-click) | `/chest`, `/chest search <item>`, `/chest where <item>`, `/chest sort`, `/chest noindex` |
+| **libreria-chests** | An index of your chests: search (with beam and distance), a **⇅ Sort** button in every chest, barrel and shulker box (left-click sorts, right-click deposits matching items), middle-click sorting, quick stack, and noIndex per chest (sneak + left-click) | `/chest` (your items), `/chest find <text>`, `/chest menu`, `/chest search <item>`, `/chest where <item>`, `/chest sort`, `/chest noindex` |
 | **libreria-tools** | Switches to your next tool before the current one breaks (adjustable threshold; by default tools may break), always-visible durability, refills blocks and food, and warns about nearly broken armor and a full inventory | – |
 | **libreria-waypoints** | Shared waypoints with a beam: everyone can make them, and each one is visible to everyone (default), only you, or selected players. Your last death point gets a clickable message. Optional: send waypoints to Xaero's Minimap | `/waypoint` (`/wp`), `/waypoint set <name>`, `/waypoint go <name>`, `/waypoint private\|public <name>`, `/waypoint remove <name>`, `/waypoint xaero <name\|all>`, `/deathpoint` |
 | **libreria-info** | A tooltip for whatever you look at within reach (blocks: at the top of your screen with the pack; animals and players: floating above them) (crop growth, honey, chest fill, animal health, horse stats, and other players' achievements and completion), compass and clock info in your hand, a horse stats card (sneak + right-click), and a statistics menu with top lists | `/stats`, `/statistics` |
@@ -35,7 +36,7 @@ Pick the modules you want. Each works on its own, and together they complement e
 | **libreria-graves** | *Opt-in, off by default.* When you die, your items go into a virtual grave: explosion- and lava-proof, only you can open it, and everything returns to the same slots | `/grave`, `/grave beam` |
 | **libreria-collector** | Achievements without rewards: 27 collections ("x of y"), milestones up to *Item Completionist*, breeding (villagers and curing included), playtime and adventure. They also appear as tabs in the vanilla advancements screen (L), with toasts. Six rarities with colors; pick a title (or click **[Use as title]** in chat) and it floats above your name | `/achievements`, `/collection`, `/titles` |
 | **libreria-nicknames** | Nicknames above your head, in the tab list and in chat (real name on hover). Colours unlock with achievements | `/nick`, `/nick <name>`, `/nick reset` |
-| **libreria-claims** | Stand in your base and type `/claim`. Your budget grows with playtime and achievement points. The land map (`/claim map`) swoops your camera up into a third-person view of the real world: claimed land is tinted and fenced by see-through curtains that follow the ground (green = yours, blue = trusted, red = others), with names and sizes; WASD moves the cursor, click claims, right-click releases, scroll zooms, sneak goes back (getting hurt closes it). Protects against building, opening containers and touching animals; trusted players; doors for visitors are configurable | `/claim`, `/claim map`, `/claim show`, `/claim info`, `/claim release`, `/claim trust <player>`, `/claim untrust <player>`, `/claim admin` (ops) |
+| **libreria-claims** | Stand in your base and type `/claim`. Your budget grows with playtime and achievement points. The land map (`/claim map`) swoops your camera up into a third-person view of the real world: claimed land is tinted and fenced by see-through curtains that follow the ground (green = yours, blue = trusted, red = others), with names and sizes; the tint is one smooth see-through skin that bends over hills (no steps). WASD moves the cursor, click claims, right-click releases, scroll zooms, sneak or Q goes back (getting hurt closes it; Escape can't, it only opens the pause menu on the player's own computer). Protects against building, opening containers and touching animals; trusted players; doors for visitors are configurable | `/claim`, `/claim map`, `/claim show`, `/claim info`, `/claim release`, `/claim trust <player>`, `/claim untrust <player>`, `/claim admin` (ops) |
 | **libreria-glint** | Light rarity frames around uncommon/rare/epic items in your inventory (rare and epic ones sparkle). Animated enchantment effects on weapons, tools and armor. Every enchantment has one, in 32 effect types (flames, bubbles, frost, lightning…). Also a custom texture per enchanted book, and particles around players with enchanted gear. Toggle per player and per effect | via `/libreria` → Glint effects |
 
 ## The resource pack
@@ -50,7 +51,7 @@ With the pack you get:
 - **The look-at tooltip** for blocks at the top of the screen (drawn in a boss bar title; the pack makes *white*
   boss bars invisible, so a custom `/bossbar` in white would only show its name), and as a card above animals: dark leather, bronze frame, the thing's icon in a slot, a gem in the
   colour of its grade, an ornamental rule and rows with small pictures and pips.
-- **Chest search** from your inventory: the recipe book button becomes a magnifying glass that opens a search window (text field, results with icons, one click shows the way). Also `/chest find`.
+- **Your items** from your inventory: the recipe book button becomes a magnifying glass that opens a scrollable window with everything you carry and everything in your chests (picture, name, count; hover for where, click to follow the beam), with a search field and sorting. Also `/chest` and `/chest find`.
 - **Glint**: rarity frames, enchant effects and book covers.
 
 - On first start, core writes `config/polymer/auto-host.json` with `enabled: true` and `required: false`. Set
