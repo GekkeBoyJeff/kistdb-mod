@@ -33,6 +33,13 @@ public final class ClickRouter {
 		ContainerInput input = packet.containerInput();
 		int button = packet.buttonNum();
 
+		// The edge button beside the inventory window: a click outside it with an empty hand
+		if (menu == player.inventoryMenu && slot == -999 && input == ContainerInput.THROW && menu.getCarried().isEmpty()
+				&& Hub.edgeActive(player)) {
+			Hub.edgeClick(player, button);
+			return true;
+		}
+
 		if (menu == player.inventoryMenu && Hub.isButton(slot) && Hub.active(player)) {
 			// Putting a real item into the crafting grid (carrying one, a number key with something in that
 			// hotbar slot, or dragging): vanilla does that, then the buttons step aside

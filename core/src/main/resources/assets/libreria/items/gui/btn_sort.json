@@ -1,1 +1,0 @@
-{"model": {"type": "minecraft:select", "property": "minecraft:display_context", "cases": [{"when": "gui", "model": {"type": "minecraft:model", "model": "libreria:item/gui/btn_sort"}}], "fallback": {"type": "minecraft:empty"}}, "oversized_in_gui": true}

@@ -1,9 +1,0 @@
-{
-	"required": true,
-	"package": "nl.libreria.claims.mixin",
-	"compatibilityLevel": "JAVA_25",
-	"mixins": ["MapKeysMixin"],
-	"injectors": {
-		"defaultRequire": 1
-	}
-}

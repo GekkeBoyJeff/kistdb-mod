@@ -1,19 +1,26 @@
 package nl.libreria.core;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.FontDescription;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import nl.libreria.core.gui.Glyphs;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * De actiebalk (tekst boven de hotbar) gedeeld tussen modules. Elke module schrijft op een eigen kanaal met een
  * prioriteit; de hoogste actieve regel wordt getoond. Zo overschrijven de straal, de durability-balk en meldingen
  * elkaar niet.
+ *
+ * <p>With the Libreria pack the action bar also draws a button right of the hotbar (see {@link #setHotbarButton}):
+ * a font that moves its pictures 50 px down puts them next to the hotbar, while the text itself stays centred.
  */
 public final class Hud {
 	/** Vaste prioriteiten zodat modules consistent zijn. */
@@ -27,17 +34,29 @@ public final class Hud {
 	public static final int PRIO_WARNING = 80;
 	public static final int PRIO_FLASH = 100;
 
+	/**
+	 * A button right of the hotbar: {@code picture} = a glyph of the libreria:hotbar font (like "hb.map"), {@code key}
+	 * = the key that works it (drawn in its corner, e.g. a keybind component), {@code keyWidth} = its width in pixels
+	 * as far as the server can tell.
+	 */
+	public record HotbarButton(String picture, Component key, int keyWidth) {
+	}
+
 	private record Line(Component text, int priority, int until) {
 	}
 
 	private static final class State {
 		final Map<String, Line> lines = new HashMap<>();
-		@Nullable String shown;
 		@Nullable Component shownText;
 		int lastSend = -1000;
 	}
 
+	private static final FontDescription HOTBAR = new FontDescription.Resource(Identifier.fromNamespaceAndPath("libreria", "hotbar"));
+	/** Left edge of the hotbar button, from the middle of the screen (the hotbar is 182 px wide). */
+	private static final int BUTTON_X = 95;
+
 	private static final Map<UUID, State> STATES = new HashMap<>();
+	private static @Nullable Function<ServerPlayer, HotbarButton> hotbarButton;
 	private static int now;
 
 	private Hud() {
@@ -60,52 +79,73 @@ public final class Hud {
 		if (s != null && s.lines.remove(channel) != null) update(player, s, false);
 	}
 
+	/** The button right of the hotbar (one module may claim it); null for a player = no button. */
+	public static void setHotbarButton(Function<ServerPlayer, HotbarButton> provider) {
+		hotbarButton = provider;
+	}
+
+	/** Redraw now (e.g. after a setting changed). */
+	public static void refresh(ServerPlayer player) {
+		update(player, STATES.computeIfAbsent(player.getUUID(), k -> new State()), false);
+	}
+
 	static void tick(MinecraftServer server, int tick) {
 		now = tick;
-		if (STATES.isEmpty()) return;
-		Iterator<Map.Entry<UUID, State>> it = STATES.entrySet().iterator();
-		while (it.hasNext()) {
-			Map.Entry<UUID, State> e = it.next();
-			ServerPlayer p = server.getPlayerList().getPlayer(e.getKey());
-			if (p == null) {
-				it.remove();
-				continue;
+		for (ServerPlayer p : server.getPlayerList().getPlayers()) {
+			State s = STATES.get(p.getUUID());
+			if (s == null) {
+				if (hotbarButton == null || tick % 10 != p.getId() % 10) continue;
+				s = new State();
+				STATES.put(p.getUUID(), s);
 			}
-			State s = e.getValue();
 			s.lines.values().removeIf(l -> l.until() <= now);
-			if (s.lines.isEmpty() && s.shown == null) {
-				it.remove();
-				continue;
-			}
 			update(p, s, true);
+			if (s.lines.isEmpty() && s.shownText == null) STATES.remove(p.getUUID());
 		}
 	}
 
 	private static void update(ServerPlayer player, State s, boolean periodic) {
-		String best = null;
-		Line bestLine = null;
-		for (Map.Entry<String, Line> e : s.lines.entrySet()) {
-			if (e.getValue().until() <= now) continue;
-			if (bestLine == null || e.getValue().priority() > bestLine.priority()) {
-				best = e.getKey();
-				bestLine = e.getValue();
-			}
+		Line best = null;
+		for (Line l : s.lines.values()) {
+			if (l.until() <= now) continue;
+			if (best == null || l.priority() > best.priority()) best = l;
 		}
-		if (bestLine == null) {
+		HotbarButton button = hotbarButton != null && Pack.has(player) ? hotbarButton.apply(player) : null;
+		Component text;
+		if (button != null) {
+			Component message = best == null ? Component.empty() : best.text();
+			text = Component.empty().append(message).append(hotbarSegment(button, best == null ? 0 : Glyphs.width(message)));
+		} else if (best != null) {
+			text = best.text();
+		} else {
 			// Taken away on purpose (not run out): clear it at once instead of letting it fade for 3 seconds
-			if (!periodic && s.shown != null) player.connection.send(new ClientboundSetActionBarTextPacket(Component.empty()));
-			s.shown = null;
+			if (!periodic && s.shownText != null) player.connection.send(new ClientboundSetActionBarTextPacket(Component.empty()));
 			s.shownText = null;
 			return;
 		}
-		boolean changed = !best.equals(s.shown) || !bestLine.text().equals(s.shownText);
-		// De actiebalk vervaagt na ~3 s; elke seconde opnieuw sturen houdt hem zichtbaar
+		boolean changed = !text.equals(s.shownText);
+		// The action bar fades after ~3 s; sending it again every second keeps it there
 		if (changed || (periodic && now - s.lastSend >= 20)) {
-			player.connection.send(new ClientboundSetActionBarTextPacket(bestLine.text()));
-			s.shown = best;
-			s.shownText = bestLine.text();
+			player.connection.send(new ClientboundSetActionBarTextPacket(text));
+			s.shownText = text;
 			s.lastSend = now;
 		}
+	}
+
+	/**
+	 * The hotbar button, drawn after the centred message: from the message's end over to the right of the hotbar,
+	 * slot, picture, key, and back again so the line keeps the message's width (and the message stays centred).
+	 */
+	private static MutableComponent hotbarSegment(HotbarButton b, int messageWidth) {
+		int start = BUTTON_X - (messageWidth - messageWidth / 2);
+		int keyX = 20 - b.keyWidth();
+		String pictures = Glyphs.space(start) + Glyphs.g("hb.slot") + Glyphs.space(3 - Glyphs.advance("hb.slot")) + Glyphs.g(b.picture())
+				+ Glyphs.space(keyX - 3 - Glyphs.advance(b.picture()));
+		MutableComponent out = Component.literal(pictures).withStyle(st -> st.withFont(HOTBAR).withColor(0xFFFFFF).withoutShadow()
+				.withBold(false).withItalic(false));
+		out.append(b.key().copy().withStyle(st -> st.withFont(HOTBAR).withColor(0xFFFFFF).withBold(false).withItalic(false)));
+		out.append(Component.literal(Glyphs.space(-(start + 20))).withStyle(st -> st.withFont(HOTBAR)));
+		return out;
 	}
 
 	static void forget(UUID id) {

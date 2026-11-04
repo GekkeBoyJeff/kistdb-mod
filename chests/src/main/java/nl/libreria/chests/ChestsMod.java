@@ -67,11 +67,8 @@ public final class ChestsMod implements ModInitializer {
 		CommandRegistrationCallback.EVENT.register(ChestCommands::register);
 
 		// In het Libreria-menu en op de knop in het E-scherm
-		// Right above the search button (the magnifying glass) in your inventory
-		Hub.addButton(3, "libreria:gui/btn_sort", Items.COMPARATOR, "Sort inventory", ChatFormatting.YELLOW, Sorter::sortPlayer,
-				"Merges and sorts your stacks.", "Your hotbar stays as it is.");
-		Hub.addButton(4, "libreria:gui/btn_stack", Items.CHEST_MINECART, "Quick stack", ChatFormatting.GREEN, QuickStack::run,
-				"Puts items into nearby chests", "that already have them.", "Your hotbar stays as it is.");
+		// The sort button beside your inventory window (left click sorts, right click quick-stacks into nearby chests)
+		Hub.setEdgeButton(Sorter::sortPlayer, QuickStack::run);
 		Hub.addHint("In chests: ⇅ or middle-click = sort");
 		MODULE.hubEntry(Items.SPYGLASS, "Your items", ChatFormatting.AQUA, ChestSearch::open,
 				"Everything on you and in your chests,", "searchable; click one to follow the beam.", "Also: the magnifying glass in your inventory.");

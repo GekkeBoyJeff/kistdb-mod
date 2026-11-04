@@ -18,6 +18,7 @@ import java.util.Set;
 import java.util.UUID;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -38,101 +39,100 @@ import net.minecraft.world.entity.Display;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
+import nl.libreria.core.Hotkeys;
 import nl.libreria.core.Hud;
+import nl.libreria.core.Hud.HotbarButton;
 import nl.libreria.core.Pack;
 import nl.libreria.core.Services;
 import nl.libreria.core.Ui;
+import nl.libreria.core.gui.TopCard;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 /**
  * The land map. Your camera swoops back and up into a third-person view over your own head and looks down at the
- * real world around you. Every piece of claimed land is fenced by a see-through curtain that follows the ground and
- * has coloured motes floating over it (green = yours, blue = you may build there, red = someone else's), a floating
- * name with its size, and a small marker shows where you stand. The chunk in the middle of the screen is the cursor: WASD glides over the land (sprint = faster), click
- * claims it (with a little celebration), right-click releases it, scroll zooms, sneak flies back down. Getting hurt
- * closes it at once.
+ * real world around you. Claimed land stands there as see-through glass buildings with bright frames (green = yours,
+ * blue = you may build there, red = someone else's), each with its owner's name on top. The chunk in the middle of the
+ * screen has a golden frame: that is what you claim (click) or release (right-click). WASD glides over the land
+ * (sprint = faster), scroll zooms, and sneak, Q or the land map key (sneak + swap hands) takes you back. Getting hurt
+ * closes it at once. With the pack a card at the top of the screen says whose land it is and how much you may still
+ * claim.
  *
  * <p>Fully server-side: the camera is a virtual entity the client looks through, everything else is display
  * entities only you can see. While the camera is elsewhere the client doesn't send where it looks, but it does send
- * its movement keys, clicks, the scroll wheel and sneaking, which is all the map needs.
+ * its movement keys, clicks, the scroll wheel, sneaking and the swap / drop keys, which is all the map needs.
  */
 final class ClaimView {
 	/** How far you can glide, in chunks from where you stand. */
 	static final int RADIUS = 8;
 	private static final int OPEN_TICKS = 28, CLOSE_TICKS = 16;
 	/** Camera distance (zoom) and how steep it looks down. */
-	private static final double MIN_D = 14, MAX_D = 90, START_D = 32;
+	private static final double MIN_D = 14, MAX_D = 90, START_D = 34;
 	private static final float PITCH = 56f;
+	/** Roofs float this high over the highest ground of a piece of land; the cursor box over free land is lower. */
+	private static final int ROOF = 3, CURSOR_ROOF = 2;
+	private static final float ROD = 0.14f, CURSOR_ROD = 0.18f;
 	private static final Identifier FREEZE = Identifier.fromNamespaceAndPath("libreria", "claim_view");
 	private static final Identifier EMPTY_MODEL = Identifier.fromNamespaceAndPath("libreria", "gui/empty");
 	private static final Brightness FULL = new Brightness(15, 15);
 	private static final String HUD = "claims.view";
+	private static final String CARD = "claims.map";
 
 	private enum Kind {
-		FREE, MINE, TRUSTED, OTHER;
-
-		Block glass() {
-			return switch (this) {
-				case MINE -> ClaimView.glass("lime");
-				case TRUSTED -> ClaimView.glass("light_blue");
-				case OTHER -> ClaimView.glass("red");
-				case FREE -> ClaimView.glass("white");
-			};
-		}
+		FREE, MINE, TRUSTED, OTHER, DENIED;
 
 		int color() {
 			return switch (this) {
 				case MINE -> 0x55FF55;
 				case TRUSTED -> 0x55FFFF;
-				case OTHER -> 0xFF5555;
+				case OTHER, DENIED -> 0xFF5555;
 				case FREE -> 0xFFFFFF;
+			};
+		}
+
+		String glass() {
+			return switch (this) {
+				case MINE -> "lime";
+				case TRUSTED -> "light_blue";
+				case OTHER, DENIED -> "red";
+				case FREE -> "white";
+			};
+		}
+
+		String model() {
+			return switch (this) {
+				case MINE -> "mine";
+				case TRUSTED -> "trusted";
+				default -> "other";
 			};
 		}
 	}
 
+	private static final int WALL = 0, ROOF_PIECE = 1, ROD_PIECE = 2;
+	private static final int AXIS_X = 0, AXIS_Y = 1, AXIS_Z = 2;
+
 	/**
-	 * One flat piece of the map, in world coordinates: a fill is the parallelogram A, B, C (fourth corner B + C - A),
-	 * a triangle the triangle A, B, C, a curtain the strip from its foot A-B up to C = A + its height. kind null =
-	 * the cursor.
+	 * One piece of a glass building, standing at (x, z): a wall (along x or z, from {@code low} up to {@code high}), a
+	 * roof (a {@code len} x {@code depth} square at {@code high}) or a rod (vertical from {@code low} to {@code high},
+	 * or lying along x / z at {@code high}). Everything grows out of the ground at {@code base}. kind null = the cursor.
 	 */
-	private record Piece(int type, @Nullable Kind kind, float ax, float ay, float az, float bx, float by, float bz, float cx, float cy,
-			float cz) {
-		Vector3f a() {
-			return new Vector3f(this.ax, this.ay, this.az);
-		}
-
-		Vector3f b() {
-			return new Vector3f(this.bx, this.by, this.bz);
-		}
-
-		Vector3f c() {
-			return new Vector3f(this.cx, this.cy, this.cz);
-		}
+	private record Piece(int type, @Nullable Kind kind, int axis, float x, float z, float low, float high, float len, float depth, float base) {
 	}
 
-	private static final int QUAD = 0, TRI = 1, WALL = 2;
-	/** The map's skin is a grid of 4x4 blocks (four cells to a chunk side). */
-	private static final int CELL = 4;
-	/** How far the skin floats over the ground: claimed land, and the cursor a bit higher so they never fight. */
-	private static final float LIFT = 0.06f, CURSOR_LIFT = 0.16f;
-	// The models as the client draws them inside a display entity: centred and turned half a turn around y. A flat
-	// square (and the triangle cut from it: corners FLAT_A, FLAT_B, FLAT_C), a standing square, and a whole block.
-	private static final Vector3f FLAT_A = new Vector3f(0.5f, 0, 0.5f), FLAT_B = new Vector3f(-0.5f, 0, 0.5f),
-			FLAT_C = new Vector3f(0.5f, 0, -0.5f), UP = new Vector3f(0, 1, 0);
-	private static final Vector3f WALL_A = new Vector3f(0.5f, -0.5f, 0), WALL_B = new Vector3f(-0.5f, -0.5f, 0),
-			WALL_C = new Vector3f(0.5f, 0.5f, 0), ACROSS = new Vector3f(0, 0, 1);
-	private static final Vector3f CUBE_A = new Vector3f(0, 0, 0), CUBE_B = new Vector3f(1, 0, 0), CUBE_C = new Vector3f(0, 1, 0);
+	/** A connected piece of land of one owner. */
+	private record Region(ClaimsMod.Claim first, Kind kind, Set<Long> chunks, List<ChunkPos> list, int roof, int base) {
+	}
 
 	/** A change to a display that should start a few ticks from now (so the client first has the old state). */
-	private record Anim(DisplayElement el, int at, @Nullable Vector3f translation, @Nullable Vector3f scale, int duration, boolean remove,
-			@Nullable Runnable apply) {
+	private record Anim(DisplayElement el, int at, int duration, boolean remove, @Nullable Runnable apply) {
 	}
 
 	private static final class View {
@@ -142,25 +142,21 @@ final class ClaimView {
 		final ElementHolder holder = new ElementHolder();
 		final ItemDisplayElement cam = new ItemDisplayElement();
 		final TextDisplayElement you = new TextDisplayElement();
-		/** Border curtains of claimed land, and the ones around the cursor chunk. */
-		final Map<Piece, DisplayElement> walls = new HashMap<>();
-		final Map<Piece, DisplayElement> cursorWalls = new HashMap<>();
-		/** The see-through skin lying on claimed land, and on the cursor chunk. */
-		final Map<Piece, DisplayElement> fills = new HashMap<>();
-		final Map<Piece, DisplayElement> cursorFills = new HashMap<>();
+		/** The buildings, and the golden box around the cursor chunk. */
+		final Map<Piece, DisplayElement> pieces = new HashMap<>();
+		final Map<Piece, DisplayElement> cursor = new HashMap<>();
 		boolean pack;
 		final List<TextDisplayElement> labels = new ArrayList<>();
-		final Map<Long, Integer> tops = new HashMap<>();
-		/** Height of the skin at each grid corner. */
-		final Map<Long, Float> corners = new HashMap<>();
+		final List<Region> regions = new ArrayList<>();
+		final Map<Long, Integer> highest = new HashMap<>();
 		final List<Anim> anims = new ArrayList<>();
 		final Vec3 eyeStart;
 		final float yawStart, pitchStart;
 		/** Cursor (the point in the middle of the screen) and its glide speed. */
 		double curX, curZ, curY, velX, velZ;
 		double dist = START_D, targetDist = START_D;
-		int age, closeAge = -1, lastSlot;
-		boolean cameraSet, wasSwinging, sneakReleased;
+		int age, closeAge = -1, lastSlot, deniedUntil = -1;
+		boolean cameraSet, wasSwinging, sneakReleased, denied;
 		@Nullable ChunkPos cursorChunk;
 		Vec3 camPos;
 		float camPitch;
@@ -212,13 +208,6 @@ final class ClaimView {
 		VIEWS.put(p.getUUID(), v);
 		Services.setCamera(p.getUUID(), true);
 
-		ChunkPos center = p.chunkPosition();
-		for (int dx = -RADIUS; dx <= RADIUS; dx++) {
-			for (int dz = -RADIUS; dz <= RADIUS; dz++) {
-				ChunkPos c = new ChunkPos(center.x() + dx, center.z() + dz);
-				v.tops.put(key(c), surface(v.level, c));
-			}
-		}
 		v.curX = p.getX();
 		v.curZ = p.getZ();
 		v.curY = p.getY();
@@ -247,7 +236,7 @@ final class ClaimView {
 		v.you.setScale(new Vector3f(youScale(v)));
 		v.holder.addElement(v.you);
 
-		buildPlates(v, true);
+		buildings(v, true);
 		new ManualAttachment(v.holder, v.level, () -> v.origin);
 		v.holder.startWatching(p);
 
@@ -273,12 +262,11 @@ final class ClaimView {
 		if (v.closeAge < 0) {
 			v.closeAge = 0;
 			Hud.hide(p, HUD);
+			TopCard.hide(p, CARD);
 			Ui.sound(p, SoundEvents.ELYTRA_FLYING, 0.18f, 2.0f);
-			// The curtains sink into the ground
-			for (Map.Entry<Piece, DisplayElement> e : v.walls.entrySet()) lower(v, e.getKey(), e.getValue(), 0, 7);
-			for (Map.Entry<Piece, DisplayElement> e : v.cursorWalls.entrySet()) lower(v, e.getKey(), e.getValue(), 0, 5);
-			for (Map.Entry<Piece, DisplayElement> e : v.fills.entrySet()) lower(v, e.getKey(), e.getValue(), 0, 6);
-			for (Map.Entry<Piece, DisplayElement> e : v.cursorFills.entrySet()) lower(v, e.getKey(), e.getValue(), 0, 4);
+			// The buildings sink into the ground
+			for (Map.Entry<Piece, DisplayElement> e : v.pieces.entrySet()) lower(v, e.getKey(), e.getValue(), 0, 7);
+			for (Map.Entry<Piece, DisplayElement> e : v.cursor.entrySet()) lower(v, e.getKey(), e.getValue(), 0, 4);
 			for (TextDisplayElement label : v.labels) label.setScale(new Vector3f(0.01f));
 			v.you.setScale(new Vector3f(0.01f));
 		}
@@ -292,6 +280,7 @@ final class ClaimView {
 		if (!v.p.hasDisconnected()) {
 			v.p.connection.send(VirtualEntityUtils.createClientboundSetCameraPacket(v.p.getId()));
 			Hud.hide(v.p, HUD);
+			TopCard.hide(v.p, CARD);
 			// Show the real hotbar again
 			v.p.inventoryMenu.sendAllDataToRemote();
 		}
@@ -332,6 +321,49 @@ final class ClaimView {
 		p.connection.send(new ClientboundContainerSetSlotPacket(menu.containerId, menu.getStateId(), 45, ItemStack.EMPTY));
 	}
 
+	// ---------------------------------------------------------------- keys
+
+	/**
+	 * Swap hands and drop (from {@link Hotkeys}). While the map is open they take you back (drop and swap would act on
+	 * the real items you can't see). Otherwise the land map key opens it.
+	 */
+	static boolean onKey(ServerPlayer p, Hotkeys.Key key, boolean sneaking) {
+		View v = VIEWS.get(p.getUUID());
+		if (v != null) {
+			emptyHands(p);
+			close(p, false);
+			return true;
+		}
+		if (key != Hotkeys.Key.SWAP_HANDS) return false;
+		int mode = ClaimsMod.MAP_KEY.get(p);
+		if (mode == 2 || mode == 0 && !sneaking) return false;
+		open(p);
+		return true;
+	}
+
+	/** Right-click while the map is open (from UseItemCallback). */
+	static boolean onUse(ServerPlayer p) {
+		View v = VIEWS.get(p.getUUID());
+		if (v == null) return false;
+		if (v.age > OPEN_TICKS && v.closeAge < 0) clickClaim(v, false);
+		return true;
+	}
+
+	/** The button right of the hotbar: the land map and its key. */
+	static @Nullable HotbarButton hotbarButton(ServerPlayer p) {
+		if (!ClaimsMod.MAP_BUTTON.get(p) || p.isSpectator() || isOpen(p)) return null;
+		int mode = ClaimsMod.MAP_KEY.get(p);
+		if (mode == 2) return null;
+		MutableComponent key = Component.empty();
+		int width = nl.libreria.core.gui.Glyphs.width(Component.literal("F"));
+		if (mode == 0) {
+			key.append(Component.literal(nl.libreria.core.gui.Glyphs.g("hb.shift")));
+			width += nl.libreria.core.gui.Glyphs.advance("hb.shift");
+		}
+		key.append(Component.keybind("key.swapOffhand"));
+		return new HotbarButton("hb.map", key, width);
+	}
+
 	// ---------------------------------------------------------------- every tick
 
 	static void tick(MinecraftServer server) {
@@ -366,13 +398,16 @@ final class ClaimView {
 			input(v);
 
 			ChunkPos cc = new ChunkPos(Mth.floor(v.curX) >> 4, Mth.floor(v.curZ) >> 4);
-			if (!cc.equals(v.cursorChunk)) {
+			boolean deniedOver = v.denied && v.age >= v.deniedUntil;
+			if (!cc.equals(v.cursorChunk) || deniedOver) {
+				if (!cc.equals(v.cursorChunk)) Ui.sound(p, SoundEvents.UI_BUTTON_CLICK.value(), 0.06f, 1.9f);
 				v.cursorChunk = cc;
-				placeCursor(v, cc, true);
+				v.denied = false;
+				placeCursor(v, cc);
 			}
-			if (v.age % 5 == 0) motes(v);
+			if (v.age % 6 == 0) motes(v);
 			// The point the camera looks at follows the ground under the cursor, gently
-			v.curY = Mth.lerp(0.15, v.curY, top(v, cc));
+			v.curY = Mth.lerp(0.15, v.curY, highest(v, cc));
 			v.dist = Mth.lerp(0.3, v.dist, v.targetDist);
 
 			Vec3 look = new Vec3(v.curX, v.curY, v.curZ);
@@ -450,54 +485,29 @@ final class ClaimView {
 		else if (v.sneakReleased) close(p, false);
 	}
 
-	/**
-	 * Q while the map is open closes it (Escape can't: the pause menu opens on your own computer and the server never
-	 * hears of it). Dropping or swapping hands would act on the real items you can't see, so those are ignored.
-	 */
-	static boolean onAction(ServerPlayer p, net.minecraft.network.protocol.game.ServerboundPlayerActionPacket.Action action) {
-		View v = VIEWS.get(p.getUUID());
-		if (v == null) return false;
-		switch (action) {
-			case DROP_ITEM, DROP_ALL_ITEMS -> {
-				emptyHands(p);
-				close(p, false);
-				return true;
-			}
-			case SWAP_ITEM_WITH_OFFHAND -> {
-				emptyHands(p);
-				return true;
-			}
-			default -> {
-				return false;
-			}
-		}
-	}
-
-	/** Right-click while the map is open (from UseItemCallback). */
-	static boolean onUse(ServerPlayer p) {
-		View v = VIEWS.get(p.getUUID());
-		if (v == null) return false;
-		if (v.age > OPEN_TICKS && v.closeAge < 0) clickClaim(v, false);
-		return true;
-	}
-
 	private static void clickClaim(View v, boolean claim) {
 		ChunkPos c = v.cursorChunk;
 		if (c == null) return;
 		boolean changed = claim ? ClaimsMod.claim(v.p, v.level, c) : ClaimsMod.unclaim(v.p, v.level, c);
 		if (!changed) {
+			// The golden box flashes red for a moment
 			Ui.sound(v.p, SoundEvents.VILLAGER_NO, 0.5f, 1.2f);
-			placeCursor(v, c, false);
+			v.denied = true;
+			v.deniedUntil = v.age + 12;
+			placeCursor(v, c);
 			return;
 		}
-		buildPlates(v, false);
-		placeCursor(v, c, false);
-		double y = top(v, c) + 1.2;
+		buildings(v, false);
+		placeCursor(v, c);
+		double y = highest(v, c) + 1.2;
+		Region r = regionOf(v, c);
 		if (claim) {
-			edgeParticles(v, c, y, ParticleTypes.HAPPY_VILLAGER);
-			v.level.sendParticles(v.p, ParticleTypes.TOTEM_OF_UNDYING, true, true, c.getMinBlockX() + 8, y + 1, c.getMinBlockZ() + 8,
-					60, 2.5, 0.6, 2.5, 0.45);
+			double top = r != null ? r.roof() : y;
+			edgeParticles(v, c, top, ParticleTypes.HAPPY_VILLAGER);
+			v.level.sendParticles(v.p, ParticleTypes.TOTEM_OF_UNDYING, true, true, c.getMinBlockX() + 8, top, c.getMinBlockZ() + 8,
+					70, 3, 0.8, 3, 0.45);
 			Ui.sound(v.p, SoundEvents.AMETHYST_BLOCK_CHIME, 1f, 1.2f);
+			Ui.sound(v.p, SoundEvents.PLAYER_LEVELUP, 0.35f, 1.6f);
 		} else {
 			edgeParticles(v, c, y, ParticleTypes.POOF);
 			Ui.sound(v.p, SoundEvents.CANDLE_EXTINGUISH, 1f, 0.8f);
@@ -514,7 +524,7 @@ final class ClaimView {
 		}
 	}
 
-	// ---------------------------------------------------------------- drawing
+	// ---------------------------------------------------------------- the land
 
 	private static void moveCamera(View v, Vec3 pos, float yaw, float pitch) {
 		v.cam.setOffset(pos.subtract(v.origin));
@@ -522,126 +532,49 @@ final class ClaimView {
 		v.cam.setPitch(pitch);
 	}
 
-	private static Kind kind(View v, ChunkPos c) {
-		ClaimsMod.Claim cl = ClaimsMod.claimAt(v.level, c);
+	private static Kind kind(View v, @Nullable ClaimsMod.Claim cl) {
 		if (cl == null) return Kind.FREE;
 		if (cl.owner.equals(v.p.getUUID())) return Kind.MINE;
 		return ClaimsMod.trustedIn(v.p, cl) ? Kind.TRUSTED : Kind.OTHER;
 	}
 
-	private static int top(View v, ChunkPos c) {
-		return v.tops.computeIfAbsent(key(c), k -> surface(v.level, c));
+	private static int ground(View v, int x, int z) {
+		return v.level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z);
 	}
 
-	/** Highest ground in a chunk (a few samples), so the plate lies on top of it. */
-	private static int surface(ServerLevel level, ChunkPos c) {
-		int h = level.getMinY();
-		for (int x = 1; x < 16; x += 7) {
-			for (int z = 1; z < 16; z += 7) {
-				h = Math.max(h, level.getHeight(Heightmap.Types.MOTION_BLOCKING, c.getMinBlockX() + x, c.getMinBlockZ() + z));
+	/** Highest ground in a chunk (every third block), so a roof floats over all of it. */
+	private static int highest(View v, ChunkPos c) {
+		return v.highest.computeIfAbsent(key(c), k -> {
+			int h = v.level.getMinY();
+			for (int x = 0; x < 16; x += 3) {
+				for (int z = 0; z < 16; z += 3) h = Math.max(h, ground(v, c.getMinBlockX() + x, c.getMinBlockZ() + z));
 			}
-		}
-		return h;
-	}
-
-	/**
-	 * Everyone's land around you: a see-through skin lying over the ground (it bends smoothly over hills, no steps),
-	 * fenced by curtains that are bright at the foot and fade upwards. Only the outside edge of each piece of land
-	 * gets a curtain, so you see whole areas, not tiles. Kept pieces stay, new ones grow, gone ones shrink away.
-	 */
-	private static void buildPlates(View v, boolean opening) {
-		ChunkPos center = new ChunkPos(Mth.floor(v.origin.x) >> 4, Mth.floor(v.origin.z) >> 4);
-		Set<Piece> want = new HashSet<>();
-		Set<Piece> fills = new HashSet<>();
-		for (int dx = -RADIUS; dx <= RADIUS; dx++) {
-			for (int dz = -RADIUS; dz <= RADIUS; dz++) {
-				ChunkPos c = new ChunkPos(center.x() + dx, center.z() + dz);
-				ClaimsMod.Claim cl = ClaimsMod.claimAt(v.level, c);
-				if (cl == null) continue;
-				Kind kind = kind(v, c);
-				for (int side = 0; side < 4; side++) {
-					ChunkPos n = neighbour(c, side);
-					ClaimsMod.Claim nc = ClaimsMod.claimAt(v.level, n);
-					if (nc != null && nc.owner.equals(cl.owner)) continue;
-					edge(v, c, side, kind, 3.2f, want);
-				}
-				if (v.pack) fill(v, c, kind, fills);
+			for (int i = 0; i < 16; i += 5) {
+				h = Math.max(h, ground(v, c.getMinBlockX() + 15, c.getMinBlockZ() + i));
+				h = Math.max(h, ground(v, c.getMinBlockX() + i, c.getMinBlockZ() + 15));
 			}
-		}
-		sync(v, v.walls, want, opening);
-		sync(v, v.fills, fills, opening);
-		labels(v, center);
-	}
-
-	/**
-	 * Height of the skin at a grid corner (block coordinates, multiples of {@link #CELL}): about the highest ground
-	 * around it, ignoring a lone tree trunk or pole, so the skin lies over the land instead of cutting through it.
-	 */
-	private static float corner(View v, int x, int z) {
-		return v.corners.computeIfAbsent(key(x, z), k -> {
-			int[] h = new int[36];
-			int i = 0;
-			for (int dx = -3; dx < 3; dx++) {
-				for (int dz = -3; dz < 3; dz++) h[i++] = v.level.getHeight(Heightmap.Types.MOTION_BLOCKING, x + dx, z + dz);
-			}
-			java.util.Arrays.sort(h);
-			return (float) h[33];
+			return h;
 		});
 	}
 
-	/**
-	 * The skin on one chunk: flat rectangles where the land is flat, a tilted square where it slopes evenly, and two
-	 * triangles (folded along the higher diagonal) where it bends. Neighbouring pieces share their corners exactly,
-	 * so it is one smooth surface.
-	 */
-	private static void fill(View v, ChunkPos c, @Nullable Kind kind, Set<Piece> out) {
-		float lift = kind == null ? CURSOR_LIFT : LIFT;
+	/** Lowest ground along one side of a chunk (where a wall must reach down to). */
+	private static int lowestAlong(View v, ChunkPos c, int side) {
 		int x0 = c.getMinBlockX(), z0 = c.getMinBlockZ();
-		int n = 16 / CELL;
-		float[][] h = new float[n + 1][n + 1];
-		for (int i = 0; i <= n; i++) {
-			for (int j = 0; j <= n; j++) h[i][j] = corner(v, x0 + i * CELL, z0 + j * CELL) + lift;
+		int low = Integer.MAX_VALUE;
+		for (int i = 0; i < 16; i++) {
+			int x = switch (side) {
+				case 1 -> x0 + 15;
+				case 3 -> x0;
+				default -> x0 + i;
+			};
+			int z = switch (side) {
+				case 0 -> z0;
+				case 2 -> z0 + 15;
+				default -> z0 + i;
+			};
+			low = Math.min(low, ground(v, x, z));
 		}
-		boolean[][] used = new boolean[n][n];
-		for (int j = 0; j < n; j++) {
-			for (int i = 0; i < n; i++) {
-				if (used[i][j]) continue;
-				float a = h[i][j], b = h[i + 1][j], cc = h[i][j + 1], d = h[i + 1][j + 1];
-				float x = x0 + i * CELL, z = z0 + j * CELL;
-				if (flat(h, i, j)) {
-					// As big a flat rectangle as the land allows at this height
-					int w = 1;
-					while (i + w < n && !used[i + w][j] && flat(h, i + w, j) && h[i + w][j] == a) w++;
-					int rows = 1;
-					grow:
-					while (j + rows < n) {
-						for (int k = i; k < i + w; k++) {
-							if (used[k][j + rows] || !flat(h, k, j + rows) || h[k][j + rows] != a) break grow;
-						}
-						rows++;
-					}
-					for (int k = i; k < i + w; k++) {
-						for (int l = j; l < j + rows; l++) used[k][l] = true;
-					}
-					out.add(new Piece(QUAD, kind, x, a, z, x + w * CELL, a, z, x, a, z + rows * CELL));
-					continue;
-				}
-				used[i][j] = true;
-				if (a + d == b + cc) {
-					out.add(new Piece(QUAD, kind, x, a, z, x + CELL, b, z, x, cc, z + CELL));
-				} else if (a + d > b + cc) {
-					out.add(new Piece(TRI, kind, x, a, z, x + CELL, b, z, x + CELL, d, z + CELL));
-					out.add(new Piece(TRI, kind, x, a, z, x + CELL, d, z + CELL, x, cc, z + CELL));
-				} else {
-					out.add(new Piece(TRI, kind, x + CELL, b, z, x, cc, z + CELL, x, a, z));
-					out.add(new Piece(TRI, kind, x + CELL, b, z, x + CELL, d, z + CELL, x, cc, z + CELL));
-				}
-			}
-		}
-	}
-
-	private static boolean flat(float[][] h, int i, int j) {
-		return h[i][j] == h[i + 1][j] && h[i][j] == h[i][j + 1] && h[i][j] == h[i + 1][j + 1];
+		return low;
 	}
 
 	private static ChunkPos neighbour(ChunkPos c, int side) {
@@ -653,120 +586,235 @@ final class ClaimView {
 		};
 	}
 
+	/** Every connected piece of land of one owner around you. */
+	private static List<Region> regions(View v) {
+		ChunkPos center = new ChunkPos(Mth.floor(v.origin.x) >> 4, Mth.floor(v.origin.z) >> 4);
+		List<Region> out = new ArrayList<>();
+		Set<Long> done = new HashSet<>();
+		for (int dx = -RADIUS; dx <= RADIUS; dx++) {
+			for (int dz = -RADIUS; dz <= RADIUS; dz++) {
+				ChunkPos start = new ChunkPos(center.x() + dx, center.z() + dz);
+				ClaimsMod.Claim first = ClaimsMod.claimAt(v.level, start);
+				if (first == null || !done.add(key(start))) continue;
+				List<ChunkPos> group = new ArrayList<>();
+				Set<Long> keys = new HashSet<>();
+				ArrayDeque<ChunkPos> todo = new ArrayDeque<>();
+				todo.add(start);
+				while (!todo.isEmpty()) {
+					ChunkPos c = todo.poll();
+					group.add(c);
+					keys.add(key(c));
+					for (int side = 0; side < 4; side++) {
+						ChunkPos n = neighbour(c, side);
+						if (Math.abs(n.x() - center.x()) > RADIUS || Math.abs(n.z() - center.z()) > RADIUS) continue;
+						ClaimsMod.Claim nc = ClaimsMod.claimAt(v.level, n);
+						if (nc != null && nc.owner.equals(first.owner) && done.add(key(n))) todo.add(n);
+					}
+				}
+				int roof = Integer.MIN_VALUE, base = Integer.MAX_VALUE;
+				for (ChunkPos c : group) {
+					roof = Math.max(roof, highest(v, c));
+					for (int side = 0; side < 4; side++) base = Math.min(base, lowestAlong(v, c, side));
+				}
+				out.add(new Region(first, kind(v, first), keys, group, roof + ROOF, base - 2));
+			}
+		}
+		return out;
+	}
+
+	private static @Nullable Region regionOf(View v, ChunkPos c) {
+		for (Region r : v.regions) {
+			if (r.chunks().contains(key(c))) return r;
+		}
+		return null;
+	}
+
 	/**
-	 * One side of a chunk as curtain strips standing on the skin's edge: one slanted strip per grid cell, so the
-	 * curtain climbs and dips with the land without steps or gaps.
+	 * Everyone's land as glass buildings: a wall along every outer edge (from under the ground up to the roof), a flat
+	 * roof over every chunk, and bright rods along the roof's edges and down every corner. Kept pieces stay, new ones
+	 * grow out of the ground, gone ones sink back in.
 	 */
-	private static void edge(View v, ChunkPos c, int side, @Nullable Kind kind, float height, Set<Piece> out) {
-		float lift = kind == null ? CURSOR_LIFT : LIFT;
-		int x0 = c.getMinBlockX(), z0 = c.getMinBlockZ();
-		boolean alongX = side == 0 || side == 2;
-		int fixed = switch (side) {
-			case 0 -> z0;
-			case 1 -> x0 + 16;
-			case 2 -> z0 + 16;
-			default -> x0;
-		};
-		// The border line itself, nudged a hair inwards so two neighbours' curtains don't fight
-		float line = fixed + (side == 0 || side == 3 ? 0.04f : -0.04f);
-		int from = alongX ? x0 : z0;
-		for (int i = 0; i < 16; i += CELL) {
-			int p = from + i, q = from + i + CELL;
-			float ay = (alongX ? corner(v, p, fixed) : corner(v, fixed, p)) + lift;
-			float by = (alongX ? corner(v, q, fixed) : corner(v, fixed, q)) + lift;
-			if (alongX) out.add(new Piece(WALL, kind, p, ay, line, q, by, line, p, ay + height, line));
-			else out.add(new Piece(WALL, kind, line, ay, p, line, by, q, line, ay + height, p));
+	private static void buildings(View v, boolean opening) {
+		v.regions.clear();
+		v.regions.addAll(regions(v));
+		Set<Piece> want = new HashSet<>();
+		for (Region r : v.regions) building(v, r, want);
+		sync(v, v.pieces, want, opening, 9);
+		labels(v);
+	}
+
+	private static void building(View v, Region r, Set<Piece> out) {
+		Kind kind = r.kind();
+		float roof = r.roof(), base = r.base();
+		for (ChunkPos c : r.list()) {
+			int x0 = c.getMinBlockX(), z0 = c.getMinBlockZ();
+			if (v.pack) out.add(new Piece(ROOF_PIECE, kind, AXIS_Y, x0 + 8, z0 + 8, roof, roof, 16, 16, base));
+			for (int side = 0; side < 4; side++) {
+				if (r.chunks().contains(key(neighbour(c, side)))) continue;
+				float low = lowestAlong(v, c, side) - 1;
+				boolean alongX = side == 0 || side == 2;
+				float line = switch (side) {
+					case 0 -> z0;
+					case 1 -> x0 + 16;
+					case 2 -> z0 + 16;
+					default -> x0;
+				};
+				// Walls a hair inside the border, so two neighbours' walls don't fight
+				float inside = side == 0 || side == 3 ? 0.03f : -0.03f;
+				float mid = (alongX ? x0 : z0) + 8;
+				if (alongX) {
+					out.add(new Piece(WALL, kind, AXIS_X, mid, line + inside, low, roof, 16, 0, low));
+					out.add(new Piece(ROD_PIECE, kind, AXIS_X, mid, line, roof, roof, 16, ROD, base));
+				} else {
+					out.add(new Piece(WALL, kind, AXIS_Z, line + inside, mid, low, roof, 16, 0, low));
+					out.add(new Piece(ROD_PIECE, kind, AXIS_Z, line, mid, roof, roof, 16, ROD, base));
+				}
+				// A rod down each end where the outline turns (not where it runs on straight into the next chunk)
+				for (int end = 0; end < 2; end++) {
+					ChunkPos along = alongX ? new ChunkPos(c.x() + (end == 0 ? -1 : 1), c.z()) : new ChunkPos(c.x(), c.z() + (end == 0 ? -1 : 1));
+					boolean straight = r.chunks().contains(key(along)) && !r.chunks().contains(key(neighbour(along, side)));
+					if (straight) continue;
+					float ex = alongX ? x0 + (end == 0 ? 0 : 16) : line;
+					float ez = alongX ? line : z0 + (end == 0 ? 0 : 16);
+					out.add(new Piece(ROD_PIECE, kind, AXIS_Y, ex, ez, Math.min(low, base + 2), roof, 0, ROD, Math.min(low, base + 2)));
+				}
+			}
 		}
 	}
 
-	/** Make the shown pieces match {@code want}: new ones grow, gone ones shrink and disappear. */
-	private static void sync(View v, Map<Piece, DisplayElement> shown, Set<Piece> want, boolean wave) {
+	/**
+	 * The golden box around the chunk in the middle of the screen: inside the building's walls on claimed land (and
+	 * just over its roof), a lower box on free land. Red for a moment when a click can't be done.
+	 */
+	private static void placeCursor(View v, ChunkPos c) {
+		Set<Piece> want = new HashSet<>();
+		Region r = regionOf(v, c);
+		float top = r != null ? r.roof() + 0.06f : highest(v, c) + CURSOR_ROOF;
+		float low = Integer.MAX_VALUE;
+		for (int side = 0; side < 4; side++) low = Math.min(low, lowestAlong(v, c, side) - 1);
+		Kind kind = v.denied ? Kind.DENIED : null;
+		int x0 = c.getMinBlockX(), z0 = c.getMinBlockZ();
+		float in = 0.09f;
+		if (v.pack) want.add(new Piece(ROOF_PIECE, kind, AXIS_Y, x0 + 8, z0 + 8, top, top, 16 - 2 * in, 16 - 2 * in, low));
+		for (int side = 0; side < 4; side++) {
+			boolean alongX = side == 0 || side == 2;
+			float line = switch (side) {
+				case 0 -> z0 + in;
+				case 1 -> x0 + 16 - in;
+				case 2 -> z0 + 16 - in;
+				default -> x0 + in;
+			};
+			if (alongX) {
+				want.add(new Piece(WALL, kind, AXIS_X, x0 + 8, line, low, top, 16 - 2 * in, 0, low));
+				want.add(new Piece(ROD_PIECE, kind, AXIS_X, x0 + 8, line, top, top, 16 - 2 * in, CURSOR_ROD, low));
+			} else {
+				want.add(new Piece(WALL, kind, AXIS_Z, line, z0 + 8, low, top, 16 - 2 * in, 0, low));
+				want.add(new Piece(ROD_PIECE, kind, AXIS_Z, line, z0 + 8, top, top, 16 - 2 * in, CURSOR_ROD, low));
+			}
+		}
+		for (float[] corner : new float[][] {{x0 + in, z0 + in}, {x0 + 16 - in, z0 + in}, {x0 + in, z0 + 16 - in}, {x0 + 16 - in, z0 + 16 - in}}) {
+			want.add(new Piece(ROD_PIECE, kind, AXIS_Y, corner[0], corner[1], low, top, 0, CURSOR_ROD, low));
+		}
+		sync(v, v.cursor, want, false, 4);
+	}
+
+	/** Make the shown pieces match {@code want}: new ones grow out of the ground, gone ones sink and disappear. */
+	private static void sync(View v, Map<Piece, DisplayElement> shown, Set<Piece> want, boolean wave, int grow) {
 		for (Iterator<Map.Entry<Piece, DisplayElement>> it = shown.entrySet().iterator(); it.hasNext(); ) {
 			Map.Entry<Piece, DisplayElement> e = it.next();
 			if (want.contains(e.getKey())) continue;
-			lower(v, e.getKey(), e.getValue(), v.age + 1, 5);
-			animate(v, e.getValue(), v.age + 7, null, null, 0, true);
+			lower(v, e.getKey(), e.getValue(), v.age + 1, Math.max(3, grow - 3));
+			v.anims.add(new Anim(e.getValue(), v.age + grow, 0, true, null));
 			it.remove();
 		}
 		for (Piece s : want) {
 			if (shown.containsKey(s)) continue;
 			DisplayElement el = element(v, s);
+			if (el == null) continue;
 			v.holder.addElement(el);
 			shown.put(s, el);
 			int delay = 1;
-			if (wave) delay += 4 + (int) (Math.hypot(s.ax() - v.origin.x, s.az() - v.origin.z) / 6);
-			raise(v, s, el, v.age + delay, s.kind() == null ? 3 : 7);
+			if (wave) delay += 4 + (int) (Math.hypot(s.x() - v.origin.x, s.z() - v.origin.z) / 6);
+			raise(v, s, el, v.age + delay, grow);
 		}
 	}
 
-	/** A piece of the map, still shrunk to nothing (it grows with {@link #raise}). */
-	private static DisplayElement element(View v, Piece s) {
+	/** A piece of a building, still sunk into the ground (it grows with {@link #raise}); null = not drawn without the pack. */
+	private static @Nullable DisplayElement element(View v, Piece s) {
 		DisplayElement el;
 		if (v.pack) {
+			String name = s.kind() == null ? "cursor" : s.kind().model();
+			String type = switch (s.type()) {
+				case WALL -> "wall_";
+				case ROOF_PIECE -> "roof_";
+				default -> "rod_";
+			};
 			ItemDisplayElement item = new ItemDisplayElement();
-			String model = (s.type() == WALL ? "claim/wall_" : s.type() == TRI ? "claim/tri_" : "claim/fill_") + wallName(s.kind());
 			ItemStack stack = new ItemStack(Items.PAPER);
-			stack.set(DataComponents.ITEM_MODEL, Identifier.fromNamespaceAndPath("libreria", model));
+			stack.set(DataComponents.ITEM_MODEL, Identifier.fromNamespaceAndPath("libreria", "claim/" + type + name));
 			item.setItem(stack);
-			item.setItemDisplayContext(net.minecraft.world.item.ItemDisplayContext.NONE);
+			item.setItemDisplayContext(ItemDisplayContext.NONE);
 			el = item;
 		} else {
-			el = new BlockDisplayElement(glass(s.kind() == null ? "yellow" : switch (s.kind()) {
-				case MINE -> "lime";
-				case TRUSTED -> "light_blue";
-				case OTHER -> "red";
-				case FREE -> "white";
-			}).defaultBlockState());
+			if (s.type() == ROOF_PIECE) return null;
+			String color = s.kind() == null ? "yellow" : s.type() == ROD_PIECE ? "white" : s.kind().glass();
+			el = new BlockDisplayElement(glass(color).defaultBlockState());
 		}
 		el.setBrightness(FULL);
 		el.setViewRange(8f);
-		el.setOffset(new Vec3(s.ax(), s.ay(), s.az()).subtract(v.origin));
-		shrunk(v, s).applyTo(el);
+		el.setOffset(new Vec3(s.x(), s.base(), s.z()).subtract(v.origin));
+		shape(v, s, el, false);
 		return el;
 	}
 
-	private static String wallName(@Nullable Kind kind) {
-		if (kind == null) return "cursor";
-		return switch (kind) {
-			case MINE -> "mine";
-			case TRUSTED -> "trusted";
-			default -> "other";
-		};
-	}
-
-	/** The model bent exactly onto the piece (relative to the piece's corner A, where the display stands). */
-	private static Affine shape(View v, Piece s) {
-		Vector3f a = new Vector3f(), b = s.b().sub(s.a()), c = s.c().sub(s.a());
-		if (s.type() == WALL) {
-			Vector3f across = new Vector3f(b.z, 0, -b.x).normalize();
-			if (!v.pack) return Affine.fit(CUBE_A, CUBE_B, CUBE_C, ACROSS, a, b, c, across.mul(0.05f), false);
-			return Affine.fit(WALL_A, WALL_B, WALL_C, ACROSS, a, b, c, across, false);
+	/**
+	 * Translation, rotation and size of a piece: {@code up} = standing where it belongs, otherwise flat on the
+	 * ground at its base (walls and standing rods with no height, roofs and lying rods sunk to the base).
+	 */
+	private static void shape(View v, Piece s, DisplayElement el, boolean up) {
+		float h = s.high() - s.low();
+		boolean standing = s.type() == WALL || s.type() == ROD_PIECE && s.axis() == AXIS_Y;
+		float y = standing ? (up ? (s.low() + s.high()) / 2 - s.base() : 0) : (up ? s.high() - s.base() : 0);
+		float height = standing ? (up ? Math.max(h, 0.01f) : 0.01f) : 1;
+		if (!v.pack) {
+			// A glass block display: its corner is at the origin
+			float t = s.type() == ROD_PIECE ? s.depth() : 0.06f;
+			float sy = standing ? height : t;
+			Vector3f size = switch (s.axis()) {
+				case AXIS_X -> new Vector3f(s.len(), sy, t);
+				case AXIS_Z -> new Vector3f(t, sy, s.len());
+				default -> new Vector3f(t, sy, t);
+			};
+			float bottom = standing ? (up ? s.low() - s.base() : 0) : (up ? s.high() - s.base() : 0) - t / 2;
+			el.setScale(size);
+			el.setTranslation(new Vector3f(-size.x / 2, bottom, -size.z / 2));
+			return;
 		}
-		// The tint's top side faces up, so it's lit like the land under it
-		Vector3f normal = new Vector3f(b).cross(c).normalize();
-		if (normal.y < 0) normal.negate();
-		return Affine.fit(FLAT_A, FLAT_B, FLAT_C, UP, a, b, c, normal, true);
-	}
-
-	/** Shrunk to nothing around the middle of a curtain's foot or of a fill, where it grows from and shrinks to. */
-	private static Affine shrunk(View v, Piece s) {
-		Vector3f anchor;
-		if (s.type() == WALL) anchor = v.pack ? new Vector3f(0, -0.5f, 0) : new Vector3f(0.5f, 0, 0);
-		else if (s.type() == TRI) anchor = new Vector3f(FLAT_A).add(FLAT_B).add(FLAT_C).div(3);
-		else anchor = new Vector3f();
-		return shape(v, s).scaledAbout(anchor, 0.02f);
+		Quaternionf rot = new Quaternionf();
+		Vector3f scale;
+		switch (s.type()) {
+			case WALL -> {
+				if (s.axis() == AXIS_Z) rot.rotateY((float) Math.PI / 2);
+				scale = new Vector3f(s.len(), height, 1);
+			}
+			case ROOF_PIECE -> scale = new Vector3f(s.len(), 1, s.depth());
+			default -> {
+				if (s.axis() == AXIS_X) rot.rotateZ((float) Math.PI / 2);
+				if (s.axis() == AXIS_Z) rot.rotateX((float) Math.PI / 2);
+				scale = new Vector3f(s.depth(), s.axis() == AXIS_Y ? height : s.len(), s.depth());
+			}
+		}
+		el.setLeftRotation(rot);
+		el.setScale(scale);
+		el.setTranslation(new Vector3f(0, y, 0));
 	}
 
 	private static void raise(View v, Piece s, DisplayElement el, int at, int duration) {
-		v.anims.add(new Anim(el, at, null, null, duration, false, () -> shape(v, s).applyTo(el)));
+		v.anims.add(new Anim(el, at, duration, false, () -> shape(v, s, el, true)));
 	}
 
 	private static void lower(View v, Piece s, DisplayElement el, int at, int duration) {
-		v.anims.add(new Anim(el, at, null, null, duration, false, () -> shrunk(v, s).applyTo(el)));
-	}
-
-	private static void animate(View v, DisplayElement el, int at, @Nullable Vector3f translation, @Nullable Vector3f scale, int duration, boolean remove) {
-		v.anims.add(new Anim(el, at, translation, scale, duration, remove, null));
+		v.anims.add(new Anim(el, at, duration, false, () -> shape(v, s, el, false)));
 	}
 
 	private static void runAnims(View v) {
@@ -780,118 +828,138 @@ final class ClaimView {
 			}
 			a.el().setInterpolationDuration(a.duration());
 			if (a.apply() != null) a.apply().run();
-			if (a.translation() != null) a.el().setTranslation(a.translation());
-			if (a.scale() != null) a.el().setScale(a.scale());
 			a.el().startInterpolation();
 		}
 	}
 
-	/** One floating name per connected piece of land of the same owner. */
-	private static void labels(View v, ChunkPos center) {
+	/** One floating name over every building, with its size. */
+	private static void labels(View v) {
 		for (TextDisplayElement l : v.labels) v.holder.removeElement(l);
 		v.labels.clear();
-		Set<Long> done = new HashSet<>();
-		for (int dx = -RADIUS; dx <= RADIUS; dx++) {
-			for (int dz = -RADIUS; dz <= RADIUS; dz++) {
-				ChunkPos start = new ChunkPos(center.x() + dx, center.z() + dz);
-				ClaimsMod.Claim first = ClaimsMod.claimAt(v.level, start);
-				if (first == null || !done.add(key(start))) continue;
-				List<ChunkPos> group = new ArrayList<>();
-				ArrayDeque<ChunkPos> todo = new ArrayDeque<>();
-				todo.add(start);
-				while (!todo.isEmpty()) {
-					ChunkPos c = todo.poll();
-					group.add(c);
-					for (int[] d : new int[][] {{1, 0}, {-1, 0}, {0, 1}, {0, -1}}) {
-						ChunkPos n = new ChunkPos(c.x() + d[0], c.z() + d[1]);
-						if (Math.abs(n.x() - center.x()) > RADIUS || Math.abs(n.z() - center.z()) > RADIUS) continue;
-						ClaimsMod.Claim nc = ClaimsMod.claimAt(v.level, n);
-						if (nc != null && nc.owner.equals(first.owner) && done.add(key(n))) todo.add(n);
-					}
-				}
-				double ax = 0, az = 0;
-				for (ChunkPos c : group) {
-					ax += c.x();
-					az += c.z();
-				}
-				ax /= group.size();
-				az /= group.size();
-				ChunkPos mid = group.get(0);
-				double best = Double.MAX_VALUE;
-				for (ChunkPos c : group) {
-					double d = (c.x() - ax) * (c.x() - ax) + (c.z() - az) * (c.z() - az);
-					if (d < best) {
-						best = d;
-						mid = c;
-					}
-				}
-				Kind kind = kind(v, mid);
-				String size = group.size() == 1 ? "1 chunk" : group.size() + " chunks";
-				MutableComponent text = (kind == Kind.MINE ? Component.literal("Your land")
-						: Component.literal(first.ownerName)).withStyle(s -> s.withColor(kind.color()).withBold(true));
-				text.append(Component.literal("\n" + size + (kind == Kind.TRUSTED ? " · you may build" : "")).withStyle(ChatFormatting.GRAY));
-				TextDisplayElement label = new TextDisplayElement(text);
-				label.setBillboardMode(Display.BillboardConstraints.CENTER);
-				label.setBrightness(FULL);
-				label.setViewRange(8f);
-				label.setShadow(true);
-				label.setBackground(0x70100A06);
-				label.setScale(new Vector3f(labelScale(v)));
-				label.setOffset(new Vec3(mid.getMinBlockX() + 8, top(v, mid) + 2.5, mid.getMinBlockZ() + 8).subtract(v.origin));
-				v.holder.addElement(label);
-				v.labels.add(label);
+		for (Region r : v.regions) {
+			double ax = 0, az = 0;
+			for (ChunkPos c : r.list()) {
+				ax += c.x();
+				az += c.z();
 			}
+			ax /= r.list().size();
+			az /= r.list().size();
+			ChunkPos mid = r.list().getFirst();
+			double best = Double.MAX_VALUE;
+			for (ChunkPos c : r.list()) {
+				double d = (c.x() - ax) * (c.x() - ax) + (c.z() - az) * (c.z() - az);
+				if (d < best) {
+					best = d;
+					mid = c;
+				}
+			}
+			Kind kind = r.kind();
+			int n = r.list().size();
+			String size = n == 1 ? "1 chunk" : n + " chunks";
+			MutableComponent text = (kind == Kind.MINE ? Component.literal("Your land")
+					: Component.literal(r.first().ownerName)).withStyle(s -> s.withColor(kind.color()).withBold(true));
+			text.append(Component.literal("\n" + size + (kind == Kind.TRUSTED ? " · you may build" : "")).withStyle(ChatFormatting.GRAY));
+			TextDisplayElement label = new TextDisplayElement(text);
+			label.setBillboardMode(Display.BillboardConstraints.CENTER);
+			label.setBrightness(FULL);
+			label.setViewRange(8f);
+			label.setShadow(true);
+			label.setBackground(0x70100A06);
+			label.setScale(new Vector3f(labelScale(v)));
+			label.setOffset(new Vec3(mid.getMinBlockX() + 8, r.roof() + 1.4, mid.getMinBlockZ() + 8).subtract(v.origin));
+			v.holder.addElement(label);
+			v.labels.add(label);
 		}
 	}
 
-	/** A low golden curtain around the chunk in the middle of the screen. */
-	private static void placeCursor(View v, ChunkPos c, boolean tick) {
-		Set<Piece> want = new HashSet<>();
-		for (int side = 0; side < 4; side++) edge(v, c, side, null, 1.8f, want);
-		sync(v, v.cursorWalls, want, false);
-		Set<Piece> fill = new HashSet<>();
-		if (v.pack) fill(v, c, null, fill);
-		sync(v, v.cursorFills, fill, false);
-		if (tick) Ui.sound(v.p, SoundEvents.UI_BUTTON_CLICK.value(), 0.06f, 1.9f);
-	}
-
-	/** Soft coloured motes floating over claimed land near the middle of the screen, so whole areas read as claimed. */
+	/** Soft coloured motes rising inside the buildings near the middle of the screen. */
 	private static void motes(View v) {
 		if (v.cursorChunk == null) return;
 		java.util.Random r = new java.util.Random(v.age * 31L + v.p.getId());
 		for (int dx = -4; dx <= 4; dx++) {
 			for (int dz = -4; dz <= 4; dz++) {
 				ChunkPos c = new ChunkPos(v.cursorChunk.x() + dx, v.cursorChunk.z() + dz);
-				Kind kind = kind(v, c);
-				if (kind == Kind.FREE) continue;
+				Region region = regionOf(v, c);
+				if (region == null || r.nextInt(3) != 0) continue;
 				double x = c.getMinBlockX() + r.nextDouble() * 16, z = c.getMinBlockZ() + r.nextDouble() * 16;
-				double y = v.level.getHeight(Heightmap.Types.MOTION_BLOCKING, Mth.floor(x), Mth.floor(z)) + 0.4 + r.nextDouble() * 2.2;
-				v.level.sendParticles(v.p, new net.minecraft.core.particles.DustParticleOptions(kind.color(), 1.6f), true, true, x, y, z, 1, 0, 0.05, 0, 0);
+				double ground = ground(v, Mth.floor(x), Mth.floor(z));
+				double y = ground + 0.4 + r.nextDouble() * Math.max(0.5, region.roof() - ground - 0.8);
+				v.level.sendParticles(v.p, new DustParticleOptions(region.kind().color(), 1.4f), true, true, x, y, z, 1, 0, 0.05, 0, 0);
 			}
 		}
 	}
 
-	/** What's in the middle of the screen, in the action bar. */
+	/**
+	 * What's in the middle of the screen. With the pack: a card at the top (whose land, how much you may still claim,
+	 * what a click does) and the keys in the action bar. Without it: one line in the action bar.
+	 */
 	private static void status(View v) {
 		ChunkPos c = v.cursorChunk;
 		if (c == null) return;
 		ClaimsMod.Claim cl = ClaimsMod.claimAt(v.level, c);
-		Kind kind = kind(v, c);
+		Kind kind = kind(v, cl);
 		int used = ClaimsMod.owned(v.p.getUUID()), max = ClaimsMod.budget(v.p);
+		boolean room = used < max;
+		if (v.pack) {
+			Region r = regionOf(v, c);
+			int size = r == null ? 0 : r.list().size();
+			Component name = switch (kind) {
+				case FREE -> Component.literal("Free land").withStyle(ChatFormatting.WHITE, ChatFormatting.BOLD);
+				case MINE -> Component.literal("Your land").withStyle(ChatFormatting.GREEN, ChatFormatting.BOLD);
+				default -> Component.literal(cl.ownerName + "'s land").withStyle(s -> s.withColor(kind.color()).withBold(true));
+			};
+			Component subtitle = Component.literal(switch (kind) {
+				case FREE -> "Nobody's yet · chunk " + c.x() + ", " + c.z();
+				case MINE -> (size == 1 ? "1 chunk" : size + " chunks") + " together · since " + ago(cl.since);
+				case TRUSTED -> "You may build here · " + (size == 1 ? "1 chunk" : size + " chunks");
+				default -> "Protected · " + (size == 1 ? "1 chunk" : size + " chunks") + " · since " + ago(cl.since);
+			}).withStyle(ChatFormatting.GRAY);
+			List<TopCard.Row> rows = new ArrayList<>();
+			rows.add(TopCard.Row.bar("flag", "Your land", max == 0 ? 0 : used / (double) max, room ? 0x55FF55 : 0xFF5555, 10,
+					Component.literal(used + " / " + max).withStyle(room ? ChatFormatting.WHITE : ChatFormatting.RED)));
+			Component action = switch (kind) {
+				case FREE -> room ? Component.literal("Click to claim it").withStyle(ChatFormatting.YELLOW)
+						: Component.literal("Your land budget is full").withStyle(ChatFormatting.RED);
+				case MINE -> Component.literal("Right-click to give it up").withStyle(ChatFormatting.YELLOW);
+				case TRUSTED -> Component.literal("Ask " + cl.ownerName + " to change it").withStyle(ChatFormatting.GRAY);
+				default -> Component.literal("Not yours to change").withStyle(ChatFormatting.GRAY);
+			};
+			rows.add(TopCard.Row.text("mouse", "", action));
+			int accent = kind == Kind.FREE ? -1 : kind.color();
+			TopCard.show(v.p, CARD, new TopCard.Card(new ItemStack(Items.FILLED_MAP), accent, name, subtitle, rows), 100);
+			MutableComponent keys = Component.literal("WASD").withStyle(ChatFormatting.WHITE)
+					.append(Component.literal(" glide  ·  ").withStyle(ChatFormatting.GRAY))
+					.append(Component.literal("Scroll").withStyle(ChatFormatting.WHITE))
+					.append(Component.literal(" zoom  ·  ").withStyle(ChatFormatting.GRAY))
+					.append(Component.literal("Sneak").withStyle(ChatFormatting.WHITE))
+					.append(Component.literal(" or ").withStyle(ChatFormatting.GRAY))
+					.append(Component.literal("Q").withStyle(ChatFormatting.WHITE))
+					.append(Component.literal(" back").withStyle(ChatFormatting.GRAY));
+			Hud.show(v.p, HUD, keys, Hud.PRIO_INFO, 10);
+			return;
+		}
 		MutableComponent line = Component.empty();
 		switch (kind) {
 			case FREE -> line.append(Component.literal("Free land").withStyle(ChatFormatting.WHITE))
-					.append(Component.literal(used < max ? "  ·  click: claim" : "  ·  your budget is full")
-							.withStyle(used < max ? ChatFormatting.YELLOW : ChatFormatting.RED));
+					.append(Component.literal(room ? "  ·  click: claim" : "  ·  your budget is full")
+							.withStyle(room ? ChatFormatting.YELLOW : ChatFormatting.RED));
 			case MINE -> line.append(Component.literal("Your land").withStyle(ChatFormatting.GREEN))
 					.append(Component.literal("  ·  right-click: release").withStyle(ChatFormatting.YELLOW));
 			case TRUSTED -> line.append(Component.literal(cl.ownerName + "'s land · you may build").withStyle(ChatFormatting.AQUA));
-			case OTHER -> line.append(Component.literal(cl.ownerName + "'s land").withStyle(ChatFormatting.RED));
+			default -> line.append(Component.literal(cl.ownerName + "'s land").withStyle(ChatFormatting.RED));
 		}
 		line.append(Component.literal("   " + used + "/" + max + " chunks").withStyle(ChatFormatting.GRAY));
-		// The controls only while you're finding your way; after that the line stays short
 		if (v.age < 120) line.append(Component.literal("   WASD move · scroll zoom · Q back").withStyle(ChatFormatting.DARK_GRAY));
 		Hud.show(v.p, HUD, line, Hud.PRIO_INFO, 10);
+	}
+
+	private static String ago(long millis) {
+		if (millis <= 0) return "long ago";
+		long minutes = (System.currentTimeMillis() - millis) / 60_000;
+		if (minutes < 60) return minutes <= 1 ? "just now" : minutes + " min ago";
+		long hours = minutes / 60;
+		if (hours < 48) return hours + " h ago";
+		return hours / 24 + " days ago";
 	}
 
 	// ---------------------------------------------------------------- maths
@@ -906,11 +974,7 @@ final class ClaimView {
 	}
 
 	private static long key(ChunkPos c) {
-		return key(c.x(), c.z());
-	}
-
-	private static long key(int x, int z) {
-		return ((long) x << 32) ^ (z & 0xFFFFFFFFL);
+		return ((long) c.x() << 32) ^ (c.z() & 0xFFFFFFFFL);
 	}
 
 	private static double ease(double t) {

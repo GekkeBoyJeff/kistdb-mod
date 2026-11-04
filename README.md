@@ -18,10 +18,9 @@ Pick the modules you want. Each works on its own, and together they complement e
    - the modules you want (see below)
 2. If you used the old standalone **KistDB** mod, remove that jar. `libreria-chests` replaces it, and your chest data
    moves along automatically from `world/kistdb` to `world/libreria/chests`.
-3. Start the server. Players open everything with **`/libreria`** (or `/lib`), or with the **buttons in the empty crafting
-   grid** of their inventory: the Libreria menu (output slot), **Sort inventory** and **Quick stack** (right above the
-   search button). Putting a real item in the grid still crafts as usual; the buttons step aside meanwhile.
-   Per-player settings are under **`/libreria settings`**.
+3. Start the server. Players open everything with **`/libreria`** (or `/lib`), the **Quick Actions key (G)** (a
+   Libreria menu with the land map, your items, sorting, waypoints …; also a button in the pause menu), or the
+   Libreria button in the crafting output slot of their inventory. Per-player settings are under **`/libreria settings`**.
 
 ## Modules
 
@@ -36,7 +35,7 @@ Pick the modules you want. Each works on its own, and together they complement e
 | **libreria-graves** | *Opt-in, off by default.* When you die, your items go into a virtual grave: explosion- and lava-proof, only you can open it, and everything returns to the same slots | `/grave`, `/grave beam` |
 | **libreria-collector** | Achievements without rewards: 27 collections ("x of y"), milestones up to *Item Completionist*, breeding (villagers and curing included), playtime and adventure. They also appear as tabs in the vanilla advancements screen (L), with toasts. Six rarities with colors; pick a title (or click **[Use as title]** in chat) and it floats above your name | `/achievements`, `/collection`, `/titles` |
 | **libreria-nicknames** | Nicknames above your head, in the tab list and in chat (real name on hover). Colours unlock with achievements | `/nick`, `/nick <name>`, `/nick reset` |
-| **libreria-claims** | Stand in your base and type `/claim`. Your budget grows with playtime and achievement points. The land map (`/claim map`) swoops your camera up into a third-person view of the real world: claimed land is tinted and fenced by see-through curtains that follow the ground (green = yours, blue = trusted, red = others), with names and sizes; the tint is one smooth see-through skin that bends over hills (no steps). WASD moves the cursor, click claims, right-click releases, scroll zooms, sneak or Q goes back (getting hurt closes it; Escape can't, it only opens the pause menu on the player's own computer). Protects against building, opening containers and touching animals; trusted players; doors for visitors are configurable | `/claim`, `/claim map`, `/claim show`, `/claim info`, `/claim release`, `/claim trust <player>`, `/claim untrust <player>`, `/claim admin` (ops) |
+| **libreria-claims** | Stand in your base and type `/claim`. Your budget grows with playtime and achievement points. The land map (**sneak + swap hands (F)**, `/claim map`, or the map button right of the hotbar shows the key) swoops your camera up into a third-person view of the real world: claimed land stands there as see-through glass buildings with bright frames (green = yours, blue = trusted, red = others), with names and sizes. A golden box marks the chunk you'd claim; a card at the top says whose land it is and how much you may still claim. WASD glides, click claims (the building grows out of the ground), right-click releases, scroll zooms, sneak, Q or the key again goes back (getting hurt closes it; Escape can't, it only opens the pause menu on the player's own computer). The key can be set to F alone or off. Protects against building, opening containers and touching animals; trusted players; doors for visitors are configurable | `/claim`, `/claim map`, `/claim show`, `/claim info`, `/claim release`, `/claim trust <player>`, `/claim untrust <player>`, `/claim admin` (ops) |
 | **libreria-glint** | Light rarity frames around uncommon/rare/epic items in your inventory (rare and epic ones sparkle). Animated enchantment effects on weapons, tools and armor. Every enchantment has one, in 32 effect types (flames, bubbles, frost, lightning…). Also a custom texture per enchanted book, and particles around players with enchanted gear. Toggle per player and per effect | via `/libreria` → Glint effects |
 
 ## The resource pack
@@ -51,7 +50,9 @@ With the pack you get:
 - **The look-at tooltip** for blocks at the top of the screen (drawn in a boss bar title; the pack makes *white*
   boss bars invisible, so a custom `/bossbar` in white would only show its name), and as a card above animals: dark leather, bronze frame, the thing's icon in a slot, a gem in the
   colour of its grade, an ornamental rule and rows with small pictures and pips.
-- **Your items** from your inventory: the recipe book button becomes a magnifying glass that opens a scrollable window with everything you carry and everything in your chests (picture, name, count; hover for where, click to follow the beam), with a search field and sorting. Also `/chest` and `/chest find`.
+- **Your items** from your inventory: the recipe book button becomes a magnifying glass (Minecraft's own grey button) that opens a scrollable window with everything you carry and everything in your chests (picture, name, count; hover for where, click to follow the beam), with a search field and sorting. Also `/chest` and `/chest find`.
+- **Sort button** on the left edge of the inventory window, in the same style: left-click sorts, right-click quick-stacks into nearby chests. The inventory screen has room for only one real button, so this one is drawn by the screen's title (the pack replaces the "Crafting" text with it; crafting tables get "Crafting Table" as their title instead) and works through a click outside the window with an empty hand, which vanilla ignores. So any such click outside the window sorts.
+- **Land map button** right of the hotbar with its key, drawn by the action bar text in a font that moves it down.
 - **Glint**: rarity frames, enchant effects and book covers.
 
 - On first start, core writes `config/polymer/auto-host.json` with `enabled: true` and `required: false`. Set

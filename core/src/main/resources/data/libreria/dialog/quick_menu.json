@@ -1,0 +1,152 @@
+{
+ "type": "minecraft:multi_action",
+ "title": {
+  "text": "◆ Libreria ◆",
+  "color": "gold",
+  "bold": true
+ },
+ "external_title": {
+  "text": "Libreria",
+  "color": "gold"
+ },
+ "body": [
+  {
+   "type": "minecraft:plain_message",
+   "width": 300,
+   "contents": [
+    {
+     "text": "Everything this server adds, one key away.",
+     "color": "gray"
+    }
+   ]
+  }
+ ],
+ "can_close_with_escape": true,
+ "pause": false,
+ "after_action": "close",
+ "columns": 2,
+ "actions": [
+  {
+   "label": [
+    {
+     "text": "Land map",
+     "color": "green"
+    },
+    {
+     "text": "  ",
+     "color": "dark_gray"
+    },
+    {
+     "text": "⇧",
+     "color": "gray"
+    },
+    {
+     "keybind": "key.swapOffhand",
+     "color": "gray"
+    }
+   ],
+   "tooltip": {
+    "text": "Claim land from above; see whose land is where."
+   },
+   "width": 150,
+   "action": {
+    "type": "minecraft:run_command",
+    "command": "claim map"
+   }
+  },
+  {
+   "label": [
+    {
+     "text": "Your items",
+     "color": "aqua"
+    }
+   ],
+   "tooltip": {
+    "text": "Everything on you and in your chests; search and follow the beam."
+   },
+   "width": 150,
+   "action": {
+    "type": "minecraft:run_command",
+    "command": "chest"
+   }
+  },
+  {
+   "label": [
+    {
+     "text": "Sort inventory",
+     "color": "yellow"
+    }
+   ],
+   "tooltip": {
+    "text": "Merges and sorts your stacks (not your hotbar)."
+   },
+   "width": 150,
+   "action": {
+    "type": "minecraft:run_command",
+    "command": "chest sort"
+   }
+  },
+  {
+   "label": [
+    {
+     "text": "Waypoints",
+     "color": "dark_aqua"
+    }
+   ],
+   "tooltip": {
+    "text": "Your places, with a beam to walk to."
+   },
+   "width": 150,
+   "action": {
+    "type": "minecraft:run_command",
+    "command": "waypoint"
+   }
+  },
+  {
+   "label": [
+    {
+     "text": "Achievements",
+     "color": "gold"
+    }
+   ],
+   "tooltip": {
+    "text": "Your collection, points and titles."
+   },
+   "width": 150,
+   "action": {
+    "type": "minecraft:run_command",
+    "command": "achievements"
+   }
+  },
+  {
+   "label": [
+    {
+     "text": "Settings",
+     "color": "gray"
+    }
+   ],
+   "tooltip": {
+    "text": "Everything you can switch on and off."
+   },
+   "width": 150,
+   "action": {
+    "type": "minecraft:run_command",
+    "command": "libreria settings"
+   }
+  },
+  {
+   "label": {
+    "text": "Libreria menu",
+    "color": "white"
+   },
+   "tooltip": {
+    "text": "All tools in one menu."
+   },
+   "width": 150,
+   "action": {
+    "type": "minecraft:run_command",
+    "command": "libreria"
+   }
+  }
+ ]
+}

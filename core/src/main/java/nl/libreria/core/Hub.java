@@ -32,6 +32,7 @@ public final class Hub {
 	}
 
 	private static @Nullable Consumer<ServerPlayer> primary;
+	private static @Nullable Consumer<ServerPlayer> edgeLeft, edgeRight;
 	private static String primaryLabel = "Libreria menu";
 	private static final List<String> HINTS = new ArrayList<>();
 	private static final Map<Integer, Button> BUTTONS = new TreeMap<>();
@@ -66,6 +67,27 @@ public final class Hub {
 		}
 		BUTTONS.put(gridSlot, new Button(gridSlot, model, fallback, name, color, List.of(lore), action));
 		BUTTON_ICONS.remove(gridSlot);
+	}
+
+	/**
+	 * The button the Libreria pack draws on the left edge of the inventory window (in Minecraft's own style). The
+	 * inventory screen has only one real button, so this one works by what does reach the server: a click outside
+	 * the window with nothing in your hand (which vanilla ignores). Left and right click can do different things.
+	 */
+	public static void setEdgeButton(Consumer<ServerPlayer> left, @Nullable Consumer<ServerPlayer> right) {
+		edgeLeft = left;
+		edgeRight = right;
+	}
+
+	static boolean edgeActive(ServerPlayer player) {
+		return edgeLeft != null && !player.isCreative() && !player.isSpectator() && Libreria.HUB_BUTTON.get(player) && Pack.has(player);
+	}
+
+	static void edgeClick(ServerPlayer player, int button) {
+		Consumer<ServerPlayer> action = button == 1 && edgeRight != null ? edgeRight : edgeLeft;
+		if (action == null) return;
+		Ui.click(player);
+		action.accept(player);
 	}
 
 	static ItemStack icon(boolean pack) {

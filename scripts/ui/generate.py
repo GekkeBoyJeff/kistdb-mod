@@ -305,6 +305,12 @@ ICONS = {
               {'#': (30, 90, 30), 'g': (110, 230, 90)}),
     'pick': (['.#####..', '#iiiii#.', '.#.wb#..', '...wb...', '...w....', '..w.....', '.w......', 'w.......'],
              {'#': (40, 40, 50), 'i': (180, 190, 205), 'w': (150, 100, 55), 'b': (100, 65, 35)}),
+    'flag': (['#.......', '#rrrr...', '#rRrrr..', '#rrrr...', '#.......', '#.......', '#.......', '##......'],
+             {'#': (110, 80, 50), 'r': (230, 60, 50), 'R': (255, 150, 140)}),
+    'mouse': (['.##w#...', '#ww#w#..', '#ww#w#..', '#####...', '#wwww#..', '#wwww#..', '.####...', '........'],
+              {'#': (60, 60, 60), 'w': (225, 225, 225)}),
+    'key': (['.###....', '#y.y#...', '#yyy#...', '.###yyyy', '....y.y.', '....y...', '........', '........'],
+            {'#': (120, 80, 10), 'y': (250, 200, 60)}),
     'trophy': (['#yyyyy#.', '#yYyyy#.', '.#yyy#..', '..#y#...', '...y....', '..###...', '.#yyy#..', '........'],
                {'#': (150, 100, 10), 'y': (250, 200, 60), 'Y': (255, 245, 190)}),
     'eye': (['........', '..####..', '.#wwww#.', '#wwbbww#', '.#wwww#.', '..####..', '........', '........'],
@@ -451,67 +457,36 @@ def empty_item():
 WALLS = {'mine': (85, 255, 85), 'trusted': (85, 255, 255), 'other': (255, 85, 85), 'cursor': (255, 214, 110)}
 
 
-def claim_walls():
-    """Glowing see-through curtains for the land map: bright at the ground, fading out upwards. A flat quad (both
-    sides) that the server stretches along a claim's border."""
+def claim_buildings():
+    """The land map shows claimed land as see-through glass buildings: walls, a flat roof and bright frame rods along
+    the edges. One flat square model each (a rod is two crossed squares), stretched by the server."""
     base = os.path.join(OUT, 'assets', NS)
     for d in ('textures/item/claim', 'models/item/claim', 'items/claim'):
         os.makedirs(os.path.join(base, d), exist_ok=True)
+
+    def save(name, img, elements):
+        img.save(os.path.join(base, f'textures/item/claim/{name}.png'))
+        tex = f'{NS}:item/claim/{name}'
+        json.dump({'textures': {'t': tex, 'particle': tex}, 'elements': elements},
+                  open(os.path.join(base, f'models/item/claim/{name}.json'), 'w'))
+        json.dump({'model': {'type': 'minecraft:model', 'model': f'{NS}:item/claim/{name}'}},
+                  open(os.path.join(base, f'items/claim/{name}.json'), 'w'))
+
+    face = {'texture': '#t', 'uv': [0, 0, 16, 16]}
+    standing = {'from': [0, 0, 8], 'to': [16, 16, 8], 'shade': False, 'faces': {'north': dict(face), 'south': dict(face)}}
+    crossed = {'from': [8, 0, 0], 'to': [8, 16, 16], 'shade': False, 'faces': {'east': dict(face), 'west': dict(face)}}
+    lying = {'from': [0, 8, 0], 'to': [16, 8, 16], 'shade': False, 'faces': {'up': dict(face), 'down': dict(face)}}
     for name, c in WALLS.items():
-        img = Image.new('RGBA', (16, 32), (0, 0, 0, 0))
-        for y in range(32):
-            t = y / 31  # 0 at the top, 1 at the bottom
-            a = int(8 + 160 * (t ** 2.4))
-            col = lerp(c, (255, 255, 255), 0.18 * t)
-            if y >= 30:
-                a, col = 240, lerp(c, (255, 255, 255), 0.5)
-            elif y == 0:
-                a, col = 90, lerp(c, (255, 255, 255), 0.3)
-            for x in range(16):
-                img.putpixel((x, y), col + (a,))
-        img.save(os.path.join(base, f'textures/item/claim/wall_{name}.png'))
-        tex = f'{NS}:item/claim/wall_{name}'
-        face = {'texture': '#wall', 'uv': [0, 0, 16, 16]}
-        json.dump({'textures': {'wall': tex, 'particle': tex},
-                   'elements': [{'from': [0, 0, 8], 'to': [16, 16, 8], 'shade': False,
-                                 'faces': {'north': dict(face), 'south': dict(face)}}]},
-                  open(os.path.join(base, f'models/item/claim/wall_{name}.json'), 'w'))
-        json.dump({'model': {'type': 'minecraft:model', 'model': f'{NS}:item/claim/wall_{name}'}},
-                  open(os.path.join(base, f'items/claim/wall_{name}.json'), 'w'))
-        # Fill: a flat see-through tint lying on the land (both sides), a little stronger at its rim
-        fill = Image.new('RGBA', (16, 16), (0, 0, 0, 0))
+        glass = Image.new('RGBA', (16, 16))
         for y in range(16):
+            t = y / 15  # 0 at the top
             for x in range(16):
-                rim = x in (0, 15) or y in (0, 15)
-                fill.putpixel((x, y), c + (62,))
-        fill.save(os.path.join(base, f'textures/item/claim/fill_{name}.png'))
-        ftex = f'{NS}:item/claim/fill_{name}'
-        fface = {'texture': '#fill', 'uv': [0, 0, 16, 16]}
-        json.dump({'textures': {'fill': ftex, 'particle': ftex},
-                   'elements': [{'from': [0, 8, 0], 'to': [16, 8, 16], 'shade': False,
-                                 'faces': {'up': dict(fface), 'down': dict(fface)}}]},
-                  open(os.path.join(base, f'models/item/claim/fill_{name}.json'), 'w'))
-        json.dump({'model': {'type': 'minecraft:model', 'model': f'{NS}:item/claim/fill_{name}'}},
-                  open(os.path.join(base, f'items/claim/fill_{name}.json'), 'w'))
-        # Triangle: the same tint, cut along the diagonal (half see-through on the diagonal itself, so two triangles
-        # side by side make one even surface). The server bends these into a mesh that follows hills smoothly.
-        n = 64
-        tri = Image.new('RGBA', (n, n), (0, 0, 0, 0))
-        for y in range(n):
-            for x in range(n):
-                if x + y < n - 1:
-                    tri.putpixel((x, y), c + (62,))
-                elif x + y == n - 1:
-                    tri.putpixel((x, y), c + (33,))
-        tri.save(os.path.join(base, f'textures/item/claim/tri_{name}.png'))
-        ttex = f'{NS}:item/claim/tri_{name}'
-        json.dump({'textures': {'fill': ttex, 'particle': ttex},
-                   'elements': [{'from': [0, 8, 0], 'to': [16, 8, 16], 'shade': False,
-                                 'faces': {'up': {'texture': '#fill', 'uv': [0, 0, 16, 16]},
-                                           'down': {'texture': '#fill', 'uv': [0, 16, 16, 0]}}}]},
-                  open(os.path.join(base, f'models/item/claim/tri_{name}.json'), 'w'))
-        json.dump({'model': {'type': 'minecraft:model', 'model': f'{NS}:item/claim/tri_{name}'}},
-                  open(os.path.join(base, f'items/claim/tri_{name}.json'), 'w'))
+                glass.putpixel((x, y), lerp(c, (255, 255, 255), 0.16 - 0.08 * t) + (int(84 - 30 * t),))
+        save(f'wall_{name}', glass, [standing])
+        roof = Image.new('RGBA', (16, 16), lerp(c, (255, 255, 255), 0.12) + (58,))
+        save(f'roof_{name}', roof, [lying])
+        rod = Image.new('RGBA', (16, 16), lerp(c, (255, 255, 255), 0.5) + (235,))
+        save(f'rod_{name}', rod, [standing, crossed])
 
 
 def plaques():
@@ -687,98 +662,179 @@ def hud_fonts():
     return icons
 
 
+# ------------------------------------------------------------------ buttons in Minecraft's own style
+# The bevelled grey button of the vanilla recipe book button (and its blue hover state), so our buttons look native
+VANILLA_BTN = {False: dict(border=(0, 0, 0), light=(255, 255, 255), fill=(198, 198, 198), shadow=(85, 85, 85), corner=(12, 5, 0)),
+               True: dict(border=(0, 7, 62), light=(255, 255, 255), fill=(136, 146, 201), shadow=(52, 62, 117), corner=(0, 7, 62))}
+
+ICON_PAL = {
+    '#': (55, 55, 55, 255), 'g': (60, 60, 60, 255),
+    'w': (168, 220, 255, 255), 'b': (104, 164, 216, 255), 'h': (255, 255, 255, 255),
+    'd': (122, 86, 48, 255), 'D': (72, 50, 26, 255),
+    'u': (52, 120, 52, 255), 'U': (30, 76, 30, 255), 'r': (150, 52, 44, 255), 'R': (96, 30, 24, 255),
+}
+
+MAGNIFIER = ['..####......', '.#hhww#.....', '#hwwwwb#....', '#hwwwwb#....', '#wwwwbb#....', '#wwwbbb#....',
+             '.#wbbb#.....', '..####dD....', '......ddD...', '.......ddD..', '........ddD.', '.........dD.']
+SORT = ['..uU........', '.uuUU.......', 'uuuuUU..rR..', '..uU....rR..', '..uU....rR..', '..uU....rR..',
+        '..uU....rR..', '..uU....rR..', '..uU....rR..', '..uU..rrrrRR', '.......rrRR.', '........rR..']
+MENU = ['..........', 'gggggggggg', 'gggggggggg', '..........', 'gggggggggg', 'gggggggggg', '..........',
+        'gggggggggg', 'gggggggggg', '..........']
+
+
+def vanilla_button(w, h, hi=False):
+    c = VANILLA_BTN[hi]
+    img = Image.new('RGBA', (w, h), (0, 0, 0, 0))
+    for y in range(h):
+        for x in range(w):
+            if y in (0, h - 1):
+                if not 2 <= x <= w - 3:
+                    continue
+                col = c['border']
+            elif y in (1, h - 2):
+                if x in (0, w - 1):
+                    continue
+                if x == 1:
+                    col = c['border']
+                elif x == w - 2:
+                    col = c['corner']
+                else:
+                    col = c['light'] if y == 1 else c['shadow']
+            else:
+                if x in (0, w - 1):
+                    col = c['border']
+                elif x == 1:
+                    col = c['light']
+                elif x == w - 2:
+                    col = c['shadow']
+                else:
+                    col = c['fill']
+            img.putpixel((x, y), col + (255,))
+    return img
+
+
+def draw_icon(img, rows, ox, oy):
+    for y, row in enumerate(rows):
+        for x, ch in enumerate(row):
+            if ch in ICON_PAL:
+                img.putpixel((ox + x, oy + y), ICON_PAL[ch])
+
+
 def search_button():
-    """The recipe book button in the inventory becomes a search button (magnifying glass) for Libreria's chest
-    search. Same size and shape as the vanilla one."""
+    """The recipe book button in the inventory becomes a search button: Minecraft's own grey button with a
+    magnifying glass (and the same blue when you hover it)."""
     d = os.path.join(OUT, 'assets', 'minecraft', 'textures/gui/sprites/recipe_book')
     os.makedirs(d, exist_ok=True)
-    lens = ['....####....', '..##wwww##..', '.#wwhhwwww#.', '.#whhwwwww#.', '#wwhwwwwwww#', '#wwwwwwwwww#',
-            '#wwwwwwwwww#', '#wwwwwwwwww#', '.#wwwwwwww#.', '.#wwwwwwww#.', '..##wwww##..', '....####....']
     for name, hi in (('button', False), ('button_highlighted', True)):
-        img = Image.new('RGBA', (20, 18), (0, 0, 0, 0))
-        for y in range(18):
-            for x in range(20):
-                corner = (x < 2 and y < 2 and x + y < 2) or (x > 17 and y < 2 and (19 - x) + y < 2) \
-                    or (x < 2 and y > 15 and x + (17 - y) < 2) or (x > 17 and y > 15 and (19 - x) + (17 - y) < 2)
-                if corner:
-                    continue
-                edge = x in (0, 19) or y in (0, 17) or (x in (1, 18) and y in (1, 16))
-                if edge:
-                    c = OUTLINE
-                elif x == 1 or y == 1:
-                    c = BRONZE_HI if hi else BRONZE
-                elif x == 18 or y == 16:
-                    c = BRONZE_LO
-                else:
-                    t = (y - 2) / 13
-                    c = lerp((92, 64, 40) if hi else (70, 48, 30), (46, 31, 20), t) + (255,)
-                img.putpixel((x, y), c)
-        # handle, bottom right, then the lens on top
-        for i in range(5):
-            for dx, col in ((0, BRONZE_LO), (1, BRONZE)):
-                img.putpixel((11 + i + dx, 11 + i), col)
-        glass = (200, 235, 255, 255) if hi else (150, 200, 235, 255)
-        rim = BRONZE_HI if hi else BRONZE
-        for y, row in enumerate(lens):
-            for x, ch in enumerate(row):
-                px_ = (3 + x, 2 + y)
-                if ch == '#':
-                    img.putpixel(px_, rim)
-                elif ch == 'w':
-                    img.putpixel(px_, glass)
-                elif ch == 'h':
-                    img.putpixel(px_, (255, 255, 255, 255))
+        img = vanilla_button(20, 18, hi)
+        draw_icon(img, MAGNIFIER, 4, 3)
         img.save(os.path.join(d, name + '.png'))
 
 
-BUTTON_ICONS = {
-    # 12x12 pixel icons for the inventory buttons, light on a dark wooden button with a bronze frame
-    'sort': ['...w........', '..www.......', '.wwwww......', '...w....w...', '...w....w...', '...w....w...',
-             '...w....w...', '...w....w...', '...w....w...', '......wwwww.', '.......www..', '........w...'],
-    'stack': ['.....ww.....', '.....ww.....', '...wwwwww...', '....wwww....', '.....ww.....', '............',
-              '.gggggggggg.', '.gwwwwwwwwg.', '.ggggyyyggg.', '.gwwwyyywwg.', '.gwwwwwwwwg.', '.gggggggggg.'],
-    'menu': ['............', '............', '.wwwwwwwwww.', '.wwwwwwwwww.', '............', '.wwwwwwwwww.',
-             '.wwwwwwwwww.', '............', '.wwwwwwwwww.', '.wwwwwwwwww.', '............', '............'],
-}
+# Every language Minecraft ships, so the sort tab shows whatever language you play in
+LANGS = ('af_za ar_sa ast_es az_az ba_ru bar be_by be_latn bg_bg br_fr brb bs_ba ca_es cs_cz cy_gb da_dk de_at de_ch de_de '
+         'el_gr en_au en_ca en_gb en_nz en_pt en_ud en_us enp enws eo_uy es_ar es_cl es_ec es_es es_mx es_uy es_ve esan et_ee '
+         'eu_es fa_ir fi_fi fil_ph fo_fo fr_ca fr_fr fra_de fur_it fy_nl ga_ie gd_gb gl_es haw_us he_il hi_in hn_no hr_hr hu_hu '
+         'hy_am id_id ig_ng io_en is_is isv it_it ja_jp jbo_en ka_ge kk_kz kn_in ko_kr ksh kw_gb ky_kg la_la lb_lu li_li lmo '
+         'lo_la lol_us lt_lt lv_lv lzh mk_mk mn_mn ms_my mt_mt nah nds_de nl_be nl_nl nn_no no_no oc_fr ovd pl_pl pls pt_br '
+         'pt_pt qya_aa ro_ro rpr ru_ru ry_ua sah_sah se_no sk_sk sl_si so_so sq_al sr_cs sr_sp sv_se sxu szl ta_in th_th tl_ph '
+         'tlh_aa tok tr_tr tt_ru tzo_mx uk_ua val_es vec_it vi_vn vp_vl yi_de yo_ng zh_cn zh_hk zh_tw zlm_arab').split()
+# The inventory screen draws its title ("Crafting") at (97, 6). The tab hangs off the left edge of the window, on the
+# row of the search button: x -24..-4, y 61..79.
+TAB_X, TAB_Y, LABEL_X, LABEL_Y = -24, 61, 97, 6
+
+
+def inventory_tab():
+    """A sort button on the left edge of your inventory, in Minecraft's own style. The inventory screen has room for
+    just one real button (the recipe book one, our search), so this one is drawn by the screen's title: the
+    "Crafting" text is replaced by a picture that hangs outside the window. A click outside the window with nothing
+    in your hand reaches the server (vanilla ignores it), and that is the sort."""
+    tex = os.path.join(OUT, 'assets', NS, 'textures/font/ui/inv_tab.png')
+    os.makedirs(os.path.dirname(tex), exist_ok=True)
+    img = vanilla_button(20, 18)
+    draw_icon(img, SORT, 4, 3)
+    img.save(tex)
+    tab, back = '\ue9f0', '\ue9f1'
+    font = {'providers': [
+        {'type': 'space', 'advances': {back: TAB_X - LABEL_X}},
+        # baseline of the title = its top + 7; the picture's top must be at TAB_Y
+        {'type': 'bitmap', 'file': f'{NS}:font/ui/inv_tab.png', 'height': 18, 'ascent': LABEL_Y + 7 - TAB_Y, 'chars': [tab]},
+    ]}
+    d = os.path.join(OUT, 'assets', 'minecraft', 'font')
+    os.makedirs(d, exist_ok=True)
+    json.dump(font, open(os.path.join(d, 'default.json'), 'w'))
+    ld = os.path.join(OUT, 'assets', 'minecraft', 'lang')
+    os.makedirs(ld, exist_ok=True)
+    for code in LANGS:
+        # white (a title is drawn dark grey), back to the tab's place, the tab
+        json.dump({'container.crafting': '\u00a7f' + back + tab}, open(os.path.join(ld, code + '.json'), 'w'))
 
 
 def inventory_buttons():
-    """Buttons that sit in the empty 2x2 crafting grid of your inventory (next to the search button): an 18x18
-    wooden button with a bronze frame that covers the slot (oversized_in_gui), so it doesn't look like an item."""
+    """The Libreria menu button in the crafting output slot: Minecraft's own grey button (18x18, over the slot)."""
     base = os.path.join(OUT, 'assets', NS)
     for d in ('textures/item/gui', 'models/item/gui', 'items/gui'):
         os.makedirs(os.path.join(base, d), exist_ok=True)
-    for name, rows in BUTTON_ICONS.items():
-        img = Image.new('RGBA', (18, 18), (0, 0, 0, 0))
-        for y in range(18):
-            for x in range(18):
-                if (x in (0, 17)) and (y in (0, 17)):
-                    continue
-                if x in (0, 17) or y in (0, 17):
-                    c = OUTLINE
-                elif x == 1 or y == 1:
-                    c = BRONZE
-                elif x == 16 or y == 16:
-                    c = BRONZE_LO
-                else:
-                    c = lerp((74, 51, 32), (46, 31, 20), (y - 2) / 13) + (255,)
-                img.putpixel((x, y), c)
-        pal = {'#': (30, 20, 12, 255), 'w': (236, 220, 180, 255), 'g': (214, 170, 84, 255), 'y': (255, 230, 120, 255)}
-        for y, row in enumerate(rows):
-            for x, ch in enumerate(row):
-                if ch in pal:
-                    img.putpixel((3 + x, 3 + y), pal[ch])
-        img.save(os.path.join(base, f'textures/item/gui/btn_{name}.png'))
-        json.dump({'parent': 'minecraft:item/generated', 'textures': {'layer0': f'{NS}:item/gui/btn_{name}'},
-                   'gui_light': 'front',
-                   'display': {'gui': {'rotation': [0, 0, 0], 'translation': [0, 0, 0], 'scale': [1.125, 1.125, 1.125]}}},
-                  open(os.path.join(base, f'models/item/gui/btn_{name}.json'), 'w'))
-        # Only in menus: in a hand (or the off-hand slot of the HUD) it draws nothing
-        json.dump({'model': {'type': 'minecraft:select', 'property': 'minecraft:display_context',
-                             'cases': [{'when': 'gui', 'model': {'type': 'minecraft:model', 'model': f'{NS}:item/gui/btn_{name}'}}],
-                             'fallback': {'type': 'minecraft:empty'}},
-                   'oversized_in_gui': True},
-                  open(os.path.join(base, f'items/gui/btn_{name}.json'), 'w'))
+    img = vanilla_button(18, 18)
+    draw_icon(img, MENU, 4, 4)
+    img.save(os.path.join(base, 'textures/item/gui/btn_menu.png'))
+    json.dump({'parent': 'minecraft:item/generated', 'textures': {'layer0': f'{NS}:item/gui/btn_menu'},
+               'gui_light': 'front',
+               'display': {'gui': {'rotation': [0, 0, 0], 'translation': [0, 0, 0], 'scale': [1.125, 1.125, 1.125]}}},
+              open(os.path.join(base, 'models/item/gui/btn_menu.json'), 'w'))
+    # Only in menus: in a hand (or the off-hand slot of the HUD) it draws nothing
+    json.dump({'model': {'type': 'minecraft:select', 'property': 'minecraft:display_context',
+                         'cases': [{'when': 'gui', 'model': {'type': 'minecraft:model', 'model': f'{NS}:item/gui/btn_menu'}}],
+                         'fallback': {'type': 'minecraft:empty'}},
+               'oversized_in_gui': True},
+              open(os.path.join(base, 'items/gui/btn_menu.json'), 'w'))
+
+
+def hotbar_font():
+    """libreria:hotbar, for a button right of the hotbar drawn by the action bar text (which sits 50 px higher):
+    a slot like the hotbar's, a picture in it and the key to press in its corner, all moved down onto the hotbar."""
+    base = os.path.join(OUT, 'assets', NS)
+    provs = [{'type': 'space', 'advances': dict(a)} for a in (p['advances'] for p in providers if p['type'] == 'space')]
+    # The action bar line's top is 72 px above the screen bottom; a glyph's top = line top + 7 - ascent
+    def asc(top_from_bottom):
+        return top_from_bottom - 65
+
+    slot = Image.new('RGBA', (22, 22), (0, 0, 0, 0))
+    for y in range(22):
+        for x in range(22):
+            if x in (0, 21) or y in (0, 21):
+                c = (24, 24, 24, 255)
+            elif x == 1 or y == 1:
+                c = (140, 140, 140, 255)
+            elif x == 20 or y == 20:
+                c = (62, 62, 62, 255)
+            else:
+                c = (0, 0, 0, 120)
+            slot.putpixel((x, y), c)
+    shift = Image.new('RGBA', (5, 7), (0, 0, 0, 0))
+    for y, row in enumerate(['..#..', '.###.', '#####', '.###.', '.###.', '.###.', '.....']):
+        for x, ch in enumerate(row):
+            if ch == '#':
+                shift.putpixel((x, y), (255, 255, 255, 255))
+    for name, im, top in (('hb.slot', slot, 22), ('hb.shift', shift, 10)):
+        path = os.path.join(base, 'textures/font/ui', name.replace('.', '_') + '.png')
+        im.save(path)
+        cp = next_cp()
+        glyphs[name] = [cp, actual_width(im, 0, im.width, im.height) + 1]
+        provs.append({'type': 'bitmap', 'file': f'{NS}:font/ui/' + name.replace('.', '_') + '.png', 'height': im.height,
+                      'ascent': asc(top), 'chars': [chr(cp)]})
+    # Pictures: vanilla item textures, 16 px, 3 px below the slot's top
+    for name, tex in (('hb.map', 'minecraft:item/filled_map.png'),):
+        cp = next_cp()
+        glyphs[name] = [cp, 17]
+        provs.append({'type': 'bitmap', 'file': tex, 'height': 16, 'ascent': asc(19), 'chars': [chr(cp)]})
+    # The key: the normal font, its top 10 px above the bottom (like the count on an item)
+    default = json.load(open(os.path.join(VANILLA, 'font/include/default.json')))['providers']
+    for p in default:
+        q = dict(p)
+        q['ascent'] = p.get('ascent', 7) - 7 + asc(10)
+        provs.append(q)
+    json.dump({'providers': provs}, open(os.path.join(base, 'font/hotbar.json'), 'w'))
 
 
 def boss_bar():
@@ -807,12 +863,14 @@ def main():
     plaques()
     empty_item()
     inventory_buttons()
-    claim_walls()
+    claim_buildings()
     os.makedirs(os.path.join(base, 'font'), exist_ok=True)
     json.dump({'providers': providers}, open(os.path.join(base, 'font/ui.json'), 'w'), indent=1)
     icon_map = hud_fonts()
     boss_bar()
     search_button()
+    inventory_tab()
+    hotbar_font()
     meta = {"hudLines": HUD_LINES, "icons": icon_map, 'lineHeight': LH, 'padX': PAD_X, 'padTop': PAD_TOP, 'padBottom': PAD_BOTTOM,
             'panelLines': [min(PANEL_LINES), max(PANEL_LINES)], 'themes': list(THEMES), 'glyphs': glyphs}
     os.makedirs(os.path.join(OUT, NS), exist_ok=True)

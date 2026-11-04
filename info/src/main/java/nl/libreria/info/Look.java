@@ -20,12 +20,10 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerBossEvent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.Brightness;
-import net.minecraft.world.BossEvent;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.AgeableMob;
 import net.minecraft.world.entity.Display;
@@ -62,6 +60,7 @@ import net.minecraft.world.phys.Vec3;
 import nl.libreria.core.Pack;
 import nl.libreria.core.Services;
 import nl.libreria.core.gui.Glyphs;
+import nl.libreria.core.gui.TopCard;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -123,14 +122,8 @@ final class Look {
 	}
 
 	private static final Map<UUID, Tip> TIPS = new HashMap<>();
-	/** The top-of-screen tooltip: a boss bar whose title is the card (its bar is invisible with the pack). */
-	private static final class Top {
-		final ServerBossEvent bar = new ServerBossEvent(UUID.randomUUID(), Component.empty(), BossEvent.BossBarColor.WHITE, BossEvent.BossBarOverlay.PROGRESS);
-		@Nullable String shown;
-		boolean visible;
-	}
-
-	private static final Map<UUID, Top> TOPS = new HashMap<>();
+	/** Channel of the top-of-screen tooltip (a {@link TopCard}). */
+	private static final String TOP = "info.look";
 
 	private Look() {
 	}
@@ -345,99 +338,23 @@ final class Look {
 	static void forget(UUID id) {
 		Tip tip = TIPS.remove(id);
 		if (tip != null) tip.holder.destroy();
-		Top top = TOPS.remove(id);
-		if (top != null) top.bar.removeAllPlayers();
 	}
 
 	static void clearAll() {
 		TIPS.values().forEach(t -> t.holder.destroy());
 		TIPS.clear();
-		TOPS.values().forEach(t -> t.bar.removeAllPlayers());
-		TOPS.clear();
 	}
 
 	// ---------------------------------------------------------------- the card at the top of the screen
 
 	private static void showTop(ServerPlayer p, @Nullable Card c) {
-		Top top = TOPS.get(p.getUUID());
 		if (c == null) {
-			if (top != null && top.visible) {
-				top.bar.removePlayer(p);
-				top.visible = false;
-				top.shown = null;
-			}
+			TopCard.hide(p, TOP);
 			return;
 		}
-		if (top == null) {
-			top = new Top();
-			top.bar.setProgress(0f);
-			TOPS.put(p.getUUID(), top);
-		}
-		String key = c.accent() + "|" + c.name().getString() + "|" + c.subtitle().getString() + "|" + rowsKey(c.rows())
-				+ "|" + BuiltInRegistries.ITEM.getKey(c.icon().getItem());
-		if (!key.equals(top.shown)) {
-			top.bar.setName(topCard(c));
-			top.shown = key;
-		}
-		if (!top.visible) {
-			top.bar.addPlayer(p);
-			top.visible = true;
-		}
-	}
-
-	/**
-	 * The card as one line of text: the panel, then every line in its own font (each font is moved down one line),
-	 * jumping back to the left edge with negative space in between. Ends at the panel's right edge so the boss bar
-	 * centres it.
-	 */
-	static Component topCard(Card c) {
-		int[] icon = c.icon().isEmpty() ? null : Glyphs.icon(c.icon().getItem());
-		boolean slot = !c.icon().isEmpty();
-		int indent = slot ? 24 : 0;
-		List<MutableComponent> rows = new ArrayList<>();
-		for (Row r : c.rows()) rows.add(packRow(r));
-		int innerW = Math.max(Math.max(indent + Glyphs.width(c.name()), indent + Glyphs.width(c.subtitle())), Glyphs.width(rows)) + 2;
-		innerW = Math.max(innerW, 64);
-		int gemX = innerW / 2 - 3;
-
-		List<Component> lines = new ArrayList<>();
-		List<Integer> widths = new ArrayList<>();
-		int gem = c.accent() < 0 ? BRONZE : c.accent();
-		MutableComponent first = Component.empty()
-				.append(Glyphs.ui(Glyphs.space(gemX) + Glyphs.g("gem") + Glyphs.space(-(gemX + Glyphs.advance("gem"))), gem));
-		if (slot) {
-			first.append(Glyphs.ui(Glyphs.g("slot") + Glyphs.space(2 - Glyphs.advance("slot"))));
-			int iconAdv = 0;
-			if (icon != null) {
-				first.append(Glyphs.ui(Character.toString(icon[0]), icon[1] == 1 ? 0x6AA84F : 0xFFFFFF));
-				iconAdv = icon[2];
-			}
-			first.append(Glyphs.ui(Glyphs.space(indent - 2 - iconAdv)));
-		}
-		first.append(c.name());
-		lines.add(first);
-		widths.add(indent + Glyphs.width(c.name()));
-		lines.add(Component.empty().append(Glyphs.ui(Glyphs.space(indent))).append(c.subtitle()));
-		widths.add(indent + Glyphs.width(c.subtitle()));
-		if (!rows.isEmpty()) {
-			lines.add(Glyphs.divider(innerW));
-			widths.add(innerW);
-			for (MutableComponent r : rows) {
-				lines.add(r);
-				widths.add(Glyphs.width(r));
-			}
-		}
-		int n = Math.min(lines.size(), Glyphs.hudLines);
-		int wp = innerW + 2 * Glyphs.padX;
-		MutableComponent out = Component.empty();
-		out.append(Glyphs.inFont(Glyphs.panel(n, innerW), Glyphs.hud(0), true));
-		out.append(Glyphs.ui(Glyphs.space(-wp)));
-		for (int k = 0; k < n; k++) {
-			out.append(Glyphs.ui(Glyphs.space(Glyphs.padX)));
-			out.append(Glyphs.inFont(lines.get(k), Glyphs.hud(k), true));
-			out.append(Glyphs.ui(Glyphs.space(-(Glyphs.padX + widths.get(k)))));
-		}
-		return out.append(Glyphs.ui(Glyphs.space(wp)));
+		List<TopCard.Row> rows = new ArrayList<>();
+		for (Row r : c.rows()) rows.add(new TopCard.Row(r.icon(), r.label(), r.fraction(), r.barColor(), r.segments(), r.value()));
+		TopCard.show(p, TOP, new TopCard.Card(c.icon(), c.accent(), c.name(), c.subtitle(), rows), 0);
 	}
 
 	// ---------------------------------------------------------------- what are you looking at?

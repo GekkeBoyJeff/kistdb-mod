@@ -80,6 +80,13 @@ public final class ClaimsMod implements ModInitializer {
 					"/claim trust <name> – add a friend",
 					"/claim release – give a chunk up");
 
+	/** The land map key: sneak + swap hands (F), swap hands alone, or none. */
+	public static final nl.libreria.core.Setting.Choice MAP_KEY = MODULE.choice("kaarttoets", "Land map key", Items.FILLED_MAP, 0,
+			new int[] {0, 1, 2}, new String[] {"Sneak + swap hands (F)", "Swap hands (F)", "Off"},
+			"Opens and closes the land map.", "Swap hands is F unless you changed", "it in Controls.");
+	public static final nl.libreria.core.Setting.Toggle MAP_BUTTON = MODULE.toggle("kaartknop", "Land map button", true, Items.MAP,
+			"A land map button right of your", "hotbar, with its key (Libreria pack).");
+
 	/** Budget: basis + per speeluur + per prestatiepunt. */
 	static final int BASE = 4;
 	static final int HOURS_PER_CHUNK = 2;
@@ -128,7 +135,8 @@ public final class ClaimsMod implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		MODULE.hubEntry(Items.FILLED_MAP, "Land map", ChatFormatting.GREEN, ClaimView::open,
-				"Fly up and see your land and others'", "from above. Click chunks to claim them.", "", "Or stand in your base: /claim");
+				"Fly up and see your land and others'", "from above. Click chunks to claim them.", "",
+				"Key: sneak + swap hands (F)", "Or stand in your base: /claim");
 		MODULE.hubEntry(Items.NAME_TAG, "Trusted players", ChatFormatting.AQUA, MapGui.TrustGui::open,
 				"Who may build in your land, and", "whether visitors may use doors.");
 
@@ -178,6 +186,9 @@ public final class ClaimsMod implements ModInitializer {
 		});
 
 		ServerTickEvents.END_SERVER_TICK.register(ClaimView::tick);
+		// The land map key (sneak + swap hands), and its button right of the hotbar
+		nl.libreria.core.Hotkeys.register(ClaimView::onKey);
+		Hud.setHotbarButton(ClaimView::hotbarButton);
 		// Getting hurt closes the land map at once
 		net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.AFTER_DAMAGE.register((entity, source, base, taken, blocked) -> {
 			if (entity instanceof ServerPlayer sp && ClaimView.isOpen(sp)) ClaimView.close(sp, true);
@@ -258,11 +269,6 @@ public final class ClaimsMod implements ModInitializer {
 	/** For the screenshot test. */
 	public static void openMap(ServerPlayer p) {
 		ClaimView.open(p);
-	}
-
-	/** From the mixin: drop / swap-hands while the land map is open. True = handled (vanilla must not act). */
-	public static boolean onMapKey(ServerPlayer p, net.minecraft.network.protocol.game.ServerboundPlayerActionPacket.Action action) {
-		return ClaimView.onAction(p, action);
 	}
 
 	// ---------------------------------------------------------------- opslag

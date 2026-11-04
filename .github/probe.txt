@@ -179,3 +179,6 @@ net.minecraft.network.protocol.common.ClientboundClearDialogPacket
 !net.minecraft.client.gui.screens.dialog.ButtonListDialogScreen
 net.fabricmc.fabric.api.client.gametest.v1.input.TestInput
 ? gametest/v1/.*Input
+!net.minecraft.world.level.block.CraftingTableBlock
+!net.minecraft.client.gui.screens.inventory.InventoryScreen
+? gametest/v1/.*Input

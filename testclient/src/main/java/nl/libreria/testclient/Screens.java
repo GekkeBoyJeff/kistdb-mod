@@ -116,18 +116,18 @@ public final class Screens implements FabricClientGameTest {
 				int w = ctx.computeOnClient(mc -> mc.getWindow().getGuiScaledWidth());
 				int h = ctx.computeOnClient(mc -> mc.getWindow().getGuiScaledHeight());
 				int left = (w - 176) / 2, top = (h - 166) / 2;
-				// Hover the sort button (bottom left of the crafting grid), then click it
-				ctx.getInput().setCursorPos((left + 106) * scale, (top + 44) * scale);
-				ctx.waitTicks(5);
-				ctx.takeScreenshot("inventory_sort_tooltip");
+				// The sort button on the window's left edge: a click outside the window
+				ctx.getInput().setCursorPos((left - 14) * scale, (top + 70) * scale);
+				ctx.waitTicks(3);
 				ctx.getInput().pressKey(o2 -> o2.keyAttack);
 				ctx.waitTicks(10);
 				ctx.getInput().setCursorPos(2, 2);
 				ctx.waitTicks(2);
 				ctx.takeScreenshot("inventory_sorted");
-				// The magnifying glass (where the recipe book button is) opens your items
+				// The magnifying glass (where the recipe book button is): hovered, then clicked opens your items
 				ctx.getInput().setCursorPos((left + 114) * scale, (top + 70) * scale);
 				ctx.waitTicks(3);
+				ctx.takeScreenshot("inventory_search_hover");
 				ctx.getInput().pressKey(o2 -> o2.keyAttack);
 				ctx.waitTicks(15);
 				ctx.getInput().setCursorPos(2, 2);
@@ -174,19 +174,45 @@ public final class Screens implements FabricClientGameTest {
 				ctx.waitTicks(3);
 			});
 
-			// Hills in the claimed land, so the land map has slopes to lie on
+			// A hill with trees in the claimed land, so the buildings stand on uneven ground
 			int cx = x >> 4, cz = z >> 4;
-			for (int i = 0; i < 7; i++) {
-				run(server, f("fill %d %d %d %d %d %d minecraft:grass_block", cx * 16 + i, y - 1 + i, (cz - 1) * 16 + i,
-						cx * 16 + 15 - i, y - 1 + i, (cz - 1) * 16 + 15 - i));
+			int hx = cx * 16 + 8, hz = (cz - 1) * 16 + 6;
+			int[][] hill = {{9, 0}, {7, 1}, {6, 2}, {4, 3}, {3, 4}, {1, 5}};
+			for (int[] layer : hill) {
+				int r = layer[0], up = layer[1];
+				run(server, f("fill %d %d %d %d %d %d minecraft:grass_block", hx - r, y - 1 + up, hz - r + 2, hx + r - 2, y - 1 + up, hz + r));
 			}
-			for (int i = 0; i < 8; i++) {
-				run(server, f("fill %d %d %d %d %d %d minecraft:grass_block", (cx + 2) * 16 + 2 * i, y - 1, cz * 16,
-						(cx + 2) * 16 + 2 * i + 1, y - 1 + i, cz * 16 + 31));
+			run(server, f("place feature minecraft:oak %d %d %d", hx - 4, y + 3, hz + 3),
+					f("place feature minecraft:birch %d %d %d", (cx + 2) * 16 + 6, y, cz * 16 + 9),
+					f("place feature minecraft:oak %d %d %d", (cx + 2) * 16 + 11, y, cz * 16 + 20));
+			for (int i = 0; i < 5; i++) {
+				run(server, f("fill %d %d %d %d %d %d minecraft:grass_block", (cx + 2) * 16 + 3 * i, y - 1, cz * 16 + 12,
+						(cx + 2) * 16 + 3 * i + 2, y - 1 + i, cz * 16 + 31));
 			}
 			ctx.waitTicks(10);
 
-			// The land map: camera flies up, claims are coloured plates
+			// The land map button right of the hotbar, the quick menu (G) and the pause menu entry
+			safe("hotbar_button", () -> {
+				ctx.getInput().lookAt(0, 0);
+				ctx.waitTicks(30);
+				noToasts(ctx);
+				ctx.takeScreenshot("hotbar_button");
+			});
+			safe("quick_menu", () -> {
+				run(server, "dialog show @a libreria:quick_menu");
+				ctx.waitTicks(10);
+				ctx.getInput().setCursorPos(2, 2);
+				ctx.takeScreenshot("quick_menu");
+				ctx.setScreen(() -> null);
+				ctx.waitTicks(3);
+				ctx.setScreen(() -> new net.minecraft.client.gui.screens.PauseScreen(true));
+				ctx.waitTicks(5);
+				ctx.takeScreenshot("pause_menu");
+				ctx.setScreen(() -> null);
+				ctx.waitTicks(3);
+			});
+
+			// The land map: camera flies up, claims are glass buildings
 			safe("claim_view", () -> {
 				server.runOnServer(s -> {
 					var lvl = player.level();
@@ -198,9 +224,14 @@ public final class Screens implements FabricClientGameTest {
 					ClaimsMod.debugClaim(lvl, new net.minecraft.world.level.ChunkPos(here.x() + 2, here.z()), steve, "Steve");
 					ClaimsMod.debugClaim(lvl, new net.minecraft.world.level.ChunkPos(here.x() + 2, here.z() + 1), steve, "Steve");
 					ClaimsMod.debugClaim(lvl, new net.minecraft.world.level.ChunkPos(here.x() - 2, here.z() + 1), alex, "Alex");
-					ClaimsMod.openMap(player);
 				});
-				ctx.waitTicks(12);
+				// Open it with its key: sneak + swap hands
+				ctx.getInput().holdKey(o2 -> o2.keyShift);
+				ctx.waitTicks(2);
+				ctx.getInput().pressKey(o2 -> o2.keySwapOffhand);
+				ctx.waitTicks(3);
+				ctx.getInput().releaseKey(o2 -> o2.keyShift);
+				ctx.waitTicks(9);
 				ctx.takeScreenshot("claim_view_opening");
 				ctx.waitTicks(40);
 				noToasts(ctx);

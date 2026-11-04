@@ -52,6 +52,7 @@ public final class Libreria implements ModInitializer {
 		ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
 			Guide.clearAll();
 			Nameplate.clearAll();
+			nl.libreria.core.gui.TopCard.clearAll();
 			PlayerStore.saveDirtyAll();
 			WorldStore.saveAll();
 		});
@@ -60,6 +61,7 @@ public final class Libreria implements ModInitializer {
 			Guide.clear(handler.player);
 			Guide.clearFlashes(id);
 			Hud.forget(id);
+			nl.libreria.core.gui.TopCard.forget(id);
 			Nameplate.forget(id);
 			HUB_SHOWN.remove(id);
 			PlayerStore.unloadAll(id);

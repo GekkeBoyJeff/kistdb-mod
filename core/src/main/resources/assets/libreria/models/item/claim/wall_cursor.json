@@ -1,1 +1,1 @@
-{"textures": {"wall": "libreria:item/claim/wall_cursor", "particle": "libreria:item/claim/wall_cursor"}, "elements": [{"from": [0, 0, 8], "to": [16, 16, 8], "shade": false, "faces": {"north": {"texture": "#wall", "uv": [0, 0, 16, 16]}, "south": {"texture": "#wall", "uv": [0, 0, 16, 16]}}}]}
+{"textures": {"t": "libreria:item/claim/wall_cursor", "particle": "libreria:item/claim/wall_cursor"}, "elements": [{"from": [0, 0, 8], "to": [16, 16, 8], "shade": false, "faces": {"north": {"texture": "#t", "uv": [0, 0, 16, 16]}, "south": {"texture": "#t", "uv": [0, 0, 16, 16]}}}]}
