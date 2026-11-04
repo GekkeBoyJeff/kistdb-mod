@@ -54,7 +54,7 @@ public abstract class Menu extends SimpleGui {
 	/** Fills every slot that is still empty: dark glass above, black glass in the navigation bar. */
 	protected void finish() {
 		for (int i = 0; i < this.rows * 9; i++) {
-			if (this.getSlot(i) == null) this.setSlot(i, i >= navRow() ? NAV_FILL : FILL);
+			if (this.getGuiElement(i) == null) this.setSlot(i, i >= navRow() ? NAV_FILL : FILL);
 		}
 	}
 
