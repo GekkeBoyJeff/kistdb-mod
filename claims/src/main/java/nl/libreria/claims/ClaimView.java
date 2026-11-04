@@ -79,7 +79,7 @@ final class ClaimView {
 	private static final float PITCH = 56f;
 	/** Roofs float this high over the highest ground of a piece of land; the cursor box over free land is lower. */
 	private static final int ROOF = 3, CURSOR_ROOF = 2;
-	private static final float ROD = 0.14f, CURSOR_ROD = 0.18f;
+	private static final float ROD = 0.14f, CURSOR_ROD = 0.26f;
 	private static final Identifier FREEZE = Identifier.fromNamespaceAndPath("libreria", "claim_view");
 	private static final Identifier EMPTY_MODEL = Identifier.fromNamespaceAndPath("libreria", "gui/empty");
 	private static final Brightness FULL = new Brightness(15, 15);
@@ -966,7 +966,7 @@ final class ClaimView {
 
 	/** Names stay readable when you zoom out. */
 	private static float labelScale(View v) {
-		return (float) Math.max(2.0, v.targetDist / 6.0);
+		return (float) Math.max(1.5, v.targetDist / 9.0);
 	}
 
 	private static float youScale(View v) {

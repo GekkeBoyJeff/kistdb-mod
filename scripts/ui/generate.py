@@ -485,7 +485,8 @@ def claim_buildings():
         save(f'wall_{name}', glass, [standing])
         roof = Image.new('RGBA', (16, 16), lerp(c, (255, 255, 255), 0.12) + (58,))
         save(f'roof_{name}', roof, [lying])
-        rod = Image.new('RGBA', (16, 16), lerp(c, (255, 255, 255), 0.5) + (235,))
+        # The cursor's frame is a saturated gold, so it stands out against the paler frames of the buildings
+        rod = Image.new('RGBA', (16, 16), lerp(c, (255, 255, 255), 0.08 if name == 'cursor' else 0.5) + (245,))
         save(f'rod_{name}', rod, [standing, crossed])
 
 
