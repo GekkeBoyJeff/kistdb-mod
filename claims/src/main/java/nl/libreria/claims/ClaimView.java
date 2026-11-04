@@ -98,10 +98,37 @@ final class ClaimView {
 	}
 
 	/**
-	 * One straight piece of a border curtain: centre (x, z) at ground height y, along x or z, how long and tall.
+	 * One flat piece of the map, in world coordinates: a fill is the parallelogram A, B, C (fourth corner B + C - A),
+	 * a triangle the triangle A, B, C, a curtain the strip from its foot A-B up to C = A + its height. kind null =
+	 * the cursor.
 	 */
-	private record Seg(double x, double y, double z, double len, boolean alongX, Kind kind, float height) {
+	private record Piece(int type, @Nullable Kind kind, float ax, float ay, float az, float bx, float by, float bz, float cx, float cy,
+			float cz) {
+		Vector3f a() {
+			return new Vector3f(this.ax, this.ay, this.az);
+		}
+
+		Vector3f b() {
+			return new Vector3f(this.bx, this.by, this.bz);
+		}
+
+		Vector3f c() {
+			return new Vector3f(this.cx, this.cy, this.cz);
+		}
 	}
+
+	private static final int QUAD = 0, TRI = 1, WALL = 2;
+	/** The map's skin is a grid of 4x4 blocks (four cells to a chunk side). */
+	private static final int CELL = 4;
+	/** How far the skin floats over the ground: claimed land, and the cursor a bit higher so they never fight. */
+	private static final float LIFT = 0.06f, CURSOR_LIFT = 0.16f;
+	// The models as the client draws them inside a display entity: centred and turned half a turn around y. A flat
+	// square (and the triangle cut from it: corners FLAT_A, FLAT_B, FLAT_C), a standing square, and a whole block.
+	private static final Vector3f FLAT_A = new Vector3f(0.5f, 0, 0.5f), FLAT_B = new Vector3f(-0.5f, 0, 0.5f),
+			FLAT_C = new Vector3f(0.5f, 0, -0.5f), UP = new Vector3f(0, 1, 0);
+	private static final Vector3f WALL_A = new Vector3f(0.5f, -0.5f, 0), WALL_B = new Vector3f(-0.5f, -0.5f, 0),
+			WALL_C = new Vector3f(0.5f, 0.5f, 0), ACROSS = new Vector3f(0, 0, 1);
+	private static final Vector3f CUBE_A = new Vector3f(0, 0, 0), CUBE_B = new Vector3f(1, 0, 0), CUBE_C = new Vector3f(0, 1, 0);
 
 	/** A change to a display that should start a few ticks from now (so the client first has the old state). */
 	private record Anim(DisplayElement el, int at, @Nullable Vector3f translation, @Nullable Vector3f scale, int duration, boolean remove,
@@ -116,14 +143,16 @@ final class ClaimView {
 		final ItemDisplayElement cam = new ItemDisplayElement();
 		final TextDisplayElement you = new TextDisplayElement();
 		/** Border curtains of claimed land, and the ones around the cursor chunk. */
-		final Map<Seg, DisplayElement> walls = new HashMap<>();
-		final Map<Seg, DisplayElement> cursorWalls = new HashMap<>();
-		/** See-through tint lying on claimed land (8x8 pieces that follow the ground), and on the cursor chunk. */
-		final Map<Seg, DisplayElement> fills = new HashMap<>();
-		final Map<Seg, DisplayElement> cursorFills = new HashMap<>();
+		final Map<Piece, DisplayElement> walls = new HashMap<>();
+		final Map<Piece, DisplayElement> cursorWalls = new HashMap<>();
+		/** The see-through skin lying on claimed land, and on the cursor chunk. */
+		final Map<Piece, DisplayElement> fills = new HashMap<>();
+		final Map<Piece, DisplayElement> cursorFills = new HashMap<>();
 		boolean pack;
 		final List<TextDisplayElement> labels = new ArrayList<>();
 		final Map<Long, Integer> tops = new HashMap<>();
+		/** Height of the skin at each grid corner. */
+		final Map<Long, Float> corners = new HashMap<>();
 		final List<Anim> anims = new ArrayList<>();
 		final Vec3 eyeStart;
 		final float yawStart, pitchStart;
@@ -245,10 +274,10 @@ final class ClaimView {
 			v.closeAge = 0;
 			Ui.sound(p, SoundEvents.ELYTRA_FLYING, 0.18f, 2.0f);
 			// The curtains sink into the ground
-			for (Map.Entry<Seg, DisplayElement> e : v.walls.entrySet()) lower(v, e.getKey(), e.getValue(), 0, 7);
-			for (Map.Entry<Seg, DisplayElement> e : v.cursorWalls.entrySet()) lower(v, e.getKey(), e.getValue(), 0, 5);
-			for (Map.Entry<Seg, DisplayElement> e : v.fills.entrySet()) lower(v, e.getKey(), e.getValue(), 0, 6);
-			for (Map.Entry<Seg, DisplayElement> e : v.cursorFills.entrySet()) lower(v, e.getKey(), e.getValue(), 0, 4);
+			for (Map.Entry<Piece, DisplayElement> e : v.walls.entrySet()) lower(v, e.getKey(), e.getValue(), 0, 7);
+			for (Map.Entry<Piece, DisplayElement> e : v.cursorWalls.entrySet()) lower(v, e.getKey(), e.getValue(), 0, 5);
+			for (Map.Entry<Piece, DisplayElement> e : v.fills.entrySet()) lower(v, e.getKey(), e.getValue(), 0, 6);
+			for (Map.Entry<Piece, DisplayElement> e : v.cursorFills.entrySet()) lower(v, e.getKey(), e.getValue(), 0, 4);
 			for (TextDisplayElement label : v.labels) label.setScale(new Vector3f(0.01f));
 			v.you.setScale(new Vector3f(0.01f));
 		}
@@ -420,6 +449,29 @@ final class ClaimView {
 		else if (v.sneakReleased) close(p, false);
 	}
 
+	/**
+	 * Q while the map is open closes it (Escape can't: the pause menu opens on your own computer and the server never
+	 * hears of it). Dropping or swapping hands would act on the real items you can't see, so those are ignored.
+	 */
+	static boolean onAction(ServerPlayer p, net.minecraft.network.protocol.game.ServerboundPlayerActionPacket.Action action) {
+		View v = VIEWS.get(p.getUUID());
+		if (v == null) return false;
+		switch (action) {
+			case DROP_ITEM, DROP_ALL_ITEMS -> {
+				emptyHands(p);
+				close(p, false);
+				return true;
+			}
+			case SWAP_ITEM_WITH_OFFHAND -> {
+				emptyHands(p);
+				return true;
+			}
+			default -> {
+				return false;
+			}
+		}
+	}
+
 	/** Right-click while the map is open (from UseItemCallback). */
 	static boolean onUse(ServerPlayer p) {
 		View v = VIEWS.get(p.getUUID());
@@ -492,14 +544,14 @@ final class ClaimView {
 	}
 
 	/**
-	 * The borders of everyone's land around you, as see-through curtains that follow the ground: bright at the bottom,
-	 * fading upwards. Only the outside edge of each piece of land gets a curtain, so you see whole areas, not tiles.
-	 * Kept pieces stay, new ones rise up, gone ones sink away.
+	 * Everyone's land around you: a see-through skin lying over the ground (it bends smoothly over hills, no steps),
+	 * fenced by curtains that are bright at the foot and fade upwards. Only the outside edge of each piece of land
+	 * gets a curtain, so you see whole areas, not tiles. Kept pieces stay, new ones grow, gone ones shrink away.
 	 */
 	private static void buildPlates(View v, boolean opening) {
 		ChunkPos center = new ChunkPos(Mth.floor(v.origin.x) >> 4, Mth.floor(v.origin.z) >> 4);
-		Set<Seg> want = new HashSet<>();
-		Set<Seg> fills = new HashSet<>();
+		Set<Piece> want = new HashSet<>();
+		Set<Piece> fills = new HashSet<>();
 		for (int dx = -RADIUS; dx <= RADIUS; dx++) {
 			for (int dz = -RADIUS; dz <= RADIUS; dz++) {
 				ChunkPos c = new ChunkPos(center.x() + dx, center.z() + dz);
@@ -520,18 +572,75 @@ final class ClaimView {
 		labels(v, center);
 	}
 
-	/** Four 8x8 tint pieces on a chunk, each lying on the highest ground under it. len = 0 marks a fill. */
-	private static void fill(View v, ChunkPos c, @Nullable Kind kind, Set<Seg> out) {
-		for (int qx = 0; qx < 2; qx++) {
-			for (int qz = 0; qz < 2; qz++) {
-				int x0 = c.getMinBlockX() + qx * 8, z0 = c.getMinBlockZ() + qz * 8;
-				int y = v.level.getMinY();
-				for (int x = 0; x < 8; x += 2) {
-					for (int z = 0; z < 8; z += 2) y = Math.max(y, v.level.getHeight(Heightmap.Types.MOTION_BLOCKING, x0 + x, z0 + z));
+	/**
+	 * Height of the skin at a grid corner (block coordinates, multiples of {@link #CELL}): about the highest ground
+	 * around it, ignoring a lone tree trunk or pole, so the skin lies over the land instead of cutting through it.
+	 */
+	private static float corner(View v, int x, int z) {
+		return v.corners.computeIfAbsent(key(x, z), k -> {
+			int[] h = new int[36];
+			int i = 0;
+			for (int dx = -3; dx < 3; dx++) {
+				for (int dz = -3; dz < 3; dz++) h[i++] = v.level.getHeight(Heightmap.Types.MOTION_BLOCKING, x + dx, z + dz);
+			}
+			java.util.Arrays.sort(h);
+			return (float) h[33];
+		});
+	}
+
+	/**
+	 * The skin on one chunk: flat rectangles where the land is flat, a tilted square where it slopes evenly, and two
+	 * triangles (folded along the higher diagonal) where it bends. Neighbouring pieces share their corners exactly,
+	 * so it is one smooth surface.
+	 */
+	private static void fill(View v, ChunkPos c, @Nullable Kind kind, Set<Piece> out) {
+		float lift = kind == null ? CURSOR_LIFT : LIFT;
+		int x0 = c.getMinBlockX(), z0 = c.getMinBlockZ();
+		int n = 16 / CELL;
+		float[][] h = new float[n + 1][n + 1];
+		for (int i = 0; i <= n; i++) {
+			for (int j = 0; j <= n; j++) h[i][j] = corner(v, x0 + i * CELL, z0 + j * CELL) + lift;
+		}
+		boolean[][] used = new boolean[n][n];
+		for (int j = 0; j < n; j++) {
+			for (int i = 0; i < n; i++) {
+				if (used[i][j]) continue;
+				float a = h[i][j], b = h[i + 1][j], cc = h[i][j + 1], d = h[i + 1][j + 1];
+				float x = x0 + i * CELL, z = z0 + j * CELL;
+				if (flat(h, i, j)) {
+					// As big a flat rectangle as the land allows at this height
+					int w = 1;
+					while (i + w < n && !used[i + w][j] && flat(h, i + w, j) && h[i + w][j] == a) w++;
+					int rows = 1;
+					grow:
+					while (j + rows < n) {
+						for (int k = i; k < i + w; k++) {
+							if (used[k][j + rows] || !flat(h, k, j + rows) || h[k][j + rows] != a) break grow;
+						}
+						rows++;
+					}
+					for (int k = i; k < i + w; k++) {
+						for (int l = j; l < j + rows; l++) used[k][l] = true;
+					}
+					out.add(new Piece(QUAD, kind, x, a, z, x + w * CELL, a, z, x, a, z + rows * CELL));
+					continue;
 				}
-				out.add(new Seg(x0, y + (kind == null ? 0.14 : 0.08), z0, 0, true, kind, 0));
+				used[i][j] = true;
+				if (a + d == b + cc) {
+					out.add(new Piece(QUAD, kind, x, a, z, x + CELL, b, z, x, cc, z + CELL));
+				} else if (a + d > b + cc) {
+					out.add(new Piece(TRI, kind, x, a, z, x + CELL, b, z, x + CELL, d, z + CELL));
+					out.add(new Piece(TRI, kind, x, a, z, x + CELL, d, z + CELL, x, cc, z + CELL));
+				} else {
+					out.add(new Piece(TRI, kind, x + CELL, b, z, x, cc, z + CELL, x, a, z));
+					out.add(new Piece(TRI, kind, x + CELL, b, z, x + CELL, d, z + CELL, x, cc, z + CELL));
+				}
 			}
 		}
+	}
+
+	private static boolean flat(float[][] h, int i, int j) {
+		return h[i][j] == h[i + 1][j] && h[i][j] == h[i][j + 1] && h[i][j] == h[i + 1][j + 1];
 	}
 
 	private static ChunkPos neighbour(ChunkPos c, int side) {
@@ -543,83 +652,62 @@ final class ClaimView {
 		};
 	}
 
-	/** One side of a chunk as curtain pieces: one piece per run of blocks with the same ground height. */
-	private static void edge(View v, ChunkPos c, int side, Kind kind, float height, Set<Seg> out) {
+	/**
+	 * One side of a chunk as curtain strips standing on the skin's edge: one slanted strip per grid cell, so the
+	 * curtain climbs and dips with the land without steps or gaps.
+	 */
+	private static void edge(View v, ChunkPos c, int side, @Nullable Kind kind, float height, Set<Piece> out) {
+		float lift = kind == null ? CURSOR_LIFT : LIFT;
 		int x0 = c.getMinBlockX(), z0 = c.getMinBlockZ();
 		boolean alongX = side == 0 || side == 2;
-		// The border line itself, nudged a hair inwards so two neighbours' curtains don't fight
-		double line = switch (side) {
-			case 0 -> z0 + 0.04;
-			case 1 -> x0 + 16 - 0.04;
-			case 2 -> z0 + 16 - 0.04;
-			default -> x0 + 0.04;
+		int fixed = switch (side) {
+			case 0 -> z0;
+			case 1 -> x0 + 16;
+			case 2 -> z0 + 16;
+			default -> x0;
 		};
-		int start = 0;
-		int runY = ground(v, x0, z0, side, 0);
-		for (int i = 1; i <= 16; i++) {
-			int y = i < 16 ? ground(v, x0, z0, side, i) : Integer.MIN_VALUE;
-			if (y != runY) {
-				double mid = (alongX ? x0 : z0) + (start + i) / 2.0;
-				double len = i - start;
-				out.add(alongX ? new Seg(mid, runY, line, len, true, kind, height) : new Seg(line, runY, mid, len, false, kind, height));
-				start = i;
-				runY = y;
-			}
+		// The border line itself, nudged a hair inwards so two neighbours' curtains don't fight
+		float line = fixed + (side == 0 || side == 3 ? 0.04f : -0.04f);
+		int from = alongX ? x0 : z0;
+		for (int i = 0; i < 16; i += CELL) {
+			int p = from + i, q = from + i + CELL;
+			float ay = (alongX ? corner(v, p, fixed) : corner(v, fixed, p)) + lift;
+			float by = (alongX ? corner(v, q, fixed) : corner(v, fixed, q)) + lift;
+			if (alongX) out.add(new Piece(WALL, kind, p, ay, line, q, by, line, p, ay + height, line));
+			else out.add(new Piece(WALL, kind, line, ay, p, line, by, q, line, ay + height, p));
 		}
 	}
 
-	/** Ground height of block {@code i} along one side of a chunk (inside the chunk). */
-	private static int ground(View v, int x0, int z0, int side, int i) {
-		int x = switch (side) {
-			case 1 -> x0 + 15;
-			case 3 -> x0;
-			default -> x0 + i;
-		};
-		int z = switch (side) {
-			case 0 -> z0;
-			case 2 -> z0 + 15;
-			default -> z0 + i;
-		};
-		return v.level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z);
-	}
-
-	/** Make the shown pieces match {@code want}: new ones rise, gone ones sink and disappear. */
-	private static void sync(View v, Map<Seg, DisplayElement> shown, Set<Seg> want, boolean wave) {
-		for (Iterator<Map.Entry<Seg, DisplayElement>> it = shown.entrySet().iterator(); it.hasNext(); ) {
-			Map.Entry<Seg, DisplayElement> e = it.next();
+	/** Make the shown pieces match {@code want}: new ones grow, gone ones shrink and disappear. */
+	private static void sync(View v, Map<Piece, DisplayElement> shown, Set<Piece> want, boolean wave) {
+		for (Iterator<Map.Entry<Piece, DisplayElement>> it = shown.entrySet().iterator(); it.hasNext(); ) {
+			Map.Entry<Piece, DisplayElement> e = it.next();
 			if (want.contains(e.getKey())) continue;
 			lower(v, e.getKey(), e.getValue(), v.age + 1, 5);
 			animate(v, e.getValue(), v.age + 7, null, null, 0, true);
 			it.remove();
 		}
-		for (Seg s : want) {
+		for (Piece s : want) {
 			if (shown.containsKey(s)) continue;
-			DisplayElement el = wall(v, s);
+			DisplayElement el = element(v, s);
 			v.holder.addElement(el);
 			shown.put(s, el);
 			int delay = 1;
-			if (wave) delay += 4 + (int) (Math.hypot(s.x() - v.origin.x, s.z() - v.origin.z) / 6);
+			if (wave) delay += 4 + (int) (Math.hypot(s.ax() - v.origin.x, s.az() - v.origin.z) / 6);
 			raise(v, s, el, v.age + delay, s.kind() == null ? 3 : 7);
 		}
 	}
 
-	/** A curtain piece, still flat on the ground (it rises with {@link #raise}). */
-	private static DisplayElement wall(View v, Seg s) {
+	/** A piece of the map, still shrunk to nothing (it grows with {@link #raise}). */
+	private static DisplayElement element(View v, Piece s) {
 		DisplayElement el;
-		if (s.len() == 0) {
+		if (v.pack) {
 			ItemDisplayElement item = new ItemDisplayElement();
+			String model = (s.type() == WALL ? "claim/wall_" : s.type() == TRI ? "claim/tri_" : "claim/fill_") + wallName(s.kind());
 			ItemStack stack = new ItemStack(Items.PAPER);
-			stack.set(DataComponents.ITEM_MODEL, Identifier.fromNamespaceAndPath("libreria", "claim/fill_" + wallName(s.kind())));
+			stack.set(DataComponents.ITEM_MODEL, Identifier.fromNamespaceAndPath("libreria", model));
 			item.setItem(stack);
 			item.setItemDisplayContext(net.minecraft.world.item.ItemDisplayContext.NONE);
-			el = item;
-		} else if (v.pack) {
-			ItemDisplayElement item = new ItemDisplayElement();
-			ItemStack stack = new ItemStack(Items.PAPER);
-			stack.set(DataComponents.ITEM_MODEL, Identifier.fromNamespaceAndPath("libreria", "claim/wall_" + wallName(s.kind())));
-			item.setItem(stack);
-			item.setItemDisplayContext(net.minecraft.world.item.ItemDisplayContext.NONE);
-			if (!s.alongX()) item.setLeftRotation(new org.joml.Quaternionf().rotateY((float) Math.PI / 2));
 			el = item;
 		} else {
 			el = new BlockDisplayElement(glass(s.kind() == null ? "yellow" : switch (s.kind()) {
@@ -631,8 +719,8 @@ final class ClaimView {
 		}
 		el.setBrightness(FULL);
 		el.setViewRange(8f);
-		el.setOffset(new Vec3(s.x(), s.y(), s.z()).subtract(v.origin));
-		shape(v, s, el, 0.02f);
+		el.setOffset(new Vec3(s.ax(), s.ay(), s.az()).subtract(v.origin));
+		shrunk(v, s).applyTo(el);
 		return el;
 	}
 
@@ -645,34 +733,33 @@ final class ClaimView {
 		};
 	}
 
-	/** Translation and scale for a curtain piece {@code h} tall. */
-	private static void shape(View v, Seg s, DisplayElement el, float h) {
-		if (s.len() == 0) {
-			float size = h <= 0.05f ? 0.01f : 8f;
-			el.setScale(new Vector3f(size, 1, size));
-			el.setTranslation(new Vector3f(4, 0, 4));
-			return;
+	/** The model bent exactly onto the piece (relative to the piece's corner A, where the display stands). */
+	private static Affine shape(View v, Piece s) {
+		Vector3f a = new Vector3f(), b = s.b().sub(s.a()), c = s.c().sub(s.a());
+		if (s.type() == WALL) {
+			Vector3f across = new Vector3f(b.z, 0, -b.x).normalize();
+			if (!v.pack) return Affine.fit(CUBE_A, CUBE_B, CUBE_C, ACROSS, a, b, c, across.mul(0.05f));
+			return Affine.fit(WALL_A, WALL_B, WALL_C, ACROSS, a, b, c, across);
 		}
-		float len = (float) s.len();
-		if (v.pack) {
-			// A 1x1 quad around the origin: stretch it and lift its bottom edge onto the ground
-			el.setScale(new Vector3f(len, h, 1));
-			el.setTranslation(new Vector3f(0, h / 2, 0));
-		} else if (s.alongX()) {
-			el.setScale(new Vector3f(len, h, 0.05f));
-			el.setTranslation(new Vector3f(-len / 2, 0, -0.025f));
-		} else {
-			el.setScale(new Vector3f(0.05f, h, len));
-			el.setTranslation(new Vector3f(-0.025f, 0, -len / 2));
-		}
+		Vector3f normal = new Vector3f(b).cross(c).normalize();
+		return Affine.fit(FLAT_A, FLAT_B, FLAT_C, UP, a, b, c, normal);
 	}
 
-	private static void raise(View v, Seg s, DisplayElement el, int at, int duration) {
-		v.anims.add(new Anim(el, at, null, null, duration, false, () -> shape(v, s, el, s.len() == 0 ? 1f : s.height())));
+	/** Shrunk to nothing around the middle of a curtain's foot or of a fill, where it grows from and shrinks to. */
+	private static Affine shrunk(View v, Piece s) {
+		Vector3f anchor;
+		if (s.type() == WALL) anchor = v.pack ? new Vector3f(0, -0.5f, 0) : new Vector3f(0.5f, 0, 0);
+		else if (s.type() == TRI) anchor = new Vector3f(FLAT_A).add(FLAT_B).add(FLAT_C).div(3);
+		else anchor = new Vector3f();
+		return shape(v, s).scaledAbout(anchor, 0.02f);
 	}
 
-	private static void lower(View v, Seg s, DisplayElement el, int at, int duration) {
-		v.anims.add(new Anim(el, at, null, null, duration, false, () -> shape(v, s, el, 0.02f)));
+	private static void raise(View v, Piece s, DisplayElement el, int at, int duration) {
+		v.anims.add(new Anim(el, at, null, null, duration, false, () -> shape(v, s).applyTo(el)));
+	}
+
+	private static void lower(View v, Piece s, DisplayElement el, int at, int duration) {
+		v.anims.add(new Anim(el, at, null, null, duration, false, () -> shrunk(v, s).applyTo(el)));
 	}
 
 	private static void animate(View v, DisplayElement el, int at, @Nullable Vector3f translation, @Nullable Vector3f scale, int duration, boolean remove) {
@@ -756,10 +843,10 @@ final class ClaimView {
 
 	/** A low golden curtain around the chunk in the middle of the screen. */
 	private static void placeCursor(View v, ChunkPos c, boolean tick) {
-		Set<Seg> want = new HashSet<>();
+		Set<Piece> want = new HashSet<>();
 		for (int side = 0; side < 4; side++) edge(v, c, side, null, 1.8f, want);
 		sync(v, v.cursorWalls, want, false);
-		Set<Seg> fill = new HashSet<>();
+		Set<Piece> fill = new HashSet<>();
 		if (v.pack) fill(v, c, null, fill);
 		sync(v, v.cursorFills, fill, false);
 		if (tick) Ui.sound(v.p, SoundEvents.UI_BUTTON_CLICK.value(), 0.06f, 1.9f);
@@ -799,7 +886,7 @@ final class ClaimView {
 			case OTHER -> line.append(Component.literal(cl.ownerName + "'s land").withStyle(ChatFormatting.RED));
 		}
 		line.append(Component.literal("   " + used + "/" + max + " chunks").withStyle(ChatFormatting.GRAY));
-		line.append(Component.literal("   WASD move · scroll zoom · sneak back").withStyle(ChatFormatting.DARK_GRAY));
+		line.append(Component.literal("   WASD move · scroll zoom · sneak or Q back").withStyle(ChatFormatting.DARK_GRAY));
 		Hud.show(v.p, HUD, line, Hud.PRIO_INFO, 10);
 	}
 
@@ -815,7 +902,11 @@ final class ClaimView {
 	}
 
 	private static long key(ChunkPos c) {
-		return ((long) c.x() << 32) ^ (c.z() & 0xFFFFFFFFL);
+		return key(c.x(), c.z());
+	}
+
+	private static long key(int x, int z) {
+		return ((long) x << 32) ^ (z & 0xFFFFFFFFL);
 	}
 
 	private static double ease(double t) {

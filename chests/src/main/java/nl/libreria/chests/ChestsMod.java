@@ -37,7 +37,7 @@ public final class ChestsMod implements ModInitializer {
 	public static final Module MODULE = Module.register("chests", "Chests", Items.CHEST,
 			"Sorting, searching your chests by icon", "and a beam to the right chest.");
 	public static final Setting.Toggle SEARCH_BUTTON = MODULE.toggle("zoekknop", "Search button in your inventory", true, Items.SPYGLASS,
-			"With the Libreria pack, the recipe book", "button in your inventory becomes a", "magnifying glass that searches your chests.");
+			"With the Libreria pack, the recipe book", "button in your inventory becomes a", "magnifying glass that opens your items.");
 	public static final Setting.Toggle SORT_BUTTON = MODULE.toggle("sorteerknop", "Sort button in chests", true, Items.CHEST,
 			"A ⇅ Sort button in the last empty", "slot of chests, barrels and boxes.", "Right-click: deposit matching items.");
 	public static final Setting.Toggle MIDDLE_CLICK = MODULE.toggle("middelklik", "Middle-click sorts", true, Items.HOPPER,
@@ -67,10 +67,14 @@ public final class ChestsMod implements ModInitializer {
 		CommandRegistrationCallback.EVENT.register(ChestCommands::register);
 
 		// In het Libreria-menu en op de knop in het E-scherm
-		Hub.setPrimary("sort inventory", Sorter::sortPlayer);
+		// Right above the search button (the magnifying glass) in your inventory
+		Hub.addButton(3, "libreria:gui/btn_sort", Items.COMPARATOR, "Sort inventory", ChatFormatting.YELLOW, Sorter::sortPlayer,
+				"Merges and sorts your stacks.", "Your hotbar stays as it is.");
+		Hub.addButton(4, "libreria:gui/btn_stack", Items.CHEST_MINECART, "Quick stack", ChatFormatting.GREEN, QuickStack::run,
+				"Puts items into nearby chests", "that already have them.", "Your hotbar stays as it is.");
 		Hub.addHint("In chests: ⇅ or middle-click = sort");
-		MODULE.hubEntry(Items.SPYGLASS, "Search chests", ChatFormatting.AQUA, ChestSearch::open,
-				"Type a name, see where it is and", "follow the beam. Also: the magnifying", "glass in your inventory.");
+		MODULE.hubEntry(Items.SPYGLASS, "Your items", ChatFormatting.AQUA, ChestSearch::open,
+				"Everything on you and in your chests,", "searchable; click one to follow the beam.", "Also: the magnifying glass in your inventory.");
 		MODULE.hubEntry(Items.CHEST, "My chests", ChatFormatting.GOLD, ChestsGui::open,
 				"See inside your chests from afar,", "beam to them, skip them in search.");
 		MODULE.hubEntry(Items.CHEST_MINECART, "Quick stack", ChatFormatting.GREEN, QuickStack::run,
@@ -79,7 +83,9 @@ public final class ChestsMod implements ModInitializer {
 				"Merges and sorts stacks.", "Your hotbar stays as it is.");
 
 		MODULE.commands(
-				"/chest – search your chests",
+				"/chest – all your items (searchable)",
+				"/chest find <text> – find an item by name",
+				"/chest menu – your items as a chest menu",
 				"/chest search <item> – find an item",
 				"/chest where <item> – all its chests",
 				"/chest sort – sort your inventory",

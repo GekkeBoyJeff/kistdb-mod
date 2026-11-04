@@ -28,8 +28,8 @@ public final class Libreria implements ModInitializer {
 
 	public static final Module MODULE = Module.register("libreria", "Libreria (general)", Items.HOPPER,
 			"General Libreria settings.");
-	public static final Setting.Toggle HUB_BUTTON = MODULE.toggle("knop", "Inventory button", true, Items.HOPPER,
-			"The glowing Libreria icon in the", "crafting output slot of your inventory.");
+	public static final Setting.Toggle HUB_BUTTON = MODULE.toggle("knop", "Inventory buttons", true, Items.HOPPER,
+			"Buttons in your inventory's empty crafting", "grid: Libreria menu, sort, quick stack.");
 	public static final Setting.Toggle OWN_PLATE = MODULE.toggle("eigen_naam", "Your own name tag", true, Items.NAME_TAG,
 			"See your own title and nickname above", "your head in third person (F5).");
 	public static final Setting.Choice GUIDE_SECONDS = MODULE.choice("straal", "Beam duration", Items.SPECTRAL_ARROW, 1,
@@ -102,7 +102,7 @@ public final class Libreria implements ModInitializer {
 		boolean was = HUB_SHOWN.getOrDefault(p.getUUID(), false);
 		if (active) {
 			Hub.send(p);
-		} else if (was && p.inventoryMenu.getSlot(0).getItem().isEmpty()) {
+		} else if (was) {
 			Hub.remove(p);
 		}
 		HUB_SHOWN.put(p.getUUID(), active);

@@ -260,6 +260,11 @@ public final class ClaimsMod implements ModInitializer {
 		ClaimView.open(p);
 	}
 
+	/** From the mixin: drop / swap-hands while the land map is open. True = handled (vanilla must not act). */
+	public static boolean onMapKey(ServerPlayer p, net.minecraft.network.protocol.game.ServerboundPlayerActionPacket.Action action) {
+		return ClaimView.onAction(p, action);
+	}
+
 	// ---------------------------------------------------------------- opslag
 
 	static String key(Level level, ChunkPos c) {

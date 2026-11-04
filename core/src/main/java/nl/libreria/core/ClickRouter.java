@@ -33,11 +33,22 @@ public final class ClickRouter {
 		ContainerInput input = packet.containerInput();
 		int button = packet.buttonNum();
 
-		if (menu == player.inventoryMenu && slot == InventoryMenu.RESULT_SLOT && Hub.active(player)) {
+		if (menu == player.inventoryMenu && Hub.isButton(slot) && Hub.active(player)) {
+			// Putting a real item into the crafting grid (carrying one, a number key with something in that
+			// hotbar slot, or dragging): vanilla does that, then the buttons step aside
+			boolean carrying = !menu.getCarried().isEmpty();
+			boolean swapIn = input == ContainerInput.SWAP && (button == 40 || button >= 0 && button < 9)
+					&& !player.getInventory().getItem(button).isEmpty();
+			if (slot != InventoryMenu.RESULT_SLOT && (carrying || swapIn || input == ContainerInput.QUICK_CRAFT)) {
+				player.level().getServer().execute(() -> {
+					if (!Hub.active(player)) Hub.remove(player);
+				});
+				return false;
+			}
 			boolean right = input == ContainerInput.PICKUP && button == 1;
-			boolean act = input == ContainerInput.PICKUP || input == ContainerInput.QUICK_MOVE;
-			if (act) Hub.click(player, right);
+			boolean act = !carrying && (input == ContainerInput.PICKUP || input == ContainerInput.QUICK_MOVE);
 			resync(player);
+			if (act) Hub.click(player, slot, right);
 			return true;
 		}
 

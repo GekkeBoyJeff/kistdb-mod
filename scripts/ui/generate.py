@@ -493,6 +493,25 @@ def claim_walls():
                   open(os.path.join(base, f'models/item/claim/fill_{name}.json'), 'w'))
         json.dump({'model': {'type': 'minecraft:model', 'model': f'{NS}:item/claim/fill_{name}'}},
                   open(os.path.join(base, f'items/claim/fill_{name}.json'), 'w'))
+        # Triangle: the same tint, cut along the diagonal (half see-through on the diagonal itself, so two triangles
+        # side by side make one even surface). The server bends these into a mesh that follows hills smoothly.
+        n = 64
+        tri = Image.new('RGBA', (n, n), (0, 0, 0, 0))
+        for y in range(n):
+            for x in range(n):
+                if x + y < n - 1:
+                    tri.putpixel((x, y), c + (62,))
+                elif x + y == n - 1:
+                    tri.putpixel((x, y), c + (33,))
+        tri.save(os.path.join(base, f'textures/item/claim/tri_{name}.png'))
+        ttex = f'{NS}:item/claim/tri_{name}'
+        json.dump({'textures': {'fill': ttex, 'particle': ttex},
+                   'elements': [{'from': [0, 8, 0], 'to': [16, 8, 16], 'shade': False,
+                                 'faces': {'up': {'texture': '#fill', 'uv': [0, 0, 16, 16]},
+                                           'down': {'texture': '#fill', 'uv': [0, 16, 16, 0]}}}]},
+                  open(os.path.join(base, f'models/item/claim/tri_{name}.json'), 'w'))
+        json.dump({'model': {'type': 'minecraft:model', 'model': f'{NS}:item/claim/tri_{name}'}},
+                  open(os.path.join(base, f'items/claim/tri_{name}.json'), 'w'))
 
 
 def plaques():
@@ -650,6 +669,14 @@ def hud_fonts():
                 q['ascent'] = HUD_NAME_Y + 7 - (HUD_PANEL_TOP + pad_top + 2)
                 provs.append(q)
         json.dump({'providers': provs}, open(os.path.join(base, f'hud{k}.json'), 'w'))
+    # libreria:icons: the same item pictures at full size inside a 20 px button of a window (the button's text line
+    # starts 6 px below its top; a 16 px picture with its top 2 px below the button's top)
+    provs = []
+    for p in icon_providers:
+        q = dict(p)
+        q['ascent'] = 11
+        provs.append(q)
+    json.dump({'providers': provs}, open(os.path.join(base, 'icons.json'), 'w'))
     return icons
 
 
@@ -697,6 +724,56 @@ def search_button():
         img.save(os.path.join(d, name + '.png'))
 
 
+BUTTON_ICONS = {
+    # 12x12 pixel icons for the inventory buttons, light on a dark wooden button with a bronze frame
+    'sort': ['...w........', '..www.......', '.wwwww......', '...w....w...', '...w....w...', '...w....w...',
+             '...w....w...', '...w....w...', '...w....w...', '......wwwww.', '.......www..', '........w...'],
+    'stack': ['.....ww.....', '.....ww.....', '...wwwwww...', '....wwww....', '.....ww.....', '............',
+              '.gggggggggg.', '.gwwwwwwwwg.', '.ggggyyyggg.', '.gwwwyyywwg.', '.gwwwwwwwwg.', '.gggggggggg.'],
+    'menu': ['............', '............', '.wwwwwwwwww.', '.wwwwwwwwww.', '............', '.wwwwwwwwww.',
+             '.wwwwwwwwww.', '............', '.wwwwwwwwww.', '.wwwwwwwwww.', '............', '............'],
+}
+
+
+def inventory_buttons():
+    """Buttons that sit in the empty 2x2 crafting grid of your inventory (next to the search button): an 18x18
+    wooden button with a bronze frame that covers the slot (oversized_in_gui), so it doesn't look like an item."""
+    base = os.path.join(OUT, 'assets', NS)
+    for d in ('textures/item/gui', 'models/item/gui', 'items/gui'):
+        os.makedirs(os.path.join(base, d), exist_ok=True)
+    for name, rows in BUTTON_ICONS.items():
+        img = Image.new('RGBA', (18, 18), (0, 0, 0, 0))
+        for y in range(18):
+            for x in range(18):
+                if (x in (0, 17)) and (y in (0, 17)):
+                    continue
+                if x in (0, 17) or y in (0, 17):
+                    c = OUTLINE
+                elif x == 1 or y == 1:
+                    c = BRONZE
+                elif x == 16 or y == 16:
+                    c = BRONZE_LO
+                else:
+                    c = lerp((74, 51, 32), (46, 31, 20), (y - 2) / 13) + (255,)
+                img.putpixel((x, y), c)
+        pal = {'#': (30, 20, 12, 255), 'w': (236, 220, 180, 255), 'g': (214, 170, 84, 255), 'y': (255, 230, 120, 255)}
+        for y, row in enumerate(rows):
+            for x, ch in enumerate(row):
+                if ch in pal:
+                    img.putpixel((3 + x, 3 + y), pal[ch])
+        img.save(os.path.join(base, f'textures/item/gui/btn_{name}.png'))
+        json.dump({'parent': 'minecraft:item/generated', 'textures': {'layer0': f'{NS}:item/gui/btn_{name}'},
+                   'gui_light': 'front',
+                   'display': {'gui': {'rotation': [0, 0, 0], 'translation': [0, 0, 0], 'scale': [1.125, 1.125, 1.125]}}},
+                  open(os.path.join(base, f'models/item/gui/btn_{name}.json'), 'w'))
+        # Only in menus: in a hand (or the off-hand slot of the HUD) it draws nothing
+        json.dump({'model': {'type': 'minecraft:select', 'property': 'minecraft:display_context',
+                             'cases': [{'when': 'gui', 'model': {'type': 'minecraft:model', 'model': f'{NS}:item/gui/btn_{name}'}}],
+                             'fallback': {'type': 'minecraft:empty'}},
+                   'oversized_in_gui': True},
+                  open(os.path.join(base, f'items/gui/btn_{name}.json'), 'w'))
+
+
 def boss_bar():
     """The boss bar of the top tooltip uses the white colour; the pack makes white bars invisible (only the title)."""
     d = os.path.join(OUT, 'assets', 'minecraft', 'textures/gui/sprites/boss_bar')
@@ -722,6 +799,7 @@ def main():
     filler_tile()
     plaques()
     empty_item()
+    inventory_buttons()
     claim_walls()
     os.makedirs(os.path.join(base, 'font'), exist_ok=True)
     json.dump({'providers': providers}, open(os.path.join(base, 'font/ui.json'), 'w'), indent=1)

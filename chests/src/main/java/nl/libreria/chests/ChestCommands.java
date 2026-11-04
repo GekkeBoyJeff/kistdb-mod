@@ -32,9 +32,22 @@ public final class ChestCommands {
 	static void register(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext context, Commands.CommandSelection selection) {
 		dispatcher.register(Commands.literal("chest")
 				.executes(c -> {
-					OverviewGui.open(c.getSource().getPlayerOrException(), "");
+					ChestSearch.open(c.getSource().getPlayerOrException());
 					return 1;
 				})
+				.then(Commands.literal("browse")
+						.executes(c -> {
+							ChestSearch.open(c.getSource().getPlayerOrException());
+							return 1;
+						})
+						.then(Commands.argument("args", com.mojang.brigadier.arguments.StringArgumentType.greedyString())
+								.executes(c -> ChestSearch.command(c.getSource().getPlayerOrException(),
+										com.mojang.brigadier.arguments.StringArgumentType.getString(c, "args")))))
+				.then(Commands.literal("menu")
+						.executes(c -> {
+							OverviewGui.open(c.getSource().getPlayerOrException(), "");
+							return 1;
+						}))
 				.then(Commands.literal("find")
 						.executes(c -> {
 							ChestSearch.open(c.getSource().getPlayerOrException());

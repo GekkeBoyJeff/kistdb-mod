@@ -105,11 +105,34 @@ public final class Screens implements FabricClientGameTest {
 			safe("hotbar", () -> ctx.takeScreenshot("hotbar"));
 			safe("inventory", () -> {
 				ctx.getInput().pressKey(o2 -> o2.keyInventory);
-				ctx.waitTicks(10);
+				// The buttons in the crafting grid come with the next refresh (once a second)
+				ctx.waitTicks(25);
 				ctx.getInput().setCursorPos(2, 2);
 				noToasts(ctx);
 				ctx.waitTicks(2);
 				ctx.takeScreenshot("inventory");
+				// Where things are in the inventory screen, in window pixels
+				double scale = ctx.computeOnClient(mc -> (double) mc.getWindow().getGuiScale());
+				int w = ctx.computeOnClient(mc -> mc.getWindow().getGuiScaledWidth());
+				int h = ctx.computeOnClient(mc -> mc.getWindow().getGuiScaledHeight());
+				int left = (w - 176) / 2, top = (h - 166) / 2;
+				// Hover the sort button (bottom left of the crafting grid), then click it
+				ctx.getInput().setCursorPos((left + 106) * scale, (top + 44) * scale);
+				ctx.waitTicks(5);
+				ctx.takeScreenshot("inventory_sort_tooltip");
+				ctx.getInput().pressMouse(org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LEFT);
+				ctx.waitTicks(10);
+				ctx.getInput().setCursorPos(2, 2);
+				ctx.waitTicks(2);
+				ctx.takeScreenshot("inventory_sorted");
+				// The magnifying glass (where the recipe book button is) opens your items
+				ctx.getInput().setCursorPos((left + 114) * scale, (top + 70) * scale);
+				ctx.waitTicks(3);
+				ctx.getInput().pressMouse(org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LEFT);
+				ctx.waitTicks(15);
+				ctx.getInput().setCursorPos(2, 2);
+				noToasts(ctx);
+				ctx.takeScreenshot("items_from_button");
 				ctx.setScreen(() -> null);
 				ctx.waitTicks(5);
 			});
@@ -136,21 +159,32 @@ public final class Screens implements FabricClientGameTest {
 				ctx.waitTicks(5);
 			});
 
-			// The chest search window (a dialog) and its results
-			safe("search", () -> {
+			// "Your items" (a dialog): everything on you and in your chests, then searched and sorted A-Z
+			safe("items", () -> {
 				server.runOnServer(s -> nl.libreria.chests.ChestSearch.open(player));
 				ctx.waitTicks(10);
+				ctx.getInput().setCursorPos(2, 2);
 				noToasts(ctx);
-				ctx.takeScreenshot("search_dialog");
-				ctx.setScreen(() -> null);
-				ctx.waitTicks(3);
-				server.runOnServer(s -> nl.libreria.chests.ChestSearch.find(player, "q:o"));
+				ctx.takeScreenshot("items_window");
+				server.runOnServer(s -> nl.libreria.chests.ChestSearch.command(player, "s:name q:o"));
 				ctx.waitTicks(10);
 				noToasts(ctx);
-				ctx.takeScreenshot("search_results");
+				ctx.takeScreenshot("items_search");
 				ctx.setScreen(() -> null);
 				ctx.waitTicks(3);
 			});
+
+			// Hills in the claimed land, so the land map has slopes to lie on
+			int cx = x >> 4, cz = z >> 4;
+			for (int i = 0; i < 7; i++) {
+				run(server, f("fill %d %d %d %d %d %d minecraft:grass_block", cx * 16 + i, y - 1 + i, (cz - 1) * 16 + i,
+						cx * 16 + 15 - i, y - 1 + i, (cz - 1) * 16 + 15 - i));
+			}
+			for (int i = 0; i < 8; i++) {
+				run(server, f("fill %d %d %d %d %d %d minecraft:grass_block", (cx + 2) * 16 + 2 * i, y - 1, cz * 16,
+						(cx + 2) * 16 + 2 * i + 1, y - 1 + i, cz * 16 + 31));
+			}
+			ctx.waitTicks(10);
 
 			// The land map: camera flies up, claims are coloured plates
 			safe("claim_view", () -> {
@@ -180,7 +214,8 @@ public final class Screens implements FabricClientGameTest {
 				ctx.getInput().scroll(-3);
 				ctx.waitTicks(20);
 				ctx.takeScreenshot("claim_view_zoomed");
-				ctx.getInput().holdKeyFor(o2 -> o2.keyShift, 4);
+				// Q closes it (Escape never reaches the server)
+				ctx.getInput().pressKey(o2 -> o2.keyDrop);
 				ctx.waitTicks(30);
 				ctx.takeScreenshot("claim_view_closed");
 			});

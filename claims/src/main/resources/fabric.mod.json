@@ -10,6 +10,7 @@
 	"entrypoints": {
 		"main": ["nl.libreria.claims.ClaimsMod"]
 	},
+	"mixins": ["libreria_claims.mixins.json"],
 	"depends": {
 		"minecraft": "~26.3",
 		"fabric-api": "*",

@@ -200,6 +200,23 @@ public final class Glyphs {
 		return new FontDescription.Resource(Identifier.fromNamespaceAndPath("libreria", "hud" + line));
 	}
 
+	/** Item pictures at full size, for buttons in a window (a dialog). */
+	public static final FontDescription ICONS = new FontDescription.Resource(Identifier.fromNamespaceAndPath("libreria", "icons"));
+
+	/**
+	 * An item's picture inside a 20 px button of a window, followed by space up to {@code column} px; null when the
+	 * item has no picture (modded items, or ones drawn by special renderers).
+	 */
+	@org.jetbrains.annotations.Nullable
+	public static MutableComponent buttonIcon(net.minecraft.world.item.Item item, int column) {
+		int[] ic = icon(item);
+		if (ic == null) return null;
+		int color = ic[1] == 1 ? 0x6AA84F : 0xFFFFFF;
+		return Component.empty()
+				.append(Component.literal(Character.toString(ic[0])).withStyle(st -> st.withFont(ICONS).withoutShadow().withColor(color)))
+				.append(ui(space(column - ic[2])));
+	}
+
 	/** {codepoint, tinted (1/0), advance} of an item's icon for the top tooltip, or null. */
 	@org.jetbrains.annotations.Nullable
 	public static int[] icon(net.minecraft.world.item.Item item) {

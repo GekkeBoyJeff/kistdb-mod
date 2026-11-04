@@ -171,3 +171,10 @@ net.minecraft.world.inventory.RecipeBookType
 net.minecraft.core.particles.DustParticleOptions
 net.minecraft.stats.ServerRecipeBook
 net.minecraft.server.dialog.Dialog
+eu.pb4.polymer.virtualentity.api.elements.DisplayElement
+com.mojang.math.Transformation
+!net.minecraft.client.renderer.entity.DisplayRenderer$ItemDisplayRenderer
+net.minecraft.network.protocol.common.ClientboundClearDialogPacket
+!net.minecraft.client.gui.screens.dialog.DialogScreen
+!net.minecraft.client.gui.screens.dialog.ButtonListDialogScreen
+net.fabricmc.fabric.api.client.gametest.v1.input.TestInput
