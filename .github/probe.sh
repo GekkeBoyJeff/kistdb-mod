@@ -7,13 +7,16 @@ JARS=$(find ~/.gradle/caches .gradle -name '*.jar' 2>/dev/null | grep -E 'minecr
 while read -r cls; do
   [ -z "$cls" ] && continue
   case "$cls" in "?"*) continue;; esac
+  # "+ klasse" = ook private leden laten zien
+  flag="-protected"
+  case "$cls" in "+"*) flag="-p"; cls="${cls#+}";; esac
   path="$(echo "$cls" | tr . /).class"
   found=""
   for j in $JARS; do
     if unzip -l "$j" "$path" >/dev/null 2>&1; then found="$j"; break; fi
   done
   if [ -n "$found" ]; then
-    javap -cp "$found" -protected "$cls" >> "$OUT" 2>&1
+    javap -cp "$found" $flag "$cls" >> "$OUT" 2>&1
   else
     echo "!! $cls niet gevonden" >> "$OUT"
   fi

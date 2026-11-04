@@ -106,3 +106,27 @@ net.minecraft.world.entity.monster.zombie.Zombie
 ? CuredZombieVillagerTrigger
 ? VillagerMakeLove
 ? /ZombieVillager.class
++net.minecraft.server.ServerAdvancementManager
+net.minecraft.advancements.Advancement
+net.minecraft.advancements.Advancement$Builder
+net.minecraft.advancements.AdvancementHolder
+net.minecraft.advancements.AdvancementTree
+net.minecraft.advancements.DisplayInfo
+net.minecraft.advancements.AdvancementType
+net.minecraft.advancements.AdvancementRequirements
+net.minecraft.advancements.AdvancementProgress
+net.minecraft.advancements.Criterion
+net.minecraft.advancements.CriteriaTriggers
+net.minecraft.advancements.triggers.ImpossibleTrigger
+net.minecraft.advancements.triggers.ImpossibleTrigger$TriggerInstance
++net.minecraft.server.PlayerAdvancements
+net.minecraft.core.ClientAsset
+? /ClientAsset.class
+? advancements/AdvancementType.class
+? advancements/DisplayInfo.class
+? ServerAdvancementManager
+net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents
+net.fabricmc.fabric.api.event.player.AttackBlockCallback
+eu.pb4.sgui.api.gui.SimpleGui
+eu.pb4.sgui.api.elements.GuiElementBuilder
+net.minecraft.world.inventory.AbstractContainerMenu

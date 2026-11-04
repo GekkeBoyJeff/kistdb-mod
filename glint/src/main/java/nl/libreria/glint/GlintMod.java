@@ -60,7 +60,7 @@ public final class GlintMod implements ModInitializer {
 			"Every enchanted book gets its own cover", "with a symbol for its enchantment.");
 	public static final Setting.Toggle AURA = MODULE.toggle("particles", "Particles around players", true, Items.BLAZE_POWDER,
 			"Flames, snow, soul fire… around", "players with enchanted gear.");
-	public static final Setting.Toggle AURA_SELF = MODULE.toggle("particles_self", "Particles on yourself too", false, Items.GLOWSTONE_DUST,
+	public static final Setting.Toggle AURA_SELF = MODULE.toggle("particles_self", "Particles on yourself too", true, Items.GLOWSTONE_DUST,
 			"Also see your own particles (can be", "a bit busy in first person).");
 
 	/** Een effect-familie uit families.json (gegenereerd door tools/glans/generate.py). */
