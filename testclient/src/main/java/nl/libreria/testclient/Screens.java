@@ -182,9 +182,18 @@ public final class Screens implements FabricClientGameTest {
 	/** Advancement toasts would cover the right side of the screenshots. */
 	private static void noToasts(ClientGameTestContext ctx) {
 		ctx.runOnClient(c -> {
+			// Found by type, so a renamed getter doesn't matter
 			try {
-				Object tm = c.getClass().getMethod("getToastManager").invoke(c);
-				tm.getClass().getMethod("clear").invoke(tm);
+				for (Object owner : new Object[] {c, c.gui}) {
+					for (var m : owner.getClass().getMethods()) {
+						if (m.getParameterCount() == 0 && m.getReturnType().getSimpleName().contains("Toast")) {
+							Object tm = m.invoke(owner);
+							tm.getClass().getMethod("clear").invoke(tm);
+							return;
+						}
+					}
+				}
+				LOG.warn("Could not find the toast manager");
 			} catch (ReflectiveOperationException | RuntimeException e) {
 				LOG.warn("Could not clear toasts: {}", e.toString());
 			}

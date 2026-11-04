@@ -733,9 +733,8 @@ def grade_frame(grade):
 
 
 def frame_node(item, rarity):
-    """The border for an item: its own grade, one higher when enchanted (like the colour of its name)."""
-    base = GRADES.index(rarity.get(item, 'common'))
-    bumped = {0: 2, 1: 2, 2: 3, 3: 3}[base]
+    """The border for an item: the grade of the stack (its rarity component, so menu buttons can opt out), one higher
+    when enchanted (like the colour of its name)."""
 
     def ref(g):
         if g == 0:
@@ -744,8 +743,16 @@ def frame_node(item, rarity):
                 'transformation': {'translation': [0, 0, 0.12], 'left_rotation': [0, 0, 0, 1],
                                    'right_rotation': [0, 0, 0, 1], 'scale': [1, 1, 1]}}
 
+    def by_rarity(bump):
+        cases = []
+        for g in (1, 2, 3):
+            target = {1: 2, 2: 3, 3: 3}[g] if bump else g
+            cases.append({'when': GRADES[g], 'model': ref(target)})
+        return {'type': 'minecraft:select', 'property': 'minecraft:component', 'component': 'minecraft:rarity',
+                'cases': cases, 'fallback': ref(2) if bump else ref(0)}
+
     return {'type': 'minecraft:condition', 'property': 'minecraft:component', 'predicate': 'minecraft:enchantments',
-            'value': [{}], 'on_true': ref(bumped), 'on_false': ref(base)}
+            'value': [{}], 'on_true': by_rarity(True), 'on_false': by_rarity(False)}
 
 
 def with_frame(model, item, rarity):
