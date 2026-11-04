@@ -63,7 +63,6 @@ public final class LandMapItem {
 				Ui.text("Shows the claims around you.", ChatFormatting.GRAY),
 				Ui.text("Green: yours · cyan: you may build", ChatFormatting.DARK_GRAY),
 				Ui.text("Red: someone else's", ChatFormatting.DARK_GRAY))));
-		st.set(DataComponents.MAP_COLOR, new net.minecraft.world.item.component.MapItemColor(0x4CAF50));
 		return st;
 	}
 
@@ -81,7 +80,7 @@ public final class LandMapItem {
 			}
 		}
 		ItemStack map = create();
-		if (!p.getInventory().add(map)) p.drop(map, false);
+		if (!p.getInventory().add(map)) p.drop(map, false, true);
 		nl.libreria.core.gui.Toast.show(p, Items.FILLED_MAP, nl.libreria.core.gui.Toast.GOOD, "Land map",
 				"Hold it: claims around you, as you walk.");
 		DRAWN.remove(p.getUUID());
