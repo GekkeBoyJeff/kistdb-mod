@@ -21,7 +21,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import nl.libreria.core.Services;
 import nl.libreria.core.Ui;
-import nl.libreria.core.gui.HubGui;
 import nl.libreria.core.gui.Menu;
 
 /**
@@ -209,7 +208,7 @@ final class StatsGui extends Menu {
 				"Click one for the full ranking.");
 
 		// ---- Navigation bar
-		back("the Libreria menu", () -> HubGui.open(p));
+		up();
 		Services.menu(Services.MENU_ACHIEVEMENTS).ifPresent(achievements -> this.setSlot(navRow() + 2,
 				actions(button(Items.NETHER_STAR, "Achievements", ChatFormatting.GOLD,
 						"What you've collected so far", "and what you're still missing."), "Click: open")

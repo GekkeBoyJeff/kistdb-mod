@@ -43,7 +43,7 @@ final class EditGui extends Menu {
 	/** Bestaat het punt nog en is het van deze speler? Zo niet: melding. */
 	static boolean valid(ServerPlayer player, Point pt) {
 		if (WaypointsMod.exists(pt) && pt.ownedBy(player.getUUID())) return true;
-		WaypointsMod.msg(player, "That waypoint doesn't exist anymore.", ChatFormatting.RED);
+		WaypointsMod.fail(player, "Waypoint gone", "It was deleted in the meantime.");
 		return false;
 	}
 
@@ -104,8 +104,8 @@ final class EditGui extends Menu {
 		b.addLoreLine(Ui.kv("Visible to: ", WaypointsMod.visibilityText(this.pt, this.player.getUUID()),
 				WaypointsMod.visibilityColor(this.pt.visibility)));
 		b.addLoreLine(Component.empty());
-		if (here) action(b, "Click: beam to it");
-		else b.addLoreLine(Ui.text("No beam: other dimension", ChatFormatting.DARK_GRAY));
+		if (here) action(b, "Click: show the way");
+		else b.addLoreLine(Ui.text("In another dimension", ChatFormatting.DARK_GRAY));
 		b.setCallback((i, t, a, g) -> ifValid(() -> {
 			Ui.click(this.player);
 			if (WaypointsMod.beam(this.player, this.pt)) this.close();
@@ -260,12 +260,12 @@ final class EditGui extends Menu {
 		return b.setCallback((i, type, a, g) -> ifValid(() -> {
 			if (!type.shift) {
 				Ui.sound(this.player, SoundEvents.NOTE_BLOCK_BASS, 0.5f, 0.7f);
-				WaypointsMod.msg(this.player, "Shift-click to delete " + this.pt.name + ".", ChatFormatting.GRAY);
+				nl.libreria.core.Notify.whisper(this.player, "Shift-click to delete " + this.pt.name, ChatFormatting.GRAY);
 				return;
 			}
 			WaypointsMod.delete(this.pt);
 			Ui.sound(this.player, SoundEvents.ITEM_PICKUP, 0.6f, 0.6f);
-			WaypointsMod.msg(this.player, "Waypoint " + this.pt.name + " deleted.", ChatFormatting.GRAY);
+			WaypointsMod.done(this.player, "Waypoint deleted", this.pt.name);
 			backToList();
 		}));
 	}

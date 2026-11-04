@@ -83,8 +83,8 @@ public final class ChestCommands {
 		Vec3 end = eye.add(p.getLookAngle().scale(6));
 		BlockHitResult hit = level.clip(new ClipContext(eye, end, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, p));
 		if (hit.getType() != HitResult.Type.BLOCK || !Containers.isStorage(level.getBlockEntity(hit.getBlockPos()))) {
-			p.sendSystemMessage(Component.literal("[Chests] ").withStyle(ChatFormatting.GOLD)
-					.append(Component.literal("Look at a chest, barrel or shulker box.").withStyle(ChatFormatting.RED)));
+			nl.libreria.core.Notify.warn(p, net.minecraft.world.item.Items.CHEST, "Look at a chest",
+					"A chest, barrel or shulker box, then try again.");
 			return 0;
 		}
 		Tracker.toggleNoIndex(p, level, Containers.keyOf(level, hit.getBlockPos()));
@@ -97,8 +97,8 @@ public final class ChestCommands {
 		ServerLevel level = p.level();
 		Store.Entry e = Store.get(p.getUUID()).find(Store.dimId(level), Containers.keyOf(level, pos));
 		if (e == null) {
-			p.sendSystemMessage(Component.literal("[Chests] ").withStyle(ChatFormatting.GOLD)
-					.append(Component.literal("That chest isn't in your chest index.").withStyle(ChatFormatting.RED)));
+			nl.libreria.core.Notify.warn(p, net.minecraft.world.item.Items.CHEST, "Not one of your chests",
+					"Open it once and Libreria remembers it.");
 			return 0;
 		}
 		Beam.to(p, level, e.pos(), null, 0);

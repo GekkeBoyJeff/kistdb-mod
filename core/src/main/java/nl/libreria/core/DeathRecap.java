@@ -13,11 +13,11 @@ import nl.libreria.core.dialog.Window;
 
 /**
  * After you respawn: a short window with what happened (the death message, where and how far away) and buttons the
- * modules add, like "Beam to my grave". Instead of a pile of chat lines; a setting turns it off.
+ * modules add, like "Show the way to your grave". Instead of a pile of chat lines; a setting turns it off.
  */
 public final class DeathRecap {
-	public static final Setting.Toggle ENABLED = Libreria.MODULE.toggle("death_recap", "Death recap", true, Items.SKELETON_SKULL,
-			"After respawning: a window with how and", "where you died, and a beam to your grave.");
+	public static final Setting.Toggle ENABLED = Libreria.MODULE.toggle("death_recap", "What happened, after dying", true, Items.SKELETON_SKULL,
+			"After respawning: a window with how and", "where you died, and the way back.").in(Domain.PLACES, "When you die");
 
 	private record Death(Component message, String dim, BlockPos pos) {
 	}

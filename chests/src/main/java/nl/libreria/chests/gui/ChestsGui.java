@@ -14,17 +14,17 @@ import nl.libreria.chests.QuickStack;
 import nl.libreria.chests.Search;
 import nl.libreria.chests.Store;
 import nl.libreria.chests.Tracker;
+import nl.libreria.core.Domain;
 import nl.libreria.core.Ui;
-import nl.libreria.core.gui.HubGui;
 import nl.libreria.core.gui.Menu;
 
-/** "My chests": every container in your index (also the skipped ones), nearest first. */
+/** "Your chests": every container Libreria knows of (also the left-out ones), nearest first. */
 public final class ChestsGui extends Menu {
 	/** Which chests to list. */
 	private enum Show {
 		ALL("All chests"),
 		SEARCHED("In search"),
-		SKIPPED("Skipped (noIndex)");
+		SKIPPED("Left out of search");
 
 		final String label;
 
@@ -69,7 +69,7 @@ public final class ChestsGui extends Menu {
 
 	/** Opens "My chests"; Back goes to the Libreria menu. */
 	public static void open(ServerPlayer player) {
-		open(player, "the Libreria menu", () -> HubGui.open(player));
+		open(player, Domain.ITEMS.label, () -> nl.libreria.core.Start.domain(player, Domain.ITEMS));
 	}
 
 	static void open(ServerPlayer player, String backLabel, Runnable back) {
@@ -110,11 +110,11 @@ public final class ChestsGui extends Menu {
 			rebuild();
 		});
 		closeButton();
-		help("Every chest in your index nearby.",
-				"Click: beam to it.",
+		help("Every chest of yours nearby.",
+				"Click: show the way.",
 				"Right-click: see what's inside.",
-				"Shift-click: skip it in search, or",
-				"show it again (noIndex).",
+				"Shift-click: leave it out of search,",
+				"or take it back in.",
 				"Q: forget it (until you open it).");
 		finish();
 	}
@@ -124,7 +124,7 @@ public final class ChestsGui extends Menu {
 		this.setSlot(0, button(Items.BOOKSHELF, "Your chests", ChatFormatting.GOLD)
 				.addLoreLine(Ui.kv("Chests: ", Fmt.number(all.size()), ChatFormatting.WHITE))
 				.addLoreLine(Ui.kv("In search: ", Fmt.number(all.size() - skipped), ChatFormatting.GREEN))
-				.addLoreLine(Ui.kv("Skipped: ", Fmt.number(skipped), ChatFormatting.RED))
+				.addLoreLine(Ui.kv("Left out: ", Fmt.number(skipped), ChatFormatting.RED))
 				.addLoreLine(Ui.text("Within " + (int) Search.radius() + " m in this world.", ChatFormatting.DARK_GRAY)));
 
 		GuiElementBuilder showButton = button(Items.ENDER_EYE, "Show: " + this.show.label, ChatFormatting.WHITE);
@@ -142,7 +142,7 @@ public final class ChestsGui extends Menu {
 		}));
 
 		this.setSlot(4, actions(button(Items.SPYGLASS, "Search…", ChatFormatting.AQUA,
-				"Find an item in all your chests."), "Click: open the chest index")
+				"Find an item in all your chests."), "Click: open Your items")
 				.setCallback((i, t, a, g) -> {
 					Ui.click(this.player);
 					ItemSearch.open(this.player, "");
@@ -183,10 +183,10 @@ public final class ChestsGui extends Menu {
 						: Ui.kv("Contents: ", Fmt.count(total, "item", "items") + " · " + Fmt.count(kinds, "kind", "kinds"), ChatFormatting.GREEN));
 		if (!box.live()) b.addLoreLine(Ui.text("Last seen " + Search.ago(e.seen), ChatFormatting.DARK_GRAY));
 		b.addLoreLine(e.noIndex
-				? Ui.text("✘ Skipped in search (noIndex)", ChatFormatting.RED)
+				? Ui.text("✘ Left out of your item search", ChatFormatting.RED)
 				: Ui.text("✔ Shows up in search", ChatFormatting.GREEN));
-		actions(b, "Click: beam to it", "Right-click: see inside",
-				e.noIndex ? "Shift-click: show in search again" : "Shift-click: skip in search",
+		actions(b, "Click: show the way", "Right-click: see inside",
+				e.noIndex ? "Shift-click: take back into search" : "Shift-click: leave out of search",
 				"Q: forget this chest");
 		b.setCallback((index, type, action, gui) -> {
 			if (type == ClickType.DROP || type == ClickType.CTRL_DROP) {
@@ -213,11 +213,11 @@ public final class ChestsGui extends Menu {
 		if (none) {
 			return button(Items.CHEST, Store.get(this.player.getUUID()).entries.isEmpty() ? "No chests yet" : "No chests nearby",
 					ChatFormatting.GOLD,
-					"Open a chest, barrel or shulker", "box: it's added to your index.",
+					"Open a chest, barrel or shulker", "box once: Libreria remembers it.",
 					"Chests within " + (int) Search.radius() + " m in this world", "show up here.");
 		}
 		return button(Items.BARRIER, "None here", ChatFormatting.RED,
-				this.show == Show.SKIPPED ? "You don't skip any chests." : "All your chests are skipped.",
+				this.show == Show.SKIPPED ? "No chests are left out of search." : "All your chests are left out of search.",
 				"Change \"Show\" at the top.");
 	}
 
@@ -261,7 +261,7 @@ public final class ChestsGui extends Menu {
 					Integer n = this.box.counts().get(s.getItem());
 					if (n != null) b.addLoreLine(Ui.kv("In this chest: ", Fmt.number(n), ChatFormatting.GREEN));
 				}
-				actions(b, "Click: beam to this chest");
+				actions(b, "Click: show the way to this chest");
 				b.setCallback((index, type, action, gui) -> beam(s));
 				this.setSlot(i, b);
 			}
@@ -269,24 +269,24 @@ public final class ChestsGui extends Menu {
 				this.setSlot(22, button(Items.BARRIER, "Empty", ChatFormatting.GRAY, "There's nothing in this chest."));
 			}
 
-			back("My chests", this.back);
+			back("Your chests", this.back);
 			pages(this.page, pages, p -> {
 				this.page = p;
 				rebuild();
 			});
 			closeButton();
-			this.setSlot(navRow() + 6, actions(button(Search.blockItem(this.box.entry()), "Beam to it", ChatFormatting.AQUA,
-					Ui.meters(this.box.distance()) + " away, at " + Fmt.where(this.box.entry())), "Click: beam")
+			this.setSlot(navRow() + 6, actions(button(Search.blockItem(this.box.entry()), "Show the way", ChatFormatting.AQUA,
+					Ui.meters(this.box.distance()) + " away, at " + Fmt.where(this.box.entry())), "Click: show the way")
 					.setCallback((i, t, a, g) -> beam(null)));
 			if (this.box.live()) {
 				help("What's in this chest right now.",
 						"Look only: you can't take items here.",
-						"Click any item: beam to this chest.");
+						"Click any item: show the way here.");
 			} else {
 				help("What was in it when you last saw it",
 						"(its chunk isn't loaded right now).",
 						"Look only: you can't take items here.",
-						"Click any item: beam to this chest.");
+						"Click any item: show the way here.");
 			}
 			finish();
 		}

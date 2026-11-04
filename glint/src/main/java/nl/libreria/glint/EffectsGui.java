@@ -12,7 +12,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import nl.libreria.core.Setting;
 import nl.libreria.core.Ui;
-import nl.libreria.core.gui.HubGui;
 import nl.libreria.core.gui.Menu;
 
 /**
@@ -99,7 +98,7 @@ final class EffectsGui extends Menu {
 		}
 
 		// Navigation bar: Back · Glint settings · (pages) · Close · All on · All off · Help
-		back("the Libreria menu", () -> HubGui.open(this.player));
+		back("Effects", () -> EffectsWindow.open(this.player));
 		GuiElementBuilder settings = button(Items.COMPARATOR, "Glint settings", ChatFormatting.WHITE,
 				"Textures, book covers and", "particles around players.");
 		if (!nl.libreria.core.Pack.has(this.player)) {
@@ -196,7 +195,7 @@ final class EffectsGui extends Menu {
 			List<Setting> settings = GlintMod.MODULE.settings();
 			int[] slots = row(1, Math.min(7, settings.size()));
 			for (int i = 0; i < slots.length; i++) setting(slots[i], settings.get(i), this::rebuild);
-			back("Glint effects", () -> EffectsGui.open(this.player));
+			back("Choose effects", () -> EffectsGui.open(this.player));
 			closeButton();
 			help("Click a setting or the lamp below it",
 					"to change it. Changes apply at once.",

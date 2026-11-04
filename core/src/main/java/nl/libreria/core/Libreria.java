@@ -12,9 +12,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Items;
 import nl.libreria.core.dialog.Dialogs;
 import nl.libreria.core.gui.AdminWindow;
-import nl.libreria.core.gui.HubGui;
 import nl.libreria.core.gui.SettingsWindow;
-import nl.libreria.core.gui.Toast;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,15 +26,16 @@ public final class Libreria implements ModInitializer {
 	public static final String MOD_ID = "libreria";
 	public static final Logger LOG = LoggerFactory.getLogger("Libreria");
 
-	public static final Module MODULE = Module.register("libreria", "Libreria (general)", Items.HOPPER,
-			"General Libreria settings.");
+	public static final Module MODULE = Module.register("libreria", "General", Items.HOPPER,
+			"The start screen, beams, cards and the resource pack.").in(Domain.YOU, "What you see");
 	public static final Setting.Toggle HUB_BUTTON = MODULE.toggle("knop", "Sort button in your inventory", true, Items.HOPPER,
-			"The button on the left edge of your", "inventory (Libreria pack): left-click", "sorts, right-click quick-stacks.");
+			"The button on the left edge of your", "inventory (Libreria pack): left-click", "sorts, right-click quick-stacks.")
+			.in(Domain.ITEMS, "Search & sorting");
 	public static final Setting.Toggle OWN_PLATE = MODULE.toggle("eigen_naam", "Your own name tag", true, Items.NAME_TAG,
-			"See your own title and nickname above", "your head in third person (F5).");
-	public static final Setting.Choice GUIDE_SECONDS = MODULE.choice("straal", "Beam duration", Items.SPECTRAL_ARROW, 1,
+			"See your own title and nickname above", "your head in third person (F5).").in(Domain.YOU, "Your name");
+	public static final Setting.Choice GUIDE_SECONDS = MODULE.choice("straal", "How long a beam stays", Items.SPECTRAL_ARROW, 1,
 			new int[]{45, 90, 180, 300}, new String[]{"45 seconds", "90 seconds", "3 minutes", "5 minutes"},
-			"The beam also stops once you arrive.");
+			"When Libreria shows you the way. The", "beam also stops once you arrive.").in(Domain.PLACES, "Finding your way");
 
 
 	private static @Nullable MinecraftServer server;
@@ -102,22 +101,29 @@ public final class Libreria implements ModInitializer {
 		});
 		ServerTickEvents.END_SERVER_TICK.register(Libreria::tick);
 		CommandRegistrationCallback.EVENT.register((dispatcher, context, selection) -> {
-			// /libreria (or /lib) opens the menu, /libreria settings the per-player settings
 			dispatcher.register(Commands.literal("chronicle").executes(c -> {
 				Chronicle.open(c.getSource().getPlayerOrException());
 				return 1;
 			}));
-			for (String name : new String[] {"libreria", "lib"}) {
-				dispatcher.register(Commands.literal(name).executes(c -> {
-					HubGui.open(c.getSource().getPlayerOrException());
+			// /l (or /lib, /libreria) opens the start screen; /l items|land|progress|me a domain page
+			for (String name : new String[] {"l", "lib", "libreria"}) {
+				var root = Commands.literal(name).executes(c -> {
+					Start.open(c.getSource().getPlayerOrException());
 					return 1;
-				}).then(Commands.literal("settings").executes(c -> {
+				});
+				for (Domain d : Domain.values()) {
+					root.then(Commands.literal(d.word).executes(c -> {
+						Start.domain(c.getSource().getPlayerOrException(), d);
+						return 1;
+					}));
+				}
+				dispatcher.register(root.then(Commands.literal("settings").executes(c -> {
 					SettingsWindow.open(c.getSource().getPlayerOrException());
 					return 1;
 				})).then(Commands.literal("admin").executes(c -> {
 					ServerPlayer p = c.getSource().getPlayerOrException();
 					if (!Ui.isOp(p)) {
-						Toast.show(p, Items.BARRIER, Toast.BAD, "Operators only", "The server settings are for admins.");
+						Notify.warn(p, Items.BARRIER, "Operators only", "The server settings are for admins.");
 						return 0;
 					}
 					AdminWindow.open(p);
@@ -127,6 +133,9 @@ public final class Libreria implements ModInitializer {
 					return 1;
 				})).then(Commands.literal("chronicle").executes(c -> {
 					Chronicle.open(c.getSource().getPlayerOrException());
+					return 1;
+				})).then(Commands.literal("help").executes(c -> {
+					Welcome.commands(c.getSource().getPlayerOrException());
 					return 1;
 				})).then(Commands.literal("start").executes(c -> {
 					Welcome.guide(c.getSource().getPlayerOrException());

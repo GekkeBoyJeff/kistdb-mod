@@ -100,7 +100,7 @@ public final class Pack {
 		}
 		ResourcePackDataProvider provider = ResourcePackDataProvider.getActive();
 		if (provider == null || !provider.isReady(p.connection.getPacketContext())) {
-			p.sendSystemMessage(Ui.prefix("Libreria").append(Ui.text("The pack isn't ready yet; please log in again.", ChatFormatting.GRAY)));
+			Notify.warn(p, Items.PAINTING, "The pack isn't ready yet", "Please log in again.");
 			return;
 		}
 		for (var info : provider.getProperties(p.connection.getPacketContext())) {

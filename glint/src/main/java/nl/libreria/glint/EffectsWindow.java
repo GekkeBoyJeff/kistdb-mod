@@ -24,7 +24,7 @@ final class EffectsWindow {
 	}
 
 	static void open(ServerPlayer p) {
-		Window w = Window.of(Ui.text("✦ Effects", ChatFormatting.LIGHT_PURPLE).withStyle(ChatFormatting.BOLD));
+		Window w = Window.of(nl.libreria.core.Domain.YOU, "Effects");
 		w.item(sample(p), Ui.text("Particles from enchanted gear. Higher enchantment levels give more, up to your maximum.",
 				ChatFormatting.GRAY));
 		w.text(Ui.text("First person shows the item in your hand; your armour only shows in third person (F5), so it never "
@@ -49,10 +49,11 @@ final class EffectsWindow {
 			Ui.sound(pl, SoundEvents.AMETHYST_BLOCK_CHIME, 0.8f, 1.2f);
 			Toast.show(pl, new ItemStack(Items.BLAZE_POWDER), Toast.GOOD, Ui.text("Effects saved", ChatFormatting.WHITE),
 					Ui.text(GlintMod.INTENSITY.display(pl) + " · " + where(pl), ChatFormatting.GRAY));
+			nl.libreria.core.Start.domain(pl, nl.libreria.core.Domain.YOU);
 		});
 		w.button(Ui.text("Choose effects ▸", ChatFormatting.AQUA), Ui.text("Flames yes, smoke no: per effect", ChatFormatting.GRAY),
 				(pl, v) -> EffectsGui.open(pl));
-		w.done().show(p);
+		w.up(nl.libreria.core.Domain.YOU).show(p);
 	}
 
 	/** "first and third person · others", for the toast. */

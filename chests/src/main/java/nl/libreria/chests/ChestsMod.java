@@ -19,6 +19,7 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Items;
 import nl.libreria.core.ClickRouter;
 import nl.libreria.core.Hub;
+import nl.libreria.core.Domain;
 import nl.libreria.core.Module;
 import nl.libreria.core.Services;
 import nl.libreria.core.Setting;
@@ -35,7 +36,7 @@ public final class ChestsMod implements ModInitializer {
 	public static final Logger LOG = LoggerFactory.getLogger("Libreria Chests");
 
 	public static final Module MODULE = Module.register("chests", "Chests", Items.CHEST,
-			"Sorting, searching your chests by icon", "and a beam to the right chest.");
+			"Sorting, searching your chests by icon", "and showing the way to the right chest.").in(Domain.ITEMS, "Search & sorting");
 	public static final nl.libreria.core.ServerSetting.Number SEARCH_RADIUS = MODULE.serverNumber("search_radius", "Search range",
 			Items.SPYGLASS, 256, 32, 512, 16, "blocks", "How far away chests still count when", "you search your items.");
 	public static final Setting.Toggle SEARCH_BUTTON = MODULE.toggle("zoekknop", "Search button in your inventory", true, Items.SPYGLASS,
@@ -47,19 +48,19 @@ public final class ChestsMod implements ModInitializer {
 	public static final Setting.Toggle DOUBLE_CLICK = MODULE.toggle("dubbelklik", "Double-click empty slot sorts", true, Items.HOPPER_MINECART,
 			"Handy without a middle mouse button", "(for example on a laptop).");
 	public static final Setting.Toggle NEW_MESSAGE = MODULE.toggle("melding", "Message for new chests", true, Items.PAPER,
-			"\"Added to your chest index\" when you", "open a chest for the first time.");
-	public static final Setting.Toggle SNEAK_NOINDEX = MODULE.toggle("sneak", "Sneak + left-click = noIndex", true, Items.BARRIER,
-			"With an empty hand on a chest: exclude", "it from search (or include it again).");
-	public static final Setting.Choice STACK_RADIUS = MODULE.choice("opbergen", "Quick stack: range", Items.CHEST_MINECART, 1,
+			"\"Added to your chests\" when you open", "a chest for the first time.");
+	public static final Setting.Toggle SNEAK_NOINDEX = MODULE.toggle("sneak", "Sneak + left-click skips a chest", true, Items.BARRIER,
+			"With an empty hand on a chest: leave", "it out of search (or take it back in).");
+	public static final Setting.Choice STACK_RADIUS = MODULE.choice("opbergen", "Quick stack range", Items.CHEST_MINECART, 1,
 			new int[]{6, 10, 16, 24}, new String[]{"6 blocks", "10 blocks", "16 blocks", "24 blocks"},
-			"How far chests can be for quick stack.");
+			"How far your chests can be for quick stack.").in(Domain.ITEMS, "Quick stack & supply chests");
 
 	public static final Setting.Toggle LABELS = MODULE.toggle("labels", "Labels above your chests", true, Items.ITEM_FRAME,
 			"A small picture above each of your", "chests: what it holds most of.", "Only you see them.");
 	public static final Setting.Toggle CRAFT = MODULE.toggle("craft_supply", "Craft from supply chests", true, Items.CRAFTING_TABLE,
-			"Clicking a recipe in the recipe book", "takes what you miss from your", "supply chests.");
+			"Clicking a recipe in the recipe book", "takes what you miss from your", "supply chests.").in(Domain.ITEMS, "Quick stack & supply chests");
 	public static final Setting.Toggle REFILL = MODULE.toggle("refill", "Refill from supply chests", true, Items.BUNDLE,
-			"A used-up stack in your hotbar that your", "inventory has no more of is refilled", "from your supply chests.");
+			"A used-up stack in your hotbar that your", "inventory has no more of is refilled", "from your supply chests.").in(Domain.ITEMS, "Quick stack & supply chests");
 	public static final nl.libreria.core.ServerSetting.Number SUPPLY_RANGE = MODULE.serverNumber("supply_range", "Supply chest range",
 			Items.CHEST, 24, 4, 64, 4, "blocks", "How near supply chests must be for", "crafting and hotbar refills.");
 
@@ -85,14 +86,17 @@ public final class ChestsMod implements ModInitializer {
 		// In het Libreria-menu en op de knop in het E-scherm
 		// The sort button beside your inventory window (left click sorts, right click quick-stacks into nearby chests)
 		Hub.setEdgeButton(Sorter::sortPlayer, QuickStack::run);
-		MODULE.hubEntry(Items.SPYGLASS, "Your items", ChatFormatting.AQUA, ChestSearch::open,
-				"Everything on you and in your chests,", "searchable; click one and its chest", "lights up. Also: the magnifying glass", "in your inventory.");
-		MODULE.hubEntry(Items.CHEST, "My chests", ChatFormatting.GOLD, ChestsGui::open,
-				"See inside your chests from afar,", "beam to them, skip them in search.");
-		MODULE.hubEntry(Items.CHEST_MINECART, "Quick stack", ChatFormatting.GREEN, QuickStack::run,
-				"Puts inventory items into nearby chests", "that already have them (not your hotbar).");
-		MODULE.hubEntry(Items.HOPPER, "Sort inventory", ChatFormatting.YELLOW, Sorter::sortPlayer,
-				"Merges and sorts stacks.", "Your hotbar stays as it is.");
+		MODULE.hubEntry(Domain.ITEMS, 10, Items.SPYGLASS, "Your items", ChestSearch::open,
+				"Everything on you and in your chests, searchable. Click one and its chest lights up.",
+				"Also: E, then the magnifier.");
+		MODULE.hubEntry(Domain.ITEMS, 20, Items.CHEST, "Your chests", ChestsGui::open,
+				"See inside your chests from afar, find your way to them, leave one out of search.");
+		MODULE.hubEntry(Domain.ITEMS, 30, Items.CHEST_MINECART, "Quick stack", QuickStack::run,
+				"Puts what you carry into your nearby chests that already hold it (not your hotbar).",
+				"Also: right-click the button beside your inventory.");
+		MODULE.hubEntry(Domain.ITEMS, 40, Items.HOPPER, "Sort inventory", Sorter::sortPlayer,
+				"Merges and sorts stacks; your hotbar stays as it is.",
+				"Also: left-click the button beside your inventory.");
 
 		MODULE.commands(
 				"/chest – all your items (searchable)",
@@ -100,8 +104,8 @@ public final class ChestsMod implements ModInitializer {
 				"/chest search <item> – find an item",
 				"/chest where <item> – all its chests",
 				"/chest sort – sort your inventory",
-				"/chest noindex – skip/unskip a chest",
-				"/chest stop – stop the beam");
+				"/chest noindex – leave a chest out of search, or take it back",
+				"/chest stop – stop showing the way");
 
 		ClickRouter.register(ChestsMod::onClick);
 		// Voor andere modules: "waar ligt dit item?" en het zoekmenu

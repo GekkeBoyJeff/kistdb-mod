@@ -42,6 +42,9 @@ import org.jetbrains.annotations.Nullable;
  * to it, and your land maps mark them. When one dies, you hear where and how, also if you were offline.
  */
 final class Pets {
+	static final nl.libreria.core.Tips.Tip TIP_PET = nl.libreria.core.Tips.register("pet", nl.libreria.core.Domain.PLACES, Items.LEAD,
+			"Your pet has a name", "Lost track of it? Land & places › Your pets shows the way.");
+
 	static final ServerSetting.Toggle NAMES = InfoMod.MODULE.serverToggle("pet_names", "Pet names", Items.LEAD, true,
 			"Tamed animals get a name of their own;", "no two pets share one. A name tag", "still wins.");
 
@@ -177,7 +180,8 @@ final class Pets {
 		if (justTamed && op != null) {
 			String kind = e.getType().getDescription().getString();
 			Toast.show(op, egg(pet.type), Toast.GOOD, Ui.text("You tamed " + article(kind) + " " + kind.toLowerCase(java.util.Locale.ROOT), ChatFormatting.WHITE),
-					Ui.text("Its name is " + pet.name + ". Find it any time in Pets.", ChatFormatting.GRAY));
+					Ui.text("Its name is " + pet.name + ".", ChatFormatting.GRAY));
+			nl.libreria.core.Tips.once(op, TIP_PET);
 			Chronicle.write(op, Chronicle.Kind.PET, "tamed " + article(kind) + " " + kind.toLowerCase(java.util.Locale.ROOT) + ": " + pet.name, false);
 		}
 	}
@@ -209,8 +213,8 @@ final class Pets {
 			String near = Places.nearest(op, lost.dim, at.getX(), at.getZ());
 			Toast.show(op, egg(pet.type), Toast.BAD, Ui.text(pet.name + " has died", ChatFormatting.WHITE),
 					Ui.text(how + (near == null ? "" : " · near " + near), ChatFormatting.GRAY));
-			op.sendSystemMessage(Ui.prefix("Pets").append(Ui.text(pet.name + ", your " + kind + ", died at " + where
-					+ (near == null ? "" : ", near " + near) + ".", ChatFormatting.GRAY)));
+			nl.libreria.core.Say.to(op, nl.libreria.core.Domain.PLACES, pet.name + ", your " + kind + ", died at " + where
+					+ (near == null ? "" : ", near " + near) + ".", ChatFormatting.GRAY);
 			Ui.sound(op, SoundEvents.NOTE_BLOCK_BASS, 0.6f, 0.7f);
 		} else {
 			d.news.computeIfAbsent(pet.owner, k -> new ArrayList<>()).add(pet.name + ", your " + kind + ", died while you were away ("
@@ -224,7 +228,7 @@ final class Pets {
 		List<String> list = data().news.remove(p.getUUID());
 		if (list == null || list.isEmpty()) return;
 		STORE.markDirty();
-		for (String line : list) p.sendSystemMessage(Ui.prefix("Pets").append(Ui.text(line, ChatFormatting.GRAY)));
+		for (String line : list) nl.libreria.core.Say.to(p, nl.libreria.core.Domain.PLACES, line, ChatFormatting.GRAY);
 	}
 
 	// ---------------------------------------------------------------- the window
@@ -235,10 +239,10 @@ final class Pets {
 		List<Map.Entry<UUID, Pet>> mine = new ArrayList<>();
 		for (Map.Entry<UUID, Pet> e : d.pets.entrySet()) if (p.getUUID().equals(e.getValue().owner)) mine.add(e);
 		mine.sort(Comparator.comparingDouble(e -> e.getValue().dim.equals(dim) ? dist2(p, e.getValue()) : 1e18 + e.getValue().name.hashCode()));
-		Window w = Window.of(Ui.text("Pets", ChatFormatting.LIGHT_PURPLE).withStyle(ChatFormatting.BOLD));
+		Window w = Window.of(nl.libreria.core.Domain.PLACES, "Your pets");
 		w.text(Ui.text(mine.isEmpty() ? "You have no pets yet. Tame a wolf with bones, a cat with fish, a parrot with seeds or a horse "
 				+ "by riding it: it gets a name of its own and shows up here." : mine.size() + (mine.size() == 1 ? " pet" : " pets")
-				+ " · the nearest first", ChatFormatting.GRAY));
+				+ " · the nearest first · click one to be shown the way", ChatFormatting.GRAY));
 		MinecraftServer server = p.level().getServer();
 		int shown = 0;
 		for (Map.Entry<UUID, Pet> e : mine) {
@@ -256,7 +260,7 @@ final class Pets {
 			if (!pet.dim.equals(dim) || buttons >= 6) continue;
 			buttons++;
 			UUID id = e.getKey();
-			w.button("Show " + pet.name, typeName(pet.type) + " · " + Math.round(Math.sqrt(dist2(p, pet))) + " m", pp -> show(pp, id));
+			w.button(pet.name, typeName(pet.type) + " · " + Math.round(Math.sqrt(dist2(p, pet))) + " m · click: show the way", pp -> show(pp, id));
 		}
 		List<Lost> gone = new ArrayList<>();
 		for (int i = d.lost.size() - 1; i >= 0 && gone.size() < 5; i--) if (p.getUUID().equals(d.lost.get(i).owner)) gone.add(d.lost.get(i));
@@ -270,7 +274,7 @@ final class Pets {
 			}
 			w.text(Ui.text(b.toString(), ChatFormatting.DARK_GRAY));
 		}
-		w.done().show(p);
+		w.up(nl.libreria.core.Domain.PLACES).show(p);
 	}
 
 	private static @Nullable Entity live(MinecraftServer server, Pet pet, UUID id) {

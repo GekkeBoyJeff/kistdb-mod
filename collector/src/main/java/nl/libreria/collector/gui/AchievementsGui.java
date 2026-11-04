@@ -20,7 +20,6 @@ import nl.libreria.collector.Catalog;
 import nl.libreria.collector.CollectorMod;
 import nl.libreria.core.Services;
 import nl.libreria.core.Ui;
-import nl.libreria.core.gui.HubGui;
 import nl.libreria.core.gui.Menu;
 
 /**
@@ -41,7 +40,7 @@ public final class AchievementsGui {
 	}
 
 	public static void openTitles(ServerPlayer player) {
-		new Titles(player, 0).open();
+		new Titles(player, 0, true).open();
 	}
 
 	private static Item itemOf(String id) {
@@ -115,7 +114,7 @@ public final class AchievementsGui {
 			actions(titleBtn, "Click: choose a title");
 			this.setSlot(22, titleBtn.setCallback((i, t, a, g) -> {
 				Ui.click(p);
-				new Titles(p, 0).open();
+				new Titles(p, 0, false).open();
 			}));
 
 			// Categories
@@ -164,7 +163,7 @@ public final class AchievementsGui {
 				this.setSlot(13, header("yellow", "Recently earned", ChatFormatting.YELLOW));
 			}
 
-			back("the Libreria menu", () -> HubGui.open(p));
+			up();
 			Services.menu(Services.MENU_STATS).ifPresent(stats -> this.setSlot(navRow() + 6,
 					action(button(Items.WRITABLE_BOOK, "Statistics", ChatFormatting.AQUA), "Click: open").setCallback((x, t, a, g) -> stats.accept(p))));
 			closeButton();
@@ -334,7 +333,7 @@ public final class AchievementsGui {
 						new ItemsPage(p, name, owner, ids, filter.next(), 0, back).open();
 					}));
 			closeButton();
-			help("✔ = you have had it in your inventory.", "✘ = still to find.", "", "Click a collected item to beam", "to the chest it's in (Chests).");
+			help("✔ = you have had it in your inventory.", "✘ = still to find.", "", "Click a collected item to be shown", "the way to the chest it's in.");
 			finish();
 		}
 	}
@@ -342,8 +341,17 @@ public final class AchievementsGui {
 	// ---------------------------------------------------------------- choosing a title
 
 	private static final class Titles extends Menu {
-		Titles(ServerPlayer p, int page) {
+		private final boolean fromYou;
+
+		@Override
+		protected nl.libreria.core.Domain domain() {
+			return nl.libreria.core.Domain.YOU;
+		}
+
+		/** {@code fromYou}: opened from the You page (Back goes there) rather than from Achievements. */
+		Titles(ServerPlayer p, int page, boolean fromYou) {
 			super(p, 6, "Choose your title");
+			this.fromYou = fromYou;
 			CollectorMod.Data d = CollectorMod.STORE.get(p);
 			List<Achievement> earned = new ArrayList<>();
 			for (String id : d.earned.keySet()) {
@@ -370,27 +378,28 @@ public final class AchievementsGui {
 				if (chosen) b.glow();
 				b.setCallback((x, t, act, g) -> {
 					CollectorMod.setTitle(p, a.id());
-					new Titles(p, pg).open();
+					new Titles(p, pg, fromYou).open();
 				});
 				this.setSlot(i, b);
 			}
 			if (earned.isEmpty()) {
 				this.setSlot(22, button(Items.PAPER, "No titles yet", ChatFormatting.GRAY, "Every achievement you earn becomes", "a title you can show above your name."));
 			}
-			back("achievements", () -> AchievementsGui.open(p));
-			pages(pg, pages, n -> new Titles(p, n).open());
+			if (fromYou) up();
+			else back("Achievements", () -> AchievementsGui.open(p));
+			pages(pg, pages, n -> new Titles(p, n, fromYou).open());
 			this.setSlot(navRow() + 1, actions(button(Items.NETHER_STAR, "Automatic", d.title.isEmpty() ? ChatFormatting.GREEN : ChatFormatting.WHITE,
 					"Always your rarest achievement."), d.title.isEmpty() ? "Active" : "Click: use automatic")
 					.setCallback((x, t, a, g) -> {
 						CollectorMod.setTitle(p, "");
-						new Titles(p, pg).open();
+						new Titles(p, pg, fromYou).open();
 					}));
 			this.setSlot(navRow() + 7, actions(button(Ui.item("gray_dye"), "No title",
 					"-".equals(d.title) ? ChatFormatting.GREEN : ChatFormatting.WHITE, "Show just your name."),
 					"-".equals(d.title) ? "Active" : "Click: hide my title")
 					.setCallback((x, t, a, g) -> {
 						CollectorMod.setTitle(p, "-");
-						new Titles(p, pg).open();
+						new Titles(p, pg, fromYou).open();
 					}));
 			closeButton();
 			help("Your title floats above your name,", "in the color of its rarity.", "", "Tip: click [Use as title] in chat", "right after earning an achievement.");

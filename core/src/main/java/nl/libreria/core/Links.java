@@ -107,6 +107,6 @@ public final class Links {
 		for (Kind k : links) {
 			w.link(Component.literal(k.name()).withStyle(st -> st.withColor(k.color())), Ui.text(k.tooltip(), ChatFormatting.GRAY), k.setting().get().strip());
 		}
-		w.done().show(player);
+		w.back(Welcome::guide).show(player);
 	}
 }

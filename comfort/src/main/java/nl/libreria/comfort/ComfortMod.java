@@ -37,7 +37,7 @@ import org.jetbrains.annotations.Nullable;
 /** ComfortMod – een Libreria-module: dubbele deuren samen openen, zitten op trappen en platen, rechtsklik-oogsten. */
 public final class ComfortMod implements ModInitializer {
 	public static final Module MODULE = Module.register("comfort", "Comfort", Items.OAK_DOOR,
-			"Double doors, sitting on stairs", "and right-click harvesting.");
+			"Double doors, sitting on stairs", "and right-click harvesting.").in(nl.libreria.core.Domain.YOU, "Small comforts");
 	public static final Setting.Toggle DOORS = MODULE.toggle("deuren", "Double doors together", true, Items.OAK_DOOR,
 			"Open one door of a double door and", "the other one opens with it.", "Sneak = only this one.");
 	public static final Setting.Toggle SIT = MODULE.toggle("zitten", "Sit on stairs and slabs", true, Items.OAK_STAIRS,

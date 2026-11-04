@@ -81,6 +81,27 @@ public final class Window {
 		return new Window(title);
 	}
 
+	/**
+	 * A window inside one of the four domains, titled like a breadcrumb: "Land &amp; places › Journal". The domain is
+	 * in its own colour, the page you're on in bold white. Without a path it's the domain page itself.
+	 */
+	public static Window of(nl.libreria.core.Domain domain, String... path) {
+		return new Window(crumbs(domain, path));
+	}
+
+	public static net.minecraft.network.chat.MutableComponent crumbs(nl.libreria.core.Domain domain, String... path) {
+		net.minecraft.network.chat.MutableComponent c = Component.empty();
+		if (path.length == 0) return c.append(Ui.text(domain.label, domain.rgb).withStyle(ChatFormatting.BOLD));
+		c.append(Ui.text(domain.label, domain.rgb));
+		for (int i = 0; i < path.length; i++) {
+			c.append(Ui.text("  ›  ", ChatFormatting.DARK_GRAY));
+			boolean last = i == path.length - 1;
+			net.minecraft.network.chat.MutableComponent part = Ui.text(path[i], last ? ChatFormatting.WHITE : ChatFormatting.GRAY);
+			c.append(last ? part.withStyle(ChatFormatting.BOLD) : part);
+		}
+		return c;
+	}
+
 	/** The name on the button that opens this window from the pause menu (only for data-pack dialogs). */
 	public Window externalTitle(Component t) {
 		this.externalTitle = t;
@@ -186,6 +207,11 @@ public final class Window {
 	/** "◀ Back" at the bottom, to the window you came from. */
 	public Window back(Consumer<ServerPlayer> to) {
 		return bottom(Ui.text("◀ Back", ChatFormatting.WHITE), (p, v) -> to.accept(p));
+	}
+
+	/** "◀ Back" to a domain page of the start screen (the page this window hangs under). */
+	public Window up(nl.libreria.core.Domain domain) {
+		return back(p -> nl.libreria.core.Start.domain(p, domain));
 	}
 
 	/** "Done" at the bottom: just closes. */

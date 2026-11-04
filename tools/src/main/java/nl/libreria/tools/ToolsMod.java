@@ -41,7 +41,14 @@ public final class ToolsMod implements ModInitializer {
 	public static final Logger LOG = LoggerFactory.getLogger("Libreria/Tools");
 
 	public static final Module MODULE = Module.register("tools", "Tools", Items.IRON_PICKAXE,
-			"Automatically grab your next tool,", "see durability and refill stacks.");
+			"Automatically grab your next tool,", "see durability and refill stacks.").in(nl.libreria.core.Domain.ITEMS, "Tools & refills");
+
+	static final nl.libreria.core.Tips.Tip TIP_SWAP = nl.libreria.core.Tips.register("tool_swap", nl.libreria.core.Domain.ITEMS,
+			Items.IRON_PICKAXE, "The next tool, in your hand", "When a tool runs out, Libreria hands you the next one.",
+			"Save good tools with a break limit: Settings › Items.");
+	static final nl.libreria.core.Tips.Tip TIP_LIMIT = nl.libreria.core.Tips.register("tool_limit", nl.libreria.core.Domain.ITEMS,
+			Items.ANVIL, "Break limit", "This tool stops before it breaks, so you can repair it.",
+			"Change the limit in Settings › Items › Tools & refills.");
 	public static final Setting.Toggle SWAP = MODULE.toggle("wissel", "Auto-swap to next tool", true, Items.IRON_PICKAXE,
 			"When your tool breaks (or reaches your", "break limit), the next one from your", "inventory is put in your hand.");
 	public static final Setting.Choice KEEP = MODULE.choice("grens", "Break limit", Items.ANVIL, 0,
@@ -159,6 +166,7 @@ public final class ToolsMod implements ModInitializer {
 					.append(held.getHoverName().copy().withStyle(ChatFormatting.WHITE))
 					.append(Component.literal(" has " + Tools.remaining(held) + " left – break limit reached").withStyle(ChatFormatting.RED)), Hud.PRIO_WARNING, 50);
 			Ui.sound(p, SoundEvents.NOTE_BLOCK_BASS, 0.5f, 0.6f);
+			nl.libreria.core.Tips.once(p, TIP_LIMIT);
 		}
 		return false;
 	}
@@ -205,6 +213,7 @@ public final class ToolsMod implements ModInitializer {
 				.append(Component.literal(" equipped (" + Tools.remaining(now) + " left)").withStyle(ChatFormatting.GRAY));
 		Hud.show(p, "tools.swap", msg, Hud.PRIO_WARNING, 50);
 		Ui.sound(p, SoundEvents.ARMOR_EQUIP_GENERIC, 0.6f, 1.3f);
+		nl.libreria.core.Tips.once(p, TIP_SWAP);
 	}
 
 	/** Onthoud de stapel in de hand, zodat we hem kunnen bijvullen als hij op raakt (bouwen, eten, gooien). */
@@ -309,12 +318,11 @@ public final class ToolsMod implements ModInitializer {
 			// Opnieuw waarschuwen bij de helft van de vorige waarschuwing (bv. 20 → 10 → 5)
 			if (warned != null && rem > warned / 2) continue;
 			s.armorWarned.put(slot, rem);
-			Component msg = Ui.prefix("Tools").append(Component.literal("⚠ Your ").withStyle(ChatFormatting.GOLD))
-					.append(st.getHoverName().copy().withStyle(ChatFormatting.WHITE))
-					.append(Component.literal(" is about to break: " + rem + " left").withStyle(ChatFormatting.GOLD));
-			p.sendSystemMessage(msg);
-			Hud.show(p, "tools.armor", Component.literal("⚠ ").withStyle(ChatFormatting.GOLD).append(st.getHoverName().copy())
-					.append(Component.literal(" almost broken (" + rem + ")").withStyle(ChatFormatting.GOLD)), Hud.PRIO_WARNING, 60);
+			// Something happening to you: a card at the top (it's there while you fly, too)
+			nl.libreria.core.Notify.card(p, st.copyWithCount(1), nl.libreria.core.gui.Toast.WARN,
+					Component.empty().append(st.getHoverName().copy().withStyle(ChatFormatting.WHITE))
+							.append(Component.literal(" almost broken").withStyle(ChatFormatting.GOLD)),
+					Ui.text(rem + (rem == 1 ? " use" : " uses") + " left. Repair it soon.", ChatFormatting.GRAY));
 			Ui.sound(p, SoundEvents.ITEM_BREAK, 0.5f, 1.4f);
 		}
 	}

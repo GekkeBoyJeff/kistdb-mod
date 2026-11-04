@@ -403,11 +403,11 @@ public final class Places {
 		return true;
 	}
 
-	/** The journal window: what you found, grouped by kind, with a beam to the nearest places. */
+	/** The journal window: what you found, grouped by kind, and the way to the nearest places. */
 	public static void journal(ServerPlayer p) {
 		Data d = STORE.get(p);
 		int biomesTotal = p.level().registryAccess().lookupOrThrow(Registries.BIOME).size();
-		Window w = Window.of(Ui.text("Journal", ChatFormatting.GOLD).withStyle(ChatFormatting.BOLD));
+		Window w = Window.of(nl.libreria.core.Domain.PLACES, "Journal");
 		w.text(Ui.text(d.places.size() + (d.places.size() == 1 ? " place" : " places") + " found · " + d.biomes.size() + " of "
 				+ biomesTotal + " biomes", ChatFormatting.GRAY));
 		if (d.places.isEmpty()) {
@@ -428,16 +428,16 @@ public final class Places {
 			}
 			w.text(Ui.text(lines.toString(), ChatFormatting.GRAY));
 		}
-		w.button("Chronicle", "The story of this world", nl.libreria.core.Chronicle::open);
-		w.button("Pets", "Your tamed animals and where they are", Pets::open);
-		// A beam to the nearest few in this world
+		// The way to the nearest few in this world
 		List<Place> here = new ArrayList<>();
 		for (Place pl : d.places) if (pl.dim.equals(dim)) here.add(pl);
 		here.sort(Comparator.comparingDouble(pl -> dist2(p, pl)));
 		for (Place pl : here.subList(0, Math.min(6, here.size()))) {
-			w.button("Beam: " + pl.name, pl.kind + " · " + Math.round(Math.sqrt(dist2(p, pl))) + " m", pp -> beam(pp, pl));
+			w.button(pl.name, pl.kind + " · " + Math.round(Math.sqrt(dist2(p, pl))) + " m · click: show the way", pp -> beam(pp, pl));
 		}
-		w.done().show(p);
+		w.button(Ui.text("Chronicle ▸", ChatFormatting.GRAY), Ui.text("The story of this world (Progress)", ChatFormatting.GRAY),
+				(pp, v) -> nl.libreria.core.Chronicle.open(pp));
+		w.up(nl.libreria.core.Domain.PLACES).show(p);
 	}
 
 	private static double dist2(ServerPlayer p, Place pl) {

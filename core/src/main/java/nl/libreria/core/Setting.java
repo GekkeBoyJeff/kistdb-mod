@@ -22,6 +22,9 @@ public abstract sealed class Setting permits Setting.Toggle, Setting.Choice {
 	public final String label;
 	public final Item icon;
 	public final List<String> lore;
+	/** Where players find it: the domain, and the group within it ("Search & sorting", "When you die"). */
+	Domain domain;
+	String section;
 
 	Setting(Module module, String key, String label, Item icon, List<String> lore) {
 		this.module = module;
@@ -29,6 +32,16 @@ public abstract sealed class Setting permits Setting.Toggle, Setting.Choice {
 		this.label = label;
 		this.icon = icon;
 		this.lore = lore;
+		this.domain = module.domain;
+		this.section = module.section;
+	}
+
+	public Domain domain() {
+		return this.domain;
+	}
+
+	public String section() {
+		return this.section;
 	}
 
 	public String fullKey() {
@@ -69,6 +82,13 @@ public abstract sealed class Setting permits Setting.Toggle, Setting.Choice {
 			this.def = def;
 		}
 
+		/** Shown somewhere else than its module's place in the settings. */
+		public Toggle in(Domain domain, String section) {
+			this.domain = domain;
+			this.section = section;
+			return this;
+		}
+
 		public boolean get(ServerPlayer player) {
 			return raw(player, this.def ? 1 : 0) != 0;
 		}
@@ -99,6 +119,13 @@ public abstract sealed class Setting permits Setting.Toggle, Setting.Choice {
 			this.values = values.clone();
 			this.labels = labels.clone();
 			this.defIndex = defIndex;
+		}
+
+		/** Shown somewhere else than its module's place in the settings. */
+		public Choice in(Domain domain, String section) {
+			this.domain = domain;
+			this.section = section;
+			return this;
 		}
 
 		/** De gekozen waarde. */

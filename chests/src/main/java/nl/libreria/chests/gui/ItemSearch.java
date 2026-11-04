@@ -206,7 +206,7 @@ public final class ItemSearch extends AnvilInputGui {
 		}
 		if (matches.isEmpty()) {
 			this.setSlot(RESULTS + 13, Menu.button(Items.BARRIER, text.isEmpty() ? "Nothing yet" : "Nothing matches “" + text + "”",
-					ChatFormatting.RED, text.isEmpty() ? "Open a chest: it's added to your index." : "Not on you, nor in your chests nearby.",
+					ChatFormatting.RED, text.isEmpty() ? "Open a chest once and Libreria remembers it." : "Not on you, nor in your chests nearby.",
 					text.isEmpty() ? "" : "Part of a name works too, like dia or oak."));
 		}
 		this.setSlot(2, filterButton());

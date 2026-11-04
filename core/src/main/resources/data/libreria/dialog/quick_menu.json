@@ -1,10 +1,20 @@
 {
  "type": "minecraft:multi_action",
- "title": {
-  "text": "◆ Libreria ◆",
-  "color": "gold",
-  "bold": true
- },
+ "title": [
+  {
+   "text": "◆ ",
+   "color": "#FFCB52"
+  },
+  {
+   "text": "Libreria",
+   "color": "white",
+   "bold": true
+  },
+  {
+   "text": " ◆",
+   "color": "#FFCB52"
+  }
+ ],
  "external_title": {
   "text": "Libreria",
   "color": "gold"
@@ -15,7 +25,7 @@
    "width": 300,
    "contents": [
     {
-     "text": "Everything this server adds, one key away.",
+     "text": "Everything this server adds, in four places.",
      "color": "gray"
     }
    ]
@@ -29,12 +39,12 @@
   {
    "label": [
     {
-     "text": "Your items",
-     "color": "#7FE3FF"
+     "text": "Items",
+     "color": "#62D6E8"
     }
    ],
    "tooltip": {
-    "text": "Search your inventory and your chests."
+    "text": "Search, chests, sorting and tools."
    },
    "width": 150,
    "action": {
@@ -48,145 +58,57 @@
   {
    "label": [
     {
-     "text": "Land map",
-     "color": "#8CF08C"
-    },
-    {
-     "text": "  ",
-     "color": "dark_gray"
-    },
-    {
-     "text": "⇧",
-     "color": "gray"
-    },
-    {
-     "keybind": "key.swapOffhand",
-     "color": "gray"
+     "text": "Land & places",
+     "color": "#86DB7A"
     }
    ],
    "tooltip": {
-    "text": "Claim land from above; see whose land is where."
+    "text": "Your land, waypoints, graves, pets and the places you found."
    },
    "width": 150,
    "action": {
     "type": "minecraft:custom",
     "id": "libreria:quick",
     "payload": {
-     "go": "map"
+     "go": "land"
     }
    }
   },
   {
    "label": [
     {
-     "text": "Journal",
-     "color": "#FFE68A"
+     "text": "Progress",
+     "color": "#FFCB52"
     }
    ],
    "tooltip": {
-    "text": "Places you found, with a beam to them."
+    "text": "Achievements, statistics and the story of this world."
    },
    "width": 150,
    "action": {
     "type": "minecraft:custom",
     "id": "libreria:quick",
     "payload": {
-     "go": "journal"
+     "go": "progress"
     }
    }
   },
   {
    "label": [
     {
-     "text": "Chronicle",
-     "color": "#E3C08F"
+     "text": "You",
+     "color": "#E39BFF"
     }
    ],
    "tooltip": {
-    "text": "The story of this world: firsts, bosses, legends."
+    "text": "Your name, title, effects and how things look."
    },
    "width": 150,
    "action": {
     "type": "minecraft:custom",
     "id": "libreria:quick",
     "payload": {
-     "go": "chronicle"
-    }
-   }
-  },
-  {
-   "label": [
-    {
-     "text": "Waypoints",
-     "color": "#6FE0D0"
-    }
-   ],
-   "tooltip": {
-    "text": "Save places and find them back."
-   },
-   "width": 150,
-   "action": {
-    "type": "minecraft:custom",
-    "id": "libreria:quick",
-    "payload": {
-     "go": "waypoints"
-    }
-   }
-  },
-  {
-   "label": [
-    {
-     "text": "Pets",
-     "color": "#FFB0C8"
-    }
-   ],
-   "tooltip": {
-    "text": "Your tamed animals and where they are."
-   },
-   "width": 150,
-   "action": {
-    "type": "minecraft:custom",
-    "id": "libreria:quick",
-    "payload": {
-     "go": "pets"
-    }
-   }
-  },
-  {
-   "label": [
-    {
-     "text": "Achievements",
-     "color": "#FFC266"
-    }
-   ],
-   "tooltip": {
-    "text": "Your achievements and collection."
-   },
-   "width": 150,
-   "action": {
-    "type": "minecraft:custom",
-    "id": "libreria:quick",
-    "payload": {
-     "go": "achievements"
-    }
-   }
-  },
-  {
-   "label": [
-    {
-     "text": "Effects",
-     "color": "#F59BFF"
-    }
-   ],
-   "tooltip": {
-    "text": "Particles and glints: how much you see."
-   },
-   "width": 150,
-   "action": {
-    "type": "minecraft:custom",
-    "id": "libreria:quick",
-    "payload": {
-     "go": "effects"
+     "go": "me"
     }
    }
   },
@@ -194,11 +116,11 @@
    "label": [
     {
      "text": "Settings",
-     "color": "#E6E6E6"
+     "color": "#C8C8C8"
     }
    ],
    "tooltip": {
-    "text": "Your own settings."
+    "text": "Your own settings, by the same four places."
    },
    "width": 150,
    "action": {
@@ -213,11 +135,11 @@
    "label": [
     {
      "text": "Getting started",
-     "color": "#FFFFFF"
+     "color": "#C8C8C8"
     }
    ],
    "tooltip": {
-    "text": "What's here and which keys to use."
+    "text": "Keys, tips and links."
    },
    "width": 150,
    "action": {
@@ -225,44 +147,6 @@
     "id": "libreria:quick",
     "payload": {
      "go": "start"
-    }
-   }
-  },
-  {
-   "label": [
-    {
-     "text": "Links",
-     "color": "#A9B6FF"
-    }
-   ],
-   "tooltip": {
-    "text": "Discord, website, rules…"
-   },
-   "width": 150,
-   "action": {
-    "type": "minecraft:custom",
-    "id": "libreria:quick",
-    "payload": {
-     "go": "links"
-    }
-   }
-  },
-  {
-   "label": [
-    {
-     "text": "Libreria menu",
-     "color": "#FFFFFF"
-    }
-   ],
-   "tooltip": {
-    "text": "Everything, with your player card."
-   },
-   "width": 150,
-   "action": {
-    "type": "minecraft:custom",
-    "id": "libreria:quick",
-    "payload": {
-     "go": "menu"
     }
    }
   }

@@ -13,7 +13,7 @@ import nl.libreria.chests.Tracker;
 import nl.libreria.core.Ui;
 import nl.libreria.core.gui.Menu;
 
-/** "Where is …": every chest with one item, nearest first, with count and distance. Click = beam there. */
+/** "Where is …": every chest with one item, nearest first, with count and distance. Click = show the way. */
 public final class ItemGui extends Menu {
 	private static final int PER_ROW = 7;
 	private static final int PER_PAGE = PER_ROW * 4;
@@ -56,7 +56,7 @@ public final class ItemGui extends Menu {
 		if (!hits.isEmpty()) {
 			Search.Hit near = hits.getFirst();
 			head.addLoreLine(Ui.kv("Nearest: ", Fmt.distance(this.player, near.entry(), near.distance()), ChatFormatting.YELLOW));
-			actions(head, "Click: beam to the nearest");
+			actions(head, "Click: show the way to the nearest");
 			head.setCallback((i, t, a, g) -> {
 				this.close();
 				Locate.go(this.player, sample, hits);
@@ -77,7 +77,7 @@ public final class ItemGui extends Menu {
 		if (hits.isEmpty()) {
 			this.setSlot(22, button(Items.BARRIER, "Not in your chests nearby", ChatFormatting.RED,
 					"No chest within " + (int) Search.radius() + " m has this", "(skipped chests don't count).",
-					"Open a chest to update the index."));
+					"Open a chest to update what Libreria knows."));
 		}
 
 		back(this.backLabel, this.back);
@@ -88,7 +88,7 @@ public final class ItemGui extends Menu {
 		closeButton();
 		help("Every chest with this item,",
 				"nearest first.",
-				"Click a chest: beam to it.",
+				"Click a chest: show the way.",
 				"Shift-click: skip that chest in",
 				"search. Undo it in My chests.");
 		finish();
@@ -102,7 +102,7 @@ public final class ItemGui extends Menu {
 				.addLoreLine(Ui.kv("Distance: ", Fmt.distance(this.player, e, hit.distance()), ChatFormatting.YELLOW))
 				.addLoreLine(Ui.kv("Where: ", Fmt.where(e), ChatFormatting.WHITE));
 		if (!hit.live()) b.addLoreLine(Ui.text("Last seen " + Search.ago(e.seen), ChatFormatting.DARK_GRAY));
-		actions(b, "Click: beam here", "Shift-click: skip in search");
+		actions(b, "Click: show the way", "Shift-click: leave out of search");
 		b.setCallback((index, type, action, gui) -> {
 			if (type.shift) {
 				Ui.click(this.player);

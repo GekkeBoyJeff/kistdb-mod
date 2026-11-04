@@ -12,7 +12,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Items;
 import nl.libreria.core.Ui;
-import nl.libreria.core.gui.HubGui;
 import nl.libreria.core.gui.Menu;
 import nl.libreria.waypoints.WaypointsMod.Point;
 
@@ -93,7 +92,7 @@ public final class PointsGui extends Menu {
 		if (shown.isEmpty()) emptyState(mine.size());
 
 		// Navigation bar
-		back("the Libreria menu", () -> HubGui.open(this.player));
+		up();
 		pages(this.page, pages, p -> {
 			this.page = p;
 			rebuild();
@@ -110,7 +109,7 @@ public final class PointsGui extends Menu {
 					}));
 		}
 		List<String> help = new ArrayList<>(List.of(
-				"Click a waypoint: beam to it.",
+				"Click a waypoint: show the way.",
 				"Right-click your own: rename, icon",
 				"and who can see it.",
 				"✚ saves the spot you're standing on.",
@@ -136,8 +135,7 @@ public final class PointsGui extends Menu {
 		}
 		b.setCallback((i, t, a, g) -> {
 			Ui.click(this.player);
-			if (full) WaypointsMod.msg(this.player, "You already have " + WaypointsMod.MAX_POINTS + " waypoints. Delete one first.",
-					ChatFormatting.RED);
+			if (full) WaypointsMod.fail(this.player, "Too many waypoints", "You have " + WaypointsMod.MAX_POINTS + ". Delete one first.");
 			else askName();
 		});
 		this.setSlot(0, b);
@@ -192,8 +190,8 @@ public final class PointsGui extends Menu {
 		b.addLoreLine(here ? Ui.kv("Distance: ", Ui.meters(WaypointsMod.distance(this.player, d)), ChatFormatting.WHITE)
 				: Ui.kv("In the ", WaypointsMod.dimName(d.dim), ChatFormatting.GOLD));
 		b.addLoreLine(Component.empty());
-		if (here) action(b, "Click: beam to it");
-		else b.addLoreLine(Ui.text("No beam: other dimension", ChatFormatting.DARK_GRAY));
+		if (here) action(b, "Click: show the way");
+		else b.addLoreLine(Ui.text("In another dimension", ChatFormatting.DARK_GRAY));
 		b.setCallback((i, t, a, g) -> {
 			Ui.click(this.player);
 			if (WaypointsMod.beam(this.player, d)) this.close();
@@ -215,8 +213,8 @@ public final class PointsGui extends Menu {
 		b.addLoreLine(Ui.kv("Location: ", pt.x + " " + pt.y + " " + pt.z, ChatFormatting.WHITE));
 		b.addLoreLine(Ui.kv("Visible to: ", WaypointsMod.visibilityText(pt, me), WaypointsMod.visibilityColor(pt.visibility)));
 		b.addLoreLine(Component.empty());
-		if (here) action(b, "Click: beam to it");
-		else b.addLoreLine(Ui.text("No beam: other dimension", ChatFormatting.DARK_GRAY));
+		if (here) action(b, "Click: show the way");
+		else b.addLoreLine(Ui.text("In another dimension", ChatFormatting.DARK_GRAY));
 		if (own) action(b, "Right-click: edit");
 		if (xaero) action(b, "Q: send to Xaero's Minimap");
 		b.setCallback((i, type, a, g) -> {

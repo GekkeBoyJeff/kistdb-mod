@@ -56,6 +56,10 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import nl.libreria.core.Guide;
 import nl.libreria.core.Hud;
+import nl.libreria.core.Domain;
+import nl.libreria.core.Notify;
+import nl.libreria.core.Say;
+import nl.libreria.core.Tips;
 import nl.libreria.core.Module;
 import nl.libreria.core.ServerSetting;
 import nl.libreria.core.Services;
@@ -72,12 +76,12 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class ClaimsMod implements ModInitializer {
 	public static final Module MODULE = Module.register("claims", "Claims", Items.GOLDEN_SHOVEL,
-			"Protect your base: only you and", "your friends can build there.")
+			"Protect your base: only you and", "your friends can build there.").in(Domain.PLACES, "Land map")
 			.commands(
 					"/claim – claim the chunk you're in",
 					"/claim map – map of your land",
 					"/claim name – give your land a name",
-					"/claim show – see nearby borders",
+					"/claim show – see the borders around you",
 					"/claim info – owner and budget",
 					"/claim trust <name> – add a friend",
 					"/claim release – give a chunk up");
@@ -142,15 +146,20 @@ public final class ClaimsMod implements ModInitializer {
 	/** Server tick at which a player gets the one-time tip. */
 	private static final Map<UUID, Integer> TIP_AT = new HashMap<>();
 
+	static final Tips.Tip TIP_START = Tips.register("claim_start", Domain.PLACES, Items.GOLDEN_SHOVEL, "Protect your base",
+			"Stand inside it and type /claim,", "or open the land map: sneak + swap hands (F).");
+	static final Tips.Tip TIP_DENIED = Tips.register("claim_denied", Domain.PLACES, Items.BARRIER, "Someone else's land",
+			"Only the owner and their friends can build here.", "Ask them to trust you: /claim trust <your name>.");
+
 	@Override
 	public void onInitialize() {
-		MODULE.hubEntry(Items.FILLED_MAP, "Land map", ChatFormatting.GREEN, ClaimView::open,
-				"Fly up and see your land and others'", "from above. Click chunks to claim them.", "",
-				"Key: sneak + swap hands (F)", "Or stand in your base: /claim");
-		MODULE.hubEntry(Items.NAME_TAG, "Trusted players", ChatFormatting.AQUA, MapGui.TrustGui::open,
-				"Who may build in your land, and", "whether visitors may use doors.");
-		MODULE.hubEntry(Items.MAP, "Land map to hold", ChatFormatting.GREEN, LandMapItem::give,
-				"A real map item that shows the", "claims around you as you walk.", "", "Also: /claim mapitem");
+		MODULE.hubEntry(Domain.PLACES, 20, Items.FILLED_MAP, "Land map", ClaimView::open,
+				"Your land and others' from above: claim chunks, name your land, see whose land is where.",
+				"Key: sneak + swap hands (F).");
+		MODULE.hubEntry(Domain.PLACES, 30, Items.MAP, "Land map to hold", LandMapItem::give,
+				"A real map item that shows the claims around you as you walk.");
+		MODULE.hubEntry(Domain.PLACES, 40, Items.NAME_TAG, "Trusted players", MapGui.TrustGui::open,
+				"Who may build in your land, and whether visitors may use doors.");
 
 		PlayerBlockBreakEvents.BEFORE.register((world, player, pos, state, be) -> {
 			if (!(player instanceof ServerPlayer sp) || allowed(sp, world, pos, Action.BUILD)) return true;
@@ -270,10 +279,12 @@ public final class ClaimsMod implements ModInitializer {
 						.then(Commands.literal("admin").executes(ctx -> {
 							ServerPlayer p = ctx.getSource().getPlayerOrException();
 							if (!ctx.getSource().getServer().getPlayerList().isOp(p.nameAndId())) {
-								msg(p, "Operators only.", ChatFormatting.RED);
+								Notify.warn(p, Items.BARRIER, "Operators only", "Admin mode is for operators.");
 								return 0;
 							}
-							msg(p, Admin.toggle(p) ? "Admin mode on: you can build anywhere." : "Admin mode off.", ChatFormatting.GOLD);
+							boolean on = Admin.toggle(p);
+							Notify.info(p, Items.COMMAND_BLOCK, on ? "Admin mode on" : "Admin mode off",
+									on ? "You can build anywhere." : "Claims protect land again.");
 							return 1;
 						}))
 						.then(Commands.literal("trust").executes(ctx -> {
@@ -433,19 +444,19 @@ public final class ClaimsMod implements ModInitializer {
 		Claim existing = claimAt(level, c);
 		if (existing != null) {
 			if (existing.owner.equals(p.getUUID())) {
-				msg(p, "This chunk is already yours.", ChatFormatting.GRAY);
+				Notify.info(p, Items.GOLDEN_SHOVEL, "Already yours", "This chunk is part of your land.");
 			} else {
-				p.sendSystemMessage(Ui.prefix("Claims").append(Ui.text("This chunk belongs to " + existing.ownerName + ". ", ChatFormatting.GOLD))
-						.append(Ui.text("Free land has no colour on the land map. ", ChatFormatting.GRAY)).append(mapButton()));
+				Notify.warn(p, Items.BARRIER, "Not free", "This chunk belongs to " + existing.ownerName + ".");
 			}
 			return false;
 		}
 		int have = owned(p.getUUID()), max = budget(p);
 		if (have >= max) {
-			p.sendSystemMessage(Ui.prefix("Claims").append(Ui.text("Your budget is full. ", ChatFormatting.RED))
-					.append(Ui.text(budgetText(p) + " " + growthSentence(), ChatFormatting.GRAY))
-					.append("\n").append(Ui.text(nextChunkSentence(p) + " Or release a chunk you don't need. ", ChatFormatting.YELLOW))
-					.append(mapButton()));
+			List<String> next = nextChunkLines(p);
+			nl.libreria.core.gui.Toast.show(p, new net.minecraft.world.item.ItemStack(Items.GOLDEN_SHOVEL), nl.libreria.core.gui.Toast.WARN,
+					Ui.text("Your land is at its budget", ChatFormatting.WHITE),
+					Ui.text(have + " of " + max + " chunks. Release one, or:", ChatFormatting.GRAY),
+					nl.libreria.core.gui.TopCard.Row.text("time", "", Ui.text(String.join(" ", next), ChatFormatting.WHITE)));
 			return false;
 		}
 		Claim cl = new Claim();
@@ -481,7 +492,8 @@ public final class ClaimsMod implements ModInitializer {
 	static boolean unclaim(ServerPlayer p, ServerLevel level, ChunkPos c) {
 		Claim existing = claimAt(level, c);
 		if (existing == null || !existing.owner.equals(p.getUUID())) {
-			msg(p, existing == null ? "This chunk isn't claimed." : "This chunk belongs to " + existing.ownerName + ", not you.", ChatFormatting.GRAY);
+			Notify.warn(p, Items.BARRIER, existing == null ? "Not claimed" : "Not your land",
+					existing == null ? "Nobody owns this chunk." : "This chunk belongs to " + existing.ownerName + ".");
 			return false;
 		}
 		STORE.get().claims.remove(key(level, c));
@@ -534,20 +546,23 @@ public final class ClaimsMod implements ModInitializer {
 		if (on) o.trusted.put(other, name);
 		else o.trusted.remove(other);
 		STORE.markDirty();
-		msg(p, on ? name + " can now build in all your land." : name + " can no longer build in your land.", on ? ChatFormatting.GREEN : ChatFormatting.GRAY);
+		Notify.done(p, Items.NAME_TAG, on ? name + " is trusted" : name + " is no longer trusted",
+				on ? "They can build in all your land." : "They can't build in your land any more.");
 		// Let the friend know (only the good news)
 		ServerPlayer friend = on ? p.level().getServer().getPlayerList().getPlayer(other) : null;
-		if (friend != null && friend != p) msg(friend, p.getName().getString() + " trusted you: you can now build in their land.", ChatFormatting.GREEN);
+		if (friend != null && friend != p) {
+			Notify.info(friend, Items.NAME_TAG, p.getName().getString() + " trusted you", "You can build in their land now.");
+		}
 	}
 
 	private static int trustCommand(ServerPlayer p, String name) {
 		ServerPlayer other = p.level().getServer().getPlayerList().getPlayerByName(name);
 		if (other == null) {
-			msg(p, name + " isn't online. Friends must be online to be trusted.", ChatFormatting.RED);
+			Notify.warn(p, Items.NAME_TAG, name + " isn't online", "Friends must be online to be trusted.");
 			return 0;
 		}
 		if (other == p) {
-			msg(p, "That's you! You can always build in your own land.", ChatFormatting.GRAY);
+			Notify.info(p, Items.NAME_TAG, "That's you!", "You can always build in your own land.");
 			return 0;
 		}
 		trust(p, other.getUUID(), other.getName().getString(), true);
@@ -562,7 +577,7 @@ public final class ClaimsMod implements ModInitializer {
 				return 1;
 			}
 		}
-		msg(p, name + " isn't on your trusted list.", ChatFormatting.GRAY);
+		Notify.warn(p, Items.NAME_TAG, "Not trusted", name + " isn't on your trusted list.");
 		return 0;
 	}
 
@@ -627,7 +642,7 @@ public final class ClaimsMod implements ModInitializer {
 		Ui.sound(p, net.minecraft.sounds.SoundEvents.EXPERIENCE_ORB_PICKUP, 0.4f, 1.4f);
 
 		int total = mine + trusted + others;
-		MutableComponent m = Ui.prefix("Claims");
+		MutableComponent m = Say.line(Domain.PLACES);
 		if (total == 0) {
 			m.append(Ui.text("No claims within " + SHOW_RADIUS + " chunks of you. The yellow box is the free chunk you're in: ", ChatFormatting.GRAY))
 					.append(chatButton("Claim it", ChatFormatting.GREEN, new ClickEvent.RunCommand("/claim"), "Claim the chunk you stand in"));
@@ -647,7 +662,7 @@ public final class ClaimsMod implements ModInitializer {
 	static void info(ServerPlayer p) {
 		ChunkPos c = p.chunkPosition();
 		Claim cl = claimAt(p.level(), c);
-		MutableComponent m = Ui.prefix("Claims").append(Ui.text("This chunk (" + c.x() + ", " + c.z() + "): ", ChatFormatting.GRAY));
+		MutableComponent m = Say.line(Domain.PLACES).append(Ui.text("This chunk (" + c.x() + ", " + c.z() + "): ", ChatFormatting.GRAY));
 		if (cl == null) m.append(Ui.text("free land", ChatFormatting.WHITE));
 		else if (cl.owner.equals(p.getUUID())) m.append(Ui.text(cl.area.isEmpty() ? "your land" : "your land, " + cl.area, ChatFormatting.GREEN));
 		else if (trustedIn(p, cl)) m.append(Ui.text(cl.ownerName + "'s land (you're trusted)", ChatFormatting.AQUA));
@@ -673,29 +688,19 @@ public final class ClaimsMod implements ModInitializer {
 		if (!STORE.get().tipped.add(p.getUUID())) return;
 		STORE.markDirty();
 		if (owned(p.getUUID()) > 0) return;
-		p.sendSystemMessage(Ui.prefix("Claims").append(Ui.text("Protect your base: stand inside it and type ", ChatFormatting.WHITE))
-				.append(command("/claim", new ClickEvent.SuggestCommand("/claim"), "Click: put /claim in your chat"))
-				.append(Ui.text(". Use ", ChatFormatting.WHITE))
-				.append(command("/claim map", new ClickEvent.RunCommand("/claim map"), "Click: open the map"))
-				.append(Ui.text(" to see your land.", ChatFormatting.WHITE)));
+		Tips.once(p, TIP_START);
 	}
 
 	// ---------------------------------------------------------------- chat buttons
 
-	/** "[Label]" that runs or suggests a command when clicked. */
+	/** "[Label]" that runs a command when clicked, in the one Libreria style (see {@link Say}). */
 	static MutableComponent chatButton(String label, ChatFormatting color, ClickEvent click, String hover) {
-		return Component.literal("[" + label + "]").withStyle(s -> s.withColor(color).withBold(false).withItalic(false)
-				.withClickEvent(click).withHoverEvent(new HoverEvent.ShowText(Component.literal(hover))));
-	}
-
-	/** An underlined command in a sentence, clickable. */
-	private static MutableComponent command(String text, ClickEvent click, String hover) {
-		return Component.literal(text).withStyle(s -> s.withColor(ChatFormatting.YELLOW).withUnderlined(true)
-				.withClickEvent(click).withHoverEvent(new HoverEvent.ShowText(Component.literal(hover))));
+		return click instanceof ClickEvent.RunCommand(String cmd) ? Say.run(label, cmd, hover)
+				: click instanceof ClickEvent.SuggestCommand(String cmd) ? Say.suggest(label, cmd, hover) : Component.literal("[" + label + "]");
 	}
 
 	static MutableComponent mapButton() {
-		return chatButton("Map", ChatFormatting.AQUA, new ClickEvent.RunCommand("/claim map"), "Open the claims map");
+		return Say.run("Land map", "/claim map", "Open the land map");
 	}
 
 	static MutableComponent trustButton() {
@@ -743,15 +748,8 @@ public final class ClaimsMod implements ModInitializer {
 		Claim c = claimAt(p.level(), ChunkPos.containing(pos));
 		String who = c != null ? c.ownerName : "someone else";
 		Hud.flash(p, Component.literal("✋ This land belongs to " + who).withStyle(ChatFormatting.RED));
-		long now = System.currentTimeMillis();
-		Long last = HINTED.get(p.getUUID());
-		if (last == null || now - last >= HINT_MS) {
-			HINTED.put(p.getUUID(), now);
-			String me = p.getName().getString();
-			p.sendSystemMessage(Ui.prefix("Claims").append(Ui.text("✋ This land belongs to " + who + ". ", ChatFormatting.RED))
-					.append(Component.literal("Ask them to /claim trust you.").withStyle(s -> s.withColor(ChatFormatting.GRAY)
-							.withHoverEvent(new HoverEvent.ShowText(Component.literal("They type: /claim trust " + me))))));
-		}
+		// How to get in: once ever, as a tip (not a chat line every time you bump into a wall)
+		Tips.once(p, TIP_DENIED);
 		// De client denkt soms dat het gelukt is: alles opnieuw sturen
 		p.containerMenu.broadcastFullState();
 		return InteractionResult.FAIL;
@@ -826,12 +824,12 @@ public final class ClaimsMod implements ModInitializer {
 	static boolean nameArea(ServerPlayer p, ServerLevel level, ChunkPos c, String raw) {
 		Claim cl = claimAt(level, c);
 		if (cl == null || !cl.owner.equals(p.getUUID())) {
-			msg(p, "Stand in your own land to name it (or point at it on the land map).", ChatFormatting.GRAY);
+			Notify.warn(p, Items.NAME_TAG, "Not your land", "Stand in your own land to name it, or point at it on the land map.");
 			return false;
 		}
 		String name = cleanName(raw);
 		if (name == null) {
-			msg(p, "A name needs 2 to 32 letters.", ChatFormatting.RED);
+			Notify.warn(p, Items.NAME_TAG, "Pick another name", "A name needs 2 to 32 letters.");
 			return false;
 		}
 		List<ChunkPos> piece = area(level, c);
@@ -851,7 +849,7 @@ public final class ClaimsMod implements ModInitializer {
 	static void nameWindow(ServerPlayer p, ServerLevel level, ChunkPos c) {
 		Claim cl = claimAt(level, c);
 		if (cl == null || !cl.owner.equals(p.getUUID())) {
-			msg(p, "Stand in your own land to name it (or point at it on the land map).", ChatFormatting.GRAY);
+			Notify.warn(p, Items.NAME_TAG, "Not your land", "Stand in your own land to name it, or point at it on the land map.");
 			return;
 		}
 		int size = area(level, c).size();
@@ -868,16 +866,14 @@ public final class ClaimsMod implements ModInitializer {
 				for (ChunkPos a : area(level, c)) claimAt(level, a).area = "";
 				STORE.saveNow();
 				LAST.remove(pp.getUUID());
-				msg(pp, "Your land has no name now.", ChatFormatting.GRAY);
+				Notify.done(pp, Items.NAME_TAG, "Name removed", "Your land has no name now.");
 				ClaimView.refresh(pp);
 			});
 		}
 		w.done().show(p);
 	}
 
-	static void msg(ServerPlayer p, String text, ChatFormatting color) {
-		p.sendSystemMessage(Ui.prefix("Claims").append(Ui.text(text, color)));
-	}
+
 
 	/** Operators kunnen met /claim admin tijdelijk overal bouwen. */
 	static final class Admin {

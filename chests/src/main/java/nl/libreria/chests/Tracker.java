@@ -51,11 +51,11 @@ public final class Tracker {
 
 		Store.Entry entry = Store.get(sp.getUUID()).find(Store.dimId(level), key);
 		if (entry != null && entry.noIndex) {
-			actionbar(sp, Component.literal("noIndex").withStyle(ChatFormatting.RED, ChatFormatting.BOLD)
-					.append(Component.literal(" – this chest is skipped in searches").withStyle(ChatFormatting.GRAY)));
+			actionbar(sp, Component.literal("✘ ").withStyle(ChatFormatting.RED)
+					.append(Component.literal("Left out of your item search").withStyle(ChatFormatting.GRAY)));
 		} else if (isNew && ChestsMod.NEW_MESSAGE.get(sp)) {
 			actionbar(sp, Component.literal("✔ ").withStyle(ChatFormatting.GREEN)
-					.append(Component.literal("Added to your chest index").withStyle(ChatFormatting.GRAY)));
+					.append(Component.literal("Added to your chests").withStyle(ChatFormatting.GRAY)));
 		}
 		return InteractionResult.PASS;
 	}
@@ -86,12 +86,12 @@ public final class Tracker {
 		data.markDirty();
 		if (entry.noIndex) {
 			Beam.flash(sp, level, key, 0xFF5555, 40);
-			actionbar(sp, Component.literal("noIndex ON").withStyle(ChatFormatting.RED, ChatFormatting.BOLD)
-					.append(Component.literal(" – this chest is skipped in searches").withStyle(ChatFormatting.GRAY)));
+			actionbar(sp, Component.literal("✘ ").withStyle(ChatFormatting.RED)
+					.append(Component.literal("This chest is left out of your item search").withStyle(ChatFormatting.GRAY)));
 		} else {
 			Beam.flash(sp, level, key, 0x55FF55, 40);
-			actionbar(sp, Component.literal("noIndex OFF").withStyle(ChatFormatting.GREEN, ChatFormatting.BOLD)
-					.append(Component.literal(" – this chest is searched again").withStyle(ChatFormatting.GRAY)));
+			actionbar(sp, Component.literal("✔ ").withStyle(ChatFormatting.GREEN)
+					.append(Component.literal("This chest is in your item search again").withStyle(ChatFormatting.GRAY)));
 		}
 	}
 

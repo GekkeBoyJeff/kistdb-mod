@@ -104,7 +104,7 @@ public final class Chronicle {
 			trim(d);
 			STORE.markDirty();
 			if (major && server != null && ANNOUNCE.get()) {
-				Component line = Ui.text("Chronicle · ", ChatFormatting.DARK_GRAY).append(line(e, false));
+				Component line = Say.line(Domain.PROGRESS).append(Ui.text("Chronicle · ", ChatFormatting.DARK_GRAY)).append(line(e, false));
 				for (ServerPlayer p : server.getPlayerList().getPlayers()) p.sendSystemMessage(line);
 			}
 		} catch (RuntimeException ex) {
@@ -146,8 +146,9 @@ public final class Chronicle {
 			"warden", "a Warden", "elder_guardian", "an Elder Guardian");
 
 	static void init() {
-		Libreria.MODULE.hubEntry(Module.Category.WORLD, Items.LECTERN, "Chronicle", ChatFormatting.GOLD, Chronicle::open,
-				"The story of this world: who came", "first, who slew what, which weapon", "earned a name. Also /chronicle.");
+		Libreria.MODULE.hubEntry(Domain.PROGRESS, 30, Items.LECTERN, "Chronicle", Chronicle::open,
+				"The story of this world: who came first, who slew what, which weapon earned a name.");
+		Libreria.MODULE.commands(Domain.PROGRESS, "/chronicle – the story of this world");
 		net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents.JOIN.register((handler, sender, s) -> onJoin(handler.player));
 		net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.AFTER_DEATH.register((entity, source) -> {
 			try {
@@ -292,7 +293,7 @@ public final class Chronicle {
 		int pages = Math.max(1, (shown.size() + PAGE - 1) / PAGE);
 		int pg = Math.max(0, Math.min(page, pages - 1));
 		MinecraftServer server = p.level().getServer();
-		Window w = Window.of(Ui.text("Chronicle", ChatFormatting.GOLD).withStyle(ChatFormatting.BOLD));
+		Window w = Window.of(Domain.PROGRESS, "Chronicle");
 		w.text(Ui.text("Day " + day(server) + " of this world · " + d.entries.size() + (d.entries.size() == 1 ? " moment" : " moments")
 				+ " written down" + (pages > 1 ? " · page " + (pg + 1) + " of " + pages : ""), ChatFormatting.GRAY));
 		if (shown.isEmpty()) {
@@ -319,7 +320,7 @@ public final class Chronicle {
 		}
 		if (pg > 0) w.button("◀ Newer", null, pp -> open(pp, filter, pg - 1));
 		if (pg < pages - 1) w.button("Older ▶", null, pp -> open(pp, filter, pg + 1));
-		w.done().show(p);
+		w.up(Domain.PROGRESS).show(p);
 	}
 
 	/** "Jeffrey slew the Wither", the name in yellow; big moments in white, others grey. */

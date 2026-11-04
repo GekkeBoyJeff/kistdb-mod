@@ -95,11 +95,27 @@ public abstract class Menu extends SimpleGui {
 		return this.plainTitle;
 	}
 
-	/** Frame theme: the Libreria module this menu belongs to (from its package, e.g. nl.libreria.claims). */
-	protected String theme() {
+	/**
+	 * The domain this menu belongs to: its frame gets that domain's colour and emblem, so a menu looks the same family
+	 * whichever module drew it. By default from the package (chests and tools are Items, claims, waypoints and graves
+	 * Land &amp; places, and so on); override for a menu that lives elsewhere.
+	 */
+	protected nl.libreria.core.Domain domain() {
 		String[] parts = this.getClass().getPackageName().split("\\.");
 		String module = parts.length > 2 ? parts[2] : "core";
-		return module.equals("core") ? "libreria" : module;
+		return switch (module) {
+			case "chests", "tools" -> nl.libreria.core.Domain.ITEMS;
+			case "claims", "waypoints", "graves" -> nl.libreria.core.Domain.PLACES;
+			case "collector", "info" -> nl.libreria.core.Domain.PROGRESS;
+			case "nicknames", "glint", "comfort" -> nl.libreria.core.Domain.YOU;
+			default -> null;
+		};
+	}
+
+	/** Frame theme in the pack: the domain's, or the plain Libreria one. */
+	protected String theme() {
+		nl.libreria.core.Domain d = domain();
+		return d == null ? "libreria" : d.theme();
 	}
 
 	// ---------------------------------------------------------------- layout
@@ -147,6 +163,16 @@ public abstract class Menu extends SimpleGui {
 			Ui.click(this.player);
 			action.run();
 		}));
+	}
+
+	/** {@code ◀ Back} to the domain page this menu hangs under (the top menu of a feature). */
+	protected void up() {
+		nl.libreria.core.Domain d = domain();
+		if (d == null) return;
+		back(d.label, () -> {
+			this.close();
+			nl.libreria.core.Start.domain(this.player, d);
+		});
 	}
 
 	/** {@code ✖ Close} in the middle of the bottom row. */

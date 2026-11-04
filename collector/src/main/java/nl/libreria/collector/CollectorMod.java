@@ -29,6 +29,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.AABB;
 import nl.libreria.core.Hud;
+import nl.libreria.core.Domain;
+import nl.libreria.core.Say;
 import nl.libreria.core.Module;
 import nl.libreria.core.Nameplate;
 import nl.libreria.core.PlayerStore;
@@ -44,13 +46,16 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class CollectorMod implements ModInitializer {
 	public static final Module MODULE = Module.register("collector", "Collector", Items.NETHER_STAR,
-			"Achievements without rewards: collect", "items, breed animals, rack up hours.", "Pick a title in its rarity's color.");
+			"Achievements without rewards: collect", "items, breed animals, rack up hours.", "Pick a title in its rarity's color.").in(Domain.PROGRESS, "Achievements");
 	public static final Setting.Toggle SHOW_TITLE = MODULE.toggle("titel", "Title above your name", true, Items.NAME_TAG,
-			"Your chosen title floats above your", "name, in the color of its rarity.", "Choose one: /titles");
+			"Your chosen title floats above your", "name, in the color of its rarity.", "Choose one: You › Title.").in(Domain.YOU, "Your name");
 	public static final Setting.Toggle BIG = MODULE.toggle("groot", "Achievement banner", true, Items.FIREWORK_ROCKET,
 			"A banner at the top of your screen and", "fireworks when you earn an achievement,", "or someone else a rare (or better) one.");
-	public static final Setting.Toggle OTHERS = MODULE.toggle("anderen", "Others' achievements", true, Items.BELL,
-			"A chat message when someone else earns", "a rare (or better) achievement.");
+	public static final Setting.Toggle OTHERS = MODULE.toggle("anderen", "Others' achievements in chat", true, Items.BELL,
+			"A chat line when someone else earns", "a rare (or better) achievement.");
+
+	static final nl.libreria.core.Tips.Tip TIP_FIRST = nl.libreria.core.Tips.register("achievement", Domain.PROGRESS, Items.NETHER_STAR,
+			"Your first achievement", "Click [Use as title] in chat to wear it above your name.", "All of them: Progress › Achievements.");
 
 	public static final class Data {
 		/** Item-ID's (zonder "minecraft:") die je ooit in je inventory had. */
@@ -77,10 +82,10 @@ public final class CollectorMod implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-		MODULE.hubEntry(Items.NETHER_STAR, "Achievements", ChatFormatting.GOLD, AchievementsGui::open,
-				"See what you've collected and what's", "still missing, and pick your title.");
-		MODULE.hubEntry(nl.libreria.core.Module.Category.YOU, Items.NAME_TAG, "Title", ChatFormatting.LIGHT_PURPLE,
-				AchievementsGui::openTitles, "Choose the title that floats", "above your name.");
+		MODULE.hubEntry(Domain.PROGRESS, 10, Items.NETHER_STAR, "Achievements", AchievementsGui::open,
+				"What you've done and what's still to do, in grades. Every one is within reach.");
+		MODULE.hubEntry(Domain.YOU, 20, Items.NAME_TAG, "Title", AchievementsGui::openTitles,
+				"Choose the title that floats above your name.");
 		Services.provideMenu(Services.MENU_ACHIEVEMENTS, AchievementsGui::open);
 		Services.provideProgress(new Services.Progress() {
 			@Override
@@ -178,7 +183,8 @@ public final class CollectorMod implements ModInitializer {
 					})));
 		});
 
-		MODULE.commands("/achievements – your achievements", "/titles – choose your title", "L (advancements) – Libreria tabs");
+		MODULE.commands("/achievements – your achievements", "L – the advancements screen has Libreria tabs too");
+		MODULE.commands(Domain.YOU, "/titles – choose your title");
 		CollectorTests.register();
 	}
 
@@ -285,10 +291,10 @@ public final class CollectorMod implements ModInitializer {
 			d.catalog = Catalog.signature();
 			if (!fresh.isEmpty()) {
 				String what = fresh.size() == 1 ? " achievement" : " achievements";
-				p.sendSystemMessage(Ui.prefix("Collector").append(Ui.text(firstTime
-						? "You've already earned " + fresh.size() + what + "! See them with /achievements."
-						: "There are new achievements, and you had already done enough for " + fresh.size() + what
-								+ ". See them with /achievements.", ChatFormatting.GOLD)));
+				nl.libreria.core.Notify.info(p, Items.NETHER_STAR, firstTime
+						? "You've already earned " + fresh.size() + what
+						: fresh.size() + " new" + what + " for what you've done",
+						"See them in Progress › Achievements.");
 			}
 			return;
 		}
@@ -320,16 +326,17 @@ public final class CollectorMod implements ModInitializer {
 		else Ui.sound(p, SoundEvents.PLAYER_LEVELUP, 0.6f, 1.4f);
 
 		MutableComponent chip = chip(a);
-		p.sendSystemMessage(Ui.prefix("Collector").append(Ui.text("Achievement earned: ", ChatFormatting.GRAY)).append(chip)
+		nl.libreria.core.Tips.once(p, TIP_FIRST);
+		p.sendSystemMessage(Say.line(Domain.PROGRESS).append(Ui.text("Achievement earned: ", ChatFormatting.GRAY)).append(chip)
 				.append(Component.literal("  "))
-				.append(Component.literal("[Use as title]").withStyle(s -> s.withColor(ChatFormatting.AQUA).withBold(true)
+				.append(Component.literal("[Use as title]").withStyle(s -> s.withColor(ChatFormatting.AQUA).withBold(false)
 						.withClickEvent(new net.minecraft.network.chat.ClickEvent.RunCommand("/titles set " + a.id()))
 						.withHoverEvent(new HoverEvent.ShowText(Component.literal("Show ").withStyle(ChatFormatting.GRAY)
 								.append(Component.literal("✦ " + a.name() + " ✦").withStyle(a.rarity().color))
 								.append(Component.literal(" above your name").withStyle(ChatFormatting.GRAY)))))));
 		// Others hear about the rare ones (with this many achievements, every common one would be a lot of chat)
 		if (r.ordinal() >= Rarity.RARE.ordinal()) {
-			Component msg = Ui.prefix("Collector").append(Nameplate.displayName(p).copy().withStyle(ChatFormatting.WHITE))
+			Component msg = Say.line(Domain.PROGRESS).append(Nameplate.displayName(p).copy().withStyle(ChatFormatting.WHITE))
 					.append(Ui.text(" earned ", ChatFormatting.GRAY)).append(chip);
 			for (ServerPlayer other : p.level().getServer().getPlayerList().getPlayers()) {
 				if (other != p && OTHERS.get(other)) other.sendSystemMessage(msg);
@@ -399,19 +406,19 @@ public final class CollectorMod implements ModInitializer {
 	public static void setTitle(ServerPlayer p, String id) {
 		Data d = STORE.get(p);
 		if (!id.isEmpty() && !id.equals("-") && !d.earned.containsKey(id)) {
-			p.sendSystemMessage(Ui.prefix("Collector").append(Ui.text("You haven't earned that achievement yet.", ChatFormatting.RED)));
+			nl.libreria.core.Notify.warn(p, Items.NAME_TAG, "Not earned yet", "Earn that achievement first, then wear it.");
 			return;
 		}
 		d.title = id;
 		STORE.markDirty(p);
 		Ui.sound(p, SoundEvents.ARMOR_EQUIP_GOLD.value(), 0.8f, 1.2f);
 		Component t = title(p);
-		p.sendSystemMessage(Ui.prefix("Collector").append(id.equals("-") ? Ui.text("You no longer show a title.", ChatFormatting.GRAY)
-				: Ui.text(id.isEmpty() ? "Automatic title (your rarest): " : "Your title is now ", ChatFormatting.GRAY)
-						.append(t == null ? Component.literal("none") : t)));
-		if (!SHOW_TITLE.get(p)) {
-			p.sendSystemMessage(Ui.text("Titles are hidden in your settings (Libreria settings → Collector).", ChatFormatting.DARK_GRAY));
-		}
+		Component sub = !SHOW_TITLE.get(p) ? Ui.text("Hidden for now: Settings › You › Your name.", ChatFormatting.GRAY)
+				: id.equals("-") ? Ui.text("Nothing above your name now.", ChatFormatting.GRAY)
+				: t == null ? Ui.text("You have no achievements yet.", ChatFormatting.GRAY)
+				: Component.empty().append(Ui.text(id.isEmpty() ? "Your rarest: " : "", ChatFormatting.GRAY)).append(t);
+		nl.libreria.core.Notify.card(p, new net.minecraft.world.item.ItemStack(Items.NAME_TAG), nl.libreria.core.gui.Toast.GOOD,
+				Ui.text(id.equals("-") ? "No title" : "Title chosen", ChatFormatting.WHITE), sub);
 	}
 
 	/** Player card lines: points + achievements, completion bar, items collected. */

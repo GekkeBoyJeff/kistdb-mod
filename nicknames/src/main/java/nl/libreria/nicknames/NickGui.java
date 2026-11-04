@@ -12,7 +12,6 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.item.Items;
 import nl.libreria.core.Services;
 import nl.libreria.core.Ui;
-import nl.libreria.core.gui.HubGui;
 import nl.libreria.core.gui.Menu;
 
 /**
@@ -174,7 +173,7 @@ final class NickGui extends Menu {
 		});
 
 		// ---- Navigation bar
-		back("the Libreria menu", () -> HubGui.open(p));
+		up();
 		closeButton();
 		List<String> help = new ArrayList<>(List.of(
 				"Your nickname shows above your head,",

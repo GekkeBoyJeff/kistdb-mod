@@ -6,66 +6,55 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
-import net.minecraft.ChatFormatting;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Item;
 
 /**
- * Een Libreria-module (bv. ChestsMod, ToolsMod). Een module registreert zichzelf bij het opstarten en krijgt
- * daarmee automatisch een plek in het instellingenmenu (/libreria settings) en in het Libreria-menu (knop in het E-scherm).
+ * A Libreria module (ChestsMod, ToolsMod…): what an operator installs. Players never see the module itself: its
+ * buttons and settings land in one of the four {@link Domain}s (Items, Land &amp; places, Progress, You), in a group
+ * with a player-friendly name. A module registers itself at startup and gets its place in the start screen, the
+ * settings and (for operators) the server settings for free.
  */
 public final class Module {
 	private static final Map<String, Module> MODULES = new LinkedHashMap<>();
 
 	public final String id;
+	/** The module's name, for operators (server settings). */
 	public final String name;
 	public final Item icon;
 	public final List<String> description;
+	/** Where its settings go unless a setting says otherwise. */
+	Domain domain;
+	String section;
 	final List<Setting> settings = new ArrayList<>();
 	final List<HubEntry> hubEntries = new ArrayList<>();
 
-	/** Een knop in het Libreria-menu. */
-	public record HubEntry(Module module, Category category, Item icon, String name, ChatFormatting color, List<String> lore,
+	/**
+	 * A button on a domain page of the start screen. {@code order} keeps the page the same whatever order the modules
+	 * load in (lower first).
+	 */
+	public record HubEntry(Module module, Domain domain, int order, Item icon, String name, List<String> lore,
 			Consumer<ServerPlayer> action) {
 	}
 
-	/** Rows in the Libreria menu. */
-	public enum Category {
-		ITEMS("Items & chests", "orange", ChatFormatting.GOLD),
-		WORLD("World & travel", "green", ChatFormatting.GREEN),
-		PROGRESS("Progress", "yellow", ChatFormatting.YELLOW),
-		YOU("You", "magenta", ChatFormatting.LIGHT_PURPLE);
-
-		public final String label;
-		public final String pane;
-		public final ChatFormatting color;
-
-		Category(String label, String pane, ChatFormatting color) {
-			this.label = label;
-			this.pane = pane;
-			this.color = color;
-		}
-
-		/** Default row for a module's buttons. */
-		static Category forModule(String id) {
-			return switch (id) {
-				case "chests", "graves", "tools" -> ITEMS;
-				case "claims", "waypoints" -> WORLD;
-				case "collector", "info" -> PROGRESS;
-				default -> YOU;
-			};
-		}
+	/** One line of the command help, under the domain it belongs to. */
+	public record Command(Domain domain, String line) {
 	}
 
-	final List<String> commands = new ArrayList<>();
+	final List<Command> commands = new ArrayList<>();
 
-	/** Command lines shown in the Help book of the Libreria menu, e.g. "/claim – claim this chunk". */
+	/** Command lines for the help ("/claim – claim this chunk"), under this module's domain. */
 	public Module commands(String... lines) {
-		this.commands.addAll(List.of(lines));
+		return commands(this.domain, lines);
+	}
+
+	/** Command lines under a given domain (a module whose commands belong to different places). */
+	public Module commands(Domain domain, String... lines) {
+		for (String l : lines) this.commands.add(new Command(domain, l));
 		return this;
 	}
 
-	public List<String> commandHelp() {
+	public List<Command> commandHelp() {
 		return Collections.unmodifiableList(this.commands);
 	}
 
@@ -74,6 +63,19 @@ public final class Module {
 		this.name = name;
 		this.icon = icon;
 		this.description = description;
+		this.domain = Domain.forModule(id);
+		this.section = name;
+	}
+
+	/** Where this module's settings show up for players, e.g. {@code in(Domain.ITEMS, "Tools")}. */
+	public Module in(Domain domain, String section) {
+		this.domain = domain;
+		this.section = section;
+		return this;
+	}
+
+	public Domain domain() {
+		return this.domain;
 	}
 
 	public static Module register(String id, String name, Item icon, String... description) {
@@ -162,19 +164,29 @@ public final class Module {
 		return s;
 	}
 
-	/** Voegt een knop toe aan het Libreria-menu. */
-	public void hubEntry(Item icon, String name, ChatFormatting color, Consumer<ServerPlayer> action, String... lore) {
-		this.hubEntries.add(new HubEntry(this, Category.forModule(this.id), icon, name, color, List.of(lore), action));
-	}
-
-	/** Same, but in a specific row of the menu. */
-	public void hubEntry(Category category, Item icon, String name, ChatFormatting color, Consumer<ServerPlayer> action, String... lore) {
-		this.hubEntries.add(new HubEntry(this, category, icon, name, color, List.of(lore), action));
+	/** A button on a domain page of the start screen. */
+	public void hubEntry(Domain domain, int order, Item icon, String name, Consumer<ServerPlayer> action, String... lore) {
+		this.hubEntries.add(new HubEntry(this, domain, order, icon, name, List.of(lore), action));
 	}
 
 	public static List<HubEntry> allHubEntries() {
 		List<HubEntry> out = new ArrayList<>();
 		for (Module m : MODULES.values()) out.addAll(m.hubEntries);
+		out.sort(java.util.Comparator.comparingInt(HubEntry::order));
+		return out;
+	}
+
+	/** The buttons of one domain page, in order. */
+	public static List<HubEntry> hubEntries(Domain domain) {
+		List<HubEntry> out = new ArrayList<>();
+		for (HubEntry e : allHubEntries()) if (e.domain() == domain) out.add(e);
+		return out;
+	}
+
+	/** Every player setting of every module, in module order. */
+	public static List<Setting> allSettings() {
+		List<Setting> out = new ArrayList<>();
+		for (Module m : all()) out.addAll(m.settings);
 		return out;
 	}
 }

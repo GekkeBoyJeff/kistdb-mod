@@ -44,6 +44,9 @@ import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.phys.Vec3;
 import nl.libreria.core.Guide;
 import nl.libreria.core.Hud;
+import nl.libreria.core.Domain;
+import nl.libreria.core.Notify;
+import nl.libreria.core.Say;
 import nl.libreria.core.Module;
 import nl.libreria.core.Services;
 import nl.libreria.core.Setting;
@@ -60,8 +63,8 @@ import org.joml.Vector3f;
  */
 public final class GravesMod implements ModInitializer {
 	public static final Module MODULE = Module.register("graves", "Graves", Items.SKELETON_SKULL,
-			"Your items go into a grave when you die", "instead of dropping. Off by default.");
-	public static final Setting.Toggle ENABLED = MODULE.toggle("aan", "Grave on death", false, Items.SKELETON_SKULL,
+			"Your items go into a grave when you die", "instead of dropping. Off by default.").in(Domain.PLACES, "When you die");
+	public static final Setting.Toggle ENABLED = MODULE.toggle("aan", "Keep your items in a grave", false, Items.SKELETON_SKULL,
 			"Your items stay safe in a grave where", "you die. Only you can open it, and",
 			"everything returns to the same slots.", "XP still drops as usual.");
 
@@ -97,6 +100,9 @@ public final class GravesMod implements ModInitializer {
 		public Map<String, Grave> graves = new HashMap<>();
 	}
 
+	static final nl.libreria.core.Tips.Tip TIP_GRAVE = nl.libreria.core.Tips.register("grave", Domain.PLACES, Items.SKELETON_SKULL,
+			"Your grave", "Your items are safe in a grave where you died.", "Right-click its skull: everything back in the same slots.");
+
 	static final WorldStore<Data> STORE = WorldStore.create("libreria/graves.json", Data.class, Data::new);
 
 	/** Zichtbare graven (alleen als de chunk geladen is). */
@@ -105,11 +111,11 @@ public final class GravesMod implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-		MODULE.hubEntry(Items.SKELETON_SKULL, "My graves", ChatFormatting.GRAY, GravesMod::listGraves,
-				"Where your graves are; beam to one.", "Turn graves on or off there too.");
+		MODULE.hubEntry(Domain.PLACES, 60, Items.SKELETON_SKULL, "Your graves", GravesMod::listGraves,
+				"Where your graves are; click one to be shown the way. Turn graves on or off there too.");
 		MODULE.commands(
 				"/grave – your graves",
-				"/grave beam – beam to the newest");
+				"/grave beam – show the way to the newest");
 		ServerLifecycleEvents.SERVER_STARTED.register(s -> server = s);
 		ServerLifecycleEvents.SERVER_STOPPING.register(s -> {
 			SHOWN.values().forEach(ElementHolder::destroy);
@@ -125,10 +131,14 @@ public final class GravesMod implements ModInitializer {
 		Services.addDeathAction(p -> {
 			Grave g = newestOf(p);
 			if (g == null || System.currentTimeMillis() - g.created > 60_000) return null;
-			return new Services.DeathAction("Beam to my grave", g.count() + (g.count() == 1 ? " item waits there" : " items wait there"),
+			return new Services.DeathAction("Show the way to your grave", g.count() + (g.count() == 1 ? " item waits there" : " items wait there"),
 					pl -> beam(pl, g));
 		});
 		ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
+			if (!alive) {
+				Grave fresh = newestOf(newPlayer);
+				if (fresh != null && System.currentTimeMillis() - fresh.created < 60_000) nl.libreria.core.Tips.once(newPlayer, TIP_GRAVE);
+			}
 			if (alive || FabricLoader.getInstance().isModLoaded("libreria_waypoints") || nl.libreria.core.DeathRecap.enabled(newPlayer)) return;
 			Component note = deathNote(newPlayer);
 			if (note != null) newPlayer.sendSystemMessage(note);
@@ -152,9 +162,9 @@ public final class GravesMod implements ModInitializer {
 				}).then(Commands.literal("beam").executes(ctx -> {
 					ServerPlayer p = ctx.getSource().getPlayerOrException();
 					Grave g = newestOf(p);
-					if (g == null) p.sendSystemMessage(Ui.prefix("Graves").append(Ui.text(ENABLED.get(p)
-							? "You don't have a grave."
-							: "You don't have a grave. Graves are off: turn them on in /grave.", ChatFormatting.GRAY)));
+					if (g == null) Notify.info(p, Items.SKELETON_SKULL, "No grave", ENABLED.get(p)
+							? "You don't have a grave right now."
+							: "Graves are off: turn them on in Your graves.");
 					else beam(p, g);
 					return 1;
 				}))));
@@ -347,24 +357,21 @@ public final class GravesMod implements ModInitializer {
 	static @Nullable Component deathNote(ServerPlayer p) {
 		Grave g = newestOf(p);
 		if (g == null || System.currentTimeMillis() - g.created > 60_000) return null;
-		return Component.empty()
-				.append(Component.literal("☠ Your items are safe in your grave ").withStyle(ChatFormatting.GRAY))
-				.append(Component.literal("[beam]").withStyle(s -> s.withColor(ChatFormatting.AQUA)
-						.withClickEvent(new ClickEvent.RunCommand("/grave beam"))
-						.withHoverEvent(new HoverEvent.ShowText(Component.literal("Click: beam to your grave")))));
+		return Say.line(Domain.PLACES).append(Ui.text("Your items are safe in your grave ", ChatFormatting.GRAY))
+				.append(Say.run("Show the way", "/grave beam", "A beam to your grave"));
 	}
 
 	static void beam(ServerPlayer p, Grave g) {
 		ServerLevel level = levelOf(p.level().getServer(), g.dim);
 		if (level != p.level()) {
-			p.sendSystemMessage(Ui.prefix("Graves").append(Ui.text("Your grave is in the " + GravesGui.dimension(g.dim)
-					+ ". Go there to get a beam.", ChatFormatting.GOLD)));
+			Notify.warn(p, Items.SKELETON_SKULL, "In another dimension",
+					"Your grave is in the " + GravesGui.dimension(g.dim) + ". Go there first.");
 			return;
 		}
 		Guide.toPoint(p, level, g.pos().add(0, 0.5, 0), new ItemStack(Items.SKELETON_SKULL), Component.literal("Your grave"), 0);
 	}
 
-	/** "My graves" (menu): location, items and age of each grave; click one to beam to it. */
+	/** "Your graves" (menu): location, items and age of each grave; click one to beam to it. */
 	static void listGraves(ServerPlayer p) {
 		GravesGui.open(p);
 	}

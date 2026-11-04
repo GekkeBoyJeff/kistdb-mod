@@ -23,7 +23,7 @@ public final class Locate {
 		if (hits.isEmpty()) {
 			Toast.show(player, item, Toast.BAD, Component.empty().append(Ui.text("No ", ChatFormatting.WHITE))
 							.append(item.getHoverName().copy().withStyle(ChatFormatting.WHITE)).append(Ui.text(" in your chests", ChatFormatting.WHITE)),
-					Ui.text("Within " + (int) Search.radius() + " m. Open a chest to add it to your index.", ChatFormatting.GRAY));
+					Ui.text("Within " + (int) Search.radius() + " m. Open a chest once and Libreria remembers it.", ChatFormatting.GRAY));
 			return;
 		}
 		Search.Hit near = hits.getFirst();

@@ -1,35 +1,18 @@
 package nl.libreria.core;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.function.Consumer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Items;
 import nl.libreria.core.dialog.Dialogs;
-import nl.libreria.core.gui.HubGui;
 import nl.libreria.core.gui.SettingsWindow;
-import nl.libreria.core.gui.Toast;
 
 /**
- * The quick menu (key G, and the Libreria button in the pause menu) is a dialog in the data pack
+ * The start screen (key G, and the Libreria button in the pause menu) is a dialog in the data pack
  * ({@code data/libreria/dialog/quick_menu.json}), so it opens instantly. Its buttons send {@code libreria:quick} with
- * the name of what to open; this class opens it, or says kindly that it isn't on this server.
+ * where to go: one of the four domains ({@code items}, {@code land}, {@code progress}, {@code me}), the settings or
+ * Getting started. Other dialogs may send a menu key too ({@code map}, {@code waypoints}…).
  */
 public final class QuickMenu {
-	/** Button name → what it opens. Modules fill most of these in through {@link Services#provideMenu}. */
-	private static final Map<String, String> SERVICES = new LinkedHashMap<>();
-
-	static {
-		SERVICES.put("map", Services.MENU_LAND_MAP);
-		SERVICES.put("items", Services.MENU_CHESTS);
-		SERVICES.put("sort", Services.ACTION_SORT);
-		SERVICES.put("waypoints", Services.MENU_WAYPOINTS);
-		SERVICES.put("achievements", Services.MENU_ACHIEVEMENTS);
-		SERVICES.put("effects", Services.MENU_EFFECTS);
-		SERVICES.put("journal", Services.MENU_JOURNAL);
-		SERVICES.put("pets", Services.MENU_PETS);
-	}
-
 	private QuickMenu() {
 	}
 
@@ -38,18 +21,36 @@ public final class QuickMenu {
 	}
 
 	static void open(ServerPlayer player, String what) {
+		Domain d = Domain.byWord(what);
+		if (d != null) {
+			Start.domain(player, d);
+			return;
+		}
 		switch (what) {
 			case "settings" -> SettingsWindow.open(player);
+			case "start" -> Welcome.guide(player);
 			case "links" -> Links.open(player);
 			case "chronicle" -> Chronicle.open(player);
-			case "start" -> Welcome.guide(player);
-			case "menu" -> HubGui.open(player);
+			case "menu", "" -> Start.open(player);
 			default -> {
-				String key = SERVICES.get(what);
-				Consumer<ServerPlayer> opener = key == null ? null : Services.menu(key).orElse(null);
+				Consumer<ServerPlayer> opener = Services.menu(key(what)).orElse(null);
 				if (opener != null) opener.accept(player);
-				else Toast.show(player, Items.BARRIER, Toast.WARN, "Not on this server", "That part of Libreria isn't installed here.");
+				else Notify.warn(player, Items.BARRIER, "Not on this server", "That part of Libreria isn't installed here.");
 			}
 		}
+	}
+
+	private static String key(String what) {
+		return switch (what) {
+			case "map" -> Services.MENU_LAND_MAP;
+			case "search" -> Services.MENU_CHESTS;
+			case "sort" -> Services.ACTION_SORT;
+			case "waypoints" -> Services.MENU_WAYPOINTS;
+			case "achievements" -> Services.MENU_ACHIEVEMENTS;
+			case "effects" -> Services.MENU_EFFECTS;
+			case "journal" -> Services.MENU_JOURNAL;
+			case "pets" -> Services.MENU_PETS;
+			default -> what;
+		};
 	}
 }

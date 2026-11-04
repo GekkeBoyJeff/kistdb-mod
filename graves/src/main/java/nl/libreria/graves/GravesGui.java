@@ -11,7 +11,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import nl.libreria.core.Ui;
-import nl.libreria.core.gui.HubGui;
 import nl.libreria.core.gui.Menu;
 import nl.libreria.core.gui.SettingsWindow;
 
@@ -53,7 +52,7 @@ final class GravesGui extends Menu {
 		}
 		if (this.graves.isEmpty()) this.setSlot(13, emptyState());
 
-		back("the Libreria menu", () -> HubGui.open(this.player));
+		up();
 		pages(this.page, pages, p -> {
 			this.page = p;
 			rebuild();
@@ -66,7 +65,7 @@ final class GravesGui extends Menu {
 				"Right-click its skull to get",
 				"everything back in the same slots.",
 				"Only you can open your graves.",
-				"/grave beam – beam to the newest");
+				"/grave beam – the way to the newest");
 		finish();
 	}
 
@@ -80,15 +79,15 @@ final class GravesGui extends Menu {
 		b.addLoreLine(Ui.kv("Items: ", String.valueOf(g.count()), ChatFormatting.GREEN));
 		b.addLoreLine(Ui.kv("Died: ", ago(g.created), ChatFormatting.GRAY));
 		if (here) {
-			actions(b, "Click: beam to it");
+			actions(b, "Click: show the way");
 			b.setCallback((index, type, action, gui) -> {
 				this.close();
 				GravesMod.beam(this.player, g);
 			});
 		} else {
 			b.addLoreLine(Component.empty());
-			b.addLoreLine(Ui.text("Go to the " + dimension(g.dim) + " to", ChatFormatting.DARK_GRAY));
-			b.addLoreLine(Ui.text("get a beam to this grave.", ChatFormatting.DARK_GRAY));
+			b.addLoreLine(Ui.text("Go to the " + dimension(g.dim) + " to be", ChatFormatting.DARK_GRAY));
+			b.addLoreLine(Ui.text("shown the way here.", ChatFormatting.DARK_GRAY));
 		}
 		return b;
 	}
@@ -101,7 +100,7 @@ final class GravesGui extends Menu {
 		GuiElementBuilder b = button(Items.SKELETON_SKULL, "No graves (graves are off)", ChatFormatting.GOLD,
 				"Turn graves on and your items go", "into a grave when you die, instead",
 				"of dropping on the ground.", "",
-				"Switch: \"Grave on death\" below, or", "Libreria settings → Graves.");
+				"Switch it on below, or in Settings ›", "Land & places › When you die.");
 		actions(b, "Click: open settings");
 		return b.setCallback((index, type, action, gui) -> {
 			Ui.click(this.player);

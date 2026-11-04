@@ -25,13 +25,13 @@ public final class Ui {
 		return Component.literal(s).withStyle(st -> st.withItalic(false).withColor(color));
 	}
 
-	public static MutableComponent kv(String key, String value, ChatFormatting valueColor) {
-		return text(key, ChatFormatting.GRAY).append(text(value, valueColor));
+	/** Same, in any colour (0xRRGGBB). */
+	public static MutableComponent text(String s, int rgb) {
+		return Component.literal(s).withStyle(st -> st.withItalic(false).withColor(rgb));
 	}
 
-	/** "[Libreria] " of "[Chests] " in goud, voor chatberichten. */
-	public static MutableComponent prefix(String name) {
-		return text("[" + name + "] ", ChatFormatting.GOLD);
+	public static MutableComponent kv(String key, String value, ChatFormatting valueColor) {
+		return text(key, ChatFormatting.GRAY).append(text(value, valueColor));
 	}
 
 	public static GuiElementBuilder button(Item item, String name, ChatFormatting color) {

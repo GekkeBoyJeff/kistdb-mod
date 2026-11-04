@@ -205,7 +205,12 @@ final class Weapons {
 			Chronicle.write(p, Chronicle.Kind.LEGEND, "'s " + item + " \"" + name + "\" became a legend " + how, true);
 		}
 		Ui.sound(p, SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, 0.7f, 1.1f);
+		nl.libreria.core.Tips.once(p, TIP);
 	}
+
+	static final nl.libreria.core.Tips.Tip TIP = nl.libreria.core.Tips.register("weapon_story", nl.libreria.core.Domain.ITEMS,
+			Items.IRON_SWORD, "Weapons with a story", "Hover it to read its story: foes, bosses, days.",
+			"The colour of its name shows how good its enchantments are.");
 
 	static CompoundTag story(ItemStack stack) {
 		return stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getCompoundOrEmpty(KEY);

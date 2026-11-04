@@ -44,19 +44,13 @@ PARCH = (205, 188, 150, 255)
 PARCH_LO = (176, 158, 120, 255)
 PARCH_HI = (222, 208, 174, 255)
 
-# Tool themes for the menu frames: id -> (ribbon colour, emblem)
+# Domain themes for the menu frames (Items, Land & places, Progress, You): id -> (ribbon colour, emblem)
 THEMES = {
     'libreria': ((150, 98, 34), 'book'),
-    'chests': ((148, 84, 36), 'chest'),
-    'tools': ((78, 92, 110), 'pick'),
-    'waypoints': ((40, 118, 112), 'flag'),
-    'info': ((52, 86, 140), 'scroll'),
-    'comfort': ((132, 74, 102), 'heart'),
-    'graves': ((78, 70, 92), 'grave'),
-    'collector': ((160, 120, 28), 'trophy'),
-    'nicknames': ((140, 58, 120), 'tag'),
-    'claims': ((62, 120, 50), 'map'),
-    'glint': ((104, 64, 160), 'sparkle'),
+    'items': ((34, 122, 136), 'chest'),
+    'places': ((60, 122, 50), 'map'),
+    'progress': ((170, 124, 22), 'trophy'),
+    'you': ((136, 70, 150), 'tag'),
 }
 
 glyphs = {}

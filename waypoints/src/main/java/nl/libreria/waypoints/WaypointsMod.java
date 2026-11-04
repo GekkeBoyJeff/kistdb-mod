@@ -39,6 +39,9 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec3;
 import nl.libreria.core.Guide;
 import nl.libreria.core.Libreria;
+import nl.libreria.core.Domain;
+import nl.libreria.core.Notify;
+import nl.libreria.core.Say;
 import nl.libreria.core.Module;
 import nl.libreria.core.PlayerStore;
 import nl.libreria.core.Services;
@@ -59,13 +62,16 @@ public final class WaypointsMod implements ModInitializer {
 	static final int XAERO_MAX_LINES = 30;
 
 	public static final Module MODULE = Module.register("waypoints", "Waypoints", Items.COMPASS,
-			"A beam to your death point and", "to waypoints, also shared ones.");
-	public static final Setting.Toggle DEATH_BEAM = MODULE.toggle("sterfplek", "Beam to your death point", true, Items.SKELETON_SKULL,
-			"After respawning, a beam shows you", "the way back to where you died.");
-	public static final Setting.Toggle DEATH_MESSAGE = MODULE.toggle("bericht", "Coordinates on death", true, Items.PAPER,
-			"A message with where you died", "(click it to be shown the way).");
+			"Waypoints, also shared ones, and the", "way back to where you died.").in(Domain.PLACES, "Finding your way");
+	public static final Setting.Toggle DEATH_BEAM = MODULE.toggle("sterfplek", "Show the way back after dying", true, Items.SKELETON_SKULL,
+			"After respawning, a beam shows you", "the way back to where you died.").in(Domain.PLACES, "When you die");
+	public static final Setting.Toggle DEATH_MESSAGE = MODULE.toggle("bericht", "Coordinates in chat after dying", true, Items.PAPER,
+			"A chat line with where you died", "(click it to be shown the way).").in(Domain.PLACES, "When you die");
 	public static final Setting.Toggle XAERO = MODULE.toggle("xaero", "Xaero's Minimap", false, Items.FILLED_MAP,
 			"Only useful with the Xaero's Minimap", "client mod. Sends waypoints to it", "via chat, also ones shared with you.");
+
+	static final nl.libreria.core.Tips.Tip TIP_DEATH = nl.libreria.core.Tips.register("death_point", Domain.PLACES, Items.SKELETON_SKULL,
+			"The way back", "Follow the beam back to where you died.", "Lost it? Land & places › Your death point.");
 
 	/** Wie een waypoint ziet. */
 	public enum Visibility {
@@ -166,23 +172,20 @@ public final class WaypointsMod implements ModInitializer {
 		// Wie Xaero aanzet, krijgt meteen uitleg en een knop om alles te sturen
 		XAERO.onChange(p -> {
 			if (!XAERO.get(p)) return;
-			p.sendSystemMessage(Ui.prefix("Waypoints").append(Ui.text("Xaero's Minimap is on: waypoint lines in chat can be added "
-							+ "to your minimap. ", ChatFormatting.GRAY))
-					.append(Ui.text("[Send all now]", ChatFormatting.AQUA).withStyle(st -> st
-							.withClickEvent(new ClickEvent.RunCommand("/waypoint xaero all"))
-							.withHoverEvent(new HoverEvent.ShowText(Component.literal("Every waypoint you can see (nearest "
-									+ XAERO_MAX_LINES + ")"))))));
+			Say.to(p, Domain.PLACES, Ui.text("Xaero's Minimap is on: waypoint lines in chat can be added to your minimap. ",
+					ChatFormatting.GRAY).append(Say.run("Send all now", "/waypoint xaero all",
+							"Every waypoint you can see (the nearest " + XAERO_MAX_LINES + ")")));
 		});
 		MODULE.commands("/waypoint – your waypoints (or /wp)",
 				"/waypoint set <name> – add one here",
-				"/waypoint go <name> – beam to one",
-				"/waypoint private|public <name>",
+				"/waypoint go <name> – show the way to one",
+				"/waypoint private|public <name> – who sees it",
 				"/waypoint remove <name> – delete one",
-				"/deathpoint – beam to where you died");
-		MODULE.hubEntry(Items.COMPASS, "Waypoints", ChatFormatting.AQUA, PointsGui::open,
-				"Your waypoints and shared ones,", "with a beam to them.", "Also: /waypoint set <name>");
-		MODULE.hubEntry(Items.SKELETON_SKULL, "To your death point", ChatFormatting.RED, WaypointsMod::goDeath,
-				"A beam to where you last died.");
+				"/deathpoint – show the way to where you died");
+		MODULE.hubEntry(Domain.PLACES, 50, Items.COMPASS, "Your waypoints", PointsGui::open,
+				"Your waypoints and the ones shared with you. Click one to be shown the way.");
+		MODULE.hubEntry(Domain.PLACES, 70, Items.SKELETON_SKULL, "Your death point", WaypointsMod::goDeath,
+				"Shows the way back to where you last died.");
 		Services.provideMenu(Services.MENU_WAYPOINTS, PointsGui::open);
 		nl.libreria.core.gui.Markers.addSource(WaypointsMod::compassMarkers);
 		WaypointsTests.register();
@@ -234,8 +237,14 @@ public final class WaypointsMod implements ModInitializer {
 		return out;
 	}
 
-	static void msg(ServerPlayer p, String text, ChatFormatting color) {
-		p.sendSystemMessage(Ui.prefix("Waypoints").append(Ui.text(text, color)));
+	/** Didn't work: a card with why. */
+	static void fail(ServerPlayer p, String title, String why) {
+		Notify.warn(p, Items.COMPASS, title, why);
+	}
+
+	/** Done: a card. */
+	static void done(ServerPlayer p, String title, String what) {
+		Notify.done(p, Items.COMPASS, title, what);
 	}
 
 	static double distance(ServerPlayer p, Point pt) {
@@ -392,7 +401,7 @@ public final class WaypointsMod implements ModInitializer {
 	private static @Nullable String cleanName(ServerPlayer p, @Nullable String name) {
 		String n = name == null ? "" : name.replace("§", "").trim();
 		if (n.isEmpty() || n.length() > MAX_NAME) {
-			msg(p, "Use a name of 1 to " + MAX_NAME + " characters.", ChatFormatting.RED);
+			fail(p, n.isEmpty() ? "No name" : "Name too long", "Use a name of 1 to " + MAX_NAME + " characters.");
 			return null;
 		}
 		return n;
@@ -458,11 +467,9 @@ public final class WaypointsMod implements ModInitializer {
 		PLAYERS.markDirty(p);
 		if (moved > 0) {
 			Libreria.LOG.info("Moved {} waypoint(s) of {} to the shared waypoint list", moved, owner);
-			p.sendSystemMessage(Ui.prefix("Waypoints").append(Ui.text("Waypoints can be shared now! Your " + moved
-					+ (moved == 1 ? " waypoint is" : " waypoints are") + " visible to everyone. Change that in ", ChatFormatting.GRAY))
-					.append(Ui.text("[Waypoints]", ChatFormatting.AQUA).withStyle(st -> st
-							.withClickEvent(new ClickEvent.RunCommand("/waypoint"))
-							.withHoverEvent(new HoverEvent.ShowText(Component.literal("Open your waypoints")))))
+			Say.to(p, Domain.PLACES, Ui.text("Waypoints can be shared now! Your " + moved
+					+ (moved == 1 ? " waypoint is" : " waypoints are") + " visible to everyone. Change that in ", ChatFormatting.GRAY)
+					.append(Say.run("Your waypoints", "/waypoint", "Open your waypoints"))
 					.append(Ui.text(" (right-click one) or with /waypoint private <name>.", ChatFormatting.GRAY)));
 		}
 	}
@@ -495,12 +502,10 @@ public final class WaypointsMod implements ModInitializer {
 		Point death = deathPoint(p);
 		if (death == null) return;
 		if (DEATH_MESSAGE.get(p) && !nl.libreria.core.DeathRecap.enabled(p)) {
-			MutableComponent msg = Ui.prefix("Waypoints").append(Ui.text("You died at ", ChatFormatting.GRAY))
-					.append(Ui.text(death.x + " " + death.y + " " + death.z, ChatFormatting.WHITE))
+			MutableComponent msg = Say.line(Domain.PLACES).append(Ui.text("You died at ", ChatFormatting.GRAY))
+					.append(Say.coords(death.x, death.y, death.z))
 					.append(Ui.text(" (" + dimName(death.dim) + ") ", ChatFormatting.GRAY))
-					.append(Ui.text("[Show the way]", ChatFormatting.AQUA).withStyle(st -> st
-							.withClickEvent(new ClickEvent.RunCommand("/deathpoint"))
-							.withHoverEvent(new HoverEvent.ShowText(Component.literal("Beam to your death point")))));
+					.append(Say.run("Show the way", "/deathpoint", "A beam back to where you died"));
 			// Andere modules (zoals GravesMod) voegen hier hun regel toe
 			for (Component note : Services.deathNotes(p)) msg.append("\n").append(note);
 			p.sendSystemMessage(msg);
@@ -508,14 +513,17 @@ public final class WaypointsMod implements ModInitializer {
 			for (Component note : Services.deathNotes(p)) p.sendSystemMessage(note);
 		}
 		if (DEATH_BEAM.get(p) && dimOf(p.level()).equals(death.dim)) {
-			p.level().getServer().execute(() -> beam(p, death));
+			p.level().getServer().execute(() -> {
+				beam(p, death);
+				nl.libreria.core.Tips.once(p, TIP_DEATH);
+			});
 		}
 	}
 
 	static boolean goDeath(ServerPlayer p) {
 		Point death = deathPoint(p);
 		if (death == null) {
-			msg(p, "You haven't died yet (since the mod was added).", ChatFormatting.GRAY);
+			Notify.info(p, Items.SKELETON_SKULL, "No death point yet", "You haven't died since Libreria was added.");
 			return false;
 		}
 		return beam(p, death);
@@ -524,7 +532,7 @@ public final class WaypointsMod implements ModInitializer {
 	/** Straal naar een punt (alleen in dezelfde dimensie). */
 	static boolean beam(ServerPlayer p, Point point) {
 		if (!dimOf(p.level()).equals(point.dim)) {
-			msg(p, point.name + " is in the " + dimName(point.dim) + ".", ChatFormatting.GRAY);
+			fail(p, "In another world", point.name + " is in the " + dimName(point.dim) + ".");
 			return false;
 		}
 		Guide.toPoint(p, p.level(), Vec3.atBottomCenterOf(point.pos()), new ItemStack(point.item()), Component.literal(point.name), 0);
@@ -549,11 +557,11 @@ public final class WaypointsMod implements ModInitializer {
 		UUID id = p.getUUID();
 		Point existing = findOwn(id, n);
 		if (existing != null && !moveExisting) {
-			msg(p, "You already have a waypoint called " + existing.name + ".", ChatFormatting.RED);
+			fail(p, "Name taken", "You already have a waypoint called " + existing.name + ".");
 			return false;
 		}
 		if (existing == null && own(id).size() >= MAX_POINTS) {
-			msg(p, "You already have " + MAX_POINTS + " waypoints. Remove one first.", ChatFormatting.RED);
+			fail(p, "Too many waypoints", "You have " + MAX_POINTS + ". Remove one first.");
 			return false;
 		}
 		Point pt = existing != null ? existing : new Point();
@@ -574,13 +582,11 @@ public final class WaypointsMod implements ModInitializer {
 			points().add(pt);
 		}
 		STORE.markDirty();
-		MutableComponent m = Ui.prefix("Waypoints").append(Ui.text(existing == null ? "Waypoint set: " : "Waypoint moved: ", ChatFormatting.GRAY))
+		MutableComponent m = Say.line(Domain.PLACES).append(Ui.text(existing == null ? "Waypoint set: " : "Waypoint moved: ", ChatFormatting.GRAY))
 				.append(Ui.text(n, ChatFormatting.WHITE)).append(Ui.text(" at " + pt.x + " " + pt.y + " " + pt.z, ChatFormatting.GRAY));
 		if (existing == null) {
 			m.append(Ui.text(" · visible to everyone ", ChatFormatting.GRAY))
-					.append(Ui.text("[Make private]", ChatFormatting.AQUA).withStyle(st -> st
-							.withClickEvent(new ClickEvent.RunCommand("/waypoint private " + n))
-							.withHoverEvent(new HoverEvent.ShowText(Component.literal("Only you will see this waypoint")))));
+					.append(Say.run("Make private", "/waypoint private " + n, "Only you will see this waypoint"));
 		}
 		p.sendSystemMessage(m);
 		if (existing == null) shareWithNewViewers(p.level().getServer(), pt, Set.of());
@@ -590,11 +596,12 @@ public final class WaypointsMod implements ModInitializer {
 	static boolean remove(ServerPlayer p, String name) {
 		Point pt = findOwn(p, name);
 		if (pt == null) {
-			msg(p, find(p, name) != null ? "You can only remove your own waypoints." : "No waypoint with that name.", ChatFormatting.RED);
+			fail(p, find(p, name) != null ? "Not your waypoint" : "No such waypoint",
+					find(p, name) != null ? "You can only remove your own waypoints." : "Check the name in Your waypoints.");
 			return false;
 		}
 		delete(pt);
-		msg(p, "Waypoint " + pt.name + " removed.", ChatFormatting.GRAY);
+		done(p, "Waypoint removed", pt.name);
 		return true;
 	}
 
@@ -606,7 +613,7 @@ public final class WaypointsMod implements ModInitializer {
 	static boolean go(ServerPlayer p, String name) {
 		Point pt = find(p, name);
 		if (pt == null) {
-			msg(p, "No waypoint with that name.", ChatFormatting.RED);
+			fail(p, "No such waypoint", "Check the name in Your waypoints.");
 			return false;
 		}
 		return beam(p, pt);
@@ -618,13 +625,13 @@ public final class WaypointsMod implements ModInitializer {
 		if (n == null) return false;
 		Point other = findOwn(p.getUUID(), n);
 		if (other != null && other != pt) {
-			msg(p, "You already have a waypoint called " + other.name + ".", ChatFormatting.RED);
+			fail(p, "Name taken", "You already have a waypoint called " + other.name + ".");
 			return false;
 		}
 		String old = pt.name;
 		pt.name = n;
 		STORE.markDirty();
-		if (!old.equals(n)) msg(p, "Renamed " + old + " to " + n + ".", ChatFormatting.GRAY);
+		if (!old.equals(n)) done(p, "Waypoint renamed", old + " → " + n);
 		return true;
 	}
 
@@ -632,7 +639,7 @@ public final class WaypointsMod implements ModInitializer {
 	static boolean iconFromHand(ServerPlayer p, Point pt) {
 		ItemStack held = p.getMainHandItem();
 		if (held.isEmpty()) {
-			msg(p, "Hold an item in your hand first.", ChatFormatting.RED);
+			fail(p, "Nothing in your hand", "Hold the item you want as its icon.");
 			return false;
 		}
 		pt.icon = BuiltInRegistries.ITEM.getKey(held.getItem()).toString();
@@ -652,11 +659,12 @@ public final class WaypointsMod implements ModInitializer {
 	static boolean setVisibility(ServerPlayer p, String name, Visibility v) {
 		Point pt = findOwn(p, name);
 		if (pt == null) {
-			msg(p, find(p, name) != null ? "You can only change your own waypoints." : "No waypoint with that name.", ChatFormatting.RED);
+			fail(p, find(p, name) != null ? "Not your waypoint" : "No such waypoint",
+					find(p, name) != null ? "You can only change your own waypoints." : "Check the name in Your waypoints.");
 			return false;
 		}
 		setVisibility(p.level().getServer(), pt, v);
-		msg(p, pt.name + (v == Visibility.EVERYONE ? " is now visible to everyone." : " is now only visible to you."), ChatFormatting.GRAY);
+		done(p, pt.name, v == Visibility.EVERYONE ? "Now visible to everyone." : "Now only visible to you.");
 		return true;
 	}
 
@@ -702,8 +710,8 @@ public final class WaypointsMod implements ModInitializer {
 			UUID id = other.getUUID();
 			if (before.contains(id) || !canSee(pt, id) || !XAERO.get(other)) continue;
 			if (!pt.ownedBy(id)) {
-				msg(other, pt.ownerName + (pt.visibility == Visibility.EVERYONE ? " added a public waypoint: " : " shared a waypoint with you: ")
-						+ pt.name, ChatFormatting.GRAY);
+				Say.to(other, Domain.PLACES, pt.ownerName + (pt.visibility == Visibility.EVERYONE ? " added a public waypoint: "
+						: " shared a waypoint with you: ") + pt.name, ChatFormatting.GRAY);
 			}
 			sendXaero(other, pt);
 		}
@@ -714,7 +722,7 @@ public final class WaypointsMod implements ModInitializer {
 		if (name.trim().equalsIgnoreCase("all")) return xaeroAll(p) > 0;
 		Point pt = find(p, name);
 		if (pt == null) {
-			msg(p, "No waypoint with that name.", ChatFormatting.RED);
+			fail(p, "No such waypoint", "Check the name in Your waypoints.");
 			return false;
 		}
 		sendXaero(p, pt);
@@ -725,13 +733,13 @@ public final class WaypointsMod implements ModInitializer {
 	static int xaeroAll(ServerPlayer p) {
 		List<Point> list = sorted(p, visible(p));
 		if (list.isEmpty()) {
-			msg(p, "There are no waypoints you can see yet.", ChatFormatting.GRAY);
+			Notify.info(p, Items.COMPASS, "No waypoints yet", "There are no waypoints you can see.");
 			return 0;
 		}
 		int n = Math.min(XAERO_MAX_LINES, list.size());
 		for (int i = 0; i < n; i++) sendXaero(p, list.get(i));
-		msg(p, "Sent " + n + (n == 1 ? " waypoint" : " waypoints") + " to Xaero's Minimap"
-				+ (list.size() > n ? " (the nearest " + n + " of " + list.size() + ")." : "."), ChatFormatting.GRAY);
+		done(p, "Sent to Xaero's Minimap", n + (n == 1 ? " waypoint" : " waypoints")
+				+ (list.size() > n ? " (the nearest " + n + " of " + list.size() + ")" : ""));
 		return n;
 	}
 }

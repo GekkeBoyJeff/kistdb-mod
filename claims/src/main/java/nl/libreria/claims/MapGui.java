@@ -23,7 +23,6 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.material.Fluids;
 import nl.libreria.core.Services;
 import nl.libreria.core.Ui;
-import nl.libreria.core.gui.HubGui;
 import nl.libreria.core.gui.Menu;
 
 /**
@@ -158,7 +157,7 @@ public final class MapGui extends Menu {
 
 	private void nav(int have, int max, List<String> next) {
 		int nav = navRow();
-		back("the Libreria menu", () -> HubGui.open(this.player));
+		up();
 
 		GuiElementBuilder we = button(Items.ARROW, "◀ West · East ▶", ChatFormatting.WHITE, "Move the map " + PAN_X + " chunks.");
 		actions(we, "Left-click: west", "Right-click: east");

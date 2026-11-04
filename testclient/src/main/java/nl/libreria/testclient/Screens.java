@@ -14,7 +14,6 @@ import net.minecraft.server.level.ServerPlayer;
 import nl.libreria.claims.ClaimsMod;
 import nl.libreria.collector.CollectorMod;
 import nl.libreria.core.Module;
-import nl.libreria.core.gui.HubGui;
 import nl.libreria.core.gui.SettingsWindow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -341,9 +340,11 @@ public final class Screens implements FabricClientGameTest {
 			server.runOnServer(s -> s.getPlayerList().op(player.nameAndId()));
 			ctx.waitTicks(5);
 			menu(ctx, server, player, "window_settings", SettingsWindow::open);
-			for (Module m : List.of(nl.libreria.core.Libreria.MODULE, nl.libreria.glint.GlintMod.MODULE)) {
-				menu(ctx, server, player, "window_settings_" + m.id, p -> SettingsWindow.open(p, m));
+			for (nl.libreria.core.Domain d : nl.libreria.core.Domain.values()) {
+				menu(ctx, server, player, "window_settings_" + d.word, p -> SettingsWindow.open(p, d, SettingsWindow::open));
 			}
+			menu(ctx, server, player, "window_settings_section",
+					p -> SettingsWindow.open(p, SettingsWindow.sections(nl.libreria.core.Domain.PLACES).getFirst(), SettingsWindow::open));
 			menu(ctx, server, player, "window_effects",
 					p -> nl.libreria.core.Services.menu(nl.libreria.core.Services.MENU_EFFECTS).ifPresent(open -> open.accept(p)));
 			menu(ctx, server, player, "window_admin", nl.libreria.core.gui.AdminWindow::open);
@@ -356,6 +357,14 @@ public final class Screens implements FabricClientGameTest {
 			});
 			menu(ctx, server, player, "window_links", nl.libreria.core.Links::open);
 			menu(ctx, server, player, "window_start", nl.libreria.core.Welcome::guide);
+			menu(ctx, server, player, "window_commands", nl.libreria.core.Welcome::commands);
+			menu(ctx, server, player, "window_tips", nl.libreria.core.Tips::all);
+			safe("tip", () -> {
+				server.runOnServer(s -> nl.libreria.core.Tips.show(player, nl.libreria.core.Tips.all(nl.libreria.core.Domain.ITEMS).getFirst()));
+				ctx.waitTicks(8);
+				ctx.takeScreenshot("tip");
+				server.runOnServer(s -> nl.libreria.core.gui.TopCard.hide(player, "tip"));
+			});
 			menu(ctx, server, player, "window_journal", nl.libreria.info.Places::journal);
 			// A sword that just earned its name: the toast, then its tooltip in the inventory
 			safe("weapon", () -> {
@@ -433,7 +442,9 @@ public final class Screens implements FabricClientGameTest {
 			});
 
 			// Every menu
-			menu(ctx, server, player, "menu_hub", HubGui::open);
+			for (nl.libreria.core.Domain d : nl.libreria.core.Domain.values()) {
+				menu(ctx, server, player, "start_" + d.word, p -> nl.libreria.core.Start.domain(p, d));
+			}
 			for (Module.HubEntry e : Module.allHubEntries()) {
 				// The land map isn't a menu (and would stay open behind the others)
 				if (e.name().equals("Land map")) continue;

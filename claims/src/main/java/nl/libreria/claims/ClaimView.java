@@ -209,7 +209,7 @@ final class ClaimView {
 	static void open(ServerPlayer p) {
 		if (isOpen(p)) return;
 		if (p.isPassenger() || p.isSleeping() || p.isSpectator() || p.isFallFlying()) {
-			ClaimsMod.msg(p, "Land on your feet first, then open the land map.", ChatFormatting.GRAY);
+			nl.libreria.core.Notify.warn(p, net.minecraft.world.item.Items.FILLED_MAP, "Land first", "Stand on the ground, then open the land map.");
 			return;
 		}
 		p.closeContainer();

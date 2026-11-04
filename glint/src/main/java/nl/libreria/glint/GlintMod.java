@@ -52,7 +52,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class GlintMod implements ModInitializer {
 	public static final Module MODULE = Module.register("glint", "Glint", Items.ENCHANTED_BOOK,
-			"Enchant effects and rarity frames on", "your items, custom book covers and", "particles around players. No install.");
+			"Enchant effects and rarity frames on", "your items, custom book covers and", "particles around players. No install.").in(nl.libreria.core.Domain.YOU, "Effects");
 	public static final Setting.Toggle FRAMES = MODULE.toggle("frames", "Rarity frames", true, Items.ITEM_FRAME,
 			"A light border around uncommon, rare", "and epic items in your inventory;", "rare and epic ones sparkle.");
 	public static final Setting.Toggle BOOKS = MODULE.toggle("books", "Custom book textures", true, Items.BOOK,
@@ -92,8 +92,8 @@ public final class GlintMod implements ModInitializer {
 		loadFamilies();
 		assetsAdded = Pack.addAssets("libreria_glint");
 
-		MODULE.hubEntry(Items.BLAZE_POWDER, "Effects", ChatFormatting.LIGHT_PURPLE, EffectsWindow::open,
-				"How many particles you see, and where.");
+		MODULE.hubEntry(nl.libreria.core.Domain.YOU, 30, Items.BLAZE_POWDER, "Effects", EffectsWindow::open,
+				"Particles from enchanted gear: how many you see, and where.");
 		MODULE.settingsButton("Choose effects", "Flames yes, smoke no: per effect", EffectsGui::open);
 		nl.libreria.core.Services.provideMenu(nl.libreria.core.Services.MENU_EFFECTS, EffectsWindow::open);
 

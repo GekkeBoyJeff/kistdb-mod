@@ -27,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class NicknamesMod implements ModInitializer {
 	public static final Module MODULE = Module.register("nicknames", "Nicknames", Items.NAME_TAG,
-			"A nickname above your head, in the", "tab list and in chat. Unlock colors", "with achievements.")
+			"A nickname above your head, in the", "tab list and in chat. Unlock colors", "with achievements.").in(nl.libreria.core.Domain.YOU, "Your name")
 			.commands("/nick – choose a nickname", "/nick <name> – set it right away", "/nick reset – use your real name");
 
 	/** Kleur + de zeldzaamheid (0 = gewoon … 5 = mythisch) die je nodig hebt. */
@@ -68,8 +68,8 @@ public final class NicknamesMod implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-		MODULE.hubEntry(Items.NAME_TAG, "Nickname", ChatFormatting.LIGHT_PURPLE, NickGui::open,
-				"Pick a nickname and a color.", "More colors with rarer achievements.");
+		MODULE.hubEntry(nl.libreria.core.Domain.YOU, 10, Items.NAME_TAG, "Nickname", NickGui::open,
+				"Pick a nickname and a colour. Rarer achievements unlock more colours.");
 		Nameplate.setName(NicknamesMod::plateName);
 
 		CommandRegistrationCallback.EVENT.register((dispatcher, registry, env) -> dispatcher.register(
@@ -117,18 +117,20 @@ public final class NicknamesMod implements ModInitializer {
 		if (nick.isBlank()) {
 			d.nick = "";
 			STORE.markDirty(p);
-			p.sendSystemMessage(Ui.prefix("Nicknames").append(Ui.text("You're back to your regular name.", ChatFormatting.GRAY)));
+			nl.libreria.core.Notify.done(p, Items.NAME_TAG, "Nickname removed", "You're back to your own name.");
 			refresh(p);
 			return;
 		}
 		String why = validate(p, nick);
 		if (why != null) {
-			p.sendSystemMessage(Ui.prefix("Nicknames").append(Ui.text(why, ChatFormatting.RED)));
+			nl.libreria.core.Notify.warn(p, Items.NAME_TAG, "Pick another nickname", why);
 			return;
 		}
 		d.nick = nick.strip();
 		STORE.markDirty(p);
-		p.sendSystemMessage(Ui.prefix("Nicknames").append(Ui.text("You're now known as ", ChatFormatting.GRAY)).append(styled(p)));
+		nl.libreria.core.Notify.card(p, new net.minecraft.world.item.ItemStack(Items.NAME_TAG), nl.libreria.core.gui.Toast.GOOD,
+				Ui.text("Nickname set", ChatFormatting.WHITE),
+				net.minecraft.network.chat.Component.empty().append(Ui.text("You're now known as ", ChatFormatting.GRAY)).append(styled(p)));
 		refresh(p);
 	}
 
