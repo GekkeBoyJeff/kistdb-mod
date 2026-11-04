@@ -147,6 +147,11 @@ public final class Compass {
 		BARS.clear();
 	}
 
+	/** Every marker for this player right now (also used by the land maps). */
+	public static List<Marker> markersFor(ServerPlayer p) {
+		return markers(p);
+	}
+
 	private static List<Marker> markers(ServerPlayer p) {
 		List<Marker> out = new ArrayList<>();
 		for (Source s : SOURCES) {

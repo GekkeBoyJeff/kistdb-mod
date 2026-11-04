@@ -870,6 +870,28 @@ final class ClaimView {
 			v.holder.addElement(label);
 			v.labels.add(label);
 		}
+		// Waypoints, your death point, graves… and friends who want to be seen, as small flags in the view
+		double reach = (RADIUS + 1) * 16;
+		List<nl.libreria.core.gui.Compass.Marker> markers = new ArrayList<>(nl.libreria.core.gui.Compass.markersFor(v.p));
+		markers.addAll(ClaimsMod.friends(v.p));
+		for (nl.libreria.core.gui.Compass.Marker m : markers) {
+			if (Math.abs(m.pos().x - v.origin.x) > reach || Math.abs(m.pos().z - v.origin.z) > reach) continue;
+			MutableComponent text = Component.empty();
+			if (v.pack) text.append(nl.libreria.core.gui.Glyphs.ui(nl.libreria.core.gui.Glyphs.g("compass." + m.glyph()) + " ", m.color()));
+			text.append(Component.literal(m.name()).withStyle(s -> s.withColor(m.color())));
+			TextDisplayElement label = new TextDisplayElement(text);
+			label.setBillboardMode(Display.BillboardConstraints.CENTER);
+			label.setBrightness(FULL);
+			label.setViewRange(8f);
+			label.setShadow(true);
+			label.setBackground(0x50000000);
+			label.setScale(new Vector3f(labelScale(v)));
+			ChunkPos column = new ChunkPos(Mth.floor(m.pos().x) >> 4, Mth.floor(m.pos().z) >> 4);
+			double y = Math.max(m.pos().y + 2.5, highest(v, column) + 2.0);
+			label.setOffset(new Vec3(m.pos().x, y, m.pos().z).subtract(v.origin));
+			v.holder.addElement(label);
+			v.labels.add(label);
+		}
 	}
 
 	/** Soft coloured motes rising inside the buildings near the middle of the screen. */

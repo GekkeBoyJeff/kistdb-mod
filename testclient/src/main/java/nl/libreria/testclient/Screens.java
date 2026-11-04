@@ -285,6 +285,27 @@ public final class Screens implements FabricClientGameTest {
 				ctx.takeScreenshot("claim_view_closed");
 			});
 
+			// The land map to hold, and the compass bar with a marker straight ahead
+			safe("land_map_item", () -> {
+				net.minecraft.world.item.ItemStack[] before = new net.minecraft.world.item.ItemStack[2];
+				server.runOnServer(s -> {
+					before[0] = player.getMainHandItem().copy();
+					before[1] = player.getOffhandItem().copy();
+					player.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, nl.libreria.claims.LandMapItem.create());
+					player.setItemInHand(net.minecraft.world.InteractionHand.OFF_HAND, net.minecraft.world.item.ItemStack.EMPTY);
+				});
+				ctx.getInput().lookAt(0, 30);
+				ctx.waitTicks(40);
+				ctx.takeScreenshot("land_map_item");
+				server.runOnServer(s -> {
+					player.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, before[0]);
+					player.setItemInHand(net.minecraft.world.InteractionHand.OFF_HAND, before[1]);
+				});
+				ctx.getInput().lookAt(0, 0);
+				ctx.waitTicks(10);
+				ctx.takeScreenshot("compass_bar");
+			});
+
 			// Windows (dialogs): settings, effects, admin, links, getting started
 			// The admin window is for operators (the /op command only exists on dedicated servers)
 			server.runOnServer(s -> s.getPlayerList().op(player.nameAndId()));

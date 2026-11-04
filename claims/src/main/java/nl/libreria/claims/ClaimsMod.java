@@ -85,6 +85,8 @@ public final class ClaimsMod implements ModInitializer {
 	public static final nl.libreria.core.Setting.Choice MAP_KEY = MODULE.choice("kaarttoets", "Land map key", Items.FILLED_MAP, 0,
 			new int[] {0, 1, 2}, new String[] {"Sneak + swap hands (F)", "Swap hands (F)", "Off"},
 			"Opens and closes the land map.", "Swap hands is F unless you changed", "it in Controls.");
+	public static final nl.libreria.core.Setting.Toggle SHOW_ME = MODULE.toggle("show_me", "Show me on land maps", false, Items.PLAYER_HEAD,
+			"Other players see you as a marker", "on their land maps. Off: nobody does.");
 	public static final nl.libreria.core.Setting.Toggle MAP_BUTTON = MODULE.toggle("kaartknop", "Land map button", true, Items.MAP,
 			"A land map button right of your", "hotbar, with its key (Libreria pack).");
 
@@ -144,6 +146,8 @@ public final class ClaimsMod implements ModInitializer {
 				"Key: sneak + swap hands (F)", "Or stand in your base: /claim");
 		MODULE.hubEntry(Items.NAME_TAG, "Trusted players", ChatFormatting.AQUA, MapGui.TrustGui::open,
 				"Who may build in your land, and", "whether visitors may use doors.");
+		MODULE.hubEntry(Items.MAP, "Land map to hold", ChatFormatting.GREEN, LandMapItem::give,
+				"A real map item that shows the", "claims around you as you walk.", "", "Also: /claim mapitem");
 
 		PlayerBlockBreakEvents.BEFORE.register((world, player, pos, state, be) -> {
 			if (!(player instanceof ServerPlayer sp) || allowed(sp, world, pos, Action.BUILD)) return true;
@@ -207,6 +211,7 @@ public final class ClaimsMod implements ModInitializer {
 		net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STOPPING.register(server -> ClaimView.closeAll());
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
 			int tick = server.getTickCount();
+			if (tick % 10 == 5) LandMapItem.tick(server, tick);
 			if (tick % 10 != 0) return;
 			for (ServerPlayer p : server.getPlayerList().getPlayers()) {
 				enterMessage(p);
@@ -224,6 +229,7 @@ public final class ClaimsMod implements ModInitializer {
 		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
 			ClaimView.forget(handler.player);
 			UUID id = handler.player.getUUID();
+			LandMapItem.forget(id);
 			LAST.remove(id);
 			HINTED.remove(id);
 			TIP_AT.remove(id);
@@ -234,6 +240,10 @@ public final class ClaimsMod implements ModInitializer {
 						.then(Commands.literal("here").executes(ctx -> claimHere(ctx.getSource().getPlayerOrException())))
 						.then(Commands.literal("map").executes(ctx -> {
 							ClaimView.open(ctx.getSource().getPlayerOrException());
+							return 1;
+						}))
+						.then(Commands.literal("mapitem").executes(ctx -> {
+							LandMapItem.give(ctx.getSource().getPlayerOrException());
 							return 1;
 						}))
 						.then(Commands.literal("release").executes(ctx -> releaseHere(ctx.getSource().getPlayerOrException())))
@@ -283,6 +293,16 @@ public final class ClaimsMod implements ModInitializer {
 	}
 
 	// ---------------------------------------------------------------- opslag
+
+	/** Players in your world who chose to be seen on land maps (not you). */
+	static List<nl.libreria.core.gui.Compass.Marker> friends(ServerPlayer p) {
+		List<nl.libreria.core.gui.Compass.Marker> out = new ArrayList<>();
+		for (ServerPlayer o : p.level().players()) {
+			if (o == p || o.isSpectator() || !SHOW_ME.get(o)) continue;
+			out.add(new nl.libreria.core.gui.Compass.Marker(o.position(), "person", 0xFFE68A, o.getName().getString()));
+		}
+		return out;
+	}
 
 	/** "Your land": the middle of your nearest chunk in this world, while you're not on your own land. */
 	static List<nl.libreria.core.gui.Compass.Marker> compassMarker(ServerPlayer p) {
