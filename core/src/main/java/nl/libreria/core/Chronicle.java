@@ -326,7 +326,11 @@ public final class Chronicle {
 	static MutableComponent line(Entry e, boolean hover) {
 		MutableComponent out = Component.empty();
 		if (e.major) out.append(Ui.text("✦ ", ChatFormatting.GOLD));
-		if (!e.name.isEmpty()) out.append(Ui.text(e.name, ChatFormatting.YELLOW)).append(Ui.text(" ", ChatFormatting.GRAY));
+		if (!e.name.isEmpty()) {
+			out.append(Ui.text(e.name, ChatFormatting.YELLOW));
+			// "Jeffrey" + "'s sword…" without a space
+			if (!e.text.startsWith("'")) out.append(Ui.text(" ", ChatFormatting.GRAY));
+		}
 		out.append(Ui.text(e.text, e.major ? ChatFormatting.WHITE : ChatFormatting.GRAY));
 		if (hover && e.at > 0) {
 			String when = WHEN.format(Instant.ofEpochMilli(e.at).atZone(ZoneId.systemDefault()));

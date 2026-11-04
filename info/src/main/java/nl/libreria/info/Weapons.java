@@ -198,11 +198,11 @@ final class Weapons {
 			stack.set(DataComponents.CUSTOM_NAME, Component.literal(name).withStyle(s -> s.withItalic(false)));
 			Toast.show(p, stack.copy(), Toast.GOOD, Ui.text("Your " + item + " earned a name", ChatFormatting.GOLD),
 					Ui.text(name + " · " + how, ChatFormatting.WHITE));
-			Chronicle.write(p.getUUID(), "", Chronicle.Kind.LEGEND, p.getName().getString() + "'s " + item + " earned a name " + how + ": " + name, true);
+			Chronicle.write(p, Chronicle.Kind.LEGEND, "'s " + item + " earned a name " + how + ": " + name, true);
 		} else {
 			String name = own.getString();
 			Toast.show(p, stack.copy(), Toast.GOOD, Ui.text(name + " became a legend", ChatFormatting.GOLD), Ui.text(how, ChatFormatting.WHITE));
-			Chronicle.write(p.getUUID(), "", Chronicle.Kind.LEGEND, p.getName().getString() + "'s " + item + " \"" + name + "\" became a legend " + how, true);
+			Chronicle.write(p, Chronicle.Kind.LEGEND, "'s " + item + " \"" + name + "\" became a legend " + how, true);
 		}
 		Ui.sound(p, SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, 0.7f, 1.1f);
 	}

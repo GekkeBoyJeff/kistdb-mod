@@ -69,8 +69,13 @@ final class InfoTests {
 			FakePlayer p = FakePlayer.get(level);
 			var stone = Blocks.STONE.defaultBlockState();
 			var water = Blocks.WATER.defaultBlockState();
+			// The land around each spot has to be loaded (as it is around a real player)
+			java.util.function.BiConsumer<Integer, Integer> load = (x, z) -> {
+				for (int cx = (x - 56) >> 4; cx <= (x + 56) >> 4; cx++) for (int cz = (z - 56) >> 4; cz <= (z + 56) >> 4; cz++) level.getChunk(cx, cz);
+			};
 			// A lake: a pond of 49 by 49 in the ground
 			int lx = 2000, lz = 2000;
+			load.accept(lx, lz);
 			int gy = level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, lx, lz) - 1;
 			for (int dx = -24; dx <= 24; dx++) for (int dz = -24; dz <= 24; dz++) level.setBlock(new BlockPos(lx + dx, gy, lz + dz), water, 2);
 			p.setPos(lx + 0.5, gy + 1, lz + 0.5);
@@ -79,6 +84,7 @@ final class InfoTests {
 			SelfTests.check(Places.landmarkAt(p, "minecraft:river") == null, "no lake in a river");
 			// A peak: a tall spire on flat land
 			int px = 2400, pz = 2400;
+			load.accept(px, pz);
 			int base = level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, px, pz);
 			for (int dx = -2; dx <= 2; dx++) for (int dz = -2; dz <= 2; dz++) for (int y = base; y <= 130; y++) {
 				level.setBlock(new BlockPos(px + dx, y, pz + dz), stone, 2);
@@ -90,6 +96,7 @@ final class InfoTests {
 			SelfTests.check(Places.landmarkAt(p, "minecraft:plains") == null, "at its foot: nothing");
 			// A cavern: a big hollow room with a roof
 			int cx = 2800, cz = 2800, y0 = 140;
+			load.accept(cx, cz);
 			for (int dx = -14; dx <= 14; dx++) for (int dz = -14; dz <= 14; dz++) {
 				level.setBlock(new BlockPos(cx + dx, y0, cz + dz), stone, 2);
 				level.setBlock(new BlockPos(cx + dx, y0 + 20, cz + dz), stone, 2);
