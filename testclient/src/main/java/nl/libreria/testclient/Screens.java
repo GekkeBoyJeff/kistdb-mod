@@ -286,7 +286,8 @@ public final class Screens implements FabricClientGameTest {
 			});
 
 			// Windows (dialogs): settings, effects, admin, links, getting started
-			run(server, "op @a");
+			// The admin window is for operators (the /op command only exists on dedicated servers)
+			server.runOnServer(s -> s.getPlayerList().op(player.nameAndId()));
 			ctx.waitTicks(5);
 			menu(ctx, server, player, "window_settings", SettingsWindow::open);
 			for (Module m : List.of(nl.libreria.core.Libreria.MODULE, nl.libreria.glint.GlintMod.MODULE)) {

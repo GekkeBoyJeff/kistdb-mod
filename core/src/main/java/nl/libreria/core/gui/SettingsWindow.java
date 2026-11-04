@@ -42,7 +42,6 @@ public final class SettingsWindow {
 	public static void open(ServerPlayer player, Module module) {
 		Window w = Window.of(module.name + " · Settings");
 		w.item(new ItemStack(module.icon), Ui.text(String.join(" ", module.description), ChatFormatting.GRAY));
-		for (Setting s : module.settings()) w.text(explain(s));
 		for (Setting s : module.settings()) {
 			Component label = Ui.text(s.label, ChatFormatting.WHITE);
 			if (s instanceof Setting.Toggle t) {
@@ -73,10 +72,21 @@ public final class SettingsWindow {
 						open(p, module);
 					});
 		}
+		if (!module.settings().isEmpty()) {
+			w.button(Ui.text("What do these do?", ChatFormatting.WHITE), Ui.text("One line per setting", ChatFormatting.GRAY),
+					(p, v) -> help(p, module));
+		}
 		for (Module.SettingsButton b : module.settingsButtons()) {
 			w.button(Ui.text(b.label() + " ▸", ChatFormatting.AQUA), Ui.text(b.tooltip(), ChatFormatting.GRAY), (p, v) -> b.action().accept(p));
 		}
 		w.back(SettingsWindow::open).show(player);
+	}
+
+	/** What each setting of a module does. */
+	static void help(ServerPlayer player, Module module) {
+		Window w = Window.of(module.name + " · What do these do?");
+		for (Setting s : module.settings()) w.text(explain(s));
+		w.back(p -> open(p, module)).show(player);
 	}
 
 	/** "Label: what it does" in one line. */

@@ -77,17 +77,22 @@ public final class Welcome {
 	}
 
 	private static MutableComponent key(String mapping) {
-		return Component.keybind(mapping).withStyle(s -> s.withColor(ChatFormatting.WHITE).withItalic(false));
+		return key(mapping, ChatFormatting.WHITE);
+	}
+
+	private static MutableComponent key(String mapping, ChatFormatting color) {
+		return Component.keybind(mapping).withStyle(s -> s.withColor(color).withItalic(false));
 	}
 
 	/** "Getting started": what's here and how to reach it, with the player's own keys. */
 	public static void guide(ServerPlayer p) {
 		Window w = Window.of(Ui.text("Getting started", ChatFormatting.GOLD).withStyle(ChatFormatting.BOLD));
 		w.text(Ui.text("Everything works with a normal Minecraft: nothing to install.", ChatFormatting.GRAY));
-		w.text(line("Quick menu", key("key.quickActions"), "everything below, one key away. Also in the pause menu."));
-		w.text(line("Your items", key("key.inventory"), "then the magnifier: search your inventory and your chests."));
-		w.text(line("Sort", key("key.inventory"), "then click beside the window: sorts; right-click puts items away in chests."));
-		w.text(line("Land map", Component.empty().append(key("key.sneak")).append(" + ").append(key("key.swapOffhand")),
+		w.text(line("Quick menu", key("key.quickActions", ChatFormatting.YELLOW), "everything below, one key away. Also in the pause menu."));
+		w.text(line("Your items", key("key.inventory", ChatFormatting.YELLOW), "then the magnifier: search your inventory and your chests."));
+		w.text(line("Sort", key("key.inventory", ChatFormatting.YELLOW), "then click beside the window: sorts; right-click puts items away in chests."));
+		w.text(line("Land map", Component.empty().append(key("key.sneak", ChatFormatting.YELLOW)).append(" + ")
+				.append(key("key.swapOffhand", ChatFormatting.YELLOW)),
 				"claim land and see whose land is where."));
 		w.text(line("Look at things", Component.literal("—"), "a card at the top tells you what you're looking at."));
 		w.text(Ui.text("Change anything you like in Settings: it only changes things for you.", ChatFormatting.GRAY));

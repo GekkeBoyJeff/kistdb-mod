@@ -30,7 +30,7 @@
    "label": [
     {
      "text": "Your items",
-     "color": "aqua"
+     "color": "#7FE3FF"
     }
    ],
    "tooltip": {
@@ -49,7 +49,7 @@
    "label": [
     {
      "text": "Land map",
-     "color": "green"
+     "color": "#8CF08C"
     },
     {
      "text": "  ",
@@ -80,7 +80,7 @@
    "label": [
     {
      "text": "Sort inventory",
-     "color": "yellow"
+     "color": "#FFE68A"
     }
    ],
    "tooltip": {
@@ -99,7 +99,7 @@
    "label": [
     {
      "text": "Waypoints",
-     "color": "dark_aqua"
+     "color": "#6FE0D0"
     }
    ],
    "tooltip": {
@@ -118,7 +118,7 @@
    "label": [
     {
      "text": "Achievements",
-     "color": "gold"
+     "color": "#FFC266"
     }
    ],
    "tooltip": {
@@ -137,7 +137,7 @@
    "label": [
     {
      "text": "Effects",
-     "color": "light_purple"
+     "color": "#F59BFF"
     }
    ],
    "tooltip": {
@@ -156,7 +156,7 @@
    "label": [
     {
      "text": "Settings",
-     "color": "gray"
+     "color": "#E6E6E6"
     }
    ],
    "tooltip": {
@@ -175,7 +175,7 @@
    "label": [
     {
      "text": "Getting started",
-     "color": "white"
+     "color": "#FFFFFF"
     }
    ],
    "tooltip": {
@@ -194,7 +194,7 @@
    "label": [
     {
      "text": "Links",
-     "color": "blue"
+     "color": "#A9B6FF"
     }
    ],
    "tooltip": {
@@ -213,7 +213,7 @@
    "label": [
     {
      "text": "Libreria menu",
-     "color": "white"
+     "color": "#FFFFFF"
     }
    ],
    "tooltip": {

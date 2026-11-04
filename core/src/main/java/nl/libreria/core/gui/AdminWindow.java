@@ -42,7 +42,6 @@ public final class AdminWindow {
 		if (!allowed(player)) return;
 		Window w = Window.of(Ui.text("⚙ " + module.name, ChatFormatting.GOLD).withStyle(ChatFormatting.BOLD));
 		w.item(new ItemStack(module.icon), Ui.text("Server-wide: this changes it for every player.", ChatFormatting.GRAY));
-		for (ServerSetting s : module.serverSettings()) w.text(explain(s));
 		for (ServerSetting s : module.serverSettings()) {
 			Component label = Ui.text(s.label, ChatFormatting.WHITE);
 			switch (s) {
@@ -68,6 +67,11 @@ public final class AdminWindow {
 			for (ServerSetting s : module.serverSettings()) s.reset();
 			Libreria.LOG.info("{} reset the server settings of {}", p.getName().getString(), module.name);
 			open(p, module);
+		});
+		w.button(Ui.text("What do these do?", ChatFormatting.WHITE), Ui.text("One line per setting", ChatFormatting.GRAY), (p, v) -> {
+			Window h = Window.of("⚙ " + module.name + " · What do these do?");
+			for (ServerSetting s : module.serverSettings()) h.text(explain(s));
+			h.back(pl -> open(pl, module)).show(p);
 		});
 		w.back(AdminWindow::open).show(player);
 	}
