@@ -117,7 +117,6 @@ public final class HubGui extends Menu {
 			for (Module.HubEntry e : Module.allHubEntries()) if (e.category() == cat) entries.add(e);
 			if (entries.isEmpty() || row > 4) continue;
 			this.setSlot(row * 9, header(cat.pane, cat.label, cat.color));
-			this.setSlot(row * 9 + 8, header(cat.pane, cat.label, cat.color));
 			int[] slots = row(row, entries.size());
 			for (int i = 0; i < slots.length; i++) this.setSlot(slots[i], entryButton(entries.get(i)));
 			row++;

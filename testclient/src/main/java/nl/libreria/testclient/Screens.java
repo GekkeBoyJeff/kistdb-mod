@@ -339,12 +339,8 @@ public final class Screens implements FabricClientGameTest {
 			safe("leaderboard_and_tab", () -> {
 				server.runOnServer(s -> nl.libreria.info.Leaderboards.place(player, nl.libreria.info.Leaderboards.Kind.PLAYTIME));
 				ctx.waitTicks(30);
+				// (The tab list itself doesn't show in single player with one player, so no picture of it here)
 				ctx.takeScreenshot("leaderboard");
-				ctx.getInput().holdKey(opts -> opts.keyPlayerList);
-				ctx.waitTicks(45);
-				ctx.takeScreenshot("tab_list");
-				ctx.getInput().releaseKey(opts -> opts.keyPlayerList);
-				ctx.waitTicks(3);
 			});
 			safe("toast", () -> {
 				server.runOnServer(s -> nl.libreria.core.gui.Toast.show(player, net.minecraft.world.item.Items.GOLDEN_SHOVEL,

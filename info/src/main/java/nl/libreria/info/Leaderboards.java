@@ -135,7 +135,7 @@ public final class Leaderboards {
 				text.setLineWidth(220);
 				text.setShadow(true);
 				text.setBrightness(new Brightness(15, 15));
-				text.setScale(new org.joml.Vector3f(1.2f));
+				text.setScale(new org.joml.Vector3f(1.0f));
 				holder.addElement(text);
 				ChunkAttachment.ofTicking(holder, level, new Vec3(b.x, b.y, b.z));
 				SHOWN.put(b, holder);

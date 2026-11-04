@@ -237,7 +237,8 @@ public final class Compass {
 		pieces.sort(Comparator.comparingInt(Piece::x));
 
 		int adv = Glyphs.advance("compass.bar");
-		MutableComponent out = Glyphs.ui(Glyphs.g("compass.bar") + Glyphs.space(-adv), 0xFFFFFF);
+		// The pieces are siblings of a plain root, so letters keep the normal font (children take over their parent's)
+		MutableComponent out = Component.empty().append(Glyphs.ui(Glyphs.g("compass.bar") + Glyphs.space(-adv), 0xFFFFFF));
 		int cursor = 0;
 		for (Piece piece : pieces) {
 			int gap = piece.x() - cursor;
