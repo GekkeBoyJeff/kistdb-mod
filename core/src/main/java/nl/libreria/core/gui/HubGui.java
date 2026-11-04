@@ -13,10 +13,21 @@ import nl.libreria.core.Services;
 import nl.libreria.core.Ui;
 
 /**
- * The Libreria menu. One row per category (items, world, progress, you) with a coloured label on the left, your
- * player card at the top, and Settings / Close / Help at the bottom.
+ * The Libreria menu. On top: what you used last, your player card, Getting started, links and (for operators) the
+ * server settings. Then one row per category (items, world, progress, you) and Settings / Close / Help at the bottom.
  */
 public final class HubGui extends Menu {
+	/** The last few buttons a player used, newest first. */
+	public static final class Recent {
+		public List<String> keys = new ArrayList<>();
+	}
+
+	static final nl.libreria.core.PlayerStore<Recent> RECENT = nl.libreria.core.PlayerStore.create("libreria/hub", Recent.class,
+			Recent::new, r -> {
+				if (r.keys == null) r.keys = new ArrayList<>();
+			});
+	private static final int RECENT_SHOWN = 3;
+
 	private HubGui(ServerPlayer player) {
 		super(player, 6, "Libreria");
 		build();
@@ -24,6 +35,39 @@ public final class HubGui extends Menu {
 
 	public static void open(ServerPlayer player) {
 		new HubGui(player).open();
+	}
+
+	private static String key(Module.HubEntry e) {
+		return e.module().id + ":" + e.name();
+	}
+
+	private GuiElementBuilder entryButton(Module.HubEntry e) {
+		GuiElementBuilder b = button(e.icon(), e.name(), e.color(), e.lore().toArray(String[]::new));
+		actions(b, "Click: open");
+		return b.setCallback((index, type, action, gui) -> {
+			Ui.click(this.player);
+			used(this.player, e);
+			e.action().accept(this.player);
+		});
+	}
+
+	/** Remembers that a button was used (it moves to the front of "Recently used"). */
+	static void used(ServerPlayer p, Module.HubEntry e) {
+		Recent r = RECENT.get(p);
+		r.keys.remove(key(e));
+		r.keys.addFirst(key(e));
+		while (r.keys.size() > 8) r.keys.removeLast();
+		RECENT.markDirty(p);
+	}
+
+	private List<Module.HubEntry> recent() {
+		List<Module.HubEntry> out = new ArrayList<>();
+		for (String k : RECENT.get(this.player).keys) {
+			for (Module.HubEntry e : Module.allHubEntries()) {
+				if (key(e).equals(k) && out.size() < RECENT_SHOWN) out.add(e);
+			}
+		}
+		return out;
 	}
 
 	private void build() {
@@ -35,6 +79,36 @@ public final class HubGui extends Menu {
 		Services.progress().ifPresent(p -> p.card(this.player).forEach(head::addLoreLine));
 		this.setSlot(4, head);
 
+		// Top row, left: what you used last
+		List<Module.HubEntry> recent = recent();
+		if (!recent.isEmpty()) {
+			this.setSlot(0, header("light_gray", "Recently used", ChatFormatting.WHITE));
+			for (int i = 0; i < recent.size(); i++) this.setSlot(1 + i, entryButton(recent.get(i)));
+		}
+		// Top row, right: getting started, links, and for operators the admin window
+		this.setSlot(6, actions(button(Items.WRITABLE_BOOK, "Getting started", ChatFormatting.GOLD,
+				"What's here and which keys to use."), "Click: open").setCallback((i, t, a, g) -> {
+					Ui.click(this.player);
+					this.close();
+					nl.libreria.core.Welcome.guide(this.player);
+				}));
+		if (!nl.libreria.core.Links.present().isEmpty()) {
+			this.setSlot(7, actions(button(Items.COMPASS, "Links", ChatFormatting.AQUA, "Discord, website, rules…"), "Click: open")
+					.setCallback((i, t, a, g) -> {
+						Ui.click(this.player);
+						this.close();
+						nl.libreria.core.Links.open(this.player);
+					}));
+		}
+		if (Ui.isOp(this.player)) {
+			this.setSlot(8, actions(button(Items.COMMAND_BLOCK, "Server settings", ChatFormatting.RED,
+					"Operators only: house rules for", "everybody, links, leaderboards."), "Click: open").setCallback((i, t, a, g) -> {
+						Ui.click(this.player);
+						this.close();
+						AdminWindow.open(this.player);
+					}));
+		}
+
 		// One row per category
 		Module.Category[] cats = Module.Category.values();
 		int row = 1;
@@ -45,16 +119,7 @@ public final class HubGui extends Menu {
 			this.setSlot(row * 9, header(cat.pane, cat.label, cat.color));
 			this.setSlot(row * 9 + 8, header(cat.pane, cat.label, cat.color));
 			int[] slots = row(row, entries.size());
-			for (int i = 0; i < slots.length; i++) {
-				Module.HubEntry e = entries.get(i);
-				GuiElementBuilder b = button(e.icon(), e.name(), e.color(), e.lore().toArray(String[]::new));
-				actions(b, "Click: open");
-				b.setCallback((index, type, action, gui) -> {
-					Ui.click(this.player);
-					e.action().accept(this.player);
-				});
-				this.setSlot(slots[i], b);
-			}
+			for (int i = 0; i < slots.length; i++) this.setSlot(slots[i], entryButton(entries.get(i)));
 			row++;
 		}
 
@@ -75,14 +140,16 @@ public final class HubGui extends Menu {
 				}));
 		closeButton();
 		List<String> help = new ArrayList<>(List.of(
-				"The glowing icon in the crafting slot",
-				"of your inventory (E):",
-				"  left-click = sort your inventory",
-				"  right-click = this menu",
+				"Keys:",
+				"  G – quick menu (also in the pause menu)",
+				"  E, then the magnifier – your items",
+				"  E, then click beside it – sort",
+				"  Sneak + F – land map",
 				"",
 				"Commands:",
 				"  /libreria (or /lib) – this menu",
-				"  /libreria settings – settings"));
+				"  /libreria settings – settings",
+				"  /libreria start – getting started"));
 		for (Module m : Module.all()) for (String c : m.commandHelp()) help.add("  " + c);
 		help(help.toArray(String[]::new));
 		finish();

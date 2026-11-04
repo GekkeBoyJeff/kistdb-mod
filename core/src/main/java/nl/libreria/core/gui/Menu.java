@@ -19,7 +19,7 @@ import nl.libreria.core.Ui;
 /**
  * The shared look of every Libreria menu, so all modules feel like one product:
  * <ul>
- *   <li>empty slots are filled with dark glass (no tooltip), the bottom row is a black navigation bar;</li>
+ *   <li>with the Libreria pack: Minecraft's own grey panel, empty slots melt into it; without: dark glass;</li>
  *   <li>bottom row: {@code ◀ Back} (left), page buttons (middle), {@code ✖ Close} (centre), {@code ? Help} (right);</li>
  *   <li>buttons: coloured name, grey description, then a yellow "▸ Click: …" action line;</li>
  *   <li>toggles: the setting's icon with a green/red "lamp" pane underneath, both clickable.</li>
@@ -44,19 +44,22 @@ public abstract class Menu extends SimpleGui {
 		this.setTitle(Component.literal(title));
 	}
 
-	/** Sets the title; with the pack it is drawn in white on the tool's coloured ribbon, inside the tool's frame. */
+	/**
+	 * Sets the title; with the pack the menu gets Minecraft's own grey panel with the tool's colour under the title,
+	 * and the title in the usual dark grey.
+	 */
 	@Override
 	public void setTitle(Component title) {
 		this.plainTitle = title;
 		if (this.pack) {
-			Component white = Component.literal(title.getString()).withStyle(s -> s.withColor(0xFFFFFF));
-			super.setTitle(Glyphs.framedTitle(theme(), this.rows, white));
+			Component grey = Component.literal(title.getString()).withStyle(s -> s.withColor(0x404040));
+			super.setTitle(Glyphs.framedTitle(theme(), this.rows, grey));
 		} else {
 			super.setTitle(title);
 		}
 	}
 
-	/** With the pack, coloured glass panes (headers, lamps) are shown as little plaques on the parchment. */
+	/** With the pack, coloured glass panes (headers, lamps) are shown as little plaques on the grey panel. */
 	@Override
 	public void setSlot(int index, eu.pb4.sgui.api.elements.GuiElement element) {
 		super.setSlot(index, this.pack ? plaque(element) : element);
@@ -112,7 +115,7 @@ public abstract class Menu extends SimpleGui {
 	}
 
 	/**
-	 * Fills every slot that is still empty: with the pack a piece of the frame's parchment (the slot disappears),
+	 * Fills every slot that is still empty: with the pack a piece of the grey panel (the slot disappears),
 	 * otherwise dark glass above and black glass in the navigation bar.
 	 */
 	protected void finish() {

@@ -80,7 +80,9 @@ public final class LandMapItem {
 			}
 		}
 		ItemStack map = create();
-		if (!p.getInventory().add(map)) p.drop(map, false, true);
+		if (!p.getInventory().add(map)) {
+			p.level().addFreshEntity(new net.minecraft.world.entity.item.ItemEntity(p.level(), p.getX(), p.getY(), p.getZ(), map));
+		}
 		nl.libreria.core.gui.Toast.show(p, Items.FILLED_MAP, nl.libreria.core.gui.Toast.GOOD, "Land map",
 				"Hold it: claims around you, as you walk.");
 		DRAWN.remove(p.getUUID());

@@ -20,7 +20,7 @@ import nl.libreria.core.gui.TopCard;
  */
 final class Sleep {
 	static final ServerSetting.Number PERCENT = ComfortMod.MODULE.serverNumber("sleep_percent", "Players needed to sleep",
-			Items.RED_BED, 100, 0, 100, 1, "%", "How many of the players in a world must", "sleep to skip the night (0: one is enough).");
+			Ui.item("red_bed"), 100, 0, 100, 1, "%", "How many of the players in a world must", "sleep to skip the night (0: one is enough).");
 
 	private static final String CHANNEL = "comfort.sleep";
 
@@ -61,7 +61,7 @@ final class Sleep {
 					continue;
 				}
 				boolean enough = sleeping >= needed;
-				TopCard.show(p, CHANNEL, new TopCard.Card(new ItemStack(Items.RED_BED), enough ? 0x55FF55 : 0x9AA8FF,
+				TopCard.show(p, CHANNEL, new TopCard.Card(new ItemStack(Ui.item("red_bed")), enough ? 0x55FF55 : 0x9AA8FF,
 						Ui.text(enough ? "Good night!" : "Sleeping: " + sleeping + " of " + needed, ChatFormatting.WHITE),
 						Ui.text(enough ? "The night is skipped" : (needed - sleeping) + " more and the night is skipped", ChatFormatting.GRAY),
 						List.of(TopCard.Row.bar("time", "Asleep", Math.min(1, sleeping / (double) needed), 0x9AA8FF, 10,

@@ -348,66 +348,45 @@ EMBLEMS = {
 
 
 def frame(rows, theme):
+    """A menu in Minecraft's own grey style (like the search screen): the vanilla panel with its bevel, the title in
+    the usual dark grey, and the tool's colour as a thin line under the title with its emblem on the right. Holes
+    where the slots are; empty slots get a grey tile (filler_tile) so they melt into the panel."""
     color, emblem = THEMES[theme]
     W, H = 176, 114 + 18 * rows
-    img = Image.new('RGBA', (W, H), PARCH)
-    # subtle parchment grain, repeating every 18 px so filler tiles line up
+    LIGHT, FILL, SHADE, BLACK = (255, 255, 255), (198, 198, 198), (85, 85, 85), (0, 0, 0)
+    img = Image.new('RGBA', (W, H), FILL + (255,))
     for y in range(H):
         for x in range(W):
-            gx, gy = (x - 7) % 18, (y - 17) % 18
-            if (gx * 7 + gy * 13) % 29 == 0:
-                px(img, x, y, PARCH_LO)
-            elif (gx * 11 + gy * 5) % 37 == 0:
-                px(img, x, y, PARCH_HI)
-    # holes for the slots
+            corner = min(x, W - 1 - x) + min(y, H - 1 - y)
+            if (x in (0, W - 1) or y in (0, H - 1)) and corner < 2:
+                img.putpixel((x, y), (0, 0, 0, 0))
+            elif x in (0, W - 1) or y in (0, H - 1) or corner < 3:
+                img.putpixel((x, y), BLACK + (255,))
+            elif x in (1, 2) or y in (1, 2):
+                img.putpixel((x, y), LIGHT + (255,))
+            elif x in (W - 2, W - 3) or y in (H - 2, H - 3):
+                img.putpixel((x, y), SHADE + (255,))
+    # holes for the slots (the container's own slots show through)
     holes = [(7, 17, 162, 18 * rows), (7, 30 + 18 * rows, 162, 54), (7, 88 + 18 * rows, 162, 18)]
     for hx, hy, hw, hh in holes:
         for y in range(hy, hy + hh):
             for x in range(hx, hx + hw):
                 img.putpixel((x, y), (0, 0, 0, 0))
-        # a thin dark line around each slot area
-        for x in range(hx - 1, hx + hw + 1):
-            px(img, x, hy - 1, PARCH_LO)
-            px(img, x, hy + hh, PARCH_HI)
-        for y in range(hy - 1, hy + hh + 1):
-            px(img, hx - 1, y, PARCH_LO)
-            px(img, hx + hw, y, PARCH_HI)
-    # outer frame (like the tooltip: outline, bronze, dark)
-    for x in range(W):
-        for i, c in enumerate([OUTLINE, BRONZE_HI, BRONZE, INNER]):
-            px(img, x, i, c)
-        for i, c in enumerate([OUTLINE, BRONZE_LO, BRONZE, INNER]):
-            px(img, x, H - 1 - i, c)
-    for y in range(H):
-        for i, c in enumerate([OUTLINE, BRONZE_HI, BRONZE, INNER]):
-            px(img, i, y, c)
-        for i, c in enumerate([OUTLINE, BRONZE_LO, BRONZE, INNER]):
-            px(img, W - 1 - i, y, c)
-    for (cx, cy) in ((0, 0), (W - 1, 0), (0, H - 1), (W - 1, H - 1)):
-        px(img, cx, cy, (0, 0, 0, 0))
-    # title ribbon in the tool's colour
-    top, bottom = 4, 15
-    for y in range(top, bottom + 1):
-        t = (y - top) / (bottom - top)
-        c = lerp(lerp(color, (255, 255, 255), 0.18), lerp(color, (0, 0, 0), 0.25), t)
-        for x in range(4, W - 4):
-            px(img, x, y, c + (255,))
-    for x in range(4, W - 4):
-        px(img, x, bottom + 1, lerp(color, (0, 0, 0), 0.55) + (255,))
-    # emblem on the right of the ribbon
+    # the tool's colour: a thin line under the title, fading out to the right, and its emblem
+    for x in range(7, W - 7):
+        t = (x - 7) / (W - 14)
+        a = int(255 * max(0.0, 1 - t * 1.15))
+        px(img, x, 15, lerp(color, FILL, 1 - a / 255) + (255,))
     rows_e = EMBLEMS[emblem]
-    ex, ey = W - 17, 6
-    dark = lerp(color, (0, 0, 0), 0.6) + (255,)
-    light = lerp(color, (255, 255, 255), 0.75) + (255,)
+    ex, ey = W - 17, 5
+    dark = lerp(color, (0, 0, 0), 0.35) + (255,)
+    light = lerp(color, (255, 255, 255), 0.45) + (255,)
     for y, row in enumerate(rows_e):
         for x, ch in enumerate(row):
             if ch == '#':
                 px(img, ex + x, ey + y, dark)
             elif ch in 'wg':
                 px(img, ex + x, ey + y, light)
-    # studs in the corners and where the ribbon meets the frame
-    for cx, cy in ((2, 2), (W - 3, 2), (2, H - 3), (W - 3, H - 3)):
-        stud(img, cx, cy)
     return img
 
 
@@ -548,14 +527,8 @@ def frames():
 
 
 def filler_tile():
-    """Item model for empty menu slots: an 18x18 piece of parchment that hides the slot (needs oversized_in_gui)."""
-    img = Image.new('RGBA', (18, 18), PARCH)
-    for y in range(18):
-        for x in range(18):
-            if (x * 7 + y * 13) % 29 == 0:
-                img.putpixel((x, y), PARCH_LO)
-            elif (x * 11 + y * 5) % 37 == 0:
-                img.putpixel((x, y), PARCH_HI)
+    """Item model for empty menu slots: an 18x18 piece of the grey panel that hides the slot (needs oversized_in_gui)."""
+    img = Image.new('RGBA', (18, 18), (198, 198, 198, 255))
     base = os.path.join(OUT, 'assets', NS)
     os.makedirs(os.path.join(base, 'textures/item/gui'), exist_ok=True)
     img.save(os.path.join(base, 'textures/item/gui/tile.png'))
@@ -621,10 +594,10 @@ def claim_buildings():
 
 
 def plaques():
-    """Coloured glass panes in menus (headers, on/off lamps) become little coloured plaques on the parchment."""
+    """Coloured glass panes in menus (headers, on/off lamps) become little coloured plaques on the grey panel."""
     base = os.path.join(OUT, 'assets', NS)
     for name, c in DYES.items():
-        img = Image.new('RGBA', (18, 18), PARCH)
+        img = Image.new('RGBA', (18, 18), (198, 198, 198, 255))
         dark = lerp(c, (0, 0, 0), 0.45) + (255,)
         light = lerp(c, (255, 255, 255), 0.35) + (255,)
         for y in range(2, 16):
@@ -643,9 +616,9 @@ def plaques():
                 img.putpixel((x, y), col)
         # soft shadow under the plaque
         for x in range(3, 16):
-            img.putpixel((x, 16), PARCH_LO)
+            img.putpixel((x, 16), (150, 150, 150, 255))
         for y in range(3, 16):
-            img.putpixel((16, y), PARCH_LO)
+            img.putpixel((16, y), (150, 150, 150, 255))
         img.save(os.path.join(base, f'textures/item/gui/pane_{name}.png'))
         json.dump({'parent': 'minecraft:item/generated', 'textures': {'layer0': f'{NS}:item/gui/pane_{name}'},
                    'gui_light': 'front',
