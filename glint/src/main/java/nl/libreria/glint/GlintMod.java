@@ -57,10 +57,15 @@ public final class GlintMod implements ModInitializer {
 			"A light border around uncommon, rare", "and epic items in your inventory;", "rare and epic ones sparkle.");
 	public static final Setting.Toggle BOOKS = MODULE.toggle("books", "Custom book textures", true, Items.BOOK,
 			"Every enchanted book gets its own cover", "with a symbol for its enchantment.");
-	public static final Setting.Toggle AURA = MODULE.toggle("particles", "Particles around players", true, Items.BLAZE_POWDER,
-			"Flames, snow, soul fire… around", "players with enchanted gear.");
-	public static final Setting.Toggle AURA_SELF = MODULE.toggle("particles_self", "Your own particles", true, Items.GLOWSTONE_DUST,
-			"Your weapon's particles in first person;", "your armour's only in third person (F5),", "so they never fill your view.");
+	public static final Setting.Choice INTENSITY = MODULE.choice("intensity", "Particle intensity", Items.AMETHYST_SHARD, 1,
+			new int[]{1, 2, 3}, new String[]{"Subtle", "Normal", "Rich"},
+			"The most particles you see. Within it,", "higher enchantment levels give more.");
+	public static final Setting.Toggle AURA_FIRST = MODULE.toggle("particles_self", "First person: your weapon", true, Items.GLOWSTONE_DUST,
+			"Particles of the enchanted item in", "your hand, as you look around.");
+	public static final Setting.Toggle AURA_THIRD = MODULE.toggle("particles_third", "Third person: your armour", true, Items.DIAMOND_CHESTPLATE,
+			"Your armour's particles, only visible", "in third person (F5): they never", "fill your own view.");
+	public static final Setting.Toggle AURA = MODULE.toggle("particles", "On other players", true, Items.BLAZE_POWDER,
+			"Flames, snow, soul fire… around", "other players with enchanted gear.");
 
 	/** Een effect-familie uit families.json (gegenereerd door tools/glans/generate.py). */
 	public record Family(String id, String group, String name, String enchants, int items, List<String> ids) {
@@ -87,8 +92,10 @@ public final class GlintMod implements ModInitializer {
 		loadFamilies();
 		assetsAdded = Pack.addAssets("libreria_glint");
 
-		MODULE.hubEntry(Items.BLAZE_POWDER, "Glint effects", ChatFormatting.LIGHT_PURPLE, EffectsGui::open,
-				"Choose which enchant effects you see.");
+		MODULE.hubEntry(Items.BLAZE_POWDER, "Effects", ChatFormatting.LIGHT_PURPLE, EffectsWindow::open,
+				"How many particles you see, and where.");
+		MODULE.settingsButton("Choose effects", "Flames yes, smoke no: per effect", EffectsGui::open);
+		nl.libreria.core.Services.provideMenu(nl.libreria.core.Services.MENU_EFFECTS, EffectsWindow::open);
 
 		// Vroeg, zodat de pakketjes klaar zijn voordat de eerste speler inlogt
 		ServerLifecycleEvents.SERVER_STARTING.register(GlintMod::hostOffPacks);

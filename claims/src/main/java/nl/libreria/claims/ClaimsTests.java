@@ -18,7 +18,7 @@ final class ClaimsTests {
 			FakePlayer guest = FakePlayer.get(level, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "Guest"));
 			ChunkPos c = new ChunkPos(30, 30);
 			ClaimsMod.STORE.get().claims.remove(ClaimsMod.key(level, c));
-			SelfTests.check(ClaimsMod.budget(owner) >= ClaimsMod.BASE, "budget is at least the base");
+			SelfTests.check(ClaimsMod.budget(owner) >= ClaimsMod.START.get(), "budget is at least the base");
 			SelfTests.check(ClaimsMod.claim(owner, level, c), "claiming works");
 			SelfTests.check(!ClaimsMod.claim(guest, level, c), "can't claim twice");
 			BlockPos inside = new BlockPos(c.getMinBlockX() + 3, 100, c.getMinBlockZ() + 3);

@@ -71,7 +71,7 @@ public final class HubGui extends Menu {
 				"Turn features on or off and", "tweak them, per module.", "", "Also: /libreria settings"), "Click: open")
 				.setCallback((i, t, a, g) -> {
 					Ui.click(this.player);
-					SettingsGui.open(this.player);
+					SettingsWindow.open(this.player);
 				}));
 		closeButton();
 		List<String> help = new ArrayList<>(List.of(

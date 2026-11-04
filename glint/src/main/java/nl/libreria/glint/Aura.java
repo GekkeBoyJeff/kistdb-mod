@@ -78,15 +78,28 @@ final class Aura {
 		OFFHAND
 	}
 
-	/** One thing that gives off particles. {@code every}: fires once per this many runs. */
-	record Source(Kind kind, String family, double height, int every) {
+	/**
+	 * One effect of one item. {@code strength} 1 (a hint), 2 (clear) or 3 (rich) follows the enchantment level: Sharpness
+	 * I is a whiff, Sharpness V a steady glow. Enchantments with only one level count as 2.
+	 */
+	record Effect(String family, int strength) {
+	}
+
+	/**
+	 * One thing that gives off particles. {@code every}: fires once per this many runs; {@code strength} after the
+	 * viewer's maximum.
+	 */
+	record Source(Kind kind, String family, double height, int every, int strength) {
 	}
 
 	/**
 	 * What a player carries, per slot: the effects of each item, most striking first. Empty lists for nothing.
 	 * {@code armour} is head, chest, legs, feet.
 	 */
-	record Gear(List<String> hand, boolean handBook, List<String> offhand, boolean offBook, List<List<String>> armour) {
+	record Gear(List<Effect> hand, boolean handBook, List<Effect> offhand, boolean offBook, List<List<Effect>> armour) {
+		boolean isEmpty() {
+			return this.hand.isEmpty() && this.offhand.isEmpty() && this.armour.stream().allMatch(List::isEmpty);
+		}
 	}
 
 	private Aura() {
@@ -95,70 +108,102 @@ final class Aura {
 	// ---------------------------------------------------------------- what to show
 
 	static Gear gear(ServerPlayer p) {
-		List<List<String>> armour = new ArrayList<>();
-		for (EquipmentSlot s : ARMOUR) armour.add(families(p.getItemBySlot(s)));
+		List<List<Effect>> armour = new ArrayList<>();
+		for (EquipmentSlot s : ARMOUR) armour.add(effects(p.getItemBySlot(s)));
 		ItemStack main = p.getMainHandItem();
 		ItemStack off = p.getOffhandItem();
-		return new Gear(families(main), isBook(main), families(off), isBook(off), armour);
+		return new Gear(effects(main), isBook(main), effects(off), isBook(off), armour);
 	}
 
 	/**
-	 * The calm mix for one viewer. {@code shown} says which effects the viewer has on; when the most striking effect
-	 * of an item is off, its next one takes over.
+	 * The calm mix for one viewer. {@code shown} says which effects the viewer has on (when the most striking effect of
+	 * an item is off, its next one takes over); {@code max} is the viewer's maximum strength (1–3).
 	 */
-	static List<Source> compose(Gear g, Predicate<String> shown) {
+	static List<Source> compose(Gear g, Predicate<String> shown, int max) {
 		List<Source> out = new ArrayList<>();
 		// 1. The hand: what you hold is what people look at
-		String hand = first(g.hand(), shown);
-		if (hand != null) out.add(new Source(Kind.HAND, hand, 0.55, slow(hand, g.handBook() ? 4 : 2)));
+		Effect hand = first(g.hand(), shown);
+		if (hand != null) {
+			int st = Math.min(max, hand.strength());
+			out.add(new Source(Kind.HAND, hand.family(), 0.55, slow(hand.family(), handEvery(st) * (g.handBook() ? 2 : 1)), st));
+		}
 
 		// 2. Armour: a full set with a shared effect becomes one orbit…
-		String set = setFamily(g.armour(), shown);
+		Effect set = setEffect(g.armour(), shown);
 		if (set != null) {
-			out.add(new Source(Kind.SET, set, 0.5, 1));
+			int st = Math.min(max, set.strength());
+			out.add(new Source(Kind.SET, set.family(), 0.5, slow(set.family(), st == 1 ? 2 : 1), st));
 		} else {
 			// …otherwise at most two effects, each at the (average) height of the pieces that give it
-			Map<String, List<Double>> byFamily = new LinkedHashMap<>();
+			Map<String, List<Double>> heights = new LinkedHashMap<>();
+			Map<String, Integer> strength = new LinkedHashMap<>();
 			for (int i = 0; i < g.armour().size(); i++) {
-				String f = first(g.armour().get(i), shown);
-				if (f != null) byFamily.computeIfAbsent(f, k -> new ArrayList<>()).add(ARMOUR_HEIGHT[i]);
+				Effect e = first(g.armour().get(i), shown);
+				if (e == null) continue;
+				heights.computeIfAbsent(e.family(), k -> new ArrayList<>()).add(ARMOUR_HEIGHT[i]);
+				strength.merge(e.family(), e.strength(), Math::max);
 			}
-			List<String> fams = new ArrayList<>(byFamily.keySet());
+			List<String> fams = new ArrayList<>(heights.keySet());
 			// The most striking first; with equal standing, the one on more pieces
 			fams.sort((a, b) -> {
 				int r = Integer.compare(rank(a), rank(b));
-				return r != 0 ? r : Integer.compare(byFamily.get(b).size(), byFamily.get(a).size());
+				return r != 0 ? r : Integer.compare(heights.get(b).size(), heights.get(a).size());
 			});
 			int armour = 0;
 			for (String f : fams) {
 				if (armour == 2) break;
-				if (f.equals(hand)) continue; // already shown by the hand
+				if (hand != null && f.equals(hand.family())) continue; // already shown by the hand
 				armour++;
-				double h = byFamily.get(f).stream().mapToDouble(Double::doubleValue).average().orElse(0.5);
-				out.add(new Source(Kind.ARMOUR, f, h, slow(f, 4)));
+				double h = heights.get(f).stream().mapToDouble(Double::doubleValue).average().orElse(0.5);
+				int st = Math.min(max, strength.get(f));
+				out.add(new Source(Kind.ARMOUR, f, h, slow(f, armourEvery(st)), st));
 			}
 		}
 
 		// 3. The off hand, only when it adds something new
-		String off = first(g.offhand(), shown);
-		if (off != null && out.stream().noneMatch(s -> s.family().equals(off))) {
-			out.add(new Source(Kind.OFFHAND, off, 0.55, slow(off, 4)));
+		Effect off = first(g.offhand(), shown);
+		if (off != null && out.stream().noneMatch(s -> s.family().equals(off.family()))) {
+			int st = Math.min(max, off.strength());
+			out.add(new Source(Kind.OFFHAND, off.family(), 0.55, slow(off.family(), handEvery(st) * 2 * (g.offBook() ? 2 : 1)), st));
 		}
 		return out.size() > MAX_SOURCES ? new ArrayList<>(out.subList(0, MAX_SOURCES)) : out;
 	}
 
-	/** The most striking effect that is on all four armour pieces (and shown), or null. */
-	static String setFamily(List<List<String>> armour, Predicate<String> shown) {
+	/** Hand: strength 1 once a second, 2 twice, 3 four times (runs are a quarter second). */
+	private static int handEvery(int strength) {
+		return strength >= 3 ? 1 : strength == 2 ? 2 : 4;
+	}
+
+	/** Armour is calmer than the hand: every two seconds, every second, twice a second. */
+	private static int armourEvery(int strength) {
+		return strength >= 3 ? 2 : strength == 2 ? 4 : 8;
+	}
+
+	/**
+	 * The most striking effect that is on all four armour pieces (and shown), or null. A set is as strong as its weakest
+	 * piece.
+	 */
+	static Effect setEffect(List<List<Effect>> armour, Predicate<String> shown) {
 		if (armour.size() != 4 || armour.stream().anyMatch(List::isEmpty)) return null;
-		for (String f : armour.getFirst()) {
-			if (!shown.test(f)) continue;
-			if (armour.stream().allMatch(piece -> piece.contains(f))) return f;
+		for (Effect e : armour.getFirst()) {
+			if (!shown.test(e.family())) continue;
+			int weakest = Integer.MAX_VALUE;
+			boolean everywhere = true;
+			for (List<Effect> piece : armour) {
+				Effect match = piece.stream().filter(x -> x.family().equals(e.family())).findFirst().orElse(null);
+				if (match == null) {
+					everywhere = false;
+					break;
+				}
+				weakest = Math.min(weakest, match.strength());
+			}
+			if (everywhere) return new Effect(e.family(), weakest);
 		}
 		return null;
 	}
 
-	private static String first(List<String> fams, Predicate<String> shown) {
-		for (String f : fams) if (shown.test(f)) return f;
+	private static Effect first(List<Effect> effects, Predicate<String> shown) {
+		for (Effect e : effects) if (shown.test(e.family())) return e;
 		return null;
 	}
 
@@ -173,53 +218,72 @@ final class Aura {
 		for (ServerPlayer wearer : server.getPlayerList().getPlayers()) {
 			if (wearer.isSpectator() || wearer.isInvisible()) continue;
 			Gear gear = gear(wearer);
-			if (gear.hand().isEmpty() && gear.offhand().isEmpty() && gear.armour().stream().allMatch(List::isEmpty)) continue;
+			if (gear.isEmpty()) continue;
 			ServerLevel level = wearer.level();
 			// Stagger players, so a group doesn't pulse in step
 			int phase = Math.floorMod(wearer.getUUID().hashCode(), 64);
 			for (ServerPlayer viewer : level.players()) {
-				if (viewer.distanceToSqr(wearer) > 32 * 32 || !GlintMod.AURA.get(viewer)) continue;
+				if (viewer.distanceToSqr(wearer) > 32 * 32) continue;
 				boolean self = viewer == wearer;
-				if (self && !GlintMod.AURA_SELF.get(viewer)) continue;
-				for (Source s : compose(gear, f -> GlintMod.enabled(viewer, f))) {
+				boolean first = self && GlintMod.AURA_FIRST.get(viewer);
+				boolean third = self && GlintMod.AURA_THIRD.get(viewer);
+				if (self ? !first && !third : !GlintMod.AURA.get(viewer)) continue;
+				int max = GlintMod.INTENSITY.get(viewer);
+				for (Source s : compose(gear, f -> GlintMod.enabled(viewer, f), max)) {
 					if (Math.floorMod(run + phase + s.kind().ordinal(), s.every()) != 0) continue;
-					send(level, viewer, wearer, s, run, self);
+					boolean worn = s.kind() == Kind.ARMOUR || s.kind() == Kind.SET;
+					if (self && worn && !third) continue;
+					// Your own hand: where it is in first person; when only third person is on, behind the camera too
+					View view = !self ? View.OTHERS : worn || !first ? View.THIRD_PERSON : View.FIRST_PERSON;
+					send(level, viewer, wearer, s, run, view);
 				}
 			}
 		}
 	}
 
-	private static void send(ServerLevel level, ServerPlayer viewer, ServerPlayer wearer, Source s, int run, boolean self) {
+	/** Who looks: someone else, you in first person (the hand as it is), or you in third person only. */
+	enum View {
+		OTHERS, FIRST_PERSON, THIRD_PERSON
+	}
+
+	private static void send(ServerLevel level, ServerPlayer viewer, ServerPlayer wearer, Source s, int run, View view) {
 		ParticleOptions particle = PARTICLES.get(s.family());
 		Vec3 base = wearer.position();
 		double h = wearer.getBbHeight();
 		Vec3 look = wearer.getViewVector(1f);
+		Vec3 eye = wearer.getEyePosition();
 		Vec3 flat = new Vec3(look.x, 0, look.z);
 		flat = flat.lengthSqr() < 1e-4 ? new Vec3(0, 0, 1) : flat.normalize();
 		Vec3 right = new Vec3(-flat.z, 0, flat.x).scale(0.35);
+		boolean hidden = view == View.THIRD_PERSON;
 		switch (s.kind()) {
 			case HAND, OFFHAND -> {
 				// A little in front of the body, on the side of that hand
 				Vec3 pos = base.add(0, h * s.height(), 0).add(flat.scale(0.4)).add(s.kind() == Kind.HAND ? right : right.reverse());
-				level.sendParticles(viewer, particle, false, false, pos.x, pos.y, pos.z, 1, 0.12, 0.08, 0.12, 0.01);
+				if (hidden) pos = behindCamera(eye, look, pos);
+				double spread = hidden ? 0.04 : 0.12;
+				level.sendParticles(viewer, particle, false, false, pos.x, pos.y, pos.z, 1, spread, spread * 0.7, spread, 0.01);
 			}
 			case ARMOUR -> {
 				Vec3 pos = base.add(0, h * s.height(), 0);
-				if (self) {
-					pos = behindCamera(wearer.getEyePosition(), look, pos.subtract(flat.scale(0.3)));
+				if (hidden) {
+					pos = behindCamera(eye, look, pos.subtract(flat.scale(0.3)));
 					level.sendParticles(viewer, particle, false, false, pos.x, pos.y, pos.z, 1, 0.04, 0.04, 0.04, 0.005);
 				} else {
 					level.sendParticles(viewer, particle, false, false, pos.x, pos.y, pos.z, 1, 0.15, 0.1, 0.15, 0.01);
 				}
 			}
 			case SET -> {
-				// Two interleaved spirals: one point per run, slowly going round and up and down the body
-				double angle = Math.toRadians(run * 40.0 + (run % 2) * 180.0);
-				double y = h * (0.5 + 0.42 * Math.sin(run * 0.23));
-				Vec3 pos = base.add(Math.cos(angle) * 0.6, y, Math.sin(angle) * 0.6);
-				// On yourself only the half behind your camera (the front half is hidden by your body in F5 anyway)
-				if (self && pos.subtract(wearer.getEyePosition()).dot(look) > -BEHIND) return;
-				level.sendParticles(viewer, particle, false, false, pos.x, pos.y, pos.z, 1, 0, 0, 0, 0);
+				// A slow orbit going round and up and down the body; rich sets have a second point opposite
+				int points = s.strength() >= 3 ? 2 : 1;
+				for (int i = 0; i < points; i++) {
+					double angle = Math.toRadians(run * 40.0 + i * 180.0);
+					double y = h * (0.5 + 0.42 * Math.sin(run * 0.23 + i * Math.PI));
+					Vec3 pos = base.add(Math.cos(angle) * 0.6, y, Math.sin(angle) * 0.6);
+					// On yourself only the half behind your camera (the front half is hidden by your body in F5 anyway)
+					if (hidden && pos.subtract(eye).dot(look) > -BEHIND) continue;
+					level.sendParticles(viewer, particle, false, false, pos.x, pos.y, pos.z, 1, 0, 0, 0, 0);
+				}
 			}
 		}
 	}
@@ -237,24 +301,38 @@ final class Aura {
 
 	/** The most striking effect on an item (the order of families.json), or null. */
 	static String familyOf(ItemStack st) {
-		List<String> f = families(st);
-		return f.isEmpty() ? null : f.getFirst();
+		List<Effect> f = effects(st);
+		return f.isEmpty() ? null : f.getFirst().family();
 	}
 
-	/** Every effect on an item that has a particle, most striking first. Enchanted books use their stored ones. */
-	static List<String> families(ItemStack st) {
-		List<String> out = new ArrayList<>();
+	/**
+	 * Every effect on an item that has a particle, most striking first, with its strength. Enchanted books use their
+	 * stored enchantments. Two enchantments of one family (Fire Aspect and Flame) count once, at the stronger level.
+	 */
+	static List<Effect> effects(ItemStack st) {
+		List<Effect> out = new ArrayList<>();
 		if (st.isEmpty()) return out;
 		ItemEnchantments ench = st.get(DataComponents.ENCHANTMENTS);
 		if (ench == null || ench.isEmpty()) ench = st.get(DataComponents.STORED_ENCHANTMENTS);
 		if (ench == null || ench.isEmpty()) return out;
-		for (Holder<Enchantment> h : ench.keySet()) {
+		Map<String, Integer> best = new LinkedHashMap<>();
+		for (var entry : ench.entrySet()) {
+			Holder<Enchantment> h = entry.getKey();
 			String id = h.unwrapKey().map(k -> k.identifier().getPath()).orElse("");
 			String fam = GlintMod.BY_ENCHANT.get(id);
-			if (fam != null && PARTICLES.containsKey(fam) && !out.contains(fam)) out.add(fam);
+			if (fam == null || !PARTICLES.containsKey(fam)) continue;
+			best.merge(fam, strength(entry.getIntValue(), h.value().getMaxLevel()), Math::max);
 		}
-		out.sort((a, b) -> Integer.compare(rank(a), rank(b)));
+		best.forEach((f, st2) -> out.add(new Effect(f, st2)));
+		out.sort((a, b) -> Integer.compare(rank(a.family()), rank(b.family())));
 		return out;
+	}
+
+	/** Level → strength 1–3: the lowest level a hint, the highest level rich; one-level enchantments clear (2). */
+	static int strength(int level, int maxLevel) {
+		if (maxLevel <= 1) return 2;
+		double f = (Math.min(level, maxLevel) - 1) / (double) (maxLevel - 1);
+		return 1 + (int) Math.round(2 * Math.max(0, f));
 	}
 
 	private static boolean isBook(ItemStack st) {

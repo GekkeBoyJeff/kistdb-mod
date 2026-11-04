@@ -28,6 +28,10 @@ public final class Services {
 	public static final String MENU_STATS = "info.stats";
 	public static final String MENU_WAYPOINTS = "waypoints.list";
 	public static final String MENU_CHESTS = "chests.search";
+	public static final String MENU_LAND_MAP = "claims.map";
+	public static final String MENU_EFFECTS = "glint.effects";
+	/** Not a menu but an action: sort the player's inventory. */
+	public static final String ACTION_SORT = "chests.sort";
 
 	private static @Nullable ItemFinder itemFinder;
 	private static final Map<String, Consumer<ServerPlayer>> MENUS = new HashMap<>();

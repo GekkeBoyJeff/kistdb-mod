@@ -131,6 +131,14 @@ public abstract sealed class Setting permits Setting.Toggle, Setting.Choice {
 			return this.labels[i];
 		}
 
+		public int valueAt(int i) {
+			return this.values[i];
+		}
+
+		public int defaultValue() {
+			return this.values[this.defIndex];
+		}
+
 		@Override
 		public String display(ServerPlayer player) {
 			return this.labels[index(player)];

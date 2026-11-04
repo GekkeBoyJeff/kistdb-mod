@@ -125,7 +125,7 @@ public final class ChestsGui extends Menu {
 				.addLoreLine(Ui.kv("Chests: ", Fmt.number(all.size()), ChatFormatting.WHITE))
 				.addLoreLine(Ui.kv("In search: ", Fmt.number(all.size() - skipped), ChatFormatting.GREEN))
 				.addLoreLine(Ui.kv("Skipped: ", Fmt.number(skipped), ChatFormatting.RED))
-				.addLoreLine(Ui.text("Within " + (int) Search.RADIUS + " m in this world.", ChatFormatting.DARK_GRAY)));
+				.addLoreLine(Ui.text("Within " + (int) Search.radius() + " m in this world.", ChatFormatting.DARK_GRAY)));
 
 		GuiElementBuilder showButton = button(Items.ENDER_EYE, "Show: " + this.show.label, ChatFormatting.WHITE);
 		for (Show s : Show.values()) {
@@ -214,7 +214,7 @@ public final class ChestsGui extends Menu {
 			return button(Items.CHEST, Store.get(this.player.getUUID()).entries.isEmpty() ? "No chests yet" : "No chests nearby",
 					ChatFormatting.GOLD,
 					"Open a chest, barrel or shulker", "box: it's added to your index.",
-					"Chests within " + (int) Search.RADIUS + " m in this world", "show up here.");
+					"Chests within " + (int) Search.radius() + " m in this world", "show up here.");
 		}
 		return button(Items.BARRIER, "None here", ChatFormatting.RED,
 				this.show == Show.SKIPPED ? "You don't skip any chests." : "All your chests are skipped.",

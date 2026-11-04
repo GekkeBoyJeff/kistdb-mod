@@ -66,6 +66,11 @@ public final class Ui {
 		sound(player, SoundEvents.UI_BUTTON_CLICK, 0.4f, 1f);
 	}
 
+	/** Is this player an operator (allowed in the admin window)? */
+	public static boolean isOp(ServerPlayer player) {
+		return player.level().getServer().getPlayerList().isOp(player.nameAndId());
+	}
+
 	/** Blok op ID (los van constante-namen die per versie kunnen wijzigen). */
 	public static BlockState block(String id) {
 		return BuiltInRegistries.BLOCK.getValue(Identifier.withDefaultNamespace(id)).defaultBlockState();

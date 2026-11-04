@@ -234,11 +234,11 @@ public final class MapGui extends Menu {
 		for (String l : ClaimsMod.growthLines()) b.addLoreLine(Ui.text(l, ChatFormatting.GRAY));
 		b.addLoreLine(Component.empty());
 		int hours = ClaimsMod.hours(this.player);
-		b.addLoreLine(Ui.kv("Start: ", "+" + ClaimsMod.BASE, ChatFormatting.WHITE));
-		b.addLoreLine(Ui.kv("Playtime (" + hoursText(hours) + "): ", "+" + hours / ClaimsMod.HOURS_PER_CHUNK, ChatFormatting.WHITE));
+		b.addLoreLine(Ui.kv("Start: ", "+" + ClaimsMod.START.get(), ChatFormatting.WHITE));
+		b.addLoreLine(Ui.kv("Playtime (" + hoursText(hours) + "): ", "+" + hours / ClaimsMod.HOURS.get(), ChatFormatting.WHITE));
 		if (Services.progress().isPresent()) {
 			int points = ClaimsMod.points(this.player);
-			b.addLoreLine(Ui.kv("Achievements (" + points + " points): ", "+" + points / ClaimsMod.POINTS_PER_CHUNK, ChatFormatting.WHITE));
+			b.addLoreLine(Ui.kv("Achievements (" + points + " points): ", "+" + points / ClaimsMod.POINTS.get(), ChatFormatting.WHITE));
 		}
 		b.addLoreLine(Component.empty());
 		if (full) b.addLoreLine(Ui.text("Your budget is full.", ChatFormatting.GOLD));

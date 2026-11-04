@@ -76,7 +76,7 @@ public final class ItemGui extends Menu {
 		}
 		if (hits.isEmpty()) {
 			this.setSlot(22, button(Items.BARRIER, "Not in your chests nearby", ChatFormatting.RED,
-					"No chest within " + (int) Search.RADIUS + " m has this", "(skipped chests don't count).",
+					"No chest within " + (int) Search.radius() + " m has this", "(skipped chests don't count).",
 					"Open a chest to update the index."));
 		}
 

@@ -10,8 +10,12 @@ import net.minecraft.commands.Commands;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Items;
+import nl.libreria.core.dialog.Dialogs;
+import nl.libreria.core.gui.AdminWindow;
 import nl.libreria.core.gui.HubGui;
-import nl.libreria.core.gui.SettingsGui;
+import nl.libreria.core.gui.SettingsWindow;
+import nl.libreria.core.gui.Toast;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,13 +39,29 @@ public final class Libreria implements ModInitializer {
 			"The beam also stops once you arrive.");
 
 
+	private static @Nullable MinecraftServer server;
+
+	/** The running server, or null between worlds. */
+	public static @Nullable MinecraftServer server() {
+		return server;
+	}
+
 	@Override
 	public void onInitialize() {
 		Pack.init();
+		Links.init();
+		Welcome.init();
+		QuickMenu.init();
 		// Opslag zo vroeg mogelijk klaarzetten, zodat modules ze in hun eigen SERVER_STARTED al kunnen lezen
-		ServerLifecycleEvents.SERVER_STARTING.register(server -> {
-			PlayerStore.initAll(server);
-			WorldStore.initAll(server);
+		ServerLifecycleEvents.SERVER_STARTING.register(s -> {
+			server = s;
+			PlayerStore.initAll(s);
+			WorldStore.initAll(s);
+		});
+		ServerLifecycleEvents.SERVER_STOPPED.register(s -> server = null);
+		ServerPlayConnectionEvents.JOIN.register((handler, sender, s) -> {
+			Links.send(handler.player);
+			Welcome.onJoin(handler.player, s.getTickCount());
 		});
 		ServerLifecycleEvents.SERVER_STARTED.register(server -> {
 			if (SelfTests.enabled()) server.execute(() -> SelfTests.runAll(server));
@@ -59,6 +79,8 @@ public final class Libreria implements ModInitializer {
 			Guide.clearFlashes(id);
 			Hud.forget(id);
 			nl.libreria.core.gui.TopCard.forget(id);
+			Dialogs.forget(id);
+			Welcome.forget(id);
 			Nameplate.forget(id);
 			PlayerStore.unloadAll(id);
 		});
@@ -70,7 +92,21 @@ public final class Libreria implements ModInitializer {
 					HubGui.open(c.getSource().getPlayerOrException());
 					return 1;
 				}).then(Commands.literal("settings").executes(c -> {
-					SettingsGui.open(c.getSource().getPlayerOrException());
+					SettingsWindow.open(c.getSource().getPlayerOrException());
+					return 1;
+				})).then(Commands.literal("admin").executes(c -> {
+					ServerPlayer p = c.getSource().getPlayerOrException();
+					if (!Ui.isOp(p)) {
+						Toast.show(p, Items.BARRIER, Toast.BAD, "Operators only", "The server settings are for admins.");
+						return 0;
+					}
+					AdminWindow.open(p);
+					return 1;
+				})).then(Commands.literal("links").executes(c -> {
+					Links.open(c.getSource().getPlayerOrException());
+					return 1;
+				})).then(Commands.literal("start").executes(c -> {
+					Welcome.guide(c.getSource().getPlayerOrException());
 					return 1;
 				})));
 			}
@@ -85,6 +121,7 @@ public final class Libreria implements ModInitializer {
 		if (tick % 10 == 3) Nameplate.tick(server);
 		Hud.tick(server, tick);
 		nl.libreria.core.gui.TopCard.tick(server, tick);
+		Welcome.tick(server, tick);
 		if (tick % 1200 == 0) {
 			PlayerStore.saveDirtyAll();
 			WorldStore.saveAll();

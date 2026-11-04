@@ -19,7 +19,10 @@ import net.minecraft.world.phys.Vec3;
 /** Zoekt in de kisten-database van één speler. */
 public final class Search {
 	/** Kisten verder weg dan dit worden niet meegenomen. */
-	public static final double RADIUS = 256;
+	/** How far chests count (server setting, in blocks). */
+	public static double radius() {
+		return ChestsMod.SEARCH_RADIUS.get();
+	}
 
 	private Search() {
 	}
@@ -50,7 +53,7 @@ public final class Search {
 			if (!e.dim.equals(dim) || (e.noIndex && !includeNoIndex)) continue;
 			BlockPos key = e.pos();
 			double dist = pos.distanceTo(Vec3.atCenterOf(key));
-			if (dist > RADIUS) continue;
+			if (dist > radius()) continue;
 			Map<Item, Integer> counts = new LinkedHashMap<>();
 			List<ItemStack> stacks = new ArrayList<>();
 			boolean live = Containers.isLoaded(level, key);

@@ -13,7 +13,7 @@ import net.minecraft.world.item.Items;
 import nl.libreria.core.Ui;
 import nl.libreria.core.gui.HubGui;
 import nl.libreria.core.gui.Menu;
-import nl.libreria.core.gui.SettingsGui;
+import nl.libreria.core.gui.SettingsWindow;
 
 /** "My graves": every grave with your items, newest first. Click one to get a beam to it. */
 final class GravesGui extends Menu {
@@ -105,7 +105,7 @@ final class GravesGui extends Menu {
 		actions(b, "Click: open settings");
 		return b.setCallback((index, type, action, gui) -> {
 			Ui.click(this.player);
-			SettingsGui.open(this.player);
+			SettingsWindow.open(this.player, GravesMod.MODULE);
 		});
 	}
 

@@ -15,7 +15,7 @@ import nl.libreria.claims.ClaimsMod;
 import nl.libreria.collector.CollectorMod;
 import nl.libreria.core.Module;
 import nl.libreria.core.gui.HubGui;
-import nl.libreria.core.gui.SettingsGui;
+import nl.libreria.core.gui.SettingsWindow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -285,12 +285,41 @@ public final class Screens implements FabricClientGameTest {
 				ctx.takeScreenshot("claim_view_closed");
 			});
 
+			// Windows (dialogs): settings, effects, admin, links, getting started
+			run(server, "op @a");
+			ctx.waitTicks(5);
+			menu(ctx, server, player, "window_settings", SettingsWindow::open);
+			for (Module m : List.of(nl.libreria.core.Libreria.MODULE, nl.libreria.glint.GlintMod.MODULE)) {
+				menu(ctx, server, player, "window_settings_" + m.id, p -> SettingsWindow.open(p, m));
+			}
+			menu(ctx, server, player, "window_effects",
+					p -> nl.libreria.core.Services.menu(nl.libreria.core.Services.MENU_EFFECTS).ifPresent(o -> o.accept(p)));
+			menu(ctx, server, player, "window_admin", nl.libreria.core.gui.AdminWindow::open);
+			for (Module m : List.of(nl.libreria.core.Libreria.MODULE, nl.libreria.claims.ClaimsMod.MODULE)) {
+				menu(ctx, server, player, "window_admin_" + m.id, p -> nl.libreria.core.gui.AdminWindow.open(p, m));
+			}
+			server.runOnServer(s -> {
+				nl.libreria.core.Links.KINDS.get(0).setting().set("https://discord.gg/example");
+				nl.libreria.core.Links.KINDS.get(2).setting().set("https://example.org/rules");
+			});
+			menu(ctx, server, player, "window_links", nl.libreria.core.Links::open);
+			menu(ctx, server, player, "window_start", nl.libreria.core.Welcome::guide);
+			safe("welcome_card", () -> {
+				server.runOnServer(s -> nl.libreria.core.Welcome.card(player));
+				ctx.waitTicks(10);
+				ctx.takeScreenshot("welcome_card");
+				server.runOnServer(s -> nl.libreria.core.gui.TopCard.hide(player, "welcome"));
+			});
+			safe("toast", () -> {
+				server.runOnServer(s -> nl.libreria.core.gui.Toast.show(player, net.minecraft.world.item.Items.GOLDEN_SHOVEL,
+						nl.libreria.core.gui.Toast.GOOD, "Chunk claimed", "12 of 40 chunks · /claim release to undo"));
+				ctx.waitTicks(8);
+				ctx.takeScreenshot("toast");
+				server.runOnServer(s -> nl.libreria.core.gui.Toast.hide(player));
+			});
+
 			// Every menu
 			menu(ctx, server, player, "menu_hub", HubGui::open);
-			menu(ctx, server, player, "menu_settings", SettingsGui::open);
-			for (Module m : List.of(nl.libreria.core.Libreria.MODULE, CollectorMod.MODULE)) {
-				menu(ctx, server, player, "menu_settings_" + m.id, p -> SettingsGui.open(p, m));
-			}
 			for (Module.HubEntry e : Module.allHubEntries()) {
 				// The land map isn't a menu (and would stay open behind the others)
 				if (e.name().equals("Land map")) continue;

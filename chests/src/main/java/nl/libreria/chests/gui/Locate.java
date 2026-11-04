@@ -26,7 +26,7 @@ public final class Locate {
 			player.sendSystemMessage(Ui.prefix("Chests")
 					.append(Ui.text("No ", ChatFormatting.RED))
 					.append(item.getHoverName().copy().withStyle(ChatFormatting.WHITE))
-					.append(Ui.text(" in your chests within " + (int) Search.RADIUS + " m.", ChatFormatting.RED))
+					.append(Ui.text(" in your chests within " + (int) Search.radius() + " m.", ChatFormatting.RED))
 					.append(Ui.text(" Open a chest to add it to your index.", ChatFormatting.GRAY)));
 			return;
 		}

@@ -107,6 +107,50 @@ public final class Module {
 		return s;
 	}
 
+	/** A button on this module's settings window for settings that need their own screen (e.g. which effects you see). */
+	public record SettingsButton(String label, String tooltip, Consumer<ServerPlayer> action) {
+	}
+
+	final List<SettingsButton> settingsButtons = new ArrayList<>();
+
+	public void settingsButton(String label, String tooltip, Consumer<ServerPlayer> action) {
+		this.settingsButtons.add(new SettingsButton(label, tooltip, action));
+	}
+
+	public List<SettingsButton> settingsButtons() {
+		return Collections.unmodifiableList(this.settingsButtons);
+	}
+
+	// ---------------------------------------------------------------- server-wide settings (admin window)
+
+	final List<ServerSetting> serverSettings = new ArrayList<>();
+
+	public List<ServerSetting> serverSettings() {
+		return Collections.unmodifiableList(this.serverSettings);
+	}
+
+	/** A server-wide number (slider in the admin window). */
+	public ServerSetting.Number serverNumber(String key, String label, Item icon, int def, int min, int max, int step, String unit,
+			String... lore) {
+		ServerSetting.Number s = new ServerSetting.Number(this, key, label, icon, List.of(lore), def, min, max, step, unit);
+		this.serverSettings.add(s);
+		return s;
+	}
+
+	/** A server-wide on/off switch. */
+	public ServerSetting.Toggle serverToggle(String key, String label, Item icon, boolean def, String... lore) {
+		ServerSetting.Toggle s = new ServerSetting.Toggle(this, key, label, icon, List.of(lore), def);
+		this.serverSettings.add(s);
+		return s;
+	}
+
+	/** A server-wide line of text (a link, a welcome line…). */
+	public ServerSetting.Text serverText(String key, String label, Item icon, String def, int maxLength, String... lore) {
+		ServerSetting.Text s = new ServerSetting.Text(this, key, label, icon, List.of(lore), def, maxLength);
+		this.serverSettings.add(s);
+		return s;
+	}
+
 	/** Voegt een knop toe aan het Libreria-menu. */
 	public void hubEntry(Item icon, String name, ChatFormatting color, Consumer<ServerPlayer> action, String... lore) {
 		this.hubEntries.add(new HubEntry(this, Category.forModule(this.id), icon, name, color, List.of(lore), action));

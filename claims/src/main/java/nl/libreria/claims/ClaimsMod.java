@@ -57,6 +57,7 @@ import net.minecraft.world.phys.HitResult;
 import nl.libreria.core.Guide;
 import nl.libreria.core.Hud;
 import nl.libreria.core.Module;
+import nl.libreria.core.ServerSetting;
 import nl.libreria.core.Services;
 import nl.libreria.core.Ui;
 import nl.libreria.core.WorldStore;
@@ -87,11 +88,15 @@ public final class ClaimsMod implements ModInitializer {
 	public static final nl.libreria.core.Setting.Toggle MAP_BUTTON = MODULE.toggle("kaartknop", "Land map button", true, Items.MAP,
 			"A land map button right of your", "hotbar, with its key (Libreria pack).");
 
-	/** Budget: basis + per speeluur + per prestatiepunt. */
-	static final int BASE = 4;
-	static final int HOURS_PER_CHUNK = 2;
-	static final int POINTS_PER_CHUNK = 20;
-	static final int MAX = 400;
+	/** Budget: a start, plus one per so many hours played and per so many achievement points, up to a maximum. */
+	static final ServerSetting.Number START = MODULE.serverNumber("budget_start", "Chunks to start with", Items.GRASS_BLOCK,
+			4, 0, 64, 1, "chunks", "Every player can claim this many", "chunks right away.");
+	static final ServerSetting.Number HOURS = MODULE.serverNumber("budget_hours", "Hours per extra chunk", Items.CLOCK,
+			2, 1, 24, 1, "hours", "One more chunk per this many", "hours played.");
+	static final ServerSetting.Number POINTS = MODULE.serverNumber("budget_points", "Points per extra chunk", Items.GOLD_INGOT,
+			20, 5, 200, 5, "points", "One more chunk per this many", "achievement points.");
+	static final ServerSetting.Number LIMIT = MODULE.serverNumber("budget_max", "Most chunks per player", Items.BEACON,
+			400, 16, 1024, 8, "chunks", "Nobody gets more than this.");
 	static final int TICKS_PER_HOUR = 72000;
 
 	/** /claim show: radius in chunks and how long the borders glow. */
@@ -189,6 +194,7 @@ public final class ClaimsMod implements ModInitializer {
 		// The land map key (sneak + swap hands), and its button right of the hotbar
 		nl.libreria.core.Hotkeys.register(ClaimView::onKey);
 		Hud.setHotbarButton(ClaimView::hotbarButton);
+		nl.libreria.core.Services.provideMenu(nl.libreria.core.Services.MENU_LAND_MAP, ClaimsMod::openMap);
 		// Getting hurt closes the land map at once
 		net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.AFTER_DAMAGE.register((entity, source, base, taken, blocked) -> {
 			if (entity instanceof ServerPlayer sp && ClaimView.isOpen(sp)) ClaimView.close(sp, true);
@@ -311,7 +317,7 @@ public final class ClaimsMod implements ModInitializer {
 	}
 
 	static int budget(ServerPlayer p) {
-		return Math.min(MAX, BASE + hours(p) / HOURS_PER_CHUNK + points(p) / POINTS_PER_CHUNK);
+		return Math.min(LIMIT.get(), START.get() + hours(p) / HOURS.get() + points(p) / POINTS.get());
 	}
 
 	/** "You can claim 6 chunks (3 used)." */
@@ -323,8 +329,8 @@ public final class ClaimsMod implements ModInitializer {
 	/** "+1 per 2 hours played" and (with Collector) "+1 per 20 achievement points", one line each. */
 	static List<String> growthLines() {
 		List<String> out = new ArrayList<>();
-		out.add("+1 per " + (HOURS_PER_CHUNK == 1 ? "hour" : HOURS_PER_CHUNK + " hours") + " played");
-		if (Services.progress().isPresent()) out.add("+1 per " + POINTS_PER_CHUNK + " achievement points");
+		out.add("+1 per " + (HOURS.get() == 1 ? "hour" : HOURS.get() + " hours") + " played");
+		if (Services.progress().isPresent()) out.add("+1 per " + POINTS.get() + " achievement points");
 		return out;
 	}
 
@@ -335,14 +341,14 @@ public final class ClaimsMod implements ModInitializer {
 
 	/** What earns the next chunk, in short lines: "Next chunk: play 1 h 20 min more", "or earn 7 more achievement points". */
 	static List<String> nextChunkLines(ServerPlayer p) {
-		if (budget(p) >= MAX) return List.of("You've reached the maximum", "of " + MAX + " chunks");
-		long perChunk = (long) HOURS_PER_CHUNK * TICKS_PER_HOUR;
+		if (budget(p) >= LIMIT.get()) return List.of("You've reached the maximum", "of " + LIMIT.get() + " chunks");
+		long perChunk = (long) HOURS.get() * TICKS_PER_HOUR;
 		long left = perChunk - playTicks(p) % perChunk;
 		int minutes = (int) Math.max(1, (left + 1199) / 1200);
 		List<String> out = new ArrayList<>();
 		out.add("Next chunk: play " + duration(minutes) + " more");
 		if (Services.progress().isPresent()) {
-			int need = POINTS_PER_CHUNK - points(p) % POINTS_PER_CHUNK;
+			int need = POINTS.get() - points(p) % POINTS.get();
 			out.add("or earn " + need + " more achievement point" + (need == 1 ? "" : "s"));
 		}
 		return out;

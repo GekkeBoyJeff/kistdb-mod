@@ -29,6 +29,25 @@
   {
    "label": [
     {
+     "text": "Your items",
+     "color": "aqua"
+    }
+   ],
+   "tooltip": {
+    "text": "Search your inventory and your chests."
+   },
+   "width": 150,
+   "action": {
+    "type": "minecraft:custom",
+    "id": "libreria:quick",
+    "payload": {
+     "go": "items"
+    }
+   }
+  },
+  {
+   "label": [
+    {
      "text": "Land map",
      "color": "green"
     },
@@ -50,24 +69,11 @@
    },
    "width": 150,
    "action": {
-    "type": "minecraft:run_command",
-    "command": "claim map"
-   }
-  },
-  {
-   "label": [
-    {
-     "text": "Your items",
-     "color": "aqua"
+    "type": "minecraft:custom",
+    "id": "libreria:quick",
+    "payload": {
+     "go": "map"
     }
-   ],
-   "tooltip": {
-    "text": "Everything on you and in your chests; search and follow the beam."
-   },
-   "width": 150,
-   "action": {
-    "type": "minecraft:run_command",
-    "command": "chest"
    }
   },
   {
@@ -78,12 +84,15 @@
     }
    ],
    "tooltip": {
-    "text": "Merges and sorts your stacks (not your hotbar)."
+    "text": "Sorts your inventory (not the hotbar)."
    },
    "width": 150,
    "action": {
-    "type": "minecraft:run_command",
-    "command": "chest sort"
+    "type": "minecraft:custom",
+    "id": "libreria:quick",
+    "payload": {
+     "go": "sort"
+    }
    }
   },
   {
@@ -94,12 +103,15 @@
     }
    ],
    "tooltip": {
-    "text": "Your places, with a beam to walk to."
+    "text": "Save places and find them back."
    },
    "width": 150,
    "action": {
-    "type": "minecraft:run_command",
-    "command": "waypoint"
+    "type": "minecraft:custom",
+    "id": "libreria:quick",
+    "payload": {
+     "go": "waypoints"
+    }
    }
   },
   {
@@ -110,12 +122,34 @@
     }
    ],
    "tooltip": {
-    "text": "Your collection, points and titles."
+    "text": "Your achievements and collection."
    },
    "width": 150,
    "action": {
-    "type": "minecraft:run_command",
-    "command": "achievements"
+    "type": "minecraft:custom",
+    "id": "libreria:quick",
+    "payload": {
+     "go": "achievements"
+    }
+   }
+  },
+  {
+   "label": [
+    {
+     "text": "Effects",
+     "color": "light_purple"
+    }
+   ],
+   "tooltip": {
+    "text": "Particles and glints: how much you see."
+   },
+   "width": 150,
+   "action": {
+    "type": "minecraft:custom",
+    "id": "libreria:quick",
+    "payload": {
+     "go": "effects"
+    }
    }
   },
   {
@@ -126,26 +160,72 @@
     }
    ],
    "tooltip": {
-    "text": "Everything you can switch on and off."
+    "text": "Your own settings."
    },
    "width": 150,
    "action": {
-    "type": "minecraft:run_command",
-    "command": "libreria settings"
+    "type": "minecraft:custom",
+    "id": "libreria:quick",
+    "payload": {
+     "go": "settings"
+    }
    }
   },
   {
-   "label": {
-    "text": "Libreria menu",
-    "color": "white"
-   },
+   "label": [
+    {
+     "text": "Getting started",
+     "color": "white"
+    }
+   ],
    "tooltip": {
-    "text": "All tools in one menu."
+    "text": "What's here and which keys to use."
    },
    "width": 150,
    "action": {
-    "type": "minecraft:run_command",
-    "command": "libreria"
+    "type": "minecraft:custom",
+    "id": "libreria:quick",
+    "payload": {
+     "go": "start"
+    }
+   }
+  },
+  {
+   "label": [
+    {
+     "text": "Links",
+     "color": "blue"
+    }
+   ],
+   "tooltip": {
+    "text": "Discord, website, rules…"
+   },
+   "width": 150,
+   "action": {
+    "type": "minecraft:custom",
+    "id": "libreria:quick",
+    "payload": {
+     "go": "links"
+    }
+   }
+  },
+  {
+   "label": [
+    {
+     "text": "Libreria menu",
+     "color": "white"
+    }
+   ],
+   "tooltip": {
+    "text": "Everything, with your player card."
+   },
+   "width": 150,
+   "action": {
+    "type": "minecraft:custom",
+    "id": "libreria:quick",
+    "payload": {
+     "go": "menu"
+    }
    }
   }
  ]

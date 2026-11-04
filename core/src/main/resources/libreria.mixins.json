@@ -5,6 +5,7 @@
 	"mixins": [
 		"ContainerClickMixin",
 		"CraftingTableTitleMixin",
+		"CustomClickActionMixin",
 		"PlayerActionMixin"
 	],
 	"injectors": {

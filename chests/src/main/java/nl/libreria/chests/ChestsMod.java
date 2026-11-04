@@ -36,6 +36,8 @@ public final class ChestsMod implements ModInitializer {
 
 	public static final Module MODULE = Module.register("chests", "Chests", Items.CHEST,
 			"Sorting, searching your chests by icon", "and a beam to the right chest.");
+	public static final nl.libreria.core.ServerSetting.Number SEARCH_RADIUS = MODULE.serverNumber("search_radius", "Search range",
+			Items.SPYGLASS, 256, 32, 512, 16, "blocks", "How far away chests still count when", "you search your items.");
 	public static final Setting.Toggle SEARCH_BUTTON = MODULE.toggle("zoekknop", "Search button in your inventory", true, Items.SPYGLASS,
 			"With the Libreria pack, the recipe book", "button in your inventory becomes a", "magnifying glass that opens your items.");
 	public static final Setting.Toggle SORT_BUTTON = MODULE.toggle("sorteerknop", "Sort button in chests", true, Items.CHEST,
@@ -95,6 +97,7 @@ public final class ChestsMod implements ModInitializer {
 			return !hits.isEmpty();
 		});
 		Services.provideMenu(Services.MENU_CHESTS, p -> ItemSearch.open(p, ""));
+		Services.provideMenu(Services.ACTION_SORT, Sorter::sortPlayer);
 		ChestsTests.register();
 		LOG.info("Libreria Chests loaded");
 	}

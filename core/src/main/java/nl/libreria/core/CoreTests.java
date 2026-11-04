@@ -25,6 +25,17 @@ final class CoreTests {
 			Libreria.GUIDE_SECONDS.cycle(p, -1);
 			SelfTests.check(Libreria.GUIDE_SECONDS.get(p) == 90, "default is 90 s");
 		});
+		nl.libreria.core.dialog.DialogTests.register();
+		SelfTests.register("core.server-settings", level -> {
+			ServerSetting.Text discord = Links.KINDS.getFirst().setting();
+			discord.set("https://discord.gg/abc");
+			SelfTests.check(discord.get().equals("https://discord.gg/abc") && Links.present().size() >= 1, "link stored");
+			SelfTests.check(Links.uri("javascript:alert(1)") == null && Links.uri("discord.gg/x") == null
+					&& Links.uri("https://example.org") != null, "only web addresses");
+			discord.reset();
+			SelfTests.check(!discord.isSet(), "reset clears it");
+			SelfTests.check(ServerSetting.all().size() >= 6, "settings registered: " + ServerSetting.all().size());
+		});
 		SelfTests.register("core.beam", level -> {
 			FakePlayer p = FakePlayer.get(level);
 			Guide.toPoint(p, level, new Vec3(10, 100, 10), new ItemStack(Items.COMPASS), Component.literal("Test"), 5);
