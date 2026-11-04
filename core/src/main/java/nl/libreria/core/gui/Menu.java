@@ -67,7 +67,17 @@ public abstract class Menu extends SimpleGui {
 		net.minecraft.world.item.ItemStack st = el.getItemStack();
 		if (st.isEmpty()) return el;
 		String path = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(st.getItem()).getPath();
-		if (!path.endsWith("_stained_glass_pane")) return el;
+		if (!path.endsWith("_stained_glass_pane")) {
+			// Buttons (they have their own name) don't get a rarity frame: a "Close" barrier is not an epic item
+			var rarity = st.get(net.minecraft.core.component.DataComponents.RARITY);
+			if (st.has(net.minecraft.core.component.DataComponents.CUSTOM_NAME) && rarity != null
+					&& rarity != net.minecraft.world.item.Rarity.COMMON) {
+				net.minecraft.world.item.ItemStack copy = st.copy();
+				copy.set(net.minecraft.core.component.DataComponents.RARITY, net.minecraft.world.item.Rarity.COMMON);
+				return new eu.pb4.sgui.api.elements.SimpleGuiElement(copy, el.getGuiCallback());
+			}
+			return el;
+		}
 		net.minecraft.resources.Identifier model = st.get(net.minecraft.core.component.DataComponents.ITEM_MODEL);
 		if (model != null && model.getNamespace().equals("libreria")) return el;
 		net.minecraft.world.item.ItemStack copy = st.copy();
