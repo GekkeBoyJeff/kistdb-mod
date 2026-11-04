@@ -1,37 +1,16 @@
-net.minecraft.nbt.NumericTag
-net.minecraft.nbt.StringTag
-net.minecraft.nbt.CompoundTag
-net.minecraft.nbt.Tag
-!net.minecraft.recipebook.ServerPlaceRecipe
-net.minecraft.recipebook.ServerPlaceRecipe$CraftingMenuAccess
-+net.minecraft.world.inventory.AbstractCraftingMenu
-+net.minecraft.world.inventory.CraftingMenu
-+net.minecraft.world.inventory.InventoryMenu
-net.minecraft.world.entity.player.StackedItemContents
-net.minecraft.world.entity.player.StackedContents
-net.minecraft.server.players.SleepStatus
-+net.minecraft.server.level.ServerLevel
-net.minecraft.world.level.saveddata.maps.MapItemSavedData
-net.minecraft.world.level.saveddata.maps.MapItemSavedData$MapPatch
-net.minecraft.network.protocol.game.ClientboundMapItemDataPacket
-net.minecraft.world.level.saveddata.maps.MapId
-net.minecraft.world.level.saveddata.maps.MapDecoration
-net.minecraft.world.level.saveddata.maps.MapDecorationTypes
-net.minecraft.world.level.saveddata.maps.MapDecorationType
-net.minecraft.world.level.material.MapColor
-net.minecraft.world.level.material.MapColor$Brightness
-net.minecraft.network.protocol.game.ClientboundTabListPacket
-net.minecraft.world.item.crafting.RecipeHolder
-net.minecraft.world.item.crafting.CraftingRecipe
-net.minecraft.world.item.crafting.display.RecipeDisplayId
-net.minecraft.world.item.crafting.RecipeManager
-net.minecraft.world.item.crafting.Ingredient
-net.minecraft.network.protocol.game.ServerboundPlaceRecipePacket
-net.minecraft.server.players.PlayerList
-net.minecraft.server.MinecraftServer
-net.minecraft.server.permissions.PermissionSet
-net.minecraft.commands.CommandSourceStack
-net.minecraft.world.level.gamerules.GameRules
-net.minecraft.world.level.gamerules.GameRule
-net.minecraft.network.protocol.game.ClientboundBossEventPacket
-net.minecraft.server.level.ServerBossEvent
+net.minecraft.world.item.component.CustomData
+net.minecraft.world.item.component.ItemLore
+net.minecraft.world.item.enchantment.Enchantment
+net.minecraft.world.entity.OwnableEntity
+net.minecraft.world.entity.TamableAnimal
+net.minecraft.world.entity.EntityReference
+net.minecraft.world.damagesource.DamageSource
++net.minecraft.server.PlayerAdvancements
+net.minecraft.advancements.DisplayInfo
+net.minecraft.advancements.AdvancementType
+net.minecraft.world.entity.animal.equine.AbstractHorse
+? TameAnimalTrigger
+? /AbstractArrow\.class
+? /ThrownTrident\.class
+? /Enemy\.class
+? /TamableAnimal\.class
