@@ -680,23 +680,16 @@ def sparkle(img, cx, cy, t, color):
     put(img, 0, cx, cy, core)
     for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
         put(img, 0, cx + dx, cy + dy, arm)
-        if t > 0.55:
+        if t > 0.75:
             put(img, 0, cx + 2 * dx, cy + 2 * dy, tip)
 
 
-def ring(img, f, color, outer, inner):
-    """Soft rounded border: outer ring + a fainter ring just inside."""
-    for i in range(16):
+def ring(img, f, color, edge, corner):
+    """Thin border on the outermost pixel only (the item itself stays clear), a bit stronger in the corners."""
+    for i in range(1, 15):
+        a = corner if i <= 2 or i >= 13 else edge
         for (x, y) in ((i, 0), (i, 15), (0, i), (15, i)):
-            if (x, y) in ((0, 0), (15, 0), (0, 15), (15, 15)):
-                continue
-            put(img, f, x, y, color + (outer,))
-        for (x, y) in ((i, 1), (i, 14), (1, i), (14, i)):
-            if 1 <= x <= 14 and 1 <= y <= 14 and (x, y) not in ((1, 1), (14, 1), (1, 14), (14, 14)):
-                put(img, f, x, y, color + (inner,))
-    # corners of the inner ring catch a little light
-    for (x, y) in ((1, 1), (14, 1), (1, 14), (14, 14)):
-        put(img, f, x, y, color + (outer,))
+            put(img, f, x, y, color + (a,))
 
 
 def perimeter(n):
@@ -715,17 +708,17 @@ def grade_frame(grade):
     color = GRADE_COLOR[grade]
     if grade == 'uncommon':
         img = Image.new('RGBA', (16, 16), (0, 0, 0, 0))
-        ring(img, 0, color, 105, 30)
+        ring(img, 0, color, 70, 150)
         return img, False
     frames = SPARKLE_FRAMES
     img = Image.new('RGBA', (16, 16 * frames), (0, 0, 0, 0))
     for f in range(frames):
-        ring(img, f, color, 140 if grade == 'rare' else 165, 40 if grade == 'rare' else 55)
+        ring(img, f, color, 85 if grade == 'rare' else 105, 175 if grade == 'rare' else 200)
         sub = Image.new('RGBA', (16, 16), (0, 0, 0, 0))
         if grade == 'rare':
             # one twinkle in the top-right corner, now and then
             t = max(0.0, math.sin(math.pi * (f - 2) / 8)) if 2 <= f < 10 else 0
-            sparkle(sub, 13, 2, t, color)
+            sparkle(sub, 14, 1, t, color)
         else:
             # a glint running around the border and two twinkles taking turns
             for k in range(3):
@@ -733,8 +726,8 @@ def grade_frame(grade):
                 put(sub, 0, x, y, (255, 255, 255, 120 + 45 * k))
             t1 = max(0.0, math.sin(math.pi * (f - 1) / 7)) if 1 <= f < 8 else 0
             t2 = max(0.0, math.sin(math.pi * (f - 13) / 7)) if 13 <= f < 20 else 0
-            sparkle(sub, 12, 3, t1, color)
-            sparkle(sub, 3, 12, t2, color)
+            sparkle(sub, 14, 1, t1, color)
+            sparkle(sub, 1, 14, t2, color)
         img.alpha_composite(sub, (0, 16 * f))
     return img, True
 

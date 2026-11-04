@@ -105,6 +105,8 @@ public final class Screens implements FabricClientGameTest {
 			safe("inventory", () -> {
 				ctx.getInput().pressKey(o2 -> o2.keyInventory);
 				ctx.waitTicks(10);
+				ctx.getInput().setCursorPos(2, 2);
+				ctx.waitTicks(2);
 				ctx.takeScreenshot("inventory");
 				ctx.setScreen(() -> null);
 				ctx.waitTicks(5);
@@ -116,6 +118,8 @@ public final class Screens implements FabricClientGameTest {
 				ctx.waitTicks(5);
 				ctx.getInput().pressKey(o2 -> o2.keyUse);
 				ctx.waitTicks(20);
+				ctx.getInput().setCursorPos(2, 2);
+				ctx.waitTicks(2);
 				ctx.takeScreenshot("chest_sort_button");
 				close(ctx, server, player);
 			});
@@ -189,6 +193,8 @@ public final class Screens implements FabricClientGameTest {
 		safe(name, () -> {
 			server.runOnServer(s -> open.accept(player));
 			ctx.waitTicks(12);
+			ctx.getInput().setCursorPos(2, 2);
+			ctx.waitTicks(2);
 			ctx.takeScreenshot(name);
 			close(ctx, server, player);
 		});

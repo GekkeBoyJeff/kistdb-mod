@@ -56,6 +56,27 @@ public abstract class Menu extends SimpleGui {
 		}
 	}
 
+	/** With the pack, coloured glass panes (headers, lamps) are shown as little plaques on the parchment. */
+	@Override
+	public void setSlot(int index, eu.pb4.sgui.api.elements.GuiElement element) {
+		super.setSlot(index, this.pack ? plaque(element) : element);
+	}
+
+	private static eu.pb4.sgui.api.elements.GuiElement plaque(eu.pb4.sgui.api.elements.GuiElement el) {
+		if (el == null) return null;
+		net.minecraft.world.item.ItemStack st = el.getItemStack();
+		if (st.isEmpty()) return el;
+		String path = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(st.getItem()).getPath();
+		if (!path.endsWith("_stained_glass_pane")) return el;
+		net.minecraft.resources.Identifier model = st.get(net.minecraft.core.component.DataComponents.ITEM_MODEL);
+		if (model != null && model.getNamespace().equals("libreria")) return el;
+		net.minecraft.world.item.ItemStack copy = st.copy();
+		String color = path.substring(0, path.length() - "_stained_glass_pane".length());
+		copy.set(net.minecraft.core.component.DataComponents.ITEM_MODEL,
+				net.minecraft.resources.Identifier.fromNamespaceAndPath("libreria", "gui/pane_" + color));
+		return new eu.pb4.sgui.api.elements.SimpleGuiElement(copy, el.getGuiCallback());
+	}
+
 	/** The title without the frame (what the player reads). */
 	public Component plainTitle() {
 		return this.plainTitle;

@@ -61,6 +61,7 @@ import nl.libreria.core.Pack;
 import nl.libreria.core.Services;
 import nl.libreria.core.gui.Glyphs;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 /**
@@ -107,6 +108,7 @@ final class Look {
 	/** One font pixel in blocks at scale 1. */
 	private static final float PX = 0.025f;
 	private static final Brightness FULL = new Brightness(15, 15);
+	private static final float ICON_TILT = 0.5f;
 
 	private static final class Tip {
 		final ElementHolder holder = new ElementHolder();
@@ -250,8 +252,10 @@ final class Look {
 			float y = (contentH - 9) * s;
 			float size = 16 * s;
 			tip.icon.setItem(c.icon());
-			tip.icon.setScale(new Vector3f(size, size, 0.001f));
-			tip.icon.setTranslation(new Vector3f(x, y, 0.012f));
+			// Tilted back a little so the light from above reaches it (a flat icon facing you looks dark otherwise)
+			tip.icon.setLeftRotation(new Quaternionf().rotateX(-ICON_TILT));
+			tip.icon.setScale(new Vector3f(size, size / (float) Math.cos(ICON_TILT), 0.001f));
+			tip.icon.setTranslation(new Vector3f(x, y, 0.06f));
 		} else {
 			tip.icon.setItem(ItemStack.EMPTY);
 		}
@@ -521,7 +525,8 @@ final class Look {
 		}
 
 		if (rows.isEmpty() && !all) return null;
-		Item item = block.asItem();
+		// Crops: show what you harvest, not the seeds
+		Item item = block == Blocks.WHEAT ? Items.WHEAT : block == Blocks.BEETROOTS ? Items.BEETROOT : block.asItem();
 		ItemStack icon = item == Items.AIR ? ItemStack.EMPTY : new ItemStack(item);
 		int grade = icon.isEmpty() ? 0 : icon.getOrDefault(DataComponents.RARITY, Rarity.COMMON).ordinal();
 		int accent = gradeColor(grade);

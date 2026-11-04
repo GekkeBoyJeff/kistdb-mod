@@ -1,0 +1,7 @@
+{
+ "model": {
+  "type": "minecraft:model",
+  "model": "libreria:item/gui/pane_light_blue"
+ },
+ "oversized_in_gui": true
+}

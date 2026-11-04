@@ -428,6 +428,49 @@ def filler_tile():
               open(os.path.join(base, 'items/gui/tile.json'), 'w'), indent=1)
 
 
+DYES = {
+    'white': (226, 228, 228), 'orange': (226, 116, 30), 'magenta': (178, 70, 168), 'light_blue': (62, 160, 210),
+    'yellow': (232, 188, 46), 'lime': (106, 176, 34), 'pink': (222, 132, 164), 'gray': (78, 84, 88),
+    'light_gray': (148, 148, 140), 'cyan': (30, 132, 140), 'purple': (118, 50, 168), 'blue': (56, 64, 160),
+    'brown': (120, 78, 46), 'green': (82, 110, 34), 'red': (168, 46, 40), 'black': (36, 36, 42),
+}
+
+
+def plaques():
+    """Coloured glass panes in menus (headers, on/off lamps) become little coloured plaques on the parchment."""
+    base = os.path.join(OUT, 'assets', NS)
+    for name, c in DYES.items():
+        img = Image.new('RGBA', (18, 18), PARCH)
+        dark = lerp(c, (0, 0, 0), 0.45) + (255,)
+        light = lerp(c, (255, 255, 255), 0.35) + (255,)
+        for y in range(2, 16):
+            for x in range(2, 16):
+                corner = (x in (2, 15)) and (y in (2, 15))
+                if corner:
+                    continue
+                edge = x in (2, 15) or y in (2, 15)
+                if edge:
+                    col = dark
+                elif y == 3 or x == 3:
+                    col = light
+                else:
+                    t = (y - 4) / 11
+                    col = lerp(c, lerp(c, (0, 0, 0), 0.18), t) + (255,)
+                img.putpixel((x, y), col)
+        # soft shadow under the plaque
+        for x in range(3, 16):
+            img.putpixel((x, 16), PARCH_LO)
+        for y in range(3, 16):
+            img.putpixel((16, y), PARCH_LO)
+        img.save(os.path.join(base, f'textures/item/gui/pane_{name}.png'))
+        json.dump({'parent': 'minecraft:item/generated', 'textures': {'layer0': f'{NS}:item/gui/pane_{name}'},
+                   'gui_light': 'front',
+                   'display': {'gui': {'rotation': [0, 0, 0], 'translation': [0, 0, 0], 'scale': [1.125, 1.125, 1.125]}}},
+                  open(os.path.join(base, f'models/item/gui/pane_{name}.json'), 'w'), indent=1)
+        json.dump({'model': {'type': 'minecraft:model', 'model': f'{NS}:item/gui/pane_{name}'}, 'oversized_in_gui': True},
+                  open(os.path.join(base, f'items/gui/pane_{name}.json'), 'w'), indent=1)
+
+
 def main():
     base = os.path.join(OUT, 'assets', NS)
     for sub in ('textures/font/ui', 'font', 'items/gui', 'models/item/gui', 'textures/item/gui'):
@@ -441,6 +484,7 @@ def main():
     icons()
     frames()
     filler_tile()
+    plaques()
     os.makedirs(os.path.join(base, 'font'), exist_ok=True)
     json.dump({'providers': providers}, open(os.path.join(base, 'font/ui.json'), 'w'), indent=1)
     meta = {'lineHeight': LH, 'padX': PAD_X, 'padTop': PAD_TOP, 'padBottom': PAD_BOTTOM,

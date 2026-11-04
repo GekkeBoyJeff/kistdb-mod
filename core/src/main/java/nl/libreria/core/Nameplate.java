@@ -85,6 +85,9 @@ public final class Nameplate {
 			if (c != null) above.add(c);
 		}
 		Component nick = nameOverride == null ? null : nameOverride.get(p);
+		// With a title above it, our plate also shows the name (and the vanilla one is hidden), so the title sits
+		// right above the name for everyone, and you see the same in third person
+		if (nick == null && !above.isEmpty()) nick = p.getName();
 		boolean replaces = nick != null && setHidden(server, p, true);
 		if (nick == null || !replaces) setHidden(server, p, false);
 
