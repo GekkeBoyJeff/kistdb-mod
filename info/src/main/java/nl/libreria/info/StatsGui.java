@@ -231,7 +231,7 @@ final class StatsGui extends Menu {
 
 	/** Spawn egg as the icon for a mob (a head for players), otherwise a name tag. */
 	static ItemStack egg(EntityType<?> type) {
-		if (type == EntityType.PLAYER) return new ItemStack(Items.PLAYER_HEAD);
+		if (BuiltInRegistries.ENTITY_TYPE.getKey(type).getPath().equals("player")) return new ItemStack(Items.PLAYER_HEAD);
 		Identifier id = BuiltInRegistries.ENTITY_TYPE.getKey(type);
 		Item egg = BuiltInRegistries.ITEM.getOptional(Identifier.fromNamespaceAndPath(id.getNamespace(), id.getPath() + "_spawn_egg")).orElse(Items.NAME_TAG);
 		return new ItemStack(egg);
