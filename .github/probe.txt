@@ -1,16 +1,4 @@
-net.minecraft.world.item.component.CustomData
-net.minecraft.world.item.component.ItemLore
-net.minecraft.world.item.enchantment.Enchantment
-net.minecraft.world.entity.OwnableEntity
-net.minecraft.world.entity.TamableAnimal
-net.minecraft.world.entity.EntityReference
-net.minecraft.world.damagesource.DamageSource
-+net.minecraft.server.PlayerAdvancements
-net.minecraft.advancements.DisplayInfo
-net.minecraft.advancements.AdvancementType
-net.minecraft.world.entity.animal.equine.AbstractHorse
-? TameAnimalTrigger
-? /AbstractArrow\.class
-? /ThrownTrident\.class
-? /Enemy\.class
-? /TamableAnimal\.class
+!net.minecraft.client.player.LocalPlayer
+!net.minecraft.client.MouseHandler
+? TestInputImpl
+? /TestInput\.class
