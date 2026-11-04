@@ -604,6 +604,13 @@ def icon_texture(item):
             n += 1
         return v
 
+    # A texture named after the item itself is the best picture (beacon, not the glass around it)
+    for v in list(tex.values()):
+        v = deref(v)
+        if isinstance(v, str) and not v.startswith('#') and v.split('/')[-1] == item:
+            v = v if ':' in v else 'minecraft:' + v
+            if os.path.exists(os.path.join(VANILLA, 'textures', v.split(':')[1] + '.png')):
+                return v, any(w in v for w in ('leaves', 'vine', 'lily_pad', 'fern', 'short_grass', 'tall_grass'))
     for key in ('layer0', 'all', 'side', 'front', 'texture', 'cross', 'plant', 'pattern', 'top', 'end', 'particle'):
         v = deref(tex.get(key))
         if isinstance(v, str) and not v.startswith('#'):

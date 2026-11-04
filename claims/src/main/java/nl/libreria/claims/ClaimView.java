@@ -738,11 +738,13 @@ final class ClaimView {
 		Vector3f a = new Vector3f(), b = s.b().sub(s.a()), c = s.c().sub(s.a());
 		if (s.type() == WALL) {
 			Vector3f across = new Vector3f(b.z, 0, -b.x).normalize();
-			if (!v.pack) return Affine.fit(CUBE_A, CUBE_B, CUBE_C, ACROSS, a, b, c, across.mul(0.05f));
-			return Affine.fit(WALL_A, WALL_B, WALL_C, ACROSS, a, b, c, across);
+			if (!v.pack) return Affine.fit(CUBE_A, CUBE_B, CUBE_C, ACROSS, a, b, c, across.mul(0.05f), false);
+			return Affine.fit(WALL_A, WALL_B, WALL_C, ACROSS, a, b, c, across, false);
 		}
+		// The tint's top side faces up, so it's lit like the land under it
 		Vector3f normal = new Vector3f(b).cross(c).normalize();
-		return Affine.fit(FLAT_A, FLAT_B, FLAT_C, UP, a, b, c, normal);
+		if (normal.y < 0) normal.negate();
+		return Affine.fit(FLAT_A, FLAT_B, FLAT_C, UP, a, b, c, normal, true);
 	}
 
 	/** Shrunk to nothing around the middle of a curtain's foot or of a fill, where it grows from and shrinks to. */
@@ -878,15 +880,16 @@ final class ClaimView {
 		MutableComponent line = Component.empty();
 		switch (kind) {
 			case FREE -> line.append(Component.literal("Free land").withStyle(ChatFormatting.WHITE))
-					.append(Component.literal(used < max ? "  ·  click to claim" : "  ·  your budget is full")
+					.append(Component.literal(used < max ? "  ·  click: claim" : "  ·  your budget is full")
 							.withStyle(used < max ? ChatFormatting.YELLOW : ChatFormatting.RED));
 			case MINE -> line.append(Component.literal("Your land").withStyle(ChatFormatting.GREEN))
-					.append(Component.literal("  ·  right-click to release").withStyle(ChatFormatting.YELLOW));
+					.append(Component.literal("  ·  right-click: release").withStyle(ChatFormatting.YELLOW));
 			case TRUSTED -> line.append(Component.literal(cl.ownerName + "'s land · you may build").withStyle(ChatFormatting.AQUA));
 			case OTHER -> line.append(Component.literal(cl.ownerName + "'s land").withStyle(ChatFormatting.RED));
 		}
 		line.append(Component.literal("   " + used + "/" + max + " chunks").withStyle(ChatFormatting.GRAY));
-		line.append(Component.literal("   WASD move · scroll zoom · sneak or Q back").withStyle(ChatFormatting.DARK_GRAY));
+		// The controls only while you're finding your way; after that the line stays short
+		if (v.age < 120) line.append(Component.literal("   WASD move · scroll zoom · Q back").withStyle(ChatFormatting.DARK_GRAY));
 		Hud.show(v.p, HUD, line, Hud.PRIO_INFO, 10);
 	}
 

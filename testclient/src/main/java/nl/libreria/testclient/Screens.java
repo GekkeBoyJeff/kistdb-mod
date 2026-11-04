@@ -214,6 +214,11 @@ public final class Screens implements FabricClientGameTest {
 				ctx.getInput().scroll(-3);
 				ctx.waitTicks(20);
 				ctx.takeScreenshot("claim_view_zoomed");
+				// Over to Steve's sloped land (east = left on the screen)
+				ctx.getInput().scroll(2);
+				ctx.getInput().holdKeyFor(o2 -> o2.keyLeft, 45);
+				ctx.waitTicks(25);
+				ctx.takeScreenshot("claim_view_hills");
 				// Q closes it (Escape never reaches the server)
 				ctx.getInput().pressKey(o2 -> o2.keyDrop);
 				ctx.waitTicks(30);

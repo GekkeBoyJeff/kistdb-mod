@@ -25,15 +25,18 @@ final class Affine {
 
 	/**
 	 * The map that takes the model points {@code a, b, c} and the model direction {@code n} onto {@code A, B, C} and
-	 * {@code N} (a, b, c, n must not lie in one plane). If it would mirror the model, {@code N} is turned around,
-	 * which only moves a flat model's (invisible) thickness to its other side.
+	 * {@code N} (a, b, c, n must not lie in one plane). A map can't mirror, so if it would: with {@code keepNormal}
+	 * B and C trade places (fine for a shape that is the same mirrored along a-b-c's middle, like a square or the
+	 * corner triangle of one, and its top stays on top), otherwise N turns around (moving a flat model's invisible
+	 * thickness to its other side).
 	 */
-	static Affine fit(Vector3f a, Vector3f b, Vector3f c, Vector3f n, Vector3f A, Vector3f B, Vector3f C, Vector3f N) {
+	static Affine fit(Vector3f a, Vector3f b, Vector3f c, Vector3f n, Vector3f A, Vector3f B, Vector3f C, Vector3f N, boolean keepNormal) {
 		Matrix3f model = new Matrix3f(new Vector3f(b).sub(a), n, new Vector3f(c).sub(a)).invert();
 		Matrix3f world = new Matrix3f(new Vector3f(B).sub(A), N, new Vector3f(C).sub(A));
 		Matrix3f m = new Matrix3f(world).mul(model);
 		if (m.determinant() < 0) {
-			world = new Matrix3f(new Vector3f(B).sub(A), new Vector3f(N).negate(), new Vector3f(C).sub(A));
+			world = keepNormal ? new Matrix3f(new Vector3f(C).sub(A), N, new Vector3f(B).sub(A))
+					: new Matrix3f(new Vector3f(B).sub(A), new Vector3f(N).negate(), new Vector3f(C).sub(A));
 			m = new Matrix3f(world).mul(model);
 		}
 		Vector3f t = new Vector3f(A).sub(m.transform(new Vector3f(a)));
