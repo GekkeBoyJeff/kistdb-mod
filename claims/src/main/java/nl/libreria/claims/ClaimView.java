@@ -64,10 +64,10 @@ final class ClaimView {
 
 		Block glass() {
 			return switch (this) {
-				case MINE -> glass("lime");
-				case TRUSTED -> glass("light_blue");
-				case OTHER -> glass("red");
-				case FREE -> glass("white");
+				case MINE -> ClaimView.glass("lime");
+				case TRUSTED -> ClaimView.glass("light_blue");
+				case OTHER -> ClaimView.glass("red");
+				case FREE -> ClaimView.glass("white");
 			};
 		}
 
