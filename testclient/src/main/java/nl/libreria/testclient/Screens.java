@@ -293,7 +293,7 @@ public final class Screens implements FabricClientGameTest {
 				menu(ctx, server, player, "window_settings_" + m.id, p -> SettingsWindow.open(p, m));
 			}
 			menu(ctx, server, player, "window_effects",
-					p -> nl.libreria.core.Services.menu(nl.libreria.core.Services.MENU_EFFECTS).ifPresent(o -> o.accept(p)));
+					p -> nl.libreria.core.Services.menu(nl.libreria.core.Services.MENU_EFFECTS).ifPresent(open -> open.accept(p)));
 			menu(ctx, server, player, "window_admin", nl.libreria.core.gui.AdminWindow::open);
 			for (Module m : List.of(nl.libreria.core.Libreria.MODULE, nl.libreria.claims.ClaimsMod.MODULE)) {
 				menu(ctx, server, player, "window_admin_" + m.id, p -> nl.libreria.core.gui.AdminWindow.open(p, m));

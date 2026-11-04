@@ -395,7 +395,6 @@ public final class ClaimsMod implements ModInitializer {
 		STORE.saveNow();
 		showBorder(p, level, c, GREEN);
 		Ui.sound(p, net.minecraft.sounds.SoundEvents.PLAYER_LEVELUP, 0.5f, 1.6f);
-		Hud.flash(p, Component.literal("✔ Chunk claimed (" + (have + 1) + "/" + max + " used)").withStyle(ChatFormatting.GREEN));
 		LAST.remove(p.getUUID());
 		return true;
 	}
@@ -409,7 +408,6 @@ public final class ClaimsMod implements ModInitializer {
 		STORE.get().claims.remove(key(level, c));
 		STORE.saveNow();
 		showBorder(p, level, c, RED);
-		Hud.flash(p, Component.literal("Chunk released (" + owned(p.getUUID()) + "/" + budget(p) + " used)").withStyle(ChatFormatting.GOLD));
 		LAST.remove(p.getUUID());
 		return true;
 	}
@@ -424,19 +422,25 @@ public final class ClaimsMod implements ModInitializer {
 			return 1;
 		}
 		if (!claim(p, level, c)) return 0;
-		p.sendSystemMessage(Ui.prefix("Claims").append(Ui.text("✔ This chunk is yours now! Its borders glow for a few seconds.", ChatFormatting.GREEN))
-				.append("\n").append(Ui.text(budgetText(p) + " " + growthSentence(), ChatFormatting.GRAY))
-				.append("\n").append(row(mapButton(),
-						chatButton("Undo", ChatFormatting.GOLD, new ClickEvent.RunCommand("/claim release"), "Release this chunk again"),
-						trustButton())));
+		toast(p, true);
 		return 1;
+	}
+
+	/** "Chunk claimed / released" at the top of the screen, with how much of the budget is used. */
+	static void toast(ServerPlayer p, boolean claimed) {
+		int used = owned(p.getUUID()), max = budget(p);
+		nl.libreria.core.gui.Toast.show(p, new net.minecraft.world.item.ItemStack(claimed ? Items.GOLDEN_SHOVEL : Items.WOODEN_SHOVEL),
+				claimed ? nl.libreria.core.gui.Toast.GOOD : nl.libreria.core.gui.Toast.WARN,
+				Ui.text(claimed ? "Chunk claimed" : "Chunk released", ChatFormatting.WHITE),
+				Ui.text(claimed ? "Its borders glow for a moment · /claim release to undo" : "Free land again", ChatFormatting.GRAY),
+				nl.libreria.core.gui.TopCard.Row.bar("flag", "Budget", max == 0 ? 1 : used / (double) max, 0x55FF55, 10,
+						Ui.text(used + " of " + max, ChatFormatting.WHITE)));
 	}
 
 	/** /claim release: give up the chunk you stand in. */
 	static int releaseHere(ServerPlayer p) {
 		if (!unclaim(p, p.level(), p.chunkPosition())) return 0;
-		p.sendSystemMessage(Ui.prefix("Claims").append(Ui.text("Released this chunk. ", ChatFormatting.GOLD))
-				.append(Ui.text(budgetText(p), ChatFormatting.GRAY)));
+		toast(p, false);
 		return 1;
 	}
 
