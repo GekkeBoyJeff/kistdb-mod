@@ -6,12 +6,12 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.stats.RecipeBookSettings;
 import net.minecraft.world.inventory.RecipeBookType;
 import nl.libreria.chests.gui.Locate;
-import nl.libreria.chests.gui.OverviewGui;
+import nl.libreria.chests.gui.ItemSearch;
 import nl.libreria.core.Pack;
 import nl.libreria.core.Ui;
 
 /**
- * The ways into "Your items" (see {@link OverviewGui}): the search button in your inventory (where the recipe book
+ * The ways into "Your items" (see {@link ItemSearch}): the search button in your inventory (where the recipe book
  * button is; the pack draws a magnifying glass there), /chest and /chest find.
  */
 public final class ChestSearch {
@@ -20,7 +20,7 @@ public final class ChestSearch {
 
 	/** Your items. */
 	public static void open(ServerPlayer p) {
-		OverviewGui.open(p, "");
+		ItemSearch.open(p, "");
 	}
 
 	/** /chest find &lt;text&gt;: exactly one kind in your chests lights it up at once, otherwise the list of matches. */
@@ -35,7 +35,7 @@ public final class ChestSearch {
 				return 1;
 			}
 		}
-		OverviewGui.open(p, q);
+		ItemSearch.open(p, q);
 		return 1;
 	}
 

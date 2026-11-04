@@ -33,7 +33,7 @@ public final class ItemGui extends Menu {
 
 	/** Opens the list for one item; Back goes to the chest index. */
 	public static void open(ServerPlayer player, Item item) {
-		open(player, item, "the chest index", () -> OverviewGui.open(player, ""));
+		open(player, item, "your items", () -> ItemSearch.open(player, ""));
 	}
 
 	static void open(ServerPlayer player, Item item, String backLabel, Runnable back) {

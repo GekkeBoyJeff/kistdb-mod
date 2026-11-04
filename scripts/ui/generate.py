@@ -411,6 +411,97 @@ def frame(rows, theme):
     return img
 
 
+# ------------------------------------------------------------------ the item search screen
+
+ASCII = None
+
+
+def _ascii():
+    global ASCII
+    if ASCII is None:
+        ASCII = Image.open(os.path.join(VANILLA, 'textures/font/ascii.png')).convert('RGBA')
+    return ASCII
+
+
+def char_width(c):
+    if c == ' ':
+        return 4
+    code = ord(c)
+    return actual_width(_ascii().crop(((code % 16) * 8, (code // 16) * 8, (code % 16) * 8 + 8, (code // 16) * 8 + 8)), 0, 8, 8) + 1
+
+
+def text_width(text):
+    return sum(char_width(c) for c in text) - 1
+
+
+def draw_text(img, x, y, text, color):
+    """Minecraft's own font, pixel for pixel (for words that never change)."""
+    a = _ascii()
+    for c in text:
+        if c != ' ':
+            code = ord(c)
+            cx, cy = (code % 16) * 8, (code // 16) * 8
+            for yy in range(8):
+                for xx in range(8):
+                    if a.getpixel((cx + xx, cy + yy))[3] > 0:
+                        px(img, x + xx, y + yy, color + (255,))
+        x += char_width(c)
+
+
+def search_frame():
+    """Your items: a search screen in Minecraft's own grey style, drawn by the title of an anvil screen (the only
+    screen with a text field) over the whole anvil. Holes where the text field and the 36 result slots are; the
+    anvil's own slots and hammer are covered. The dark bar above the results hides the anvil's "Inventory" label
+    (it's drawn in exactly that grey) and carries the summary the server writes into it."""
+    W, H = 176, 166
+    LIGHT, FILL, SHADE, BLACK = (255, 255, 255), (198, 198, 198), (85, 85, 85), (0, 0, 0)
+    img = Image.new('RGBA', (W, H), FILL + (255,))
+    for y in range(H):
+        for x in range(W):
+            corner = min(x, W - 1 - x) + min(y, H - 1 - y)
+            if (x in (0, W - 1) or y in (0, H - 1)) and corner < 2:
+                img.putpixel((x, y), (0, 0, 0, 0))
+            elif x in (0, W - 1) or y in (0, H - 1) or corner < 3:
+                img.putpixel((x, y), BLACK + (255,))
+            elif x in (1, 2) or y in (1, 2):
+                img.putpixel((x, y), LIGHT + (255,))
+            elif x in (W - 2, W - 3) or y in (H - 2, H - 3):
+                img.putpixel((x, y), SHADE + (255,))
+
+    def hole(hx, hy, hw, hh):
+        for yy in range(hy, hy + hh):
+            for xx in range(hx, hx + hw):
+                img.putpixel((xx, yy), (0, 0, 0, 0))
+
+    def inset(bx, by, bw, bh, fill):
+        for yy in range(by, by + bh):
+            for xx in range(bx, bx + bw):
+                if xx == bx or yy == by:
+                    c = SHADE
+                elif xx == bx + bw - 1 or yy == by + bh - 1:
+                    c = LIGHT
+                else:
+                    c = fill
+                img.putpixel((xx, yy), c + (255,))
+
+    # Search row: a magnifying glass, "Search", and the text field (drawn by the screen itself)
+    draw_icon(img, MAGNIFIER, 9, 22)
+    draw_text(img, 24, 24, 'Search', (64, 64, 64))
+    hole(59, 20, 110, 16)
+    # Hints where the anvil's slots were
+    inset(7, 41, 162, 24, (181, 181, 181))
+    for i, line in enumerate(('Click an item: its chest lights up', 'Right-click: every chest with it')):
+        draw_text(img, 88 - text_width(line) // 2, 44 + 10 * i, line, (80, 80, 80) if i == 0 else (110, 110, 110))
+    # The dark bar over the results (the anvil's "Inventory" label vanishes into it)
+    for yy in range(68, 81):
+        for xx in range(7, 169):
+            img.putpixel((xx, yy), (64, 64, 64, 255))
+    # The 36 result slots: the anvil's own slots show through
+    hole(7, 83, 162, 54)
+    hole(7, 141, 162, 18)
+    return img
+
+
 def frames():
     for rows in range(1, 7):
         cells = [(f'frame{rows}.{t}', frame(rows, t)) for t in THEMES]
@@ -846,6 +937,7 @@ def main():
     pips()
     icons()
     frames()
+    bitmap('search_frame', [('frame.search', search_frame())], 166, 13)
     filler_tile()
     plaques()
     empty_item()

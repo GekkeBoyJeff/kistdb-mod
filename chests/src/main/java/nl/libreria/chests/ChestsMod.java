@@ -23,7 +23,7 @@ import nl.libreria.core.Module;
 import nl.libreria.core.Services;
 import nl.libreria.core.Setting;
 import nl.libreria.chests.gui.ChestsGui;
-import nl.libreria.chests.gui.OverviewGui;
+import nl.libreria.chests.gui.ItemSearch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -94,7 +94,7 @@ public final class ChestsMod implements ModInitializer {
 			nl.libreria.chests.gui.Locate.go(player, item, hits);
 			return !hits.isEmpty();
 		});
-		Services.provideMenu(Services.MENU_CHESTS, p -> OverviewGui.open(p, ""));
+		Services.provideMenu(Services.MENU_CHESTS, p -> ItemSearch.open(p, ""));
 		ChestsTests.register();
 		LOG.info("Libreria Chests loaded");
 	}

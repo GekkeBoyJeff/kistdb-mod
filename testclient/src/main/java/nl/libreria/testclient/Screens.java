@@ -162,12 +162,12 @@ public final class Screens implements FabricClientGameTest {
 
 			// "Your items": everything on you and in your chests, then the live search for "o"
 			safe("items", () -> {
-				server.runOnServer(s -> nl.libreria.chests.gui.OverviewGui.open(player, ""));
+				server.runOnServer(s -> nl.libreria.chests.gui.ItemSearch.open(player, ""));
 				ctx.waitTicks(10);
 				ctx.getInput().setCursorPos(2, 2);
 				noToasts(ctx);
 				ctx.takeScreenshot("items_window");
-				server.runOnServer(s -> nl.libreria.chests.gui.OverviewGui.openSearch(player, "o"));
+				server.runOnServer(s -> nl.libreria.chests.gui.ItemSearch.open(player, "o"));
 				ctx.waitTicks(10);
 				noToasts(ctx);
 				ctx.takeScreenshot("items_search");

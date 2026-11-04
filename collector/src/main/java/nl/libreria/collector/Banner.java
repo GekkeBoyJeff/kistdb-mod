@@ -21,7 +21,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.projectile.FireworkRocketEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -167,7 +166,7 @@ final class Banner {
 		ItemStack stack = new ItemStack(Items.FIREWORK_ROCKET);
 		stack.set(DataComponents.FIREWORKS, new Fireworks(1, List.of(explosion)));
 		FireworkRocketEntity rocket = new FireworkRocketEntity(level, x, y, z, stack);
-		var add = new ClientboundAddEntityPacket(rocket.getId(), rocket.getUUID(), x, y, z, 0f, 0f, EntityType.FIREWORK_ROCKET, 0,
+		var add = new ClientboundAddEntityPacket(rocket.getId(), rocket.getUUID(), x, y, z, 0f, 0f, rocket.getType(), 0,
 				rocket.getDeltaMovement(), 0);
 		var values = rocket.getEntityData().getNonDefaultValues();
 		for (ServerPlayer p : viewers) {

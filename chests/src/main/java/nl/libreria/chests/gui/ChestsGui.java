@@ -145,7 +145,7 @@ public final class ChestsGui extends Menu {
 				"Find an item in all your chests."), "Click: open the chest index")
 				.setCallback((i, t, a, g) -> {
 					Ui.click(this.player);
-					OverviewGui.open(this.player, "");
+					ItemSearch.open(this.player, "");
 				}));
 
 		GuiElementBuilder orderButton = button(Items.COMPARATOR, "Sort: " + this.order.label, ChatFormatting.WHITE);

@@ -240,6 +240,15 @@
    "chars": [
     "\ue0e1\ue0e2\ue0e3\ue0e4\ue0e5\ue0e6\ue0e7\ue0e8\ue0e9\ue0ea\ue0eb"
    ]
+  },
+  {
+   "type": "bitmap",
+   "file": "libreria:font/ui/search_frame.png",
+   "height": 166,
+   "ascent": 13,
+   "chars": [
+    "\ue0ec"
+   ]
   }
  ]
 }

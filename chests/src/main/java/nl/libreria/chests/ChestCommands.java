@@ -22,7 +22,6 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import nl.libreria.chests.gui.ItemGui;
 import nl.libreria.chests.gui.Locate;
-import nl.libreria.chests.gui.OverviewGui;
 
 /** /chest – voor iedereen (geen op-rechten nodig). Help-regels staan in ChestsMod (MODULE.commands). */
 public final class ChestCommands {
