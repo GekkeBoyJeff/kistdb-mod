@@ -1,6 +1,6 @@
 // CI only: starts a real server with all modules and runs their self-tests.
 dependencies {
-	rootProject.subprojects.findAll { it.name != 'testserver' }.each { implementation project(it.path) }
+	rootProject.subprojects.findAll { !(it.name in ['testserver', 'testclient']) }.each { implementation project(it.path) }
 }
 
 loom {

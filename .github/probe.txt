@@ -134,3 +134,15 @@ net.minecraft.world.inventory.AbstractContainerMenu
 ? triggers/Criterion.class
 net.minecraft.advancements.triggers.Criterion
 net.minecraft.world.item.ItemStackTemplate
+!net.minecraft.client.renderer.entity.DisplayRenderer$TextDisplayRenderer
+net.minecraft.network.chat.FontDescription
+net.minecraft.network.chat.FontDescription$Resource
+? DisplayRenderer
+? gui/font/glyphs/
+? gui/font/providers/
+? item/properties/select/
+? item/properties/conditional/
+? client/gui/render/GuiRenderer
+!net.minecraft.client.gui.font.providers.BitmapProvider$Glyph
+!net.minecraft.client.gui.font.glyphs.BakedSheetGlyph
+net.minecraft.client.gui.screens.inventory.AbstractContainerScreen

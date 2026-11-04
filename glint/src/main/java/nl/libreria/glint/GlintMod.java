@@ -5,7 +5,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import eu.pb4.polymer.autohost.api.AutoHostUtils;
 import eu.pb4.polymer.autohost.api.ResourcePackDataProvider;
-import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
@@ -26,7 +25,6 @@ import java.util.UUID;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.context.PacketContext;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.ChatFormatting;
@@ -38,6 +36,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Items;
 import nl.libreria.core.Module;
+import nl.libreria.core.Pack;
 import nl.libreria.core.PlayerStore;
 import nl.libreria.core.Setting;
 import nl.libreria.core.Ui;
@@ -54,8 +53,6 @@ import org.jetbrains.annotations.Nullable;
 public final class GlintMod implements ModInitializer {
 	public static final Module MODULE = Module.register("glint", "Glint", Items.ENCHANTED_BOOK,
 			"Enchant effects on your items, custom", "textures per enchanted book and", "particles around players. No install.");
-	public static final Setting.Toggle PACK = MODULE.toggle("pack", "Glint textures", true, Items.ENCHANTED_BOOK,
-			"Effects on items and custom book art.", "Turning it off removes the pack", "(your screen briefly reloads).");
 	public static final Setting.Toggle BOOKS = MODULE.toggle("books", "Custom book textures", true, Items.BOOK,
 			"Every enchanted book gets its own cover", "with a symbol for its enchantment.");
 	public static final Setting.Toggle AURA = MODULE.toggle("particles", "Particles around players", true, Items.BLAZE_POWDER,
@@ -86,8 +83,7 @@ public final class GlintMod implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		loadFamilies();
-		assetsAdded = PolymerResourcePackUtils.addModAssets("libreria_glint");
-		ensureAutoHostConfig();
+		assetsAdded = Pack.addAssets("libreria_glint");
 
 		MODULE.hubEntry(Items.BLAZE_POWDER, "Glint effects", ChatFormatting.LIGHT_PURPLE, EffectsGui::open,
 				"Choose which enchant effects you see.");
@@ -96,17 +92,18 @@ public final class GlintMod implements ModInitializer {
 		ServerLifecycleEvents.SERVER_STARTING.register(GlintMod::hostOffPacks);
 		AutoHostUtils.SEND_RESOURCE_PACK_COLLECTOR.register((provider, context, consumer) -> {
 			UUID id = playerId(context);
-			if (id == null || !PACK.get(id)) return;
+			if (id == null || !Pack.ENABLED.get(id)) return;
 			for (String pack : disabledPacks(id)) {
 				consumer.accept(provider.createProperties(context, packUuid(pack), packId(pack), OFF_PACKS.get(pack)));
 			}
 		});
-		// Wie GlintMod uit heeft staan, krijgt het hoofdpakket na het inloggen meteen weer weggehaald
-		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
-			if (!PACK.get(handler.player)) server.execute(() -> setMainPack(handler.player, false));
+		// The main pack lives in core; when it comes back, the effects that are off must be switched off again
+		Pack.afterPush(p -> {
+			for (String pack : disabledPacks(p.getUUID())) setOffPack(p, pack, true);
 		});
-
-		PACK.onChange(p -> setMainPack(p, PACK.get(p)));
+		Pack.beforePop(p -> {
+			for (String pack : OFF_PACKS.keySet()) p.connection.send(new ClientboundResourcePackPopPacket(Optional.of(packUuid(pack))));
+		});
 		BOOKS.onChange(p -> setOffPack(p, "books", !BOOKS.get(p)));
 
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
@@ -150,23 +147,6 @@ public final class GlintMod implements ModInitializer {
 	}
 
 	// ---------------------------------------------------------------- pakketjes
-
-	/** Zet de autohost van Polymer aan (die staat standaard uit), met een Engelse vraag aan de speler. */
-	private static void ensureAutoHostConfig() {
-		Path file = FabricLoader.getInstance().getConfigDir().resolve("polymer/auto-host.json");
-		if (Files.exists(file)) return;
-		JsonObject o = new JsonObject();
-		o.addProperty("enabled", true);
-		o.addProperty("required", false);
-		o.addProperty("message", "This server shows enchant effects and custom book textures using a small resource pack. "
-				+ "You don't need to install anything. Rather not? Choose 'No', or turn it off later in /libreria settings.");
-		try {
-			Files.createDirectories(file.getParent());
-			Files.writeString(file, new com.google.gson.GsonBuilder().setPrettyPrinting().create().toJson(o));
-		} catch (IOException e) {
-			nl.libreria.core.Libreria.LOG.warn("Glint: could not write {}", file, e);
-		}
-	}
 
 	/** De "uit"-pakketjes uit de mod naar de serveromgeving kopiëren en via Polymer laten hosten. */
 	static void hostOffPacks(MinecraftServer server) {
@@ -219,7 +199,7 @@ public final class GlintMod implements ModInitializer {
 	/** Een "uit"-pakketje toevoegen of weghalen terwijl de speler online is. */
 	static void setOffPack(ServerPlayer p, String pack, boolean apply) {
 		String hash = OFF_PACKS.get(pack);
-		if (hash == null || !PACK.get(p)) return;
+		if (hash == null || !Pack.ENABLED.get(p)) return;
 		if (apply) {
 			ResourcePackDataProvider provider = ResourcePackDataProvider.getActive();
 			if (provider == null || !provider.isReady(p.connection.getPacketContext())) return;
@@ -230,23 +210,6 @@ public final class GlintMod implements ModInitializer {
 		}
 	}
 
-	/** Het hoofdpakket (met alle GlintMod-plaatjes) aan of uit voor één speler. */
-	static void setMainPack(ServerPlayer p, boolean on) {
-		ResourcePackDataProvider provider = ResourcePackDataProvider.getActive();
-		if (!on) {
-			for (String pack : OFF_PACKS.keySet()) p.connection.send(new ClientboundResourcePackPopPacket(Optional.of(packUuid(pack))));
-			p.connection.send(new ClientboundResourcePackPopPacket(Optional.of(PolymerResourcePackUtils.getMainUuid())));
-			return;
-		}
-		if (provider == null || !provider.isReady(p.connection.getPacketContext())) {
-			p.sendSystemMessage(Ui.prefix("Glint").append(Ui.text("The pack isn't ready yet; please log in again.", ChatFormatting.GRAY)));
-			return;
-		}
-		for (var info : provider.getProperties(p.connection.getPacketContext())) {
-			p.connection.send(new ClientboundResourcePackPushPacket(info.id(), info.url(), info.hash(), false, Optional.empty()));
-		}
-		for (String pack : disabledPacks(p.getUUID())) setOffPack(p, pack, true);
-	}
 
 	static Component familyLabel(Family f) {
 		return Component.literal(f.name()).withStyle(ChatFormatting.LIGHT_PURPLE);

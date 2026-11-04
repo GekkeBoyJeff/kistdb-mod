@@ -50,7 +50,7 @@ public final class CollectorMod implements ModInitializer {
 			"Achievements without rewards: collect", "items, breed animals, rack up hours.", "Pick a title in its rarity's color.");
 	public static final Setting.Toggle SHOW_TITLE = MODULE.toggle("titel", "Title above your name", true, Items.NAME_TAG,
 			"Your chosen title floats above your", "name, in the color of its rarity.", "Choose one: /titles");
-	public static final Setting.Toggle BIG = MODULE.toggle("groot", "Big on-screen announcement", false, Items.FIREWORK_ROCKET,
+	public static final Setting.Toggle BIG = MODULE.toggle("groot", "Big on-screen announcement", true, Items.FIREWORK_ROCKET,
 			"A title in the middle of the screen for", "rare (or better) achievements, on top of", "the advancement toast.");
 	public static final Setting.Toggle OTHERS = MODULE.toggle("anderen", "Others' achievements", true, Items.BELL,
 			"A chat message when someone else earns", "an uncommon (or better) achievement.");

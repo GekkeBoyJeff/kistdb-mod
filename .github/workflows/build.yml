@@ -40,6 +40,20 @@ jobs:
           pkill -9 -f java || true
           grep -E 'LIBRERIA-SELFTEST|loaded|Mixin|ERROR|Exception' server.log | head -80
           grep -q 'LIBRERIA-SELFTEST OK' server.log
+      - name: screenshots (start a real 26.3 client)
+        id: shots
+        if: steps.build.outcome == 'success'
+        continue-on-error: true
+        timeout-minutes: 30
+        run: |
+          sudo apt-get update -q > /dev/null
+          sudo apt-get install -y -q xvfb mesa-vulkan-drivers libgl1-mesa-dri libegl1 > /dev/null
+          mkdir -p testclient/build/run/clientGameTest
+          echo 'preferredGraphicsBackend:"opengl"' > testclient/build/run/clientGameTest/options.txt
+          timeout 1500 xvfb-run -a -s "-screen 0 1280x720x24" ./gradlew :testclient:runClientGameTest --no-daemon > client.log 2>&1 || true
+          grep -E 'LIBRERIA-SCREENSHOTS|Screenshot step|ERROR|Exception|Caused by' client.log | head -60
+          ls testclient/build/run/clientGameTest/screenshots | head -80
+          grep -q 'LIBRERIA-SCREENSHOTS DONE' client.log
       - name: collect output
         if: always()
         run: |
@@ -51,6 +65,11 @@ jobs:
           echo "${GITHUB_SHA}" > out/commit.txt
           for m in core chests tools waypoints info comfort graves collector nicknames claims glint; do cp $m/build/libs/*.jar out/ 2>/dev/null || true; done
           cp testserver/run/polymer/resource_pack.zip out/ 2>/dev/null || true
+          mkdir -p out/screenshots
+          cp testclient/build/run/clientGameTest/screenshots/*.png out/screenshots/ 2>/dev/null || true
+          cp client.log out/ 2>/dev/null || true
+          cp testclient/build/run/clientGameTest/logs/latest.log out/client-latest.log 2>/dev/null || true
+          echo "${{ steps.shots.outcome }}" > out/shots.txt
           rm -f out/*-sources.jar
           bash .github/probe.sh
       - name: publish to ci-out branch

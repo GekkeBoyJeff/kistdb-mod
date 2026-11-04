@@ -40,6 +40,7 @@ public final class Libreria implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
+		Pack.init();
 		// Opslag zo vroeg mogelijk klaarzetten, zodat modules ze in hun eigen SERVER_STARTED al kunnen lezen
 		ServerLifecycleEvents.SERVER_STARTING.register(server -> {
 			PlayerStore.initAll(server);

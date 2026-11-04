@@ -1,0 +1,16 @@
+// CI only: starts a real Minecraft client (headless via xvfb) with all modules and takes screenshots of the
+// tooltips, name tags and menus, so they can be checked without a human playing.
+dependencies {
+	rootProject.subprojects.findAll { !(it.name in ['testserver', 'testclient']) }.each { implementation project(it.path) }
+}
+
+fabricApi {
+	configureTests {
+		modId = "libreria_testclient"
+		enableGameTests = false
+		enableClientGameTests = true
+		eula = true
+		clearRunDirectory = false
+		username = "Jeffrey"
+	}
+}

@@ -17,3 +17,4 @@ rootProject.name = 'libreria'
 }
 // CI only: runs all modules together on a real server with self-tests.
 include 'testserver'
+include 'testclient'

@@ -3,4 +3,9 @@ dependencies {
 	include "eu.pb4:sgui:${rootProject.sgui_version}"
 	api "eu.pb4:polymer-virtual-entity:${rootProject.polymer_version}"
 	include "eu.pb4:polymer-virtual-entity:${rootProject.polymer_version}"
+	// The server builds the Libreria resource pack itself and hosts it: players never install anything
+	api "eu.pb4:polymer-resource-pack:${rootProject.polymer_version}"
+	include "eu.pb4:polymer-resource-pack:${rootProject.polymer_version}"
+	api "eu.pb4:polymer-autohost:${rootProject.polymer_version}"
+	include "eu.pb4:polymer-autohost:${rootProject.polymer_version}"
 }

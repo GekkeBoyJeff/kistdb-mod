@@ -10,6 +10,8 @@ while read -r cls; do
   # "+ klasse" = ook private leden laten zien
   flag="-protected"
   case "$cls" in "+"*) flag="-p"; cls="${cls#+}";; esac
+  # "! klasse" = bytecode too (to read constants)
+  case "$cls" in "!"*) flag="-c -p"; cls="${cls#!}";; esac
   path="$(echo "$cls" | tr . /).class"
   found=""
   for j in $JARS; do

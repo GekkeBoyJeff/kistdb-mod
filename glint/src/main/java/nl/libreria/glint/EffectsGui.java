@@ -102,10 +102,11 @@ final class EffectsGui extends Menu {
 		back("the Libreria menu", () -> HubGui.open(this.player));
 		GuiElementBuilder settings = button(Items.COMPARATOR, "Glint settings", ChatFormatting.WHITE,
 				"Textures, book covers and", "particles around players.");
-		if (!GlintMod.PACK.get(this.player)) {
+		if (!nl.libreria.core.Pack.has(this.player)) {
 			settings.addLoreLine(Component.empty());
-			settings.addLoreLine(Ui.text("✘ Glint textures are off, so", ChatFormatting.RED));
-			settings.addLoreLine(Ui.text("effects on items don't show.", ChatFormatting.RED));
+			settings.addLoreLine(Ui.text("✘ The Libreria resource pack is off,", ChatFormatting.RED));
+			settings.addLoreLine(Ui.text("so effects on items don't show.", ChatFormatting.RED));
+			settings.addLoreLine(Ui.text("(/libreria settings → General)", ChatFormatting.GRAY));
 		}
 		actions(settings, "Click: open");
 		this.setSlot(navRow() + 1, settings.setCallback((i, t, a, g) -> {
