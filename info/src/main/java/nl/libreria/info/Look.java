@@ -78,7 +78,7 @@ final class Look {
 		}
 
 		static Row bar(String icon, String symbol, String label, double fraction, int segments, Component value) {
-			return new Row(icon, symbol, label, fraction, barColor(fraction), segments, value);
+			return new Row(icon, symbol, label, fraction, Look.barColor(fraction), segments, value);
 		}
 
 		String plain() {

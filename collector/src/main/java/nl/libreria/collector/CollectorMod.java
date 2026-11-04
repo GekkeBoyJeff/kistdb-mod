@@ -111,14 +111,14 @@ public final class CollectorMod implements ModInitializer {
 				int earned = 0;
 				for (String id : d.earned.keySet()) if (Catalog.get(id) != null) earned++;
 				return new Services.CardData(CollectorMod.points(d), earned, Math.max(1, Catalog.all().size()),
-						Catalog.countAll(d), Catalog.allItems().size());
+						(int) Catalog.countAll(d), Catalog.allItems().size());
 			}
 
 			@Override
 			public int titleColor(ServerPlayer player) {
 				Achievement a = titleAchievement(STORE.get(player));
-				Integer c = a == null ? null : a.rarity().color.getColor();
-				return c == null ? -1 : c;
+				net.minecraft.network.chat.TextColor c = a == null ? null : net.minecraft.network.chat.TextColor.fromLegacyFormat(a.rarity().color);
+				return c == null ? -1 : c.getValue();
 			}
 		});
 		Nameplate.addLine("collector.title", 10, CollectorMod::title);
