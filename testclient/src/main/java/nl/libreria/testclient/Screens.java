@@ -155,7 +155,8 @@ public final class Screens implements FabricClientGameTest {
 				ctx.waitTicks(40);
 				noToasts(ctx);
 				ctx.takeScreenshot("claim_view");
-				ctx.getInput().moveCursor(260, 160);
+				float yaw = ctx.computeOnClient(c -> c.player.getYRot());
+				ctx.getInput().lookAt(yaw + 40, 22);
 				ctx.waitTicks(12);
 				ctx.takeScreenshot("claim_view_moved");
 				ctx.getInput().pressMouse(0);

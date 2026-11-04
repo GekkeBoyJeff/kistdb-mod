@@ -54,7 +54,7 @@ final class ClaimView {
 	/** How far you can look, in chunks from where you stand. */
 	static final int RADIUS = 8;
 	private static final int OPEN_TICKS = 26, CLOSE_TICKS = 14;
-	private static final double MIN_H = 18, MAX_H = 90, START_H = 34;
+	private static final double MIN_H = 18, MAX_H = 90, START_H = 46;
 	private static final Identifier FREEZE = Identifier.fromNamespaceAndPath("libreria", "claim_view");
 	private static final Brightness FULL = new Brightness(15, 15);
 	private static final String HUD = "claims.view";
@@ -191,8 +191,9 @@ final class ClaimView {
 		Ui.sound(p, SoundEvents.ELYTRA_FLYING, 0.25f, 1.6f);
 		p.connection.send(new ClientboundSetTitlesAnimationPacket(8, 50, 12));
 		p.connection.send(new ClientboundSetTitleTextPacket(Component.literal("Land map").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD)));
-		p.connection.send(new ClientboundSetSubtitleTextPacket(Component.literal("Mouse: move · Left-click: claim · Right-click: release · Scroll: zoom · Sneak: back")
+		p.connection.send(new ClientboundSetSubtitleTextPacket(Component.literal("Move the mouse · click to claim · sneak to go back")
 				.withStyle(ChatFormatting.GRAY)));
+		emptyHands(p);
 	}
 
 	/** Back to normal. Instant (when you get hurt) or by flying the camera back down first. */
@@ -221,6 +222,17 @@ final class ClaimView {
 		}
 		v.holder.destroy();
 		freeze(v.p, false);
+		// Show the real hotbar again
+		if (!v.p.hasDisconnected()) v.p.inventoryMenu.sendAllDataToRemote();
+	}
+
+	/** Only on your screen: an empty hotbar and off hand, so no sword or tool hangs in front of the map. */
+	private static void emptyHands(ServerPlayer p) {
+		var menu = p.inventoryMenu;
+		for (int slot = 36; slot <= 45; slot++) {
+			p.connection.send(new net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket(menu.containerId, menu.getStateId(), slot,
+					net.minecraft.world.item.ItemStack.EMPTY));
+		}
 	}
 
 	static void forget(ServerPlayer p) {
@@ -328,6 +340,8 @@ final class ClaimView {
 			if (d < -4) d += 9;
 			v.height = Mth.clamp(v.height + d * 6, MIN_H, MAX_H);
 			v.lastSlot = slot;
+			for (TextDisplayElement l : v.labels) l.setScale(new Vector3f(labelScale(v)));
+			emptyHands(p);
 		}
 		// Left-click = claim (an arm swing reaches the server)
 		boolean swinging = p.isSwinging();
@@ -486,7 +500,7 @@ final class ClaimView {
 				label.setBackground(0x60000000);
 				// Lying flat, readable from above with north up
 				label.setLeftRotation(new Quaternionf().rotateX((float) -Math.PI / 2));
-				label.setScale(new Vector3f(5f));
+				label.setScale(new Vector3f(labelScale(v)));
 				label.setOffset(new Vec3(mid.getMinBlockX() + 8, top(v, mid) + 0.25, mid.getMinBlockZ() + 8).subtract(v.origin));
 				v.holder.addElement(label);
 				v.labels.add(label);
@@ -526,6 +540,11 @@ final class ClaimView {
 	}
 
 	// ---------------------------------------------------------------- maths
+
+	/** Names stay readable when you zoom out. */
+	private static float labelScale(View v) {
+		return (float) (v.height / 7.0);
+	}
 
 	private static long key(ChunkPos c) {
 		return ((long) c.x() << 32) ^ (c.z() & 0xFFFFFFFFL);
