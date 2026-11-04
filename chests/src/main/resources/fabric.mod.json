@@ -10,6 +10,7 @@
 	"entrypoints": {
 		"main": ["nl.libreria.chests.ChestsMod"]
 	},
+	"mixins": ["libreria_chests.mixins.json"],
 	"breaks": {
 		"kistdb": "*"
 	},

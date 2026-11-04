@@ -35,6 +35,14 @@ public final class ChestCommands {
 					OverviewGui.open(c.getSource().getPlayerOrException(), "");
 					return 1;
 				})
+				.then(Commands.literal("find")
+						.executes(c -> {
+							ChestSearch.open(c.getSource().getPlayerOrException());
+							return 1;
+						})
+						.then(Commands.argument("text", com.mojang.brigadier.arguments.StringArgumentType.greedyString())
+								.executes(c -> ChestSearch.find(c.getSource().getPlayerOrException(),
+										com.mojang.brigadier.arguments.StringArgumentType.getString(c, "text")))))
 				.then(Commands.literal("search")
 						.then(Commands.argument("item", ItemArgument.item(context))
 								.executes(ChestCommands::find)))

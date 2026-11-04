@@ -170,3 +170,4 @@ net.minecraft.stats.RecipeBookSettings
 net.minecraft.world.inventory.RecipeBookType
 net.minecraft.core.particles.DustParticleOptions
 net.minecraft.stats.ServerRecipeBook
+net.minecraft.server.dialog.Dialog

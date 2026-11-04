@@ -478,6 +478,21 @@ def claim_walls():
                   open(os.path.join(base, f'models/item/claim/wall_{name}.json'), 'w'))
         json.dump({'model': {'type': 'minecraft:model', 'model': f'{NS}:item/claim/wall_{name}'}},
                   open(os.path.join(base, f'items/claim/wall_{name}.json'), 'w'))
+        # Fill: a flat see-through tint lying on the land (both sides), a little stronger at its rim
+        fill = Image.new('RGBA', (16, 16), (0, 0, 0, 0))
+        for y in range(16):
+            for x in range(16):
+                rim = x in (0, 15) or y in (0, 15)
+                fill.putpixel((x, y), c + (95 if rim else 62,))
+        fill.save(os.path.join(base, f'textures/item/claim/fill_{name}.png'))
+        ftex = f'{NS}:item/claim/fill_{name}'
+        fface = {'texture': '#fill', 'uv': [0, 0, 16, 16]}
+        json.dump({'textures': {'fill': ftex, 'particle': ftex},
+                   'elements': [{'from': [0, 8, 0], 'to': [16, 8, 16], 'shade': False,
+                                 'faces': {'up': dict(fface), 'down': dict(fface)}}]},
+                  open(os.path.join(base, f'models/item/claim/fill_{name}.json'), 'w'))
+        json.dump({'model': {'type': 'minecraft:model', 'model': f'{NS}:item/claim/fill_{name}'}},
+                  open(os.path.join(base, f'items/claim/fill_{name}.json'), 'w'))
 
 
 def plaques():
@@ -638,6 +653,50 @@ def hud_fonts():
     return icons
 
 
+def search_button():
+    """The recipe book button in the inventory becomes a search button (magnifying glass) for Libreria's chest
+    search. Same size and shape as the vanilla one."""
+    d = os.path.join(OUT, 'assets', 'minecraft', 'textures/gui/sprites/recipe_book')
+    os.makedirs(d, exist_ok=True)
+    lens = ['....####....', '..##wwww##..', '.#wwhhwwww#.', '.#whhwwwww#.', '#wwhwwwwwww#', '#wwwwwwwwww#',
+            '#wwwwwwwwww#', '#wwwwwwwwww#', '.#wwwwwwww#.', '.#wwwwwwww#.', '..##wwww##..', '....####....']
+    for name, hi in (('button', False), ('button_highlighted', True)):
+        img = Image.new('RGBA', (20, 18), (0, 0, 0, 0))
+        for y in range(18):
+            for x in range(20):
+                corner = (x < 2 and y < 2 and x + y < 2) or (x > 17 and y < 2 and (19 - x) + y < 2) \
+                    or (x < 2 and y > 15 and x + (17 - y) < 2) or (x > 17 and y > 15 and (19 - x) + (17 - y) < 2)
+                if corner:
+                    continue
+                edge = x in (0, 19) or y in (0, 17) or (x in (1, 18) and y in (1, 16))
+                if edge:
+                    c = OUTLINE
+                elif x == 1 or y == 1:
+                    c = BRONZE_HI if hi else BRONZE
+                elif x == 18 or y == 16:
+                    c = BRONZE_LO
+                else:
+                    t = (y - 2) / 13
+                    c = lerp((92, 64, 40) if hi else (70, 48, 30), (46, 31, 20), t) + (255,)
+                img.putpixel((x, y), c)
+        # handle, bottom right, then the lens on top
+        for i in range(5):
+            for dx, col in ((0, BRONZE_LO), (1, BRONZE)):
+                img.putpixel((11 + i + dx, 11 + i), col)
+        glass = (200, 235, 255, 255) if hi else (150, 200, 235, 255)
+        rim = BRONZE_HI if hi else BRONZE
+        for y, row in enumerate(lens):
+            for x, ch in enumerate(row):
+                px_ = (3 + x, 2 + y)
+                if ch == '#':
+                    img.putpixel(px_, rim)
+                elif ch == 'w':
+                    img.putpixel(px_, glass)
+                elif ch == 'h':
+                    img.putpixel(px_, (255, 255, 255, 255))
+        img.save(os.path.join(d, name + '.png'))
+
+
 def boss_bar():
     """The boss bar of the top tooltip uses the white colour; the pack makes white bars invisible (only the title)."""
     d = os.path.join(OUT, 'assets', 'minecraft', 'textures/gui/sprites/boss_bar')
@@ -668,6 +727,7 @@ def main():
     json.dump({'providers': providers}, open(os.path.join(base, 'font/ui.json'), 'w'), indent=1)
     icon_map = hud_fonts()
     boss_bar()
+    search_button()
     meta = {"hudLines": HUD_LINES, "icons": icon_map, 'lineHeight': LH, 'padX': PAD_X, 'padTop': PAD_TOP, 'padBottom': PAD_BOTTOM,
             'panelLines': [min(PANEL_LINES), max(PANEL_LINES)], 'themes': list(THEMES), 'glyphs': glyphs}
     os.makedirs(os.path.join(OUT, NS), exist_ok=True)

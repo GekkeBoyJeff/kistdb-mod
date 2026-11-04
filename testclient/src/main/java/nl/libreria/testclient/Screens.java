@@ -136,6 +136,22 @@ public final class Screens implements FabricClientGameTest {
 				ctx.waitTicks(5);
 			});
 
+			// The chest search window (a dialog) and its results
+			safe("search", () -> {
+				server.runOnServer(s -> nl.libreria.chests.ChestSearch.open(player));
+				ctx.waitTicks(10);
+				noToasts(ctx);
+				ctx.takeScreenshot("search_dialog");
+				ctx.setScreen(() -> null);
+				ctx.waitTicks(3);
+				server.runOnServer(s -> nl.libreria.chests.ChestSearch.find(player, "q:o"));
+				ctx.waitTicks(10);
+				noToasts(ctx);
+				ctx.takeScreenshot("search_results");
+				ctx.setScreen(() -> null);
+				ctx.waitTicks(3);
+			});
+
 			// The land map: camera flies up, claims are coloured plates
 			safe("claim_view", () -> {
 				server.runOnServer(s -> {

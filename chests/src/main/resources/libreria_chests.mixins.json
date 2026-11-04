@@ -1,0 +1,9 @@
+{
+	"required": true,
+	"package": "nl.libreria.chests.mixin",
+	"compatibilityLevel": "JAVA_25",
+	"mixins": ["RecipeBookButtonMixin"],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}

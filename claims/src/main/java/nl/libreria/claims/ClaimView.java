@@ -118,6 +118,9 @@ final class ClaimView {
 		/** Border curtains of claimed land, and the ones around the cursor chunk. */
 		final Map<Seg, DisplayElement> walls = new HashMap<>();
 		final Map<Seg, DisplayElement> cursorWalls = new HashMap<>();
+		/** See-through tint lying on claimed land (8x8 pieces that follow the ground), and on the cursor chunk. */
+		final Map<Seg, DisplayElement> fills = new HashMap<>();
+		final Map<Seg, DisplayElement> cursorFills = new HashMap<>();
 		boolean pack;
 		final List<TextDisplayElement> labels = new ArrayList<>();
 		final Map<Long, Integer> tops = new HashMap<>();
@@ -244,6 +247,8 @@ final class ClaimView {
 			// The curtains sink into the ground
 			for (Map.Entry<Seg, DisplayElement> e : v.walls.entrySet()) lower(v, e.getKey(), e.getValue(), 0, 7);
 			for (Map.Entry<Seg, DisplayElement> e : v.cursorWalls.entrySet()) lower(v, e.getKey(), e.getValue(), 0, 5);
+			for (Map.Entry<Seg, DisplayElement> e : v.fills.entrySet()) lower(v, e.getKey(), e.getValue(), 0, 6);
+			for (Map.Entry<Seg, DisplayElement> e : v.cursorFills.entrySet()) lower(v, e.getKey(), e.getValue(), 0, 4);
 			for (TextDisplayElement label : v.labels) label.setScale(new Vector3f(0.01f));
 			v.you.setScale(new Vector3f(0.01f));
 		}
@@ -494,6 +499,7 @@ final class ClaimView {
 	private static void buildPlates(View v, boolean opening) {
 		ChunkPos center = new ChunkPos(Mth.floor(v.origin.x) >> 4, Mth.floor(v.origin.z) >> 4);
 		Set<Seg> want = new HashSet<>();
+		Set<Seg> fills = new HashSet<>();
 		for (int dx = -RADIUS; dx <= RADIUS; dx++) {
 			for (int dz = -RADIUS; dz <= RADIUS; dz++) {
 				ChunkPos c = new ChunkPos(center.x() + dx, center.z() + dz);
@@ -504,12 +510,28 @@ final class ClaimView {
 					ChunkPos n = neighbour(c, side);
 					ClaimsMod.Claim nc = ClaimsMod.claimAt(v.level, n);
 					if (nc != null && nc.owner.equals(cl.owner)) continue;
-					edge(v, c, side, kind, 2.6f, want);
+					edge(v, c, side, kind, 3.2f, want);
 				}
+				if (v.pack) fill(v, c, kind, fills);
 			}
 		}
 		sync(v, v.walls, want, opening);
+		sync(v, v.fills, fills, opening);
 		labels(v, center);
+	}
+
+	/** Four 8x8 tint pieces on a chunk, each lying on the highest ground under it. len = 0 marks a fill. */
+	private static void fill(View v, ChunkPos c, @Nullable Kind kind, Set<Seg> out) {
+		for (int qx = 0; qx < 2; qx++) {
+			for (int qz = 0; qz < 2; qz++) {
+				int x0 = c.getMinBlockX() + qx * 8, z0 = c.getMinBlockZ() + qz * 8;
+				int y = v.level.getMinY();
+				for (int x = 0; x < 8; x += 2) {
+					for (int z = 0; z < 8; z += 2) y = Math.max(y, v.level.getHeight(Heightmap.Types.MOTION_BLOCKING, x0 + x, z0 + z));
+				}
+				out.add(new Seg(x0, y + (kind == null ? 0.14 : 0.08), z0, 0, true, kind, 0));
+			}
+		}
 	}
 
 	private static ChunkPos neighbour(ChunkPos c, int side) {
@@ -584,7 +606,14 @@ final class ClaimView {
 	/** A curtain piece, still flat on the ground (it rises with {@link #raise}). */
 	private static DisplayElement wall(View v, Seg s) {
 		DisplayElement el;
-		if (v.pack) {
+		if (s.len() == 0) {
+			ItemDisplayElement item = new ItemDisplayElement();
+			ItemStack stack = new ItemStack(Items.PAPER);
+			stack.set(DataComponents.ITEM_MODEL, Identifier.fromNamespaceAndPath("libreria", "claim/fill_" + wallName(s.kind())));
+			item.setItem(stack);
+			item.setItemDisplayContext(net.minecraft.world.item.ItemDisplayContext.NONE);
+			el = item;
+		} else if (v.pack) {
 			ItemDisplayElement item = new ItemDisplayElement();
 			ItemStack stack = new ItemStack(Items.PAPER);
 			stack.set(DataComponents.ITEM_MODEL, Identifier.fromNamespaceAndPath("libreria", "claim/wall_" + wallName(s.kind())));
@@ -618,6 +647,12 @@ final class ClaimView {
 
 	/** Translation and scale for a curtain piece {@code h} tall. */
 	private static void shape(View v, Seg s, DisplayElement el, float h) {
+		if (s.len() == 0) {
+			float size = h <= 0.05f ? 0.01f : 8f;
+			el.setScale(new Vector3f(size, 1, size));
+			el.setTranslation(new Vector3f(4, 0, 4));
+			return;
+		}
 		float len = (float) s.len();
 		if (v.pack) {
 			// A 1x1 quad around the origin: stretch it and lift its bottom edge onto the ground
@@ -633,7 +668,7 @@ final class ClaimView {
 	}
 
 	private static void raise(View v, Seg s, DisplayElement el, int at, int duration) {
-		v.anims.add(new Anim(el, at, null, null, duration, false, () -> shape(v, s, el, s.height())));
+		v.anims.add(new Anim(el, at, null, null, duration, false, () -> shape(v, s, el, s.len() == 0 ? 1f : s.height())));
 	}
 
 	private static void lower(View v, Seg s, DisplayElement el, int at, int duration) {
@@ -722,8 +757,11 @@ final class ClaimView {
 	/** A low golden curtain around the chunk in the middle of the screen. */
 	private static void placeCursor(View v, ChunkPos c, boolean tick) {
 		Set<Seg> want = new HashSet<>();
-		for (int side = 0; side < 4; side++) edge(v, c, side, null, 1.5f, want);
+		for (int side = 0; side < 4; side++) edge(v, c, side, null, 1.8f, want);
 		sync(v, v.cursorWalls, want, false);
+		Set<Seg> fill = new HashSet<>();
+		if (v.pack) fill(v, c, null, fill);
+		sync(v, v.cursorFills, fill, false);
 		if (tick) Ui.sound(v.p, SoundEvents.UI_BUTTON_CLICK.value(), 0.06f, 1.9f);
 	}
 

@@ -36,6 +36,8 @@ public final class ChestsMod implements ModInitializer {
 
 	public static final Module MODULE = Module.register("chests", "Chests", Items.CHEST,
 			"Sorting, searching your chests by icon", "and a beam to the right chest.");
+	public static final Setting.Toggle SEARCH_BUTTON = MODULE.toggle("zoekknop", "Search button in your inventory", true, Items.SPYGLASS,
+			"With the Libreria pack, the recipe book", "button in your inventory becomes a", "magnifying glass that searches your chests.");
 	public static final Setting.Toggle SORT_BUTTON = MODULE.toggle("sorteerknop", "Sort button in chests", true, Items.CHEST,
 			"A ⇅ Sort button in the last empty", "slot of chests, barrels and boxes.", "Right-click: deposit matching items.");
 	public static final Setting.Toggle MIDDLE_CLICK = MODULE.toggle("middelklik", "Middle-click sorts", true, Items.HOPPER,
@@ -67,8 +69,8 @@ public final class ChestsMod implements ModInitializer {
 		// In het Libreria-menu en op de knop in het E-scherm
 		Hub.setPrimary("sort inventory", Sorter::sortPlayer);
 		Hub.addHint("In chests: ⇅ or middle-click = sort");
-		MODULE.hubEntry(Items.SPYGLASS, "Search chests", ChatFormatting.AQUA, p -> OverviewGui.open(p, ""),
-				"Everything in your chests, as icons.", "Search by name, beam to the chest.");
+		MODULE.hubEntry(Items.SPYGLASS, "Search chests", ChatFormatting.AQUA, ChestSearch::open,
+				"Type a name, see where it is and", "follow the beam. Also: the magnifying", "glass in your inventory.");
 		MODULE.hubEntry(Items.CHEST, "My chests", ChatFormatting.GOLD, ChestsGui::open,
 				"See inside your chests from afar,", "beam to them, skip them in search.");
 		MODULE.hubEntry(Items.CHEST_MINECART, "Quick stack", ChatFormatting.GREEN, QuickStack::run,
