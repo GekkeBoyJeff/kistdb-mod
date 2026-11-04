@@ -46,7 +46,7 @@ import org.joml.Vector3f;
 /**
  * The land map: your camera flies up and looks straight down on the real world around you. Claimed chunks are
  * coloured glass plates (green = yours, blue = you're trusted, red = someone else's) with the owner's name on them.
- * The crosshair is the cursor: move the mouse to glide over the land, left-click claims the chunk under it, right-click
+ * The crosshair is the cursor: WASD glides over the land, left-click claims the chunk under it, right-click
  * releases it, scroll zooms, sneak flies back down. Getting hurt closes it at once. Fully server-side: the camera is a
  * virtual entity the client looks through, the plates are display entities only you can see.
  */
@@ -95,8 +95,7 @@ final class ClaimView {
 		final float yawStart, pitchStart;
 		double baseY;
 		/** Cursor in world x/z, and the mouse reference it is measured from. */
-		double baseX, baseZ, curX, curZ;
-		float refYaw;
+		double baseX, baseZ, curX, curZ, velX, velZ;
 		double height = START_H;
 		int age, closeAge = -1, lastSlot;
 		boolean cameraSet, wasSwinging, sneakReleased;
@@ -184,14 +183,11 @@ final class ClaimView {
 
 		// Stand still while the map is open (transient: never saved)
 		freeze(p, true);
-		// Pitch 0 so the mouse has room to move both ways
-		p.teleportTo(v.level, p.getX(), p.getY(), p.getZ(), Set.of(), p.getYRot(), 0f, false);
-		v.refYaw = p.getYRot();
 
 		Ui.sound(p, SoundEvents.ELYTRA_FLYING, 0.25f, 1.6f);
 		p.connection.send(new ClientboundSetTitlesAnimationPacket(8, 50, 12));
 		p.connection.send(new ClientboundSetTitleTextPacket(Component.literal("Land map").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD)));
-		p.connection.send(new ClientboundSetSubtitleTextPacket(Component.literal("Move the mouse · click to claim · sneak to go back")
+		p.connection.send(new ClientboundSetSubtitleTextPacket(Component.literal("WASD: move · click: claim · sneak: back")
 				.withStyle(ChatFormatting.GRAY)));
 		emptyHands(p);
 	}
@@ -308,29 +304,26 @@ final class ClaimView {
 		}
 	}
 
-	/** The mouse moves the cursor: turning right = east, looking down = south (north is up on the map). */
+	/**
+	 * WASD glides over the map (north is up; sprint goes faster). While the camera is elsewhere the client doesn't send
+	 * where it looks, but it does send which movement keys are down, every click, the scroll wheel and sneaking.
+	 */
 	private static void input(View v) {
 		ServerPlayer p = v.p;
-		double k = v.height / 150.0;
-		float dyaw = Mth.wrapDegrees(p.getYRot() - v.refYaw);
-		float dpitch = p.getXRot();
-		v.curX = v.baseX + dyaw * k;
-		v.curZ = v.baseZ + dpitch * k;
-		// Keep within reach of where you stand
+		var in = p.getLastClientInput();
+		double speed = v.height / 55.0 * (in.sprint() ? 2.2 : 1.0);
+		double dx = (in.right() ? 1 : 0) - (in.left() ? 1 : 0);
+		double dz = (in.backward() ? 1 : 0) - (in.forward() ? 1 : 0);
+		if (dx != 0 && dz != 0) {
+			dx *= 0.7071;
+			dz *= 0.7071;
+		}
+		// A little inertia so it glides instead of jumping
+		v.velX = Mth.lerp(0.35, v.velX, dx * speed);
+		v.velZ = Mth.lerp(0.35, v.velZ, dz * speed);
 		double max = RADIUS * 16 + 8;
-		v.curX = Mth.clamp(v.curX, v.origin.x - max, v.origin.x + max);
-		v.curZ = Mth.clamp(v.curZ, v.origin.z - max, v.origin.z + max);
-		// Turned far: take this as the new reference (yaw is free, pitch is put back to level)
-		if (Math.abs(dyaw) > 70) {
-			v.baseX = v.curX;
-			v.refYaw = p.getYRot();
-		}
-		if (Math.abs(dpitch) > 55) {
-			v.baseX = v.curX;
-			v.baseZ = v.curZ;
-			v.refYaw = p.getYRot();
-			p.teleportTo(v.level, v.origin.x, v.origin.y, v.origin.z, Set.of(), p.getYRot(), 0f, false);
-		}
+		v.curX = Mth.clamp(v.curX + v.velX, v.origin.x - max, v.origin.x + max);
+		v.curZ = Mth.clamp(v.curZ + v.velZ, v.origin.z - max, v.origin.z + max);
 
 		// Scroll = zoom (the hotbar slot changes)
 		int slot = p.getInventory().getSelectedSlot();
@@ -529,13 +522,14 @@ final class ClaimView {
 		MutableComponent line = Component.literal("Chunk " + c.x() + ", " + c.z() + "  ").withStyle(ChatFormatting.GRAY);
 		switch (kind) {
 			case FREE -> line.append(Component.literal("Free").withStyle(ChatFormatting.WHITE))
-					.append(Component.literal("  ·  left-click: claim").withStyle(ChatFormatting.YELLOW));
+					.append(Component.literal("  ·  click: claim").withStyle(ChatFormatting.YELLOW));
 			case MINE -> line.append(Component.literal("Yours").withStyle(ChatFormatting.GREEN))
 					.append(Component.literal("  ·  right-click: release").withStyle(ChatFormatting.YELLOW));
 			case TRUSTED -> line.append(Component.literal(cl.ownerName + " (you may build)").withStyle(ChatFormatting.AQUA));
 			case OTHER -> line.append(Component.literal(cl.ownerName).withStyle(ChatFormatting.RED));
 		}
 		line.append(Component.literal("  ·  " + ClaimsMod.owned(v.p.getUUID()) + "/" + ClaimsMod.budget(v.p) + " used").withStyle(ChatFormatting.GRAY));
+		line.append(Component.literal("  ·  WASD move, scroll zoom, sneak back").withStyle(ChatFormatting.DARK_GRAY));
 		Hud.show(v.p, HUD, line, Hud.PRIO_INFO, 10);
 	}
 
