@@ -763,7 +763,18 @@ def hud_fonts():
         q['ascent'] = 11
         provs.append(q)
     json.dump({'providers': provs}, open(os.path.join(base, 'icons.json'), 'w'))
+    # libreria:caption: the vanilla font 11 px below a boss bar's title line, so a place name sits right under the
+    # compass strip (which reaches 9 px down) and above the next bar's title (19 px down)
+    provs = [{'type': 'space', 'advances': {' ': 4, '\u200c': 0}}] + space
+    for p in default:
+        q = dict(p)
+        q['ascent'] = p.get('ascent', 7) - CAPTION_SHIFT
+        provs.append(q)
+    json.dump({'providers': provs}, open(os.path.join(base, 'caption.json'), 'w'))
     return icons
+
+
+CAPTION_SHIFT = 11
 
 
 # ------------------------------------------------------------------ buttons in Minecraft's own style

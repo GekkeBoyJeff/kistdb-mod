@@ -13,6 +13,21 @@ final class InfoTests {
 	}
 
 	static void register() {
+		SelfTests.register("info.places", level -> {
+			PlaceNames.Kind plains = PlaceNames.kind("village_plains");
+			SelfTests.check(plains != null && plains.named() && "Village".equals(plains.label()), "plains village is a named village");
+			SelfTests.check(PlaceNames.kind("mineshaft") == null && PlaceNames.kind("buried_treasure") == null, "no titles for mineshafts");
+			SelfTests.check("Ruined Portal".equals(PlaceNames.kind("ruined_portal_desert").label()), "ruined portals by their kind");
+			String a = PlaceNames.name(plains, 42), b = PlaceNames.name(plains, 42);
+			java.util.Set<String> names = new java.util.HashSet<>();
+			for (long seed = 0; seed < 60; seed++) names.add(PlaceNames.name(plains, seed));
+			SelfTests.check(a.equals(b), "the same place keeps its name: " + a);
+			SelfTests.check(names.size() >= 30, "plenty of different names: " + names.size());
+			FakePlayer p = FakePlayer.get(level);
+			SelfTests.check(Places.remember(p, "test|village|1,2", a, "Village", new BlockPos(20, 64, 40)), "first visit is new");
+			SelfTests.check(!Places.remember(p, "test|village|1,2", a, "Village", new BlockPos(20, 64, 40)), "second visit isn't");
+			Places.STORE.get(p).places.removeIf(pl -> pl.key.startsWith("test|"));
+		});
 		SelfTests.register("info.look-info", level -> {
 			FakePlayer p = FakePlayer.get(level);
 			BlockPos pos = new BlockPos(60, 120, 60);

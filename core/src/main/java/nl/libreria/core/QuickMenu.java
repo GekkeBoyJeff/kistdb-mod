@@ -26,6 +26,7 @@ public final class QuickMenu {
 		SERVICES.put("waypoints", Services.MENU_WAYPOINTS);
 		SERVICES.put("achievements", Services.MENU_ACHIEVEMENTS);
 		SERVICES.put("effects", Services.MENU_EFFECTS);
+		SERVICES.put("journal", Services.MENU_JOURNAL);
 	}
 
 	private QuickMenu() {

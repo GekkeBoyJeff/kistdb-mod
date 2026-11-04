@@ -30,6 +30,7 @@ public final class Services {
 	public static final String MENU_CHESTS = "chests.search";
 	public static final String MENU_LAND_MAP = "claims.map";
 	public static final String MENU_EFFECTS = "glint.effects";
+	public static final String MENU_JOURNAL = "info.journal";
 	/** Not a menu but an action: sort the player's inventory. */
 	public static final String ACTION_SORT = "chests.sort";
 

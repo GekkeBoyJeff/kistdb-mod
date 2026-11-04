@@ -50,7 +50,17 @@ public final class Compass {
 
 	private static final List<Source> SOURCES = new ArrayList<>();
 
+	/** The place name under the strip: shown for {@link #CAPTION_TICKS}, fading in and out. */
+	private record Caption(Component name, @Nullable Component kind, int start) {
+	}
+
+	/** How long a place name stays, and how long it takes to fade in and out (ticks). */
+	static final int CAPTION_TICKS = 100, FADE_IN = 14, FADE_OUT = 26;
+	private static final net.minecraft.network.chat.FontDescription CAPTION_FONT = new net.minecraft.network.chat.FontDescription.Resource(
+			net.minecraft.resources.Identifier.fromNamespaceAndPath("libreria", "caption"));
+
 	private static final class Bar {
+		@Nullable Caption caption;
 		final ServerBossEvent event = new ServerBossEvent(UUID.randomUUID(), Component.empty(), BossEvent.BossBarColor.WHITE,
 				BossEvent.BossBarOverlay.PROGRESS);
 		boolean visible;
@@ -74,6 +84,27 @@ public final class Compass {
 		// Loading the class registers the setting
 	}
 
+	/**
+	 * A place name, small and quiet, under the compass strip: it fades in, stays a few seconds and fades out
+	 * (Skyrim-style, but out of the way). With the compass off it appears on its own; without the pack it goes to the
+	 * action bar.
+	 */
+	public static void caption(ServerPlayer p, Component name, @Nullable Component kind) {
+		if (!Pack.has(p)) {
+			MutableComponent text = Component.empty().append(name.copy().withStyle(s -> s.withColor(0xF2E6C8)));
+			if (kind != null) text.append(Component.literal("  ·  ").withStyle(s -> s.withColor(0x8A8A8A))).append(kind.copy().withStyle(s -> s.withColor(0xB0B0B0)));
+			nl.libreria.core.Hud.show(p, "place", text, nl.libreria.core.Hud.PRIO_INFO, 70);
+			return;
+		}
+		Bar bar = BARS.computeIfAbsent(p.getUUID(), k -> {
+			Bar b = new Bar();
+			b.event.setProgress(0f);
+			return b;
+		});
+		bar.caption = new Caption(name, kind, p.level().getServer().getTickCount());
+		bar.composedAt = Integer.MIN_VALUE / 2;
+	}
+
 	/** From the core tick: every tick while you turn, a few times a second otherwise. */
 	public static void tick(MinecraftServer server, int tick) {
 		for (ServerPlayer p : server.getPlayerList().getPlayers()) {
@@ -82,20 +113,27 @@ public final class Compass {
 				b.event.setProgress(0f);
 				return b;
 			});
-			if (!wanted(p)) {
+			if (bar.caption != null && tick - bar.caption.start() > CAPTION_TICKS) bar.caption = null;
+			boolean strip = wanted(p);
+			boolean caption = bar.caption != null && !p.isSpectator() && !Services.inCamera(p);
+			if (!strip && !caption) {
 				hide(p, bar);
 				continue;
 			}
+			// While the name fades in or out, a few times more per second
+			int age = caption ? tick - bar.caption.start() : -1;
+			boolean fading = caption && (age <= FADE_IN || age >= CAPTION_TICKS - FADE_OUT);
 			boolean turned = Float.isNaN(bar.yaw) || Math.abs(Math.toDegrees(Math.atan2(Math.sin(Math.toRadians(p.getYRot() - bar.yaw)),
 					Math.cos(Math.toRadians(p.getYRot() - bar.yaw))))) > 0.4;
-			if (!turned && tick - bar.composedAt < 5) continue;
+			if (!turned && tick - bar.composedAt < (fading ? 2 : 5)) continue;
 			if (tick - bar.markersAt >= 20) {
 				bar.markers = markers(p);
 				bar.markersAt = tick;
 			}
 			bar.yaw = p.getYRot();
 			bar.composedAt = tick;
-			Component title = compose(p, bar.markers);
+			MutableComponent title = strip ? compose(p, bar.markers).copy() : Component.empty();
+			if (caption) appendCaption(title, bar.caption, age, strip);
 			String key = title.getString() + title.hashCode();
 			if (!key.equals(bar.shown)) {
 				bar.event.setName(title);
@@ -249,6 +287,39 @@ public final class Compass {
 		// End exactly where the strip ends, so the title's width never changes
 		if (adv - cursor != 0) out.append(Glyphs.ui(Glyphs.space(adv - cursor)));
 		return out;
+	}
+
+	/** The place name, centred under the strip (it ends exactly where it started, so the title keeps its width). */
+	private static void appendCaption(MutableComponent title, Caption c, int age, boolean strip) {
+		double alpha = age < FADE_IN ? age / (double) FADE_IN
+				: age > CAPTION_TICKS - FADE_OUT ? Math.max(0, (CAPTION_TICKS - age) / (double) FADE_OUT) : 1;
+		// Text has no transparency: fade from a dim grey to warm white (and the grey kind after it likewise)
+		int name = mix(0x3C3A36, 0xF2E6C8, alpha), dot = mix(0x3C3A36, 0x8A8A8A, alpha), kind = mix(0x3C3A36, 0xB8B2A6, alpha);
+		MutableComponent text = Component.empty().withStyle(s -> s.withFont(CAPTION_FONT))
+				.append(Component.literal("~ ").withStyle(s -> s.withColor(dot)))
+				.append(c.name().copy().withStyle(s -> s.withColor(name)));
+		if (c.kind() != null) {
+			text.append(Component.literal("  ·  ").withStyle(s -> s.withColor(dot))).append(c.kind().copy().withStyle(s -> s.withColor(kind)));
+		}
+		text.append(Component.literal(" ~").withStyle(s -> s.withColor(dot)));
+		if (!strip) {
+			title.append(text);
+			return;
+		}
+		int adv = Glyphs.advance("compass.bar");
+		int w = Glyphs.width(text);
+		int back = -((adv + w) / 2);
+		title.append(Glyphs.ui(Glyphs.space(back)));
+		title.append(text);
+		int end = adv - (adv + back + w);
+		if (end != 0) title.append(Glyphs.ui(Glyphs.space(end)));
+	}
+
+	private static int mix(int from, int to, double t) {
+		int r = (int) Math.round(((from >> 16) & 0xFF) + (((to >> 16) & 0xFF) - ((from >> 16) & 0xFF)) * t);
+		int g = (int) Math.round(((from >> 8) & 0xFF) + (((to >> 8) & 0xFF) - ((from >> 8) & 0xFF)) * t);
+		int b = (int) Math.round((from & 0xFF) + ((to & 0xFF) - (from & 0xFF)) * t);
+		return (r << 16) | (g << 8) | b;
 	}
 
 	/** Fainter towards the ends of the strip. */

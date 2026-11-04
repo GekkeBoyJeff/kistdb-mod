@@ -79,19 +79,19 @@
   {
    "label": [
     {
-     "text": "Sort inventory",
+     "text": "Journal",
      "color": "#FFE68A"
     }
    ],
    "tooltip": {
-    "text": "Sorts your inventory (not the hotbar)."
+    "text": "Places you found, with a beam to them."
    },
    "width": 150,
    "action": {
     "type": "minecraft:custom",
     "id": "libreria:quick",
     "payload": {
-     "go": "sort"
+     "go": "journal"
     }
    }
   },

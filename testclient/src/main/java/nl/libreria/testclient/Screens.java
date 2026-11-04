@@ -304,6 +304,17 @@ public final class Screens implements FabricClientGameTest {
 				ctx.getInput().lookAt(0, 0);
 				ctx.waitTicks(10);
 				ctx.takeScreenshot("compass_bar");
+				// A place name fading in under the compass, then the journal
+				server.runOnServer(s -> {
+					nl.libreria.info.Places.remember(player, "screens|village", "Eikendal", "Village", player.blockPosition().offset(120, 0, -40));
+					nl.libreria.info.Places.remember(player, "screens|temple", "Zonnegraf", "Desert Temple", player.blockPosition().offset(-900, 0, 300));
+					nl.libreria.core.gui.Compass.caption(player, net.minecraft.network.chat.Component.literal("Eikendal"),
+							net.minecraft.network.chat.Component.literal("Village · discovered"));
+				});
+				ctx.waitTicks(6);
+				ctx.takeScreenshot("place_title_fading_in");
+				ctx.waitTicks(30);
+				ctx.takeScreenshot("place_title");
 			});
 
 			// Windows (dialogs): settings, effects, admin, links, getting started
@@ -326,6 +337,7 @@ public final class Screens implements FabricClientGameTest {
 			});
 			menu(ctx, server, player, "window_links", nl.libreria.core.Links::open);
 			menu(ctx, server, player, "window_start", nl.libreria.core.Welcome::guide);
+			menu(ctx, server, player, "window_journal", nl.libreria.info.Places::journal);
 			safe("welcome_card", () -> {
 				server.runOnServer(s -> nl.libreria.core.Welcome.card(player));
 				ctx.waitTicks(10);
