@@ -111,8 +111,9 @@ public final class GravesMod implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-		MODULE.hubEntry(Domain.PLACES, 60, Items.SKELETON_SKULL, "Your graves", GravesMod::listGraves,
-				"Where your graves are; click one to be shown the way. Turn graves on or off there too.");
+		GravePlaces.register();
+		MODULE.hubEntry(Domain.PLACES, 60, Items.SKELETON_SKULL, "Death & graves", GravesMod::listGraves,
+				"Where you last died and your graves; click one to be shown the way. Graves on or off is there too.");
 		MODULE.commands(
 				"/grave – your graves",
 				"/grave beam – show the way to the newest");
@@ -365,7 +366,7 @@ public final class GravesMod implements ModInitializer {
 		ServerLevel level = levelOf(p.level().getServer(), g.dim);
 		if (level != p.level()) {
 			Notify.warn(p, Items.SKELETON_SKULL, "In another dimension",
-					"Your grave is in the " + GravesGui.dimension(g.dim) + ". Go there first.");
+					"Your grave is in the " + GravePlaces.dimension(g.dim) + ". Go there first.");
 			return;
 		}
 		Guide.toPoint(p, level, g.pos().add(0, 0.5, 0), new ItemStack(Items.SKELETON_SKULL), Component.literal("Your grave"), 0);
@@ -373,7 +374,7 @@ public final class GravesMod implements ModInitializer {
 
 	/** "Your graves" (menu): location, items and age of each grave; click one to beam to it. */
 	static void listGraves(ServerPlayer p) {
-		GravesGui.open(p);
+		GravePlaces.open(p);
 	}
 
 	static @Nullable ServerLevel levelOf(@Nullable MinecraftServer s, String dim) {

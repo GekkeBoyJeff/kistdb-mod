@@ -445,6 +445,7 @@ public final class Screens implements FabricClientGameTest {
 			for (nl.libreria.core.Domain d : nl.libreria.core.Domain.values()) {
 				menu(ctx, server, player, "start_" + d.word, p -> nl.libreria.core.Start.domain(p, d));
 			}
+			menu(ctx, server, player, "places_land", p -> nl.libreria.core.PlaceList.open(p, "land"));
 			for (Module.HubEntry e : Module.allHubEntries()) {
 				// The land map isn't a menu (and would stay open behind the others)
 				if (e.name().equals("Land map")) continue;

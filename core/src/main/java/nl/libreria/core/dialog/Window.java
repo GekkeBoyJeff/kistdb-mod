@@ -130,8 +130,13 @@ public final class Window {
 
 	/** An item picture with text next to it (the tooltip shows when you hover the item). */
 	public Window item(ItemStack stack, Component description) {
+		return item(stack, description, WIDE - 30);
+	}
+
+	/** The same, with the text block {@code width} wide (narrow keeps a short card right next to its picture). */
+	public Window item(ItemStack stack, Component description, int width) {
 		if (stack.isEmpty()) return text(description);
-		this.body.add(new ItemBody(ItemStackTemplate.fromNonEmptyStack(stack), Optional.of(new PlainMessage(description, WIDE - 30)),
+		this.body.add(new ItemBody(ItemStackTemplate.fromNonEmptyStack(stack), Optional.of(new PlainMessage(description, width)),
 				true, true, 16, 16));
 		return this;
 	}

@@ -96,6 +96,8 @@ public final class InfoMod implements ModInitializer {
 		VillagerNames.init();
 		Weapons.init();
 		Pets.init();
+		Pets.registerPlaces();
+		Places.registerPlaces();
 		Services.provideMenu(Services.MENU_PETS, Pets::open);
 		MODULE.hubEntry(Domain.PLACES, 80, Items.LEAD, "Your pets", Pets::open,
 				"Your tamed animals and where they are; click one to be shown the way.");

@@ -21,23 +21,22 @@ import nl.libreria.waypoints.WaypointsMod.Visibility;
 /** Je eigen waypoint bewerken: naam, icoon, wie het ziet (met spelerkeuze), naar Xaero sturen, verwijderen. */
 final class EditGui extends Menu {
 	private final Point pt;
-	private final PointsGui.Tab tab;
-	private final int page;
+	/** Where "Back" goes: the list it was opened from. */
+	private final Runnable back;
 
-	private EditGui(ServerPlayer player, Point pt, PointsGui.Tab tab, int page) {
-		super(player, 5, "Waypoints · Edit");
+	private EditGui(ServerPlayer player, Point pt, Runnable back) {
+		super(player, 5, "Edit waypoint");
 		this.pt = pt;
-		this.tab = tab;
-		this.page = page;
+		this.back = back;
 		rebuild();
 	}
 
-	static void open(ServerPlayer player, Point pt, PointsGui.Tab tab, int page) {
+	static void open(ServerPlayer player, Point pt, Runnable back) {
 		if (!valid(player, pt)) {
-			PointsGui.open(player, tab, page);
+			back.run();
 			return;
 		}
-		new EditGui(player, pt, tab, page).open();
+		new EditGui(player, pt, back).open();
 	}
 
 	/** Bestaat het punt nog en is het van deze speler? Zo niet: melding. */
@@ -50,16 +49,16 @@ final class EditGui extends Menu {
 	/** Voert {@code r} uit als het punt nog geldig is, anders terug naar de lijst. */
 	private void ifValid(Runnable r) {
 		if (valid(this.player, this.pt)) r.run();
-		else PointsGui.open(this.player, this.tab, this.page);
+		else this.back.run();
 	}
 
 	private void backToList() {
-		PointsGui.open(this.player, this.tab, this.page);
+		this.back.run();
 	}
 
 	private void rebuild() {
 		for (int i = 0; i < this.rows * 9; i++) this.clearSlot(i);
-		String title = "Waypoints · Edit · " + this.pt.name;
+		String title = "Edit · " + this.pt.name;
 		// A new title re-opens the screen (cursor jumps), so only when it really changes
 		if (!title.equals(this.plainTitle().getString())) this.setTitle(Component.literal(title));
 		boolean xaero = WaypointsMod.XAERO.get(this.player);
@@ -81,7 +80,7 @@ final class EditGui extends Menu {
 		// The current visibility, as a coloured "◀ value ▶" pane under its button
 		this.setSlot(slots[visIndex] + 9, visibilityPane());
 
-		back("your waypoints", this::backToList);
+		back("Your waypoints", this::backToList);
 		closeButton();
 		help("Change this waypoint here.",
 				"Who can see it: everyone, only you,",
@@ -121,15 +120,15 @@ final class EditGui extends Menu {
 		actions(b, "Click: type a new name");
 		return b.setCallback((i, t, a, g) -> ifValid(() -> {
 			Ui.click(this.player);
-			PointsGui.NameGui.open(this.player, "Rename waypoint", this.pt.name, input -> {
+			WaypointPlaces.NameGui.open(this.player, "Rename waypoint", this.pt.name, input -> {
 				if (!valid(this.player, this.pt)) {
 					backToList();
 					return true;
 				}
 				if (!WaypointsMod.rename(this.player, this.pt, input)) return false;
-				EditGui.open(this.player, this.pt, this.tab, this.page);
+				EditGui.open(this.player, this.pt, this.back);
 				return true;
-			}, () -> EditGui.open(this.player, this.pt, this.tab, this.page));
+			}, () -> EditGui.open(this.player, this.pt, this.back));
 		}));
 	}
 
@@ -215,7 +214,7 @@ final class EditGui extends Menu {
 		boolean selected = this.pt.visibility == Visibility.SELECTED;
 		GuiElementBuilder b = button(Items.PLAYER_HEAD, "Pick players", selected ? ChatFormatting.AQUA : ChatFormatting.GRAY,
 				"Only the players you pick", "(and you) will see it.");
-		PointsGui.head(b, this.player.getGameProfile());
+		WaypointPlaces.head(b, this.player.getGameProfile());
 		b.addLoreLine(Component.empty());
 		if (this.pt.selected.isEmpty()) {
 			b.addLoreLine(Ui.text("No one picked yet.", ChatFormatting.DARK_GRAY));
@@ -238,7 +237,7 @@ final class EditGui extends Menu {
 		return b.setCallback((i, t, a, g) -> ifValid(() -> {
 			Ui.click(this.player);
 			WaypointsMod.setVisibility(server(), this.pt, Visibility.SELECTED);
-			new PickGui(this.player, this.pt, this.tab, this.page, 0).open();
+			new PickGui(this.player, this.pt, this.back, 0).open();
 		}));
 	}
 
@@ -282,15 +281,13 @@ final class EditGui extends Menu {
 		private static final int PER_PAGE = 36;
 
 		private final Point pt;
-		private final PointsGui.Tab tab;
-		private final int listPage;
+		private final Runnable back;
 		private int page;
 
-		PickGui(ServerPlayer player, Point pt, PointsGui.Tab tab, int listPage, int page) {
-			super(player, 6, "Waypoints · Pick players");
+		PickGui(ServerPlayer player, Point pt, Runnable back, int page) {
+			super(player, 6, "Who sees this waypoint");
 			this.pt = pt;
-			this.tab = tab;
-			this.listPage = listPage;
+			this.back = back;
 			this.page = page;
 			rebuild();
 		}
@@ -335,7 +332,7 @@ final class EditGui extends Menu {
 						"Players show up here while", "they're online. Players you", "picked stay picked when", "they log off."));
 			}
 
-			back("editing " + this.pt.name, () -> EditGui.open(this.player, this.pt, this.tab, this.listPage));
+			back("editing " + this.pt.name, () -> EditGui.open(this.player, this.pt, this.back));
 			pages(this.page, pages, p -> {
 				this.page = p;
 				rebuild();
@@ -353,7 +350,7 @@ final class EditGui extends Menu {
 			boolean on = this.pt.selected.containsKey(c.id());
 			GuiElementBuilder b = new GuiElementBuilder(Items.PLAYER_HEAD)
 					.setName(title((on ? "✔ " : "") + c.name(), on ? ChatFormatting.GREEN : ChatFormatting.WHITE)).hideDefaultTooltip();
-			if (c.online() != null) PointsGui.head(b, c.online().getGameProfile());
+			if (c.online() != null) WaypointPlaces.head(b, c.online().getGameProfile());
 			else b.setProfile(c.name());
 			b.addLoreLine(Ui.text(c.online() != null ? "Online" : "Offline", c.online() != null ? ChatFormatting.GREEN : ChatFormatting.DARK_GRAY));
 			b.addLoreLine(Ui.text(on ? "Can see this waypoint." : "Can't see this waypoint.", ChatFormatting.GRAY));
@@ -361,7 +358,7 @@ final class EditGui extends Menu {
 			if (on) b.glow();
 			b.setCallback((i, t, a, g) -> {
 				if (!EditGui.valid(this.player, this.pt)) {
-					PointsGui.open(this.player, this.tab, this.listPage);
+					this.back.run();
 					return;
 				}
 				Ui.click(this.player);

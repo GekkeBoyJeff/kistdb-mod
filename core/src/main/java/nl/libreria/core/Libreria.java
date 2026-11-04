@@ -57,6 +57,9 @@ public final class Libreria implements ModInitializer {
 			return m == null ? java.util.List.of() : java.util.List.of(m);
 		});
 		QuickMenu.init();
+		MODULE.hubEntry(Domain.PLACES, 10, Items.COMPASS, "Your places", PlaceList::open,
+				"Everything you can be shown the way to: waypoints, graves, pets, the journal, your land.");
+		MODULE.commands(Domain.PLACES, "/places – everything you can be shown the way to");
 		Chronicle.init();
 		// Opslag zo vroeg mogelijk klaarzetten, zodat modules ze in hun eigen SERVER_STARTED al kunnen lezen
 		ServerLifecycleEvents.SERVER_STARTING.register(s -> {
@@ -101,6 +104,10 @@ public final class Libreria implements ModInitializer {
 		});
 		ServerTickEvents.END_SERVER_TICK.register(Libreria::tick);
 		CommandRegistrationCallback.EVENT.register((dispatcher, context, selection) -> {
+			dispatcher.register(Commands.literal("places").executes(c -> {
+				PlaceList.open(c.getSource().getPlayerOrException());
+				return 1;
+			}));
 			dispatcher.register(Commands.literal("chronicle").executes(c -> {
 				Chronicle.open(c.getSource().getPlayerOrException());
 				return 1;

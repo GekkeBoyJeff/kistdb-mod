@@ -100,7 +100,7 @@ public final class Links {
 		List<Kind> links = present();
 		if (links.isEmpty()) {
 			Toast.show(player, Items.PAPER, Toast.INFO, "No links yet",
-					Ui.isOp(player) ? "Add them in the admin window (/libreria admin)." : "This server hasn't set any links.");
+					Ui.isOp(player) ? "Add them in Settings › Server settings." : "This server hasn't set any links.");
 			return;
 		}
 		Window w = Window.of("Links").text("The game asks before it opens a web page.");

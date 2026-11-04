@@ -153,6 +153,7 @@ public final class ClaimsMod implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
+		LandPlaces.register();
 		MODULE.hubEntry(Domain.PLACES, 20, Items.FILLED_MAP, "Land map", ClaimView::open,
 				"Your land and others' from above: claim chunks, name your land, see whose land is where.",
 				"Key: sneak + swap hands (F).");

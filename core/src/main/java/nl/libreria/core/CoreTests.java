@@ -50,6 +50,47 @@ final class CoreTests {
 			SelfTests.check(!discord.isSet(), "reset clears it");
 			SelfTests.check(ServerSetting.all().size() >= 6, "settings registered: " + ServerSetting.all().size());
 		});
+		SelfTests.register("core.framework", level -> {
+			FakePlayer p = FakePlayer.get(level);
+			// Every domain has a page that opens, and buttons on it
+			for (Domain d : Domain.values()) {
+				Start.domain(p, d);
+				SelfTests.check(!Module.hubEntries(d).isEmpty(), "buttons on " + d.label);
+			}
+			// Settings: grouped per domain under player names, never under a module's name
+			java.util.Set<String> moduleNames = new java.util.HashSet<>();
+			for (Module m : Module.all()) moduleNames.add(m.name);
+			moduleNames.remove("Waypoints");
+			for (Domain d : Domain.values()) {
+				var sections = nl.libreria.core.gui.SettingsWindow.sections(d);
+				SelfTests.check(!sections.isEmpty(), "settings for " + d.label);
+				for (var sec : sections) {
+					SelfTests.check(!moduleNames.contains(sec.name()), "group " + sec.name() + " is a module name");
+					java.util.Set<String> fields = new java.util.HashSet<>();
+					for (Setting st : sec.settings()) SelfTests.check(fields.add(st.module.id + "_" + st.key), "one field per setting: " + st.fullKey());
+				}
+			}
+			nl.libreria.core.gui.SettingsWindow.open(p);
+			nl.libreria.core.gui.SettingsWindow.open(p, Domain.ITEMS, Start::open);
+			// One voice in chat
+			SelfTests.check(Say.line(Domain.PLACES).getString().equals("◆ "), "chat lines start with a diamond");
+			// Your places: tabs from the modules, and a list without errors
+			SelfTests.check(PlaceList.kinds().size() >= 5, "kinds of places: " + PlaceList.kinds().size());
+			SelfTests.check(PlaceList.all(p) != null, "places listed");
+			// Tips: once, then never again
+			Tips.Tip tip = Tips.all(Domain.ITEMS).getFirst();
+			Tips.STORE.get(p).seen.remove(tip.key());
+			Tips.once(p, tip);
+			SelfTests.check(Tips.seen(p, tip), "a tip is remembered once seen");
+			Tips.STORE.get(p).seen.remove(tip.key());
+			// Commands and help built from the modules
+			int lines = 0;
+			for (Module m : Module.all()) lines += m.commandHelp().size();
+			SelfTests.check(lines >= 15, "command help lines: " + lines);
+			Welcome.commands(p);
+			Welcome.guide(p);
+			Tips.all(p);
+		});
 		SelfTests.register("core.caption", level -> {
 			FakePlayer p = FakePlayer.get(level);
 			nl.libreria.core.gui.Caption.show(p, Component.literal("Oakhaven"), Component.literal("Village"));

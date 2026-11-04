@@ -33,7 +33,7 @@ public final class Pack {
 	private static final List<Consumer<ServerPlayer>> AFTER_PUSH = new ArrayList<>();
 	private static final List<Consumer<ServerPlayer>> BEFORE_POP = new ArrayList<>();
 	private static final String MESSAGE = "This server uses a small resource pack for nicer menus, tooltips and item effects. "
-			+ "You don't need to install anything. Rather not? Choose 'No', or turn it off later in /libreria settings.";
+			+ "You don't need to install anything. Rather not? Choose 'No', or turn it off later in Settings › You.";
 
 	private Pack() {
 	}

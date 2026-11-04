@@ -42,6 +42,7 @@ import nl.libreria.core.Libreria;
 import nl.libreria.core.Domain;
 import nl.libreria.core.Notify;
 import nl.libreria.core.Say;
+import nl.libreria.core.PlaceList;
 import nl.libreria.core.Module;
 import nl.libreria.core.PlayerStore;
 import nl.libreria.core.Services;
@@ -71,7 +72,7 @@ public final class WaypointsMod implements ModInitializer {
 			"Only useful with the Xaero's Minimap", "client mod. Sends waypoints to it", "via chat, also ones shared with you.");
 
 	static final nl.libreria.core.Tips.Tip TIP_DEATH = nl.libreria.core.Tips.register("death_point", Domain.PLACES, Items.SKELETON_SKULL,
-			"The way back", "Follow the beam back to where you died.", "Lost it? Land & places › Your death point.");
+			"The way back", "Follow the beam back to where you died.", "Lost it? Land & places › Death & graves.");
 
 	/** Wie een waypoint ziet. */
 	public enum Visibility {
@@ -153,7 +154,7 @@ public final class WaypointsMod implements ModInitializer {
 			for (String cmd : new String[] {"waypoint", "wp"}) {
 				dispatcher.register(Commands.literal(cmd)
 						.executes(c -> {
-							PointsGui.open(c.getSource().getPlayerOrException());
+							WaypointPlaces.open(c.getSource().getPlayerOrException());
 							return 1;
 						})
 						.then(named("set", null, WaypointsMod::add))
@@ -182,11 +183,15 @@ public final class WaypointsMod implements ModInitializer {
 				"/waypoint private|public <name> – who sees it",
 				"/waypoint remove <name> – delete one",
 				"/deathpoint – show the way to where you died");
-		MODULE.hubEntry(Domain.PLACES, 50, Items.COMPASS, "Your waypoints", PointsGui::open,
+		WaypointPlaces.register();
+		MODULE.hubEntry(Domain.PLACES, 50, Items.COMPASS, "Your waypoints", WaypointPlaces::open,
 				"Your waypoints and the ones shared with you. Click one to be shown the way.");
-		MODULE.hubEntry(Domain.PLACES, 70, Items.SKELETON_SKULL, "Your death point", WaypointsMod::goDeath,
-				"Shows the way back to where you last died.");
-		Services.provideMenu(Services.MENU_WAYPOINTS, PointsGui::open);
+		// Graves adds the same tab with its graves in it; without graves, the death point gets the button
+		if (!net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("libreria_graves")) {
+			MODULE.hubEntry(Domain.PLACES, 60, Items.SKELETON_SKULL, "Death point", p -> PlaceList.open(p, WaypointPlaces.DEATH),
+					"Where you last died; click it to be shown the way back.");
+		}
+		Services.provideMenu(Services.MENU_WAYPOINTS, WaypointPlaces::open);
 		nl.libreria.core.gui.Markers.addSource(WaypointsMod::compassMarkers);
 		WaypointsTests.register();
 	}

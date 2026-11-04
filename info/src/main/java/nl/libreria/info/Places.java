@@ -403,41 +403,63 @@ public final class Places {
 		return true;
 	}
 
-	/** The journal window: what you found, grouped by kind, and the way to the nearest places. */
+	/** The journal in "Your places": everything you found, with the way there. */
+	static void registerPlaces() {
+		nl.libreria.core.PlaceList.kind("journal", "Journal", Items.WRITABLE_BOOK, 50)
+				.about("Villages, temples, peaks, lakes and", "stretches of land you found.")
+				.empty("Walk into a village, a temple or", "another stretch of land: its name", "appears at the top of your screen,",
+						"and it's written down here.")
+				.footer(Places::summary);
+		nl.libreria.core.PlaceList.addSource((p, out) -> {
+			for (Place pl : STORE.get(p).places) {
+				out.add(nl.libreria.core.PlaceList.place("journal", pl.name, new ItemStack(icon(pl.kind)), pl.dim,
+								new Vec3(pl.x + 0.5, p.getY(), pl.z + 0.5))
+						.lore(Ui.text(pl.kind, ChatFormatting.GRAY), Ui.kv("Found ", ago(pl.found), ChatFormatting.GRAY))
+						.go(pp -> beam(pp, pl)));
+			}
+		});
+	}
+
+	/** The journal (its tab in Your places). */
 	public static void journal(ServerPlayer p) {
+		nl.libreria.core.PlaceList.open(p, "journal");
+	}
+
+	/** "38 places · 21 of 64 biomes", at the bottom of the journal. */
+	private static eu.pb4.sgui.api.elements.GuiElementBuilder summary(ServerPlayer p) {
 		Data d = STORE.get(p);
 		int biomesTotal = p.level().registryAccess().lookupOrThrow(Registries.BIOME).size();
-		Window w = Window.of(nl.libreria.core.Domain.PLACES, "Journal");
-		w.text(Ui.text(d.places.size() + (d.places.size() == 1 ? " place" : " places") + " found · " + d.biomes.size() + " of "
-				+ biomesTotal + " biomes", ChatFormatting.GRAY));
-		if (d.places.isEmpty()) {
-			w.text(Ui.text("Nothing yet. Walk into a village, a temple or another stretch of land: its name appears at the "
-					+ "top of your screen, and it's written down here.", ChatFormatting.GRAY));
-		}
-		String dim = p.level().dimension().identifier().toString();
-		Map<String, List<Place>> byKind = new LinkedHashMap<>();
-		List<Place> sorted = new ArrayList<>(d.places);
-		sorted.sort(Comparator.comparingLong((Place pl) -> pl.found).reversed());
-		for (Place pl : sorted) byKind.computeIfAbsent(pl.kind, k -> new ArrayList<>()).add(pl);
-		for (Map.Entry<String, List<Place>> e : byKind.entrySet()) {
-			w.text(Ui.text(e.getKey() + "  (" + e.getValue().size() + ")", ChatFormatting.WHITE).withStyle(ChatFormatting.BOLD));
-			StringBuilder lines = new StringBuilder();
-			for (Place pl : e.getValue()) {
-				if (!lines.isEmpty()) lines.append('\n');
-				lines.append(pl.name).append("  ·  ").append(where(p, pl, dim)).append("  ·  ").append(ago(pl.found));
-			}
-			w.text(Ui.text(lines.toString(), ChatFormatting.GRAY));
-		}
-		// The way to the nearest few in this world
-		List<Place> here = new ArrayList<>();
-		for (Place pl : d.places) if (pl.dim.equals(dim)) here.add(pl);
-		here.sort(Comparator.comparingDouble(pl -> dist2(p, pl)));
-		for (Place pl : here.subList(0, Math.min(6, here.size()))) {
-			w.button(pl.name, pl.kind + " · " + Math.round(Math.sqrt(dist2(p, pl))) + " m · click: show the way", pp -> beam(pp, pl));
-		}
-		w.button(Ui.text("Chronicle ▸", ChatFormatting.GRAY), Ui.text("The story of this world (Progress)", ChatFormatting.GRAY),
-				(pp, v) -> nl.libreria.core.Chronicle.open(pp));
-		w.up(nl.libreria.core.Domain.PLACES).show(p);
+		var b = nl.libreria.core.gui.Menu.button(Items.FILLED_MAP, "Your journal", ChatFormatting.GOLD,
+				d.places.size() + (d.places.size() == 1 ? " place" : " places") + " found",
+				d.biomes.size() + " of " + biomesTotal + " biomes visited");
+		return nl.libreria.core.gui.Menu.actions(b, "Click: the chronicle of this world").setCallback((i, t, a, g) -> {
+			Ui.click(p);
+			nl.libreria.core.Chronicle.open(p);
+		});
+	}
+
+	/** A picture per kind of place. */
+	private static net.minecraft.world.item.Item icon(String kind) {
+		net.minecraft.world.item.Item it = switch (kind) {
+			case "Village" -> Items.BELL;
+			case "Desert Temple" -> Ui.item("chiseled_sandstone");
+			case "Jungle Temple" -> Ui.item("mossy_cobblestone");
+			case "Woodland Mansion" -> Ui.item("dark_oak_log");
+			case "Pillager Outpost" -> Items.CROSSBOW;
+			case "Ocean Monument" -> Ui.item("prismarine");
+			case "Stronghold" -> Ui.item("end_portal_frame");
+			case "Ancient City" -> Ui.item("sculk");
+			case "Trial Chambers" -> Ui.item("trial_key");
+			case "Trail Ruins" -> Ui.item("brush");
+			case "Nether Fortress" -> Ui.item("nether_bricks");
+			case "Bastion" -> Ui.item("gilded_blackstone");
+			case "End City" -> Ui.item("purpur_block");
+			case "Peak" -> Ui.item("stone");
+			case "Cavern" -> Ui.item("pointed_dripstone");
+			case "Lake" -> Items.WATER_BUCKET;
+			default -> Ui.item("oak_sapling");
+		};
+		return it == Items.AIR ? Items.FILLED_MAP : it;
 	}
 
 	private static double dist2(ServerPlayer p, Place pl) {

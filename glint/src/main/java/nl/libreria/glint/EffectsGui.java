@@ -50,7 +50,7 @@ final class EffectsGui extends Menu {
 	private int page;
 
 	private EffectsGui(ServerPlayer p) {
-		super(p, 6, "Glint · Effects");
+		super(p, 6, "Choose effects");
 		rebuild();
 	}
 
@@ -97,15 +97,15 @@ final class EffectsGui extends Menu {
 			for (int i = 0; i < line.families().size(); i++) this.setSlot(r * 9 + 1 + i, effect(line.families().get(i)));
 		}
 
-		// Navigation bar: Back · Glint settings · (pages) · Close · All on · All off · Help
+		// Navigation bar: Back · Effect settings · (pages) · Close · All on · All off · Help
 		back("Effects", () -> EffectsWindow.open(this.player));
-		GuiElementBuilder settings = button(Items.COMPARATOR, "Glint settings", ChatFormatting.WHITE,
+		GuiElementBuilder settings = button(Items.COMPARATOR, "Effect settings", ChatFormatting.WHITE,
 				"Textures, book covers and", "particles around players.");
 		if (!nl.libreria.core.Pack.has(this.player)) {
 			settings.addLoreLine(Component.empty());
 			settings.addLoreLine(Ui.text("✘ The Libreria resource pack is off,", ChatFormatting.RED));
 			settings.addLoreLine(Ui.text("so effects on items don't show.", ChatFormatting.RED));
-			settings.addLoreLine(Ui.text("(/libreria settings → General)", ChatFormatting.GRAY));
+			settings.addLoreLine(Ui.text("(Settings › You › What you see)", ChatFormatting.GRAY));
 		}
 		actions(settings, "Click: open");
 		this.setSlot(navRow() + 1, settings.setCallback((i, t, a, g) -> {
@@ -186,7 +186,7 @@ final class EffectsGui extends Menu {
 	/** The Glint settings (same switches as Libreria settings → Glint), with Back to the effects. */
 	private static final class GlintSettings extends Menu {
 		GlintSettings(ServerPlayer p) {
-			super(p, 4, "Glint · Settings");
+			super(p, 4, "Effect settings");
 			rebuild();
 		}
 
@@ -199,7 +199,7 @@ final class EffectsGui extends Menu {
 			closeButton();
 			help("Click a setting or the lamp below it",
 					"to change it. Changes apply at once.",
-					"Also in Libreria settings → Glint.");
+					"Also in Settings › You › Effects.");
 			finish();
 		}
 	}

@@ -42,7 +42,7 @@ public final class Tips {
 	});
 
 	public static final Setting.Toggle ENABLED = Libreria.MODULE.toggle("tips", "Tips when they're useful", true, Items.LANTERN,
-			"A card at the top, once, the first time", "something is useful. All of them are under", "Getting started → Tips.")
+			"A card at the top, once, the first time", "something is useful. All of them are under", "Getting started › Tips.")
 			.in(Domain.YOU, "What you see");
 
 	private static final Map<String, Tip> TIPS = new LinkedHashMap<>();

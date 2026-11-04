@@ -58,7 +58,7 @@ public final class ChestsGui extends Menu {
 	private int page;
 
 	private ChestsGui(ServerPlayer player, String backLabel, Runnable back, Show show, Order order, int page) {
-		super(player, 6, "Chests · My chests");
+		super(player, 6, "Your chests");
 		this.backLabel = backLabel;
 		this.back = back;
 		this.show = show;

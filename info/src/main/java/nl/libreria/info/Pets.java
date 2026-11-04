@@ -231,50 +231,46 @@ final class Pets {
 		for (String line : list) nl.libreria.core.Say.to(p, nl.libreria.core.Domain.PLACES, line, ChatFormatting.GRAY);
 	}
 
-	// ---------------------------------------------------------------- the window
+	// ---------------------------------------------------------------- in Your places
 
-	static void open(ServerPlayer p) {
-		Data d = data();
-		String dim = p.level().dimension().identifier().toString();
-		List<Map.Entry<UUID, Pet>> mine = new ArrayList<>();
-		for (Map.Entry<UUID, Pet> e : d.pets.entrySet()) if (p.getUUID().equals(e.getValue().owner)) mine.add(e);
-		mine.sort(Comparator.comparingDouble(e -> e.getValue().dim.equals(dim) ? dist2(p, e.getValue()) : 1e18 + e.getValue().name.hashCode()));
-		Window w = Window.of(nl.libreria.core.Domain.PLACES, "Your pets");
-		w.text(Ui.text(mine.isEmpty() ? "You have no pets yet. Tame a wolf with bones, a cat with fish, a parrot with seeds or a horse "
-				+ "by riding it: it gets a name of its own and shows up here." : mine.size() + (mine.size() == 1 ? " pet" : " pets")
-				+ " · the nearest first · click one to be shown the way", ChatFormatting.GRAY));
-		MinecraftServer server = p.level().getServer();
-		int shown = 0;
-		for (Map.Entry<UUID, Pet> e : mine) {
-			if (shown++ >= 24) break;
-			Pet pet = e.getValue();
-			Entity live = live(server, pet, e.getKey());
-			MutableComponent text = Ui.text(pet.name, ChatFormatting.WHITE).withStyle(ChatFormatting.BOLD)
-					.append(Ui.text("  " + typeName(pet.type), ChatFormatting.GRAY)).append(Component.literal("\n"))
-					.append(Ui.text(where(p, pet, live, dim), ChatFormatting.GRAY));
-			w.item(egg(pet.type), text);
-		}
-		int buttons = 0;
-		for (Map.Entry<UUID, Pet> e : mine) {
-			Pet pet = e.getValue();
-			if (!pet.dim.equals(dim) || buttons >= 6) continue;
-			buttons++;
-			UUID id = e.getKey();
-			w.button(pet.name, typeName(pet.type) + " · " + Math.round(Math.sqrt(dist2(p, pet))) + " m · click: show the way", pp -> show(pp, id));
-		}
-		List<Lost> gone = new ArrayList<>();
-		for (int i = d.lost.size() - 1; i >= 0 && gone.size() < 5; i--) if (p.getUUID().equals(d.lost.get(i).owner)) gone.add(d.lost.get(i));
-		if (!gone.isEmpty()) {
-			w.text(Ui.text("Lost", ChatFormatting.WHITE).withStyle(ChatFormatting.BOLD));
-			StringBuilder b = new StringBuilder();
-			for (Lost l : gone) {
-				if (!b.isEmpty()) b.append('\n');
-				b.append(l.how).append("  ·  ").append(l.x).append(", ").append(l.y).append(", ").append(l.z)
-						.append(l.dim.equals("minecraft:overworld") ? "" : " (" + Places.dimension(l.dim) + ")");
+	/** Your pets in "Your places": where each one is (or was last seen), and the last few you lost. */
+	static void registerPlaces() {
+		nl.libreria.core.PlaceList.kind("pets", "Your pets", Items.LEAD, 40)
+				.about("Your tamed animals and where", "they are (or were last seen).")
+				.empty("Tame a wolf with bones, a cat with", "fish, a parrot with seeds or a horse",
+						"by riding it: it gets a name and", "shows up here.")
+				.help("Greyed out: pets you lost, at the", "spot where they died.");
+		nl.libreria.core.PlaceList.addSource((p, out) -> {
+			Data d = data();
+			MinecraftServer server = p.level().getServer();
+			for (Map.Entry<UUID, Pet> e : d.pets.entrySet()) {
+				Pet pet = e.getValue();
+				if (!p.getUUID().equals(pet.owner)) continue;
+				UUID id = e.getKey();
+				Entity live = live(server, pet, id);
+				Vec3 at = live != null ? live.position() : new Vec3(pet.x + 0.5, pet.y, pet.z + 0.5);
+				List<Component> lore = new ArrayList<>();
+				lore.add(Ui.text(typeName(pet.type) + (pet.sitting ? " · sitting" : ""), ChatFormatting.GRAY));
+				String near = Places.nearest(p, pet.dim, pet.x, pet.z);
+				if (near != null) lore.add(Ui.kv("Near ", near, ChatFormatting.WHITE));
+				if (live == null) lore.add(Ui.kv("Last seen ", ago(pet.seen), ChatFormatting.GRAY));
+				out.add(nl.libreria.core.PlaceList.place("pets", pet.name, egg(pet.type), pet.dim, at)
+						.lore(lore.toArray(Component[]::new)).go(pl -> show(pl, id)));
 			}
-			w.text(Ui.text(b.toString(), ChatFormatting.DARK_GRAY));
-		}
-		w.up(nl.libreria.core.Domain.PLACES).show(p);
+			int lost = 0;
+			for (int i = d.lost.size() - 1; i >= 0 && lost < 5; i--) {
+				Lost l = d.lost.get(i);
+				if (!p.getUUID().equals(l.owner)) continue;
+				lost++;
+				out.add(nl.libreria.core.PlaceList.place("pets", "✝ " + l.name, new ItemStack(Items.BONE), l.dim, new Vec3(l.x + 0.5, l.y, l.z + 0.5))
+						.lore(Ui.text(l.how, ChatFormatting.GRAY), Ui.kv("Died ", ago(l.at), ChatFormatting.GRAY)).dimmed());
+			}
+		});
+	}
+
+	/** Your pets (the Pets tab of Your places). */
+	static void open(ServerPlayer p) {
+		nl.libreria.core.PlaceList.open(p, "pets");
 	}
 
 	private static @Nullable Entity live(MinecraftServer server, Pet pet, UUID id) {

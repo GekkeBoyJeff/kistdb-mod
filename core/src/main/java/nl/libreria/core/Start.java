@@ -50,9 +50,9 @@ public final class Start {
 	public static void domain(ServerPlayer p, Domain d) {
 		Window w = Window.of(d);
 		switch (d) {
-			case YOU -> w.item(head(p), youCard(p));
+			case YOU -> w.item(head(p), youCard(p), 170);
 			case PROGRESS -> Services.progress().map(pr -> pr.card(p)).filter(l -> !l.isEmpty())
-					.ifPresentOrElse(lines -> w.item(new ItemStack(Items.NETHER_STAR), join(lines)), () -> w.text(d.blurb));
+					.ifPresentOrElse(lines -> w.item(new ItemStack(Items.NETHER_STAR), join(lines), 190), () -> w.text(d.blurb));
 			default -> w.text(d.blurb);
 		}
 		List<Module.HubEntry> entries = Module.hubEntries(d);

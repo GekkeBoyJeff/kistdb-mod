@@ -38,7 +38,7 @@ public final class MapGui extends Menu {
 	private int panX, panZ;
 
 	private MapGui(ServerPlayer player) {
-		super(player, 6, "Claims · Map");
+		super(player, 6, "Land map");
 		build();
 	}
 
@@ -268,7 +268,7 @@ public final class MapGui extends Menu {
 		}
 
 		TrustGui(ServerPlayer player) {
-			super(player, 6, "Claims · Trusted players");
+			super(player, 6, "Trusted players");
 			build();
 		}
 
