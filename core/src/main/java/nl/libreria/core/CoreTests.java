@@ -52,6 +52,10 @@ final class CoreTests {
 		});
 		SelfTests.register("core.framework", level -> {
 			FakePlayer p = FakePlayer.get(level);
+			// The start screen comes from the data pack (the same one G opens)
+			Start.open(p);
+			SelfTests.check(level.getServer().registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.DIALOG)
+					.get(Start.START).isPresent(), "the start screen is in the data pack");
 			// Every domain has a page that opens, and buttons on it
 			for (Domain d : Domain.values()) {
 				Start.domain(p, d);
