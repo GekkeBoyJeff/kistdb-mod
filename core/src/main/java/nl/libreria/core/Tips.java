@@ -99,15 +99,14 @@ public final class Tips {
 		for (Domain d : Domain.values()) {
 			List<Tip> tips = all(d);
 			if (tips.isEmpty()) continue;
-			if (any) w.text(Component.empty());
 			any = true;
-			w.text(d.title().withStyle(ChatFormatting.BOLD));
+			var block = Component.empty().append(d.title().withStyle(ChatFormatting.BOLD));
 			for (Tip t : tips) {
-				var line = Component.empty().append(Ui.text(t.title(), ChatFormatting.WHITE));
-				if (!data.seen.contains(t.key())) line.append(Ui.text("  new", d.rgb));
-				line.append(Ui.text("  " + String.join(" ", t.lines()), ChatFormatting.GRAY));
-				w.text(line);
+				block.append("\n\n").append(Ui.text(t.title(), ChatFormatting.WHITE));
+				if (!data.seen.contains(t.key())) block.append(Ui.text("  new", d.rgb));
+				block.append("\n").append(Ui.text(String.join(" ", t.lines()), ChatFormatting.GRAY));
 			}
+			w.text(block);
 		}
 		if (!any) w.text("No tips on this server.");
 		w.back(Welcome::guide).show(p);

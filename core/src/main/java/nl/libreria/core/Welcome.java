@@ -109,18 +109,16 @@ public final class Welcome {
 	/** Every command, under the domain it belongs to. Built from what the installed modules say. */
 	public static void commands(ServerPlayer p) {
 		Window w = Window.path("Getting started", "Commands");
-		w.text(Component.empty().append(Ui.text("/l", ChatFormatting.YELLOW)).append(Ui.text("  the start screen (also /lib)", ChatFormatting.GRAY)));
-		w.text(Component.empty().append(Ui.text("/l items · land · progress · me", ChatFormatting.YELLOW))
-				.append(Ui.text("  straight to a page", ChatFormatting.GRAY)));
-		w.text(Component.empty().append(Ui.text("/l settings · start · help", ChatFormatting.YELLOW))
-				.append(Ui.text("  settings, this guide, this list", ChatFormatting.GRAY)));
+		w.text(Component.empty().append(command("/l – the start screen (also /lib)")).append("\n")
+				.append(command("/l items · land · progress · me – straight to a page")).append("\n")
+				.append(command("/l settings · start · help – settings, this guide, this list")));
 		for (Domain d : Domain.values()) {
 			List<String> lines = new java.util.ArrayList<>();
 			for (Module m : Module.all()) for (Module.Command c : m.commandHelp()) if (c.domain() == d) lines.add(c.line());
 			if (lines.isEmpty()) continue;
-			w.text(Component.empty());
-			w.text(d.title().withStyle(ChatFormatting.BOLD));
-			for (String l : lines) w.text(command(l));
+			MutableComponent block = Component.empty().append(d.title().withStyle(ChatFormatting.BOLD));
+			for (String l : lines) block.append("\n").append(command(l));
+			w.text(block);
 		}
 		w.back(Welcome::guide).show(p);
 	}
