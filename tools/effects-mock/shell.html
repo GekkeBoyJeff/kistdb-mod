@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Libreria: enchant-effecten, nu en voorstel</title>
+<style>
+:root { --bg: #0f1115; --panel: #171a21; --line: #262b36; --text: #e8eaf0; --dim: #9aa1b2; --gold: #ffcb52; --you: #e39bff; --cyan: #62d6e8; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+header { padding: 28px 32px 8px; max-width: 1400px; margin: 0 auto; }
+h1 { font-size: 26px; margin: 0 0 6px; letter-spacing: -.01em; }
+h1 span { color: var(--you); }
+h2 { font-size: 18px; margin: 34px 0 10px; }
+p.lead { color: var(--dim); max-width: 900px; margin: 0; }
+main { max-width: 1400px; margin: 0 auto; padding: 0 32px 60px; }
+.presets { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 8px; }
+button { font: inherit; color: var(--text); background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+button:hover { border-color: #3a4152; }
+button.on { border-color: var(--you); background: #241a2b; }
+#why { color: var(--dim); min-height: 1.5em; margin-bottom: 14px; }
+.views { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+figure { margin: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+figcaption { display: flex; justify-content: space-between; align-items: baseline; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+figcaption b { font-size: 16px; }
+figcaption .now { color: var(--dim); }
+figcaption .new { color: var(--gold); }
+canvas { display: block; width: 100%; cursor: grab; image-rendering: pixelated; }
+.notes { padding: 10px 14px 14px; font-size: 13.5px; }
+.notes .row { display: grid; grid-template-columns: 78px 1fr; gap: 8px; padding: 2px 0; }
+.notes .k { color: var(--dim); }
+.dim { color: var(--dim); }
+.bar { display: flex; flex-wrap: wrap; gap: 18px; align-items: center; margin: 16px 0; padding: 12px 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; }
+.bar .grp { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.bar .lbl { color: var(--dim); font-size: 13px; margin-right: 2px; }
+#editor table { width: 100%; border-collapse: collapse; }
+#editor th { text-align: left; color: var(--dim); font-weight: 500; padding: 6px 10px 6px 0; width: 70px; }
+#editor td { padding: 4px 8px 4px 0; white-space: nowrap; }
+#editor td.wide { width: 100%; }
+#editor input:not([type=color]), #editor select { font: inherit; font-size: 13.5px; color: var(--text); background: #11141a; border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; margin-right: 6px; }
+#editor input:not([type=color]) { width: 100%; }
+#editor input[type=color] { width: 34px; height: 30px; border: 1px solid var(--line); border-radius: 6px; background: none; vertical-align: middle; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+table.ref { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+table.ref th { text-align: left; color: var(--dim); font-weight: 500; border-bottom: 1px solid var(--line); padding: 6px 10px 6px 0; }
+table.ref td { border-bottom: 1px solid #1d212a; padding: 6px 10px 6px 0; vertical-align: top; }
+.tag { display: inline-block; font-size: 11.5px; color: var(--dim); border: 1px solid var(--line); border-radius: 5px; padding: 0 5px; margin: 0 4px 0 6px; }
+.tag:first-child { margin-left: 0; }
+.sw { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; border: 1px solid rgba(255,255,255,.2); }
+.layers { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 6px; }
+.layers div { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; font-size: 13.5px; }
+.layers b { display: block; margin-bottom: 2px; }
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+@media (max-width: 1000px) { .views, .cols { grid-template-columns: 1fr; } .layers { grid-template-columns: 1fr 1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Enchant-effecten: <span>nu en voorstel</span></h1>
+  <p class="lead">Dezelfde uitrusting, links zoals het nu werkt, rechts het voorstel. Sleep om rond te kijken, scroll om te zoomen. Kies een uitrusting of stel er zelf een samen, en probeer de acties eronder. Alles rechts komt uit <code>effects.json</code>, hetzelfde bestand dat de mod straks leest.</p>
+</header>
+<main>
+  <div class="presets" id="presets"></div>
+  <div id="why"></div>
+  <div class="views">
+    <figure><figcaption><b>Nu</b><span class="now">zoals anderen je zien</span></figcaption><canvas id="c0"></canvas><div class="notes" id="notes0"></div></figure>
+    <figure><figcaption><b>Voorstel</b><span class="new">wat de lagen ervan maken</span></figcaption><canvas id="c1"></canvas><div class="notes" id="notes1"></div></figure>
+  </div>
+  <div class="bar">
+    <div class="grp"><span class="lbl">Doen</span><button id="walk">Lopen</button><button id="sneak">Sluipen</button><button id="water">Onder water</button><button id="burn">In brand</button></div>
+    <div class="grp"><span class="lbl">Eén keer</span><button id="swing">Aanvallen</button><button id="kill">Iets doden</button><button id="shoot">Schieten</button><button id="hurt">Geraakt worden</button><button id="fall">Springen en vallen</button></div>
+    <div class="grp" id="cams"><span class="lbl">Camera</span><button data-yaw="2.75" data-pitch="0.28">Schuin achter</button><button data-yaw="3.14" data-pitch="0.15">F5</button><button data-yaw="0" data-pitch="0.2">Voor</button><button data-yaw="1.57" data-pitch="0.15">Zij</button></div>
+    <div class="grp" id="intensity"><span class="lbl">Hoeveel</span><button data-v="subtle">Subtle</button><button data-v="normal" class="on">Normal</button><button data-v="rich">Rich</button></div>
+  </div>
+  <div class="card" id="editor"></div>
+
+  <h2>Hoe het wordt opgebouwd</h2>
+  <div class="layers">
+    <div><b>1 · Enchantment</b>elke enchantment hoort bij een familie met een eigen deeltje en beweging</div>
+    <div><b>2 · Level</b>hint, clear, max (met een extra), overcharged (boven het maximum)</div>
+    <div><b>3 · Meerdere</b>de opvallendste eerst, de tweede een derde zo vaak op dezelfde plek</div>
+    <div><b>4 · Plek</b>helm: halo · borst: baan · benen: heupen · laarzen: enkels · hand: langs het item</div>
+    <div><b>5 · Materiaal</b>kleur en karakter (netherite zwaar, goud glanzend, leer in zijn verfkleur)</div>
+    <div><b>6 · Trim-materiaal</b>de kleur van dat stuk, plus een glinster (emerald: groene sterretjes)</div>
+    <div><b>7 · Trim-patroon</b>de vorm: vierkant, puls, zuil, ribben, zigzag, spiraal, wachters…</div>
+    <div><b>8 · Sets</b>vier stukken met hetzelfde: een helix, een materiaal-look of een trim-look</div>
+    <div><b>9 · Combinaties</b>samen iets nieuws met een naam: Steam, Hellfire, Infernal, Warden's Shadow…</div>
+    <div><b>10 · Acties</b>slaan, raken, schieten, vallen, landen, lopen, sluipen, onder water, in brand</div>
+  </div>
+
+  <h2>Combinaties</h2>
+  <div class="card"><table class="ref" id="t-combo"></table></div>
+  <h2>Families (alle enchantments)</h2>
+  <div class="card"><table class="ref" id="t-fam"></table></div>
+  <div class="cols">
+    <div><h2>Armour-materialen</h2><div class="card"><table class="ref" id="t-mat"></table></div></div>
+    <div><h2>Trim-materialen</h2><div class="card"><table class="ref" id="t-tm"></table></div></div>
+  </div>
+  <h2>Trim-patronen</h2>
+  <div class="card"><table class="ref" id="t-tp"></table></div>
+</main>
+<script>
+/*SPEC*/
+/*SPR*/
+/*APP*/
+/*UI*/
+</script>
+</body>
+</html>
