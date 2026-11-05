@@ -50,13 +50,13 @@ public final class RecordsWindow extends CanvasWindow {
 		Records.Kind[] kinds = Records.Kind.values();
 		int left = Canvas.cellX(1) + 4, width = Canvas.cellX(9) - Canvas.CARD_MARGIN - left;
 		// Label, then the values in one column, then who; a long name gets shortened (the tooltip has it in full)
-		int labelW = 0, valueW = 0;
+		// (the value column as far left as the widest label-plus-value allows, so names get the most room)
+		int need = 0;
 		for (Records.Kind k : kinds) {
 			Records.Rec r = Records.get(k);
-			labelW = Math.max(labelW, Glyphs.width(Component.literal(k.label)));
-			valueW = Math.max(valueW, Glyphs.width(Component.literal(r == null ? "–" : k.format(r.value))));
+			need = Math.max(need, Glyphs.width(Component.literal(k.label)) + 6 + Glyphs.width(Component.literal(r == null ? "–" : k.format(r.value))));
 		}
-		int valueRight = left + 6 + labelW + 8 + valueW, whoRight = left + width - 6, whoSpace = whoRight - valueRight - 8;
+		int valueRight = left + 6 + need, whoRight = left + width - 6, whoSpace = whoRight - valueRight - 8;
 		for (int i = 0; i < kinds.length && i < ROWS.length; i++) {
 			Records.Kind k = kinds[i];
 			Records.Rec r = Records.get(k);

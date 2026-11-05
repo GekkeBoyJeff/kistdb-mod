@@ -246,7 +246,11 @@ final class Aura {
 		OTHERS, FIRST_PERSON, THIRD_PERSON
 	}
 
+	/** For the screenshot test: particles sent per view (others, first person, third person). */
+	static final int[] SENT = new int[3];
+
 	private static void send(ServerLevel level, ServerPlayer viewer, ServerPlayer wearer, Source s, int run, View view) {
+		SENT[view.ordinal()]++;
 		ParticleOptions particle = PARTICLES.get(s.family());
 		Vec3 base = wearer.position();
 		double h = wearer.getBbHeight();

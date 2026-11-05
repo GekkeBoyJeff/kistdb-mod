@@ -144,6 +144,13 @@ public final class GlintMod implements ModInitializer {
 		}
 	}
 
+	/** For the screenshot test: what the particles of this player's gear are, and how many were sent so far. */
+	public static String debugAura(ServerPlayer p) {
+		var gear = Aura.gear(p);
+		return "gear " + gear + " · sources " + Aura.compose(gear, f -> enabled(p, f), INTENSITY.get(p)) + " · sent " + java.util.Arrays.toString(Aura.SENT)
+				+ " · first " + AURA_FIRST.get(p) + " third " + AURA_THIRD.get(p) + " invisible " + p.isInvisible() + " spectator " + p.isSpectator();
+	}
+
 	public static boolean enabled(ServerPlayer p, String family) {
 		return !STORE.get(p).off.contains(family);
 	}

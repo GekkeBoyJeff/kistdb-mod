@@ -88,6 +88,7 @@ public final class Screens implements FabricClientGameTest {
 				camera(ctx, CameraType.THIRD_PERSON_BACK);
 				ctx.waitTicks(40);
 				ctx.takeScreenshot("armour_third_set");
+				server.runOnServer(s -> LOG.info("AURA-DEBUG set: {}", nl.libreria.glint.GlintMod.debugAura(player)));
 				run(server, "item replace entity @a armor.head with minecraft:diamond_helmet[enchantments={protection:4,unbreaking:3,mending:1}]",
 						"item replace entity @a armor.chest with minecraft:diamond_chestplate[enchantments={protection:4,unbreaking:3,mending:1}]",
 						"item replace entity @a armor.legs with minecraft:diamond_leggings[enchantments={protection:3,unbreaking:3}]",
@@ -96,6 +97,7 @@ public final class Screens implements FabricClientGameTest {
 				ctx.takeScreenshot("armour_third_protection");
 				ctx.waitTicks(9);
 				ctx.takeScreenshot("armour_third_protection_2");
+				server.runOnServer(s -> LOG.info("AURA-DEBUG protection: {}", nl.libreria.glint.GlintMod.debugAura(player)));
 				camera(ctx, CameraType.FIRST_PERSON);
 				ctx.waitTicks(20);
 				ctx.takeScreenshot("armour_first_person");
@@ -410,7 +412,7 @@ public final class Screens implements FabricClientGameTest {
 				int w = ctx.computeOnClient(mc -> mc.getWindow().getGuiScaledWidth());
 				int h = ctx.computeOnClient(mc -> mc.getWindow().getGuiScaledHeight());
 				int left = (w - 176) / 2, top = (h - 222) / 2;
-				for (int row = 0; row < 2; row++) {
+				for (int row = 1; row <= 2; row++) {
 					ctx.getInput().setCursorPos((left + 7 + 18 * 3) * scale, (top + 17 + 18 * row + 8) * scale);
 					ctx.waitTicks(5);
 					ctx.takeScreenshot("own_journal_hover_" + row);
