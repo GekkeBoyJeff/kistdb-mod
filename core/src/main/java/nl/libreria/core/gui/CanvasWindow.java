@@ -99,6 +99,8 @@ public abstract class CanvasWindow extends SimpleGui {
 			Consumer<ServerPlayer> action) {
 		ItemStack st = stack.copyWithCount(1);
 		st.set(net.minecraft.core.component.DataComponents.TOOLTIP_STYLE, TOOLTIP);
+		// A picture on a button is no treasure: no rarity frame around it
+		st.set(net.minecraft.core.component.DataComponents.RARITY, net.minecraft.world.item.Rarity.COMMON);
 		GuiElementBuilder b = GuiElementBuilder.from(st).setName(name).hideDefaultTooltip();
 		if (invisible) b.model(EMPTY);
 		for (Component l : lines) b.addLoreLine(l);

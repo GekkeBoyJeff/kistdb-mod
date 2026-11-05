@@ -97,23 +97,51 @@ public final class SettingsCanvas extends CanvasWindow {
 		return out;
 	}
 
-	/** The rows of this page (a header never ends a page). */
-	private List<List<Row>> pages() {
-		List<List<Row>> pages = new ArrayList<>();
-		List<Row> cur = new ArrayList<>();
-		for (Row r : allRows()) {
-			if (cur.size() == LIST_ROWS || (r instanceof Header && cur.size() == LIST_ROWS - 1)) {
+	/** Room for a label on a card from column 1 to 7. */
+	private static final int ROOM = 18 * 7 - 2 * Canvas.CARD_MARGIN - 10;
+
+	/** How many rows of cells a row of the list takes: two when its label needs two lines, and for a choice. */
+	private static int height(Row r) {
+		return switch (r) {
+			case Header h -> 1;
+			case Toggle t -> Glyphs.width(Component.literal(Keys.plain(t.setting().label))) > ROOM ? 2 : 1;
+			case Choice c -> 2;
+			case Link l -> Glyphs.width(Component.literal(l.label())) > ROOM ? 2 : 1;
+		};
+	}
+
+	/** A row of the list where it goes: its first row of cells and how many it takes. */
+	private record Placed(Row row, int at, int height) {
+	}
+
+	/**
+	 * The pages: rows 0–8 of cells each. A card never crosses the gap between the chest's rows and your inventory's,
+	 * and a page never ends with a header.
+	 */
+	private List<List<Placed>> pages() {
+		List<List<Placed>> pages = new ArrayList<>();
+		List<Placed> cur = new ArrayList<>();
+		int at = 0;
+		List<Row> all = allRows();
+		for (int i = 0; i < all.size(); i++) {
+			Row r = all.get(i);
+			int h = height(r);
+			if (h == 2 && at == 5) at = 6;
+			int need = h + (r instanceof Header && i + 1 < all.size() ? height(all.get(i + 1)) : 0);
+			if (at + need > LIST_ROWS && !cur.isEmpty()) {
 				pages.add(cur);
 				cur = new ArrayList<>();
+				at = 0;
 			}
-			cur.add(r);
+			cur.add(new Placed(r, at, h));
+			at += h;
 		}
 		if (!cur.isEmpty() || pages.isEmpty()) pages.add(cur);
 		return pages;
 	}
 
-	private List<Row> rows() {
-		List<List<Row>> pages = pages();
+	private List<Placed> rows() {
+		List<List<Placed>> pages = pages();
 		this.page = Math.max(0, Math.min(this.page, pages.size() - 1));
 		return pages.get(this.page);
 	}
@@ -133,30 +161,31 @@ public final class SettingsCanvas extends CanvasWindow {
 			int x = 8 + Glyphs.width(Component.literal(this.domain.label));
 			c.text(" › ", x, 5, MUTED).text("Settings", x + Glyphs.width(Component.literal(" › ")), 5, TEXT);
 		}
-		List<Row> rows = rows();
-		int left = Canvas.cellX(1) + Canvas.CARD_MARGIN + 5, right = Canvas.cellX(8) - Canvas.CARD_MARGIN - 5;
-		for (int i = 0; i < rows.size(); i++) {
-			int y = Canvas.cellY(i) + 5;
-			switch (rows.get(i)) {
-				case Header h -> c.text(h.name(), Canvas.cellX(0) + 3, y, tint);
+		int left = Canvas.cellX(1) + Canvas.CARD_MARGIN + 5;
+		for (Placed pl : rows()) {
+			int i = pl.at(), h = pl.height();
+			int top = Canvas.cellY(i);
+			// one line: 5 px down; two lines: centred on the card
+			int y1 = h == 1 ? top + 5 : top + 2 + (18 * h - 4 - 17) / 2, y2 = y1 + 9;
+			switch (pl.row()) {
+				case Header hd -> c.text(hd.name(), Canvas.cellX(0) + 3, top + 5, tint);
 				case Toggle t -> {
-					c.card(1, i, 7, 1, tint);
-					c.text(Canvas.fit(Keys.plain(t.setting().label), right - left), left, y, TEXT);
+					c.card(1, i, 7, h, tint);
+					lines(c, Keys.plain(t.setting().label), left, y1, y2, h);
 				}
 				case Choice ch -> {
-					c.card(1, i, 7, 1, tint);
-					String raw = ch.setting().labelAt(ch.setting().index(this.player));
+					c.card(1, i, 7, h, tint);
+					c.text(Canvas.fit(Keys.plain(ch.setting().label), ROOM), left, y1, TEXT);
+					String value = ch.setting().labelAt(ch.setting().index(this.player));
 					// A value with keys ("{sneak} + {swap}") shows the player's own keys
-					int vw = Glyphs.width(Keys.has(raw) ? Keys.text(raw) : Component.literal(raw));
-					c.text(Canvas.fit(Keys.plain(ch.setting().label), right - left - vw - 8), left, y, TEXT);
-					if (Keys.has(raw)) c.keys(raw, right - vw, y, VALUE);
-					else c.text(raw, right - vw, y, VALUE);
-					c.text("‹›", Canvas.cellX(8) + 4, y, MUTED);
+					if (Keys.has(value)) c.keys(value, left, y2, VALUE);
+					else c.text(Canvas.fit(value, ROOM), left, y2, VALUE);
+					c.text("‹›", Canvas.cellX(8) + 4, top + 5, MUTED);
 				}
 				case Link l -> {
-					c.card(1, i, 7, 1, l.tint());
-					c.text(Canvas.fit(l.label(), right - left), left, y, TEXT);
-					c.text("›", Canvas.cellX(8) + 7, y, MUTED);
+					c.card(1, i, 7, h, l.tint());
+					lines(c, l.label(), left, y1, y2, h);
+					c.text("›", Canvas.cellX(8) + 7, top + 5, MUTED);
 				}
 			}
 		}
@@ -172,6 +201,17 @@ public final class SettingsCanvas extends CanvasWindow {
 		return c;
 	}
 
+	/** A label in one line, or wrapped in two. */
+	private static void lines(Canvas c, String label, int left, int y1, int y2, int h) {
+		if (h == 1) {
+			c.text(Canvas.fit(label, ROOM), left, y1, TEXT);
+			return;
+		}
+		List<String> ls = Canvas.wrap(label, ROOM);
+		c.text(Canvas.fit(ls.get(0), ROOM), left, y1, TEXT);
+		if (ls.size() > 1) c.text(Canvas.fit(String.join(" ", ls.subList(1, ls.size())), ROOM), left, y2, TEXT);
+	}
+
 	private static void small(Canvas c, int col, int w, String label) {
 		if (label.isEmpty()) return;
 		c.card(col, 9, w, 1, NEUTRAL);
@@ -182,11 +222,10 @@ public final class SettingsCanvas extends CanvasWindow {
 
 	@Override
 	protected void fill() {
-		List<Row> rows = rows();
-		for (int i = 0; i < rows.size(); i++) {
-			int row = i;
-			switch (rows.get(i)) {
-				case Header h -> {
+		for (Placed pl : rows()) {
+			int row = pl.at(), h = pl.height();
+			switch (pl.row()) {
+				case Header hd -> {
 				}
 				case Toggle t -> {
 					Setting.Toggle s = t.setting();
@@ -198,7 +237,9 @@ public final class SettingsCanvas extends CanvasWindow {
 						Notify.whisper(p, Ui.text(s.label + ": " + (s.get(p) ? "on" : "off"), ChatFormatting.GRAY));
 						refreshCells();
 					};
-					area(1, row, 7, 1, name, lore, flip);
+					area(1, row, 7, h, name, lore, flip);
+					if (h == 2) area(8, row + 1, 1, 1, name, lore, flip);
+					if (h == 2) area(0, row + 1, 1, 1, name, lore, flip);
 					icon(0, row, new ItemStack(s.icon), name, lore, flip);
 					ItemStack sw = new ItemStack(Items.PAPER);
 					sw.set(net.minecraft.core.component.DataComponents.ITEM_MODEL, on ? SWITCH_ON : SWITCH_OFF);
@@ -215,20 +256,20 @@ public final class SettingsCanvas extends CanvasWindow {
 					}
 					lore.add(Component.empty());
 					lore.add(Ui.text("▸ Click: next   Right-click: back", ChatFormatting.YELLOW));
-					areaClick(1, row, 8, 1, name, lore, (p, rightClick) -> {
+					java.util.function.BiConsumer<ServerPlayer, Boolean> cycle = (p, rightClick) -> {
 						s.cycle(p, rightClick ? -1 : 1);
 						Notify.whisper(p, Ui.text(s.label + ": " + s.labelAt(s.index(p)), ChatFormatting.GRAY));
 						redraw();
-					});
-					icon(0, row, new ItemStack(s.icon), name, lore, p -> {
-						s.cycle(p, 1);
-						redraw();
-					});
+					};
+					areaClick(0, row + 1, 9, 1, name, lore, cycle);
+					areaClick(1, row, 8, 1, name, lore, cycle);
+					icon(0, row, new ItemStack(s.icon), name, lore, p -> cycle.accept(p, false));
 				}
 				case Link l -> {
 					Component name = Ui.text(l.label(), l.tint()).withStyle(ChatFormatting.BOLD);
 					List<Component> lore = lore(List.of(l.about()), null, "Click: open");
-					area(1, row, 8, 1, name, lore, l.action());
+					area(1, row, 8, h, name, lore, l.action());
+					if (h == 2) area(0, row + 1, 1, 1, name, lore, l.action());
 					icon(0, row, l.icon(), name, lore, l.action());
 				}
 			}

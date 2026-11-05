@@ -13,7 +13,7 @@ import nl.libreria.core.gui.SettingsWindow;
 
 /**
  * One domain page as a window of our own: a list, one row per button of the domain (its picture on the left, its
- * name on a card, a short hint on the right), and at the bottom Back and the domain's settings.
+ * name on a card; what it does is in the tooltip), and at the bottom Back and the domain's settings.
  */
 public final class DomainWindow extends CanvasWindow {
 	/** Rows for entries: the six of the chest and the three of the inventory (the hotbar row is for Back). */
@@ -67,10 +67,8 @@ public final class DomainWindow extends CanvasWindow {
 			c.card(1, row, 8, 1, r.tint());
 			int left = Canvas.cellX(1) + Canvas.CARD_MARGIN + 5, right = Canvas.cellX(9) - Canvas.CARD_MARGIN - 5;
 			int y = Canvas.cellY(row) + 5;
-			int nameW = nl.libreria.core.gui.Glyphs.width(Component.literal(r.name()));
-			c.text(r.name(), left, y, StartWindow.TEXT);
-			int room = right - left - nameW - 10;
-			if (room > 24 && !r.hint().isEmpty()) c.right(Canvas.fit(r.hint(), room), right, y, StartWindow.MUTED);
+			c.text(Canvas.fit(r.name(), right - left - 10), left, y, StartWindow.TEXT);
+			c.text("›", right - 3, y, StartWindow.MUTED);
 		}
 		boolean settings = SettingsWindow.has(this.domain);
 		small(c, 0, 9, settings ? 4 : 9, "Back");
