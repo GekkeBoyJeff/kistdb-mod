@@ -50,7 +50,7 @@ final class GravePlaces {
 	/** Graves on or off, right in the list, so nobody has to look for it. */
 	private static GuiElementBuilder switchButton(ServerPlayer p) {
 		boolean on = GravesMod.ENABLED.get(p);
-		GuiElementBuilder b = Menu.button(Items.SKELETON_SKULL, on ? "Graves: on" : "Graves: off", on ? ChatFormatting.GREEN : ChatFormatting.GOLD,
+		GuiElementBuilder b = Menu.button(Ui.item(on ? "lime_dye" : "gray_dye"), on ? "Graves: on" : "Graves: off", on ? ChatFormatting.GREEN : ChatFormatting.GOLD,
 				on ? "When you die, your items wait in" : "Turn it on and your items go into",
 				on ? "a grave instead of dropping." : "a grave when you die, instead of", on ? "" : "dropping on the ground.");
 		if (on) b.glow();
@@ -58,7 +58,7 @@ final class GravePlaces {
 		return b.setCallback((i, t, a, g) -> {
 			GravesMod.ENABLED.set(p, !on);
 			Ui.sound(p, SoundEvents.NOTE_BLOCK_PLING.value(), 0.5f, on ? 0.7f : 1.4f);
-			PlaceList.open(p, KIND);
+			PlaceList.reopen(p);
 		});
 	}
 

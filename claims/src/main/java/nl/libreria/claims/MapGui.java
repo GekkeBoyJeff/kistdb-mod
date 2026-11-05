@@ -259,7 +259,7 @@ public final class MapGui extends Menu {
 
 	// ---------------------------------------------------------------- trusted players
 
-	/** Claims · Trusted players: who may build in all your land, and whether visitors may use doors. */
+	/** Trusted players: who may build in all your land, and whether visitors may use doors. */
 	static final class TrustGui extends Menu {
 		private static final int PER_PAGE = 14;
 		private int page;
@@ -322,7 +322,7 @@ public final class MapGui extends Menu {
 			this.setSlot(31, door.setCallback((i, t, a, g) -> flipDoors()));
 			this.setSlot(40, lamp(on).setCallback((i, t, a, g) -> flipDoors()));
 
-			back("the map", () -> MapGui.open(this.player));
+			up();
 			pages(this.page, pageCount, p -> {
 				this.page = p;
 				build();

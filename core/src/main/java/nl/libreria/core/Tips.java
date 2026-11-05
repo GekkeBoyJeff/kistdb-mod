@@ -53,20 +53,55 @@ public final class Tips {
 	private Tips() {
 	}
 
+	/** Loads the class at startup, so its setting is there from the start. */
+	static void init() {
+	}
+
 	public static Tip register(String key, Domain domain, Item icon, String title, String... lines) {
 		Tip t = new Tip(key, domain, icon, title, List.of(lines));
 		TIPS.put(key, t);
 		return t;
 	}
 
-	/** Shows the tip if this player has never seen it (and hasn't switched tips off). */
+	/** Tips waiting for a free moment, per player (the welcome card, a toast or the land map comes first). */
+	private static final Map<java.util.UUID, java.util.ArrayDeque<Tip>> WAITING = new java.util.HashMap<>();
+	/** Anything at or above this on top of the screen (place names, the welcome card, toasts, banners, the land map) goes first. */
+	private static final int BUSY = 20;
+
+	/**
+	 * Shows the tip if this player has never seen it (and hasn't switched tips off). When something else is on top of
+	 * the screen, the tip waits for it; it only counts as seen once it was actually shown.
+	 */
 	public static void once(ServerPlayer p, Tip tip) {
-		Data d = STORE.get(p);
-		if (d.seen.contains(tip.key())) return;
+		if (STORE.get(p).seen.contains(tip.key()) || !ENABLED.get(p)) return;
+		java.util.ArrayDeque<Tip> q = WAITING.computeIfAbsent(p.getUUID(), k -> new java.util.ArrayDeque<>());
+		if (!q.contains(tip)) q.add(tip);
+		next(p);
+	}
+
+	/** Shows the next waiting tip when the top of the screen is free. */
+	private static void next(ServerPlayer p) {
+		java.util.ArrayDeque<Tip> q = WAITING.get(p.getUUID());
+		if (q == null || q.isEmpty() || nl.libreria.core.gui.TopCard.shownPriority(p) >= BUSY) return;
+		Tip tip = q.poll();
+		if (q.isEmpty()) WAITING.remove(p.getUUID());
 		if (!ENABLED.get(p)) return;
-		d.seen.add(tip.key());
+		Data d = STORE.get(p);
+		if (!d.seen.add(tip.key())) return;
 		STORE.markDirty(p);
 		show(p, tip);
+	}
+
+	static void tick(net.minecraft.server.MinecraftServer server) {
+		for (java.util.UUID id : List.copyOf(WAITING.keySet())) {
+			ServerPlayer p = server.getPlayerList().getPlayer(id);
+			if (p == null) WAITING.remove(id);
+			else next(p);
+		}
+	}
+
+	static void forget(java.util.UUID id) {
+		WAITING.remove(id);
 	}
 
 	/** Has this player seen it? */

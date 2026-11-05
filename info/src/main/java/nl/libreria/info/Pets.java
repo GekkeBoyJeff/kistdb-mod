@@ -213,8 +213,9 @@ final class Pets {
 			String near = Places.nearest(op, lost.dim, at.getX(), at.getZ());
 			Toast.show(op, egg(pet.type), Toast.BAD, Ui.text(pet.name + " has died", ChatFormatting.WHITE),
 					Ui.text(how + (near == null ? "" : " · near " + near), ChatFormatting.GRAY));
-			nl.libreria.core.Say.to(op, nl.libreria.core.Domain.PLACES, pet.name + ", your " + kind + ", died at " + where
-					+ (near == null ? "" : ", near " + near) + ".", ChatFormatting.GRAY);
+			nl.libreria.core.Say.to(op, nl.libreria.core.Domain.PLACES, Ui.text(pet.name + ", your " + kind + ", died at " + where
+					+ (near == null ? "" : ", near " + near) + ". ", ChatFormatting.GRAY)
+					.append(nl.libreria.core.Say.run("Your pets", "/pets", "Where it died is in the list, greyed out")));
 			Ui.sound(op, SoundEvents.NOTE_BLOCK_BASS, 0.6f, 0.7f);
 		} else {
 			d.news.computeIfAbsent(pet.owner, k -> new ArrayList<>()).add(pet.name + ", your " + kind + ", died while you were away ("
@@ -228,7 +229,11 @@ final class Pets {
 		List<String> list = data().news.remove(p.getUUID());
 		if (list == null || list.isEmpty()) return;
 		STORE.markDirty();
-		for (String line : list) nl.libreria.core.Say.to(p, nl.libreria.core.Domain.PLACES, line, ChatFormatting.GRAY);
+		for (int i = 0; i < list.size(); i++) {
+			var line = Ui.text(list.get(i) + (i == list.size() - 1 ? " " : ""), ChatFormatting.GRAY);
+			if (i == list.size() - 1) line.append(nl.libreria.core.Say.run("Your pets", "/pets", "Where it happened is in the list"));
+			nl.libreria.core.Say.to(p, nl.libreria.core.Domain.PLACES, line);
+		}
 	}
 
 	// ---------------------------------------------------------------- in Your places

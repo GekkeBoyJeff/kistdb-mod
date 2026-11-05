@@ -30,6 +30,16 @@ public enum Domain {
 	public final int rgb;
 	/** The nearest of the 16 old colours, for places that can't take any colour (glass panes). */
 	public final ChatFormatting legacy;
+	/** A darker shade of {@link #rgb}, readable on Minecraft's light grey menus. */
+	public int dark() {
+		return switch (this) {
+			case ITEMS -> 0x1E7480;
+			case PLACES -> 0x2D7428;
+			case PROGRESS -> 0x936600;
+			case YOU -> 0x7A3792;
+		};
+	}
+
 	/** Stained glass colour for section headers in chest menus. */
 	public final String pane;
 	public final Item icon;

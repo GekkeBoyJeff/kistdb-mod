@@ -89,8 +89,8 @@ public final class ItemGui extends Menu {
 		help("Every chest with this item,",
 				"nearest first.",
 				"Click a chest: show the way.",
-				"Shift-click: skip that chest in",
-				"search. Undo it in My chests.");
+				"Shift-click: leave that chest out of",
+				"search. Undo it in Your chests.");
 		finish();
 	}
 

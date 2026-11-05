@@ -65,7 +65,7 @@ public final class Start {
 			w.button(Ui.text("Stop showing the way", ChatFormatting.RED), Ui.text("Removes the beam you're following.", ChatFormatting.GRAY),
 					(pl, v) -> {
 						Guide.clear(pl);
-						Notify.whisper(pl, "Beam removed", ChatFormatting.GRAY);
+						Notify.whisper(pl, "Stopped showing the way", ChatFormatting.GRAY);
 					});
 		}
 		if (SettingsWindow.has(d)) {

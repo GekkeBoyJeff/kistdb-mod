@@ -55,7 +55,9 @@ public abstract class Menu extends SimpleGui {
 			Component grey = Component.literal(title.getString()).withStyle(s -> s.withColor(0x404040));
 			super.setTitle(Glyphs.framedTitle(theme(), this.rows, grey));
 		} else {
-			super.setTitle(title);
+			// Without the pack there's no coloured frame: a small diamond in the domain's colour says where you are
+			nl.libreria.core.Domain d = domain();
+			super.setTitle(d == null ? title : Component.empty().append(Ui.text("◆ ", d.dark())).append(title));
 		}
 	}
 

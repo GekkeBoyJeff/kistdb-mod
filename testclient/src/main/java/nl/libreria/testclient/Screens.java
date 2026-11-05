@@ -441,7 +441,11 @@ public final class Screens implements FabricClientGameTest {
 				server.runOnServer(s -> nl.libreria.core.gui.Toast.hide(player));
 			});
 
-			// Every menu
+			// Every menu (with a waypoint of our own, so Your places has one)
+			run(server, "execute as @a at @s run waypoint set Home");
+			ctx.waitTicks(5);
+			close(ctx, server, player);
+			menu(ctx, server, player, "window_admin_root", nl.libreria.core.gui.AdminWindow::open);
 			for (nl.libreria.core.Domain d : nl.libreria.core.Domain.values()) {
 				menu(ctx, server, player, "start_" + d.word, p -> nl.libreria.core.Start.domain(p, d));
 			}

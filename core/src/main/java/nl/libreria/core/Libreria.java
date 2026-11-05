@@ -57,6 +57,7 @@ public final class Libreria implements ModInitializer {
 			return m == null ? java.util.List.of() : java.util.List.of(m);
 		});
 		QuickMenu.init();
+		Tips.init();
 		MODULE.hubEntry(Domain.PLACES, 10, Items.COMPASS, "Your places", PlaceList::open,
 				"Everything you can be shown the way to: waypoints, graves, pets, the journal, your land.");
 		MODULE.commands(Domain.PLACES, "/places – everything you can be shown the way to");
@@ -97,6 +98,8 @@ public final class Libreria implements ModInitializer {
 			nl.libreria.core.gui.Caption.forget(id);
 			Dialogs.forget(id);
 			Welcome.forget(id);
+			Tips.forget(id);
+			nl.libreria.core.gui.PlacesMenu.forget(id);
 			Afk.forget(id);
 			DeathRecap.forget(id);
 			Nameplate.forget(id);
@@ -163,6 +166,7 @@ public final class Libreria implements ModInitializer {
 		Welcome.tick(server, tick);
 		if (tick % 20 == 7) Afk.tick(server, tick);
 		if (tick % 1200 == 600) Chronicle.tick(server);
+		if (tick % 10 == 4) Tips.tick(server);
 		DeathRecap.tick(server, tick);
 		if (tick % 40 == 11) Tab.tick(server);
 		nl.libreria.core.gui.Caption.tick(server, tick);

@@ -45,7 +45,7 @@ public final class Tab {
 			int ticks = p.getStats().getValue(Stats.CUSTOM, Stats.PLAY_TIME);
 			MutableComponent footer = Component.literal("\n").append(Ui.kv("Your time here: ", time(ticks), ChatFormatting.WHITE))
 					.append(Ui.text("   ·   ", ChatFormatting.DARK_GRAY)).append(Ui.kv("Ping: ", p.connection.latency() + " ms", ChatFormatting.WHITE))
-					.append("\n").append(Ui.text("Quick menu: ", ChatFormatting.DARK_GRAY))
+					.append("\n").append(Ui.text("Libreria: ", ChatFormatting.DARK_GRAY))
 					.append(Component.keybind("key.quickActions").withStyle(ChatFormatting.GRAY)).append("\n");
 			p.connection.send(new ClientboundTabListPacket(header, footer));
 		}

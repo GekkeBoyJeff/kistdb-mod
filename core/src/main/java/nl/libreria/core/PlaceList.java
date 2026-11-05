@@ -238,6 +238,11 @@ public final class PlaceList {
 		PlacesMenu.open(p, null);
 	}
 
+	/** Back to the tab and page the player was on (for "Back" from a place's own screen). */
+	public static void reopen(ServerPlayer p) {
+		PlacesMenu.reopen(p);
+	}
+
 	/** Opens it on one tab ("waypoints", "death", "pets", "journal", "land"). */
 	public static void open(ServerPlayer p, @Nullable String kind) {
 		PlacesMenu.open(p, kind);

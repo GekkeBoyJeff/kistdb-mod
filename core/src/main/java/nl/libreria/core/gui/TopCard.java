@@ -95,6 +95,18 @@ public final class TopCard {
 		}
 	}
 
+	/** The priority of what's on top of this player's screen right now, or -1 when nothing is. */
+	public static int shownPriority(ServerPlayer p) {
+		Top top = TOPS.get(p.getUUID());
+		if (top == null) return -1;
+		int best = -1;
+		for (Entry e : top.cards.values()) {
+			if (e.until() >= 0 && e.until() <= now) continue;
+			best = Math.max(best, e.priority());
+		}
+		return best;
+	}
+
 	public static void hide(ServerPlayer p, String channel) {
 		Top top = TOPS.get(p.getUUID());
 		if (top != null && top.cards.remove(channel) != null) update(p, top);

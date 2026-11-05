@@ -27,8 +27,9 @@ public final class AdminWindow {
 
 	public static void open(ServerPlayer player) {
 		if (!allowed(player)) return;
-		Window w = Window.of(Ui.text("⚙ Server settings", ChatFormatting.GOLD).withStyle(ChatFormatting.BOLD))
-				.text(Ui.text("Rules for everybody on this server. Only operators see this window.", ChatFormatting.GRAY));
+		Window w = Window.path("Settings", "Server settings")
+				.text(Ui.text("Rules for everybody on this server. Only operators see this window. Grouped by the part of "
+						+ "Libreria (the module) they belong to.", ChatFormatting.GRAY));
 		for (Module m : Module.all()) {
 			if (m.serverSettings().isEmpty() && m.adminButtons().isEmpty()) continue;
 			List<String> names = new ArrayList<>();
@@ -36,12 +37,12 @@ public final class AdminWindow {
 			for (Module.SettingsButton b : m.adminButtons()) names.add(b.label());
 			w.button(Ui.text(m.name, ChatFormatting.WHITE), Ui.text(String.join("\n", names), ChatFormatting.GRAY), (p, v) -> open(p, m));
 		}
-		w.done().show(player);
+		w.back(SettingsWindow::open).show(player);
 	}
 
 	public static void open(ServerPlayer player, Module module) {
 		if (!allowed(player)) return;
-		Window w = Window.of(Ui.text("⚙ " + module.name, ChatFormatting.GOLD).withStyle(ChatFormatting.BOLD));
+		Window w = Window.path("Settings", "Server settings", module.name);
 		w.item(new ItemStack(module.icon), Ui.text("Server-wide: this changes it for every player.", ChatFormatting.GRAY));
 		for (ServerSetting s : module.serverSettings()) {
 			Component label = Ui.text(s.label, ChatFormatting.WHITE);
@@ -67,9 +68,11 @@ public final class AdminWindow {
 			Ui.sound(p, SoundEvents.NOTE_BLOCK_PLING.value(), 0.5f, 1.4f);
 			if (!problems.isEmpty()) {
 				Toast.show(p, Items.BARRIER, Toast.WARN, "Not saved: " + problems.getFirst(), "That has to be a full https:// address.");
+				open(p, module);
 			} else {
 				Toast.show(p, module.icon, Toast.GOOD, changed == 0 ? "Nothing changed" : "Server settings saved",
 						module.name + (changed == 0 ? "" : " · " + changed + (changed == 1 ? " change" : " changes")));
+				open(p);
 			}
 		});
 		w.button(Ui.text("Defaults", ChatFormatting.YELLOW), Ui.text("Back to what the module ships with", ChatFormatting.GRAY), (p, v) -> {
@@ -79,7 +82,7 @@ public final class AdminWindow {
 			open(p, module);
 		});
 		w.button(Ui.text("What do these do?", ChatFormatting.WHITE), Ui.text("One line per setting", ChatFormatting.GRAY), (p, v) -> {
-			Window h = Window.of("⚙ " + module.name + " · What do these do?");
+			Window h = Window.path("Settings", "Server settings", module.name, "Help");
 			for (ServerSetting s : module.serverSettings()) h.text(explain(s));
 			h.back(pl -> open(pl, module)).show(p);
 		});

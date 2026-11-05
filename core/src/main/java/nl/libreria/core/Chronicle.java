@@ -103,9 +103,14 @@ public final class Chronicle {
 			d.entries.add(e);
 			trim(d);
 			STORE.markDirty();
-			if (major && server != null && ANNOUNCE.get()) {
+			// One quiet line for everybody. Not for achievements (the achievement itself already says so in chat), and
+			// not to the player it's about when they already got a card for it (a weapon that earned its name).
+			if (major && server != null && ANNOUNCE.get() && kind != Kind.ACHIEVEMENT) {
 				Component line = Say.line(Domain.PROGRESS).append(Ui.text("Chronicle · ", ChatFormatting.DARK_GRAY)).append(line(e, false));
-				for (ServerPlayer p : server.getPlayerList().getPlayers()) p.sendSystemMessage(line);
+				for (ServerPlayer p : server.getPlayerList().getPlayers()) {
+					if (kind == Kind.LEGEND && p.getUUID().equals(who)) continue;
+					p.sendSystemMessage(line);
+				}
 			}
 		} catch (RuntimeException ex) {
 			Libreria.LOG.warn("Could not write to the chronicle: {}", text, ex);

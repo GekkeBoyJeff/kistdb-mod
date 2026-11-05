@@ -94,7 +94,10 @@ public final class ChestsMod implements ModInitializer {
 		MODULE.hubEntry(Domain.ITEMS, 30, Items.CHEST_MINECART, "Quick stack", QuickStack::run,
 				"Puts what you carry into your nearby chests that already hold it (not your hotbar).",
 				"Also: right-click the button beside your inventory.");
-		MODULE.hubEntry(Domain.ITEMS, 40, Items.HOPPER, "Sort inventory", Sorter::sortPlayer,
+		MODULE.hubEntry(Domain.ITEMS, 40, Items.HOPPER, "Sort inventory", p -> {
+			if (Sorter.sortPlayer(p)) nl.libreria.core.Notify.whisper(p, "✔ Your inventory is sorted", net.minecraft.ChatFormatting.GREEN);
+			else nl.libreria.core.Notify.whisper(p, "Your inventory is too full to sort", net.minecraft.ChatFormatting.GRAY);
+		},
 				"Merges and sorts stacks; your hotbar stays as it is.",
 				"Also: left-click the button beside your inventory.");
 

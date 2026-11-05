@@ -32,8 +32,14 @@ public final class PlacesMenu extends Menu {
 	private @Nullable String kind;
 	private int page;
 
+	/** Where each player last was in the list (tab and page), so "Back" from a place's details lands there again. */
+	private record Spot(@Nullable String kind, int page) {
+	}
+
+	private static final Map<java.util.UUID, Spot> LAST = new HashMap<>();
+
 	private PlacesMenu(ServerPlayer player, @Nullable String kind, int page) {
-		super(player, 6, label(kind));
+		super(player, 6, "Your places");
 		this.kind = kind;
 		this.page = page;
 		rebuild();
@@ -49,10 +55,20 @@ public final class PlacesMenu extends Menu {
 		new PlacesMenu(player, kind, 0).open();
 	}
 
-	private static String label(@Nullable String kind) {
-		Kind k = kind == null ? null : PlaceList.kind(kind);
-		return k == null ? "Your places" : k.label;
+	/** Back to the tab and page this player was on. */
+	public static void reopen(ServerPlayer player) {
+		Spot s = LAST.get(player.getUUID());
+		if (s == null) {
+			open(player, null);
+			return;
+		}
+		new PlacesMenu(player, s.kind() != null && PlaceList.kind(s.kind()) == null ? null : s.kind(), s.page()).open();
 	}
+
+	public static void forget(java.util.UUID id) {
+		LAST.remove(id);
+	}
+
 
 	private void rebuild() {
 		for (int i = 0; i < this.rows * 9; i++) this.clearSlot(i);
@@ -68,9 +84,7 @@ public final class PlacesMenu extends Menu {
 
 		int pages = Math.max(1, (shown.size() + PER_PAGE - 1) / PER_PAGE);
 		this.page = Math.max(0, Math.min(this.page, pages - 1));
-		String title = label(this.kind) + " (" + shown.size() + ")";
-		// A new title re-opens the screen (the cursor jumps), so only when it really changes
-		if (!title.equals(this.plainTitle().getString())) this.setTitle(Component.literal(title));
+		LAST.put(this.player.getUUID(), new Spot(this.kind, this.page));
 
 		// Top row: the tab's own action (left), the tabs (middle), "stop" (right)
 		Kind current = this.kind == null ? null : PlaceList.kind(this.kind);

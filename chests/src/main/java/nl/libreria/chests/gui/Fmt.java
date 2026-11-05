@@ -35,6 +35,8 @@ final class Fmt {
 
 	/** Fills the still-empty slots of one row with black glass, so a toolbar stands apart from the content. */
 	static void toolbar(SimpleGui gui, int row) {
+		// With the pack, empty slots melt into the panel (no dark squares between the buttons)
+		if (nl.libreria.core.Pack.has(gui.getPlayer())) return;
 		for (int i = row * 9; i < row * 9 + 9; i++) {
 			if (gui.getGuiElement(i) == null) gui.setSlot(i, Menu.pane("black"));
 		}

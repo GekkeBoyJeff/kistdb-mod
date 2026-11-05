@@ -52,7 +52,7 @@ final class WaypointPlaces {
 								Ui.kv("At ", pt.x + " " + pt.y + " " + pt.z, ChatFormatting.WHITE),
 								Ui.kv("Visible to: ", WaypointsMod.visibilityText(pt, me), WaypointsMod.visibilityColor(pt.visibility)))
 						.go(pl -> WaypointsMod.beam(pl, pt));
-				if (own) place.details("edit", pl -> EditGui.open(pl, pt, () -> PlaceList.open(pl, OWN)));
+				if (own) place.details("edit", pl -> EditGui.open(pl, pt, () -> PlaceList.reopen(pl)));
 				if (xaero) place.drop("send to Xaero's Minimap", pl -> WaypointsMod.sendXaero(pl, pt));
 				out.add(place);
 			}
@@ -108,9 +108,9 @@ final class WaypointPlaces {
 	static void askName(ServerPlayer p) {
 		NameGui.open(p, "Name your waypoint", defaultName(p), input -> {
 			if (!WaypointsMod.create(p, input, false)) return false;
-			PlaceList.open(p, OWN);
+			PlaceList.reopen(p);
 			return true;
-		}, () -> PlaceList.open(p, OWN));
+		}, () -> PlaceList.reopen(p));
 	}
 
 	private static String defaultName(ServerPlayer p) {
