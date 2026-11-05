@@ -84,10 +84,7 @@ public final class Profile {
 
 		/** A "custom" statistic by its id without namespace ("play_time", "walk_one_cm"…). */
 		public long custom(String id) {
-			Identifier key = Identifier.withDefaultNamespace(id);
-			if (this.online != null) {
-				return BuiltInRegistries.CUSTOM_STAT.containsKey(key) ? this.online.getStats().getValue(net.minecraft.stats.Stats.CUSTOM, key) : 0;
-			}
+			if (this.online != null) return Ui.customStat(this.online, id);
 			return number(section("minecraft:custom"), "minecraft:" + id);
 		}
 

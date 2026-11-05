@@ -64,6 +64,22 @@ final class CollectorTests {
 					+ (mine == null ? null : mine.description()));
 			SelfTests.check(CollectorMod.date(0L).matches("\\d{4}-\\d{2}-\\d{2}"), "date as yyyy-MM-dd: " + CollectorMod.date(0L));
 		});
+		SelfTests.register("collector.custom-stats", level -> {
+			// Statistics like play time and distances are found by name too (Minecraft keeps them by object)
+			if (Catalog.all().isEmpty()) Catalog.build();
+			FakePlayer p = FakePlayer.get(level);
+			var stat = net.minecraft.stats.Stats.CUSTOM.get(net.minecraft.stats.Stats.JUMP);
+			int before = p.getStats().getValue(stat);
+			p.getStats().setValue(p, stat, before + 7);
+			Catalog.fresh();
+			Catalog.Counter jumps = Catalog.custom("jump");
+			long counted = jumps == null ? -1 : jumps.get(p, CollectorMod.STORE.get(p));
+			int byName = nl.libreria.core.Ui.customStat(p, "jump");
+			p.getStats().setValue(p, stat, before);
+			SelfTests.check(counted == before + 7, "an achievement counts jumps: " + counted + " of " + (before + 7));
+			SelfTests.check(byName == before + 7, "a statistic by name: " + byName);
+			SelfTests.check(nl.libreria.core.Ui.customStat(p, "no_such_statistic") == 0, "an unknown one is 0");
+		});
 		SelfTests.register("collector.server-goals", level -> {
 			if (Catalog.all().isEmpty()) Catalog.build();
 			SelfTests.check(Goals.kinds().size() >= 100, "many goals: " + Goals.kinds().size());

@@ -60,7 +60,12 @@ public final class Guide {
 		int count;
 		int ticksLeft;
 		int nearTicks;
+		/** Whether the line is drawn: only while you look (about) the way of the target. */
+		boolean looking = true;
 	}
+
+	/** Look within about 35° of the target: the line shows; turn more than about 46° away: it goes. */
+	private static final double SHOW_COS = 0.82, HIDE_COS = 0.70;
 
 	private Guide() {
 	}
@@ -174,9 +179,16 @@ public final class Guide {
 		Vec3 from = b.player.position().add(0, 1.0, 0);
 		Vec3 d = b.center.subtract(from);
 		double dist = d.length();
-		float start = 1.0f;
+		float start = 2.0f;
 		float length = (float) (dist - start - 0.6);
-		if (length < 0.3f || dist < 0.01) {
+		// Only while you look the target's way (with a little room either side, so it doesn't flicker)
+		if (dist >= 0.01) {
+			Vec3 toTarget = b.center.subtract(b.player.getEyePosition()).normalize();
+			double cos = b.player.getLookAngle().dot(toTarget);
+			if (b.looking && cos < HIDE_COS) b.looking = false;
+			else if (!b.looking && cos > SHOW_COS) b.looking = true;
+		}
+		if (!b.looking || length < 0.3f || dist < 0.01) {
 			b.line.setScale(new Vector3f(0, 0, 0));
 			b.line.startInterpolationIfDirty();
 			return;

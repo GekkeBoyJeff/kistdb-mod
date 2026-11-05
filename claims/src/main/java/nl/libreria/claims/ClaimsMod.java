@@ -427,6 +427,29 @@ public final class ClaimsMod implements ModInitializer {
 		return out;
 	}
 
+	/** How far to the next chunk, 0 to 1: by play time or by points, whichever is further along. */
+	static double nextChunkFraction(ServerPlayer p) {
+		if (budget(p) >= LIMIT.get()) return 1;
+		long perChunk = (long) HOURS.get() * TICKS_PER_HOUR;
+		double play = (playTicks(p) % perChunk) / (double) perChunk;
+		double pts = Services.progress().isPresent() ? (points(p) % POINTS.get()) / (double) POINTS.get() : 0;
+		return Math.max(play, pts);
+	}
+
+	/** For the land map card: "1 h 20 min play or 7 points", or "the most there is". */
+	static String nextChunkShort(ServerPlayer p) {
+		if (budget(p) >= LIMIT.get()) return "you have the most there is";
+		long perChunk = (long) HOURS.get() * TICKS_PER_HOUR;
+		long left = perChunk - playTicks(p) % perChunk;
+		int minutes = (int) Math.max(1, (left + 1199) / 1200);
+		String s = duration(minutes) + " play";
+		if (Services.progress().isPresent()) {
+			int need = POINTS.get() - points(p) % POINTS.get();
+			s += " or " + need + (need == 1 ? " point" : " points");
+		}
+		return s;
+	}
+
 	/** "Next chunk: play 1 h 20 min more or earn 7 more achievement points." */
 	static String nextChunkSentence(ServerPlayer p) {
 		return String.join(" ", nextChunkLines(p)) + ".";

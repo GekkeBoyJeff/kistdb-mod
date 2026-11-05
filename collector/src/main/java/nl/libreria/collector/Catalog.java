@@ -145,10 +145,14 @@ public final class Catalog {
 		Extra.build();
 		Goals.build();
 		buildTogether();
-		signature = BY_ID.keySet().hashCode();
+		// (+ a version: bumped when existing achievements start counting differently, so what players already
+		// did is given quietly, with one card, instead of a banner for each)
+		signature = BY_ID.keySet().hashCode() * 31 + COUNTING_VERSION;
 	}
 
 	private static int signature;
+	/** 2: custom statistics (play time, distances, trades…) are read by their registered object. */
+	private static final int COUNTING_VERSION = 2;
 
 	/** Changes when achievements are added or removed (players then get what they already did, quietly). */
 	public static int signature() {
@@ -231,7 +235,11 @@ public final class Catalog {
 	/** A statistic from the "custom" list (play time, distances…), or null if this version has no such statistic. */
 	static @Nullable Counter custom(String... stats) {
 		List<Identifier> ids = new ArrayList<>();
-		for (String s : stats) if (BuiltInRegistries.CUSTOM_STAT.containsKey(mc(s))) ids.add(mc(s));
+		// The registered object itself: Minecraft keeps these statistics by object, not by name
+		for (String s : stats) {
+			Identifier key = nl.libreria.core.Ui.customStatKey(s);
+			if (key != null) ids.add(key);
+		}
 		if (ids.isEmpty()) return null;
 		Counter c = new Counter((p, d) -> {
 			long n = 0;

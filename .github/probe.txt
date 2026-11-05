@@ -8,3 +8,4 @@
 !net.minecraft.world.level.storage.LevelResource
 !net.minecraft.advancements.AdvancementProgress
 !net.minecraft.advancements.CriterionProgress
+!net.minecraft.stats.StatType

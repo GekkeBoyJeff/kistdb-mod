@@ -75,7 +75,8 @@ final class StatsGui extends Menu {
 
 	/** Custom stat by id, for stats we don't reference by constant (unknown ids simply count as 0). */
 	private int custom(String id) {
-		return custom(Identifier.withDefaultNamespace(id));
+		Identifier key = nl.libreria.core.Ui.customStatKey(id);
+		return key == null ? 0 : custom(key);
 	}
 
 	/**

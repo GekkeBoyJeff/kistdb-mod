@@ -49,6 +49,20 @@ public final class Ui {
 		return Math.round(d) + " m";
 	}
 
+	/**
+	 * A "custom" statistic ("play_time", "walk_one_cm"…) of a player. Minecraft finds these by the very object it
+	 * registered, not by name, so the id is looked up in the registry first; an id that doesn't exist counts as 0.
+	 */
+	public static int customStat(net.minecraft.server.level.ServerPlayer p, String id) {
+		net.minecraft.resources.Identifier key = customStatKey(id);
+		return key == null ? 0 : p.getStats().getValue(net.minecraft.stats.Stats.CUSTOM, key);
+	}
+
+	/** The registered object for a custom statistic, or null if there is none by that id. */
+	public static net.minecraft.resources.Identifier customStatKey(String id) {
+		return net.minecraft.core.registries.BuiltInRegistries.CUSTOM_STAT.getValue(net.minecraft.resources.Identifier.withDefaultNamespace(id));
+	}
+
 	/** 12,402: a whole number with thousands separators. */
 	public static String n(long v) {
 		return String.format(java.util.Locale.US, "%,d", v);

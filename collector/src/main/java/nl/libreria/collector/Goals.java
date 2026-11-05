@@ -81,7 +81,11 @@ public final class Goals {
 		/** When the next goal may start (a short pause after one ends). */
 		public long nextAt;
 		public String lastArea = "";
+		/** 2: statistics read correctly; a goal from before counts again from now (keeping what was done). */
+		public int version;
 	}
+
+	private static final int VERSION = 2;
 
 	static final WorldStore<Data> STORE = WorldStore.create("libreria/goals.json", Data.class, Data::new);
 
@@ -124,6 +128,11 @@ public final class Goals {
 		if (d.now != null) {
 			if (d.now.base == null) d.now.base = new HashMap<>();
 			if (d.now.done == null) d.now.done = new HashMap<>();
+		}
+		if (d.version < VERSION) {
+			if (d.now != null) d.now.base.clear();
+			d.version = VERSION;
+			STORE.markDirty();
 		}
 		return d;
 	}

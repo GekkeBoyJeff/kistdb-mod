@@ -992,6 +992,9 @@ final class ClaimView {
 			List<TopCard.Row> rows = new ArrayList<>();
 			rows.add(TopCard.Row.bar("flag", "Your land", max == 0 ? 0 : used / (double) max, room ? 0x55FF55 : 0xFF5555, 10,
 					Component.literal(used + " / " + max).withStyle(room ? ChatFormatting.WHITE : ChatFormatting.RED)));
+			// What it takes to be allowed one more chunk, and how far along you are
+			rows.add(TopCard.Row.bar("time", "Next chunk", ClaimsMod.nextChunkFraction(v.p), 0x55CCFF, 10,
+					Component.literal(ClaimsMod.nextChunkShort(v.p)).withStyle(ChatFormatting.WHITE)));
 			Component action = switch (kind) {
 				case FREE -> room ? Component.literal("Click to claim it").withStyle(ChatFormatting.YELLOW)
 						: Component.literal("Your land budget is full").withStyle(ChatFormatting.RED);

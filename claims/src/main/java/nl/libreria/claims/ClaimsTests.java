@@ -65,6 +65,10 @@ final class ClaimsTests {
 			SelfTests.check(ClaimsMod.growthSentence().startsWith("+1 per 2 hours played"), "how the budget grows");
 			SelfTests.check(ClaimsMod.nextChunkSentence(p).startsWith("Next chunk: play "), "what earns the next chunk");
 			for (String line : ClaimsMod.nextChunkLines(p)) SelfTests.check(line.length() <= 36, "fits in a tooltip: " + line);
+			String next = ClaimsMod.nextChunkShort(p);
+			SelfTests.check(next.contains(" play") || next.contains("most"), "next chunk, short: " + next);
+			double f = ClaimsMod.nextChunkFraction(p);
+			SelfTests.check(f >= 0 && f <= 1, "next chunk, how far: " + f);
 		});
 
 		SelfTests.register("claims.map", level -> {
