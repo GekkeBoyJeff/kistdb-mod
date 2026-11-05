@@ -133,12 +133,18 @@ final class Sleep {
 		return s == null ? 0 : s.totalTicks();
 	}
 
-	/** When the clock next reaches a marker (without moving it there). */
+	/** When the clock next reaches a marker (without moving it there): later than now, also when it's there now. */
 	static long next(MinecraftServer server, Holder<WorldClock> clock, ResourceKey<ClockTimeMarker> marker) {
 		ServerClockManager m = server.clockManager();
 		long now = ticks(server, clock);
 		m.moveToTimeMarker(clock, marker);
 		long then = ticks(server, clock);
+		if (then <= now) {
+			// Right at the marker the game doesn't move: look from a tick later
+			m.setTotalTicks(clock, now + 1);
+			m.moveToTimeMarker(clock, marker);
+			then = ticks(server, clock);
+		}
 		m.setTotalTicks(clock, now);
 		return then;
 	}
