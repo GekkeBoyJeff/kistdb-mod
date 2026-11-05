@@ -1,8 +1,7 @@
-!net.minecraft.client.gui.screens.dialog.DialogScreen
-!net.minecraft.client.gui.screens.Screen
-!net.minecraft.client.gui.screens.dialog.body.DialogBodyHandlers$PlainMessageHandler
-!net.minecraft.client.gui.components.Checkbox
-!net.minecraft.client.gui.render.state.GuiRenderState
-!net.minecraft.client.gui.render.GuiRenderer
-? client/gui/render/
-? client/gui/screens/inventory/ContainerScreen
+!net.minecraft.client.renderer.state.gui.GuiRenderState
++net.minecraft.client.renderer.state.gui.GuiRenderState$Node
+!net.minecraft.client.gui.layouts.HeaderAndFooterLayout
+!net.minecraft.client.gui.components.MultiLineTextWidget
+!net.minecraft.client.gui.screens.dialog.MultiButtonDialogScreen
+!net.minecraft.client.gui.screens.inventory.ContainerScreen
+? renderer/state/gui/
