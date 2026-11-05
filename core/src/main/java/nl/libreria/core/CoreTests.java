@@ -75,6 +75,9 @@ final class CoreTests {
 			String json = nl.libreria.core.gui.SettingsCanvas.unopened(p, Domain.PLACES).pictureJson();
 			Libreria.LOG.info("LIBRERIA-PICTURE settings.places {}", json);
 			SelfTests.check(json.length() > 100, "the settings window has a picture");
+			// Characters the window fonts lack become look-alikes (the client would draw a box for them)
+			SelfTests.check(nl.libreria.core.gui.Canvas.clean("✚ New waypoint").equals("+ New waypoint"),
+					"look-alikes: " + nl.libreria.core.gui.Canvas.clean("✚ New waypoint"));
 		});
 		SelfTests.register("core.framework", level -> {
 			FakePlayer p = FakePlayer.get(level);

@@ -29,7 +29,7 @@ final class WaypointPlaces {
 	static void register() {
 		PlaceList.kind(OWN, "Your waypoints", Items.COMPASS, 10)
 				.about("Places you saved yourself.")
-				.empty("Click ✚ at the top left to save", "the spot where you stand.")
+				.empty("Save the spot where you stand", "with New waypoint.")
 				.help("✚ saves the spot you stand on.", "Right-click your own: rename, icon", "and who can see it.",
 						"Also: /wp set <name>, /wp go <name>")
 				.action(WaypointPlaces::newButton)

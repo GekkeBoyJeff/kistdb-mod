@@ -80,7 +80,25 @@ public final class Canvas {
 
 	/** Text with its top at ({@code x}, {@code y}), with a soft shadow. */
 	public Canvas text(String text, int x, int y, int rgb) {
-		return text(Component.literal(text), x, y, rgb, true);
+		return text(Component.literal(clean(text)), x, y, rgb, true);
+	}
+
+	/** Look-alikes for characters a window can't draw (the client would draw a box for them, on the title line). */
+	private static final java.util.Map<Integer, String> LOOK_ALIKE = java.util.Map.ofEntries(
+			java.util.Map.entry((int) '✚', "+"), java.util.Map.entry((int) '▸', "›"), java.util.Map.entry((int) '▶', "›"),
+			java.util.Map.entry((int) '►', "›"), java.util.Map.entry((int) '◀', "‹"), java.util.Map.entry((int) '◄', "‹"),
+			java.util.Map.entry((int) '•', "·"), java.util.Map.entry((int) '–', "-"), java.util.Map.entry((int) '—', "-"),
+			java.util.Map.entry((int) '’', "'"), java.util.Map.entry((int) '“', "\""), java.util.Map.entry((int) '”', "\""));
+
+	/** {@code text} with only characters a window can draw (look-alikes where there are, otherwise left out). */
+	public static String clean(String text) {
+		if (Glyphs.CANVAS_CHARS.isEmpty()) return text;
+		StringBuilder sb = new StringBuilder();
+		text.codePoints().forEach(cp -> {
+			if (Glyphs.CANVAS_CHARS.contains(cp)) sb.appendCodePoint(cp);
+			else if (LOOK_ALIKE.containsKey(cp)) sb.append(LOOK_ALIKE.get(cp));
+		});
+		return sb.toString().replaceAll("^ +| +$", "").replaceAll(" {3,}", "  ");
 	}
 
 	/** Text with its top at ({@code x}, {@code y}). */
@@ -100,12 +118,14 @@ public final class Canvas {
 
 	/** Text centred on {@code cx}. */
 	public Canvas centred(String text, int cx, int y, int rgb) {
-		return text(text, cx - Glyphs.width(Component.literal(text)) / 2, y, rgb);
+		String t = clean(text);
+		return text(t, cx - Glyphs.width(Component.literal(t)) / 2, y, rgb);
 	}
 
 	/** Text that ends at {@code right}. */
 	public Canvas right(String text, int right, int y, int rgb) {
-		return text(text, right - Glyphs.width(Component.literal(text)), y, rgb);
+		String t = clean(text);
+		return text(t, right - Glyphs.width(Component.literal(t)), y, rgb);
 	}
 
 	/**
@@ -125,6 +145,7 @@ public final class Canvas {
 
 	/** {@code text}, cut short with "…" if it is wider than {@code max} pixels. */
 	public static String fit(String text, int max) {
+		text = clean(text);
 		if (Glyphs.width(Component.literal(text)) <= max) return text;
 		String t = text;
 		while (t.length() > 1 && Glyphs.width(Component.literal(t + "…")) > max) t = t.substring(0, t.length() - 1);
@@ -152,7 +173,8 @@ public final class Canvas {
 	 * window has at most one or two.
 	 */
 	public Canvas keys(String text, int x, int y, int rgb) {
-		this.late.add(() -> text(nl.libreria.core.Keys.text(text), x, y, rgb, true));
+		String t = clean(text);
+		this.late.add(() -> text(nl.libreria.core.Keys.text(t), x, y, rgb, true));
 		return this;
 	}
 

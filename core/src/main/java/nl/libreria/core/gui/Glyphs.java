@@ -47,6 +47,8 @@ public final class Glyphs {
 	/** Cards that belong to no place, and quiet text, in the pack's look. */
 	public static int neutral = 0xC4CAD6;
 	public static int muted = 0xA6ACB8;
+	/** The characters a window's text can show (Minecraft's own pictures of letters, and our small icons). */
+	public static final java.util.Set<Integer> CANVAS_CHARS = new java.util.HashSet<>();
 	/** The heights (window y) at which the big item pictures ("ico.…") exist. */
 	public static final java.util.Set<Integer> ICON_Y = new java.util.HashSet<>();
 
@@ -68,6 +70,7 @@ public final class Glyphs {
 			}
 			if (meta.has("hudLines")) hudLines = meta.get("hudLines").getAsInt();
 			if (meta.has("iconY")) meta.getAsJsonArray("iconY").forEach(e -> ICON_Y.add(e.getAsInt()));
+			if (meta.has("canvasChars")) meta.get("canvasChars").getAsString().codePoints().forEach(CANVAS_CHARS::add);
 			if (meta.has("look")) {
 				JsonObject look = meta.getAsJsonObject("look");
 				titleColor = look.get("title").getAsInt();

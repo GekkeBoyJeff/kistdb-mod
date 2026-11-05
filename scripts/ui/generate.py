@@ -739,9 +739,22 @@ def switches():
                   open(os.path.join(base, f'items/gui/{name}.json'), 'w'))
 
 
+CANVAS_CHARS = []
+
+
 def canvas_fonts():
     """libreria:y<N> (text and big emblems with their top at y N) and libreria:row<K> (cards)."""
     default = json.load(open(os.path.join(VANILLA, 'font/include/default.json')))['providers']
+    # What a window's text can show: a character outside these would be drawn as a box on the title line
+    chars = {' '}
+    for p in default:
+        for row in p.get('chars', []):
+            chars.update(ch for ch in row if ch != '\u0000')
+    for p in providers:
+        if p['type'] == 'bitmap' and p['file'].split('/')[-1] in ('icons.png', 'marks.png'):
+            for row in p['chars']:
+                chars.update(row)
+    CANVAS_CHARS[:] = sorted(chars)
     space = [p for p in providers if p['type'] == 'space']
     base = os.path.join(OUT, 'assets', NS, 'font')
     os.makedirs(base, exist_ok=True)
@@ -754,6 +767,12 @@ def canvas_fonts():
             provs.append(q)
         for p in canvas_pictures:
             provs.append({'type': 'bitmap', 'file': p['file'], 'height': p['height'], 'ascent': 13 - n, 'chars': p['chars']})
+        # the small pictures text may hold (icon.…, mark.…), moved like the text
+        for p in providers:
+            if p['type'] == 'bitmap' and p['file'].split('/')[-1] in ('icons.png', 'marks.png'):
+                q = dict(p)
+                q['ascent'] = p['ascent'] - shift
+                provs.append(q)
         if n in ICON_Y:
             for name, ch in big_icon_chars.items():
                 provs.append({'type': 'bitmap', 'file': f'minecraft:item/{name}.png', 'height': 32, 'ascent': 13 - n, 'chars': [ch]})
@@ -1601,7 +1620,8 @@ def main():
     hotbar_font()
     meta = {"hudLines": HUD_LINES, "icons": icon_map, 'lineHeight': LH, 'padX': PAD_X, 'padTop': PAD_TOP, 'padBottom': PAD_BOTTOM,
             'panelLines': [min(PANEL_LINES), max(PANEL_LINES)], 'themes': list(THEMES), 'glyphs': glyphs,
-            'look': {'title': LOOK['title'], 'titleShadow': LOOK['title_shadow'], 'neutral': LOOK['neutral'], 'muted': LOOK['muted']}, 'iconY': ICON_Y}
+            'look': {'title': LOOK['title'], 'titleShadow': LOOK['title_shadow'], 'neutral': LOOK['neutral'], 'muted': LOOK['muted']}, 'iconY': ICON_Y,
+            'canvasChars': ''.join(CANVAS_CHARS)}
     os.makedirs(os.path.join(OUT, NS), exist_ok=True)
     json.dump(meta, open(os.path.join(OUT, NS, 'ui_glyphs.json'), 'w'), indent=1)
     print(len(glyphs), 'glyphs,', len(providers), 'providers')

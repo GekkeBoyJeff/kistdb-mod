@@ -183,7 +183,7 @@ public final class PlacesWindow extends CanvasWindow {
 	private @Nullable String extraLabel(@Nullable Kind current) {
 		GuiElementBuilder b = extra(current);
 		if (b == null) return null;
-		String name = b.asStack().getHoverName().getString();
+		String name = Canvas.clean(b.asStack().getHoverName().getString()).replaceAll("^[^\\p{L}]+", "");
 		return name.startsWith("New ") ? "+ New" : name;
 	}
 
