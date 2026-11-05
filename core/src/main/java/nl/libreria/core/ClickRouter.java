@@ -32,11 +32,16 @@ public final class ClickRouter {
 		ContainerInput input = packet.containerInput();
 		int button = packet.buttonNum();
 
-		// The edge button beside the inventory window: a click outside it with an empty hand
-		if (menu == player.inventoryMenu && slot == -999 && input == ContainerInput.THROW && menu.getCarried().isEmpty()
-				&& Hub.edgeActive(player)) {
-			Hub.edgeClick(player, button);
-			return true;
+		// The buttons beside the inventory window: a click outside it with an empty hand (middle-click comes as a clone)
+		if (menu == player.inventoryMenu && slot == -999 && menu.getCarried().isEmpty() && Hub.edgeActive(player)) {
+			if (input == ContainerInput.THROW) {
+				Hub.edgeClick(player, button == 1 ? 1 : 0);
+				return true;
+			}
+			if (input == ContainerInput.CLONE && !player.hasInfiniteMaterials()) {
+				Hub.edgeClick(player, 2);
+				return true;
+			}
 		}
 
 		for (Hook h : HOOKS) {

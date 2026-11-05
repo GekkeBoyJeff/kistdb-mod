@@ -197,19 +197,39 @@ public final class Screens implements FabricClientGameTest {
 				int w = ctx.computeOnClient(mc -> mc.getWindow().getGuiScaledWidth());
 				int h = ctx.computeOnClient(mc -> mc.getWindow().getGuiScaledHeight());
 				int left = (w - 176) / 2, top = (h - 166) / 2;
-				// The sort button on the window's left edge: a click outside the window
-				ctx.getInput().setCursorPos((left - 14) * scale, (top + 70) * scale);
+				// The buttons on the window's left edge (a click outside the window): left deposits, middle sorts
+				ctx.getInput().setCursorPos((left - 14) * scale, (top + 61) * scale);
 				ctx.waitTicks(3);
 				ctx.getInput().pressKey(o2 -> o2.keyAttack);
 				ctx.waitTicks(10);
 				ctx.getInput().setCursorPos(2, 2);
 				ctx.waitTicks(2);
+				ctx.takeScreenshot("inventory_deposit");
+				ctx.getInput().setCursorPos((left - 14) * scale, (top + 61) * scale);
+				ctx.waitTicks(3);
+				ctx.getInput().pressKey(o2 -> o2.keyPickItem);
+				ctx.waitTicks(10);
+				ctx.getInput().setCursorPos(2, 2);
+				ctx.waitTicks(2);
 				ctx.takeScreenshot("inventory_sorted");
-				// The magnifying glass (where the recipe book button is): hovered, then clicked opens your items
+				// The recipe book is the recipe book again
 				ctx.getInput().setCursorPos((left + 114) * scale, (top + 70) * scale);
 				ctx.waitTicks(3);
-				ctx.takeScreenshot("inventory_search_hover");
 				ctx.getInput().pressKey(o2 -> o2.keyAttack);
+				ctx.waitTicks(10);
+				ctx.getInput().setCursorPos(2, 2);
+				ctx.waitTicks(2);
+				ctx.takeScreenshot("inventory_recipe_book");
+				// Book open: the window sits further right (as the game places it); the same button closes the book
+				int left2 = w < 379 ? left : 177 + (w - 176 - 200) / 2;
+				ctx.getInput().setCursorPos((left2 + 114) * scale, (top + 70) * scale);
+				ctx.waitTicks(3);
+				ctx.getInput().pressKey(o2 -> o2.keyAttack);
+				ctx.waitTicks(10);
+				// The magnifying glass under the arrows: a right-click opens your items
+				ctx.getInput().setCursorPos((left - 14) * scale, (top + 80) * scale);
+				ctx.waitTicks(3);
+				ctx.getInput().pressKey(o2 -> o2.keyUse);
 				ctx.waitTicks(15);
 				ctx.getInput().setCursorPos(2, 2);
 				noToasts(ctx);
@@ -649,6 +669,51 @@ public final class Screens implements FabricClientGameTest {
 				ctx.waitTicks(8);
 				ctx.takeScreenshot("toast");
 				server.runOnServer(s -> nl.libreria.core.gui.Toast.hide(player));
+			});
+
+			// Sleeping: a nap in the day (the first click, the time running, the wait after), then a night that runs
+			safe("sleep", () -> {
+				BlockPos foot = new BlockPos(x + 1, y, z - 2), head = new BlockPos(x + 1, y, z - 3);
+				run(server, "difficulty peaceful", "gamerule advance_time true", "weather clear", "time set 4000",
+						f("setblock %d %d %d minecraft:red_bed[facing=north,part=head]", head.getX(), head.getY(), head.getZ()),
+						f("setblock %d %d %d minecraft:red_bed[facing=north,part=foot]", foot.getX(), foot.getY(), foot.getZ()),
+						f("tp @a %d %d %d 180 20", x, y, z));
+				ctx.waitTicks(10);
+				server.runOnServer(s -> {
+					nl.libreria.core.gui.TopCard.forget(player.getUUID());
+					nl.libreria.comfort.ComfortMod.debugBed(player, foot);
+				});
+				ctx.waitTicks(20);
+				LOG.info("SLEEP-DEBUG first click at {}", (Object) server.computeOnServer(s -> nl.libreria.comfort.ComfortMod.debugClock(player)));
+				ctx.takeScreenshot("nap_first_click");
+				server.runOnServer(s -> nl.libreria.comfort.ComfortMod.debugBed(player, foot));
+				ctx.waitTicks(60);
+				LOG.info("SLEEP-DEBUG napping {}", (Object) server.computeOnServer(s -> player.isSleeping() + " at " + nl.libreria.comfort.ComfortMod.debugClock(player)));
+				ctx.takeScreenshot("nap_running");
+				ctx.waitTicks(80);
+				LOG.info("SLEEP-DEBUG napping {}", (Object) server.computeOnServer(s -> player.isSleeping() + " at " + nl.libreria.comfort.ComfortMod.debugClock(player)));
+				ctx.takeScreenshot("nap_running_2");
+				ctx.waitTicks(140);
+				LOG.info("SLEEP-DEBUG after the nap: sleeping {}", (Object) server.computeOnServer(s -> player.isSleeping() + " at " + nl.libreria.comfort.ComfortMod.debugClock(player)));
+				ctx.takeScreenshot("nap_done");
+				server.runOnServer(s -> nl.libreria.comfort.ComfortMod.debugBed(player, foot));
+				ctx.waitTicks(20);
+				ctx.takeScreenshot("nap_wait");
+				// The night
+				run(server, "time set 14000");
+				ctx.waitTicks(10);
+				LOG.info("SLEEP-DEBUG lie down: {}", (Object) server.computeOnServer(s -> nl.libreria.comfort.ComfortMod.debugSleep(player, head)));
+				ctx.waitTicks(70);
+				LOG.info("SLEEP-DEBUG night {}", (Object) server.computeOnServer(s -> player.isSleeping() + " at " + nl.libreria.comfort.ComfortMod.debugClock(player)));
+				ctx.takeScreenshot("sleep_running");
+				ctx.waitTicks(120);
+				ctx.takeScreenshot("sleep_running_2");
+				ctx.waitTicks(200);
+				LOG.info("SLEEP-DEBUG morning: sleeping {}", (Object) server.computeOnServer(s -> player.isSleeping() + " at " + nl.libreria.comfort.ComfortMod.debugClock(player)));
+				ctx.takeScreenshot("sleep_morning");
+				run(server, "difficulty normal", "time set noon",
+						f("setblock %d %d %d minecraft:air", head.getX(), head.getY(), head.getZ()),
+						f("setblock %d %d %d minecraft:air", foot.getX(), foot.getY(), foot.getZ()));
 			});
 
 			// Every menu (with a waypoint of our own, so Your places has one)

@@ -69,7 +69,7 @@ public final class Welcome {
 		String line = LINE.isSet() ? LINE.get() : "A few handy extras here. No mods needed.";
 		List<TopCard.Row> rows = List.of(
 				TopCard.Row.text("key", "Libreria", key("key.quickActions")),
-				TopCard.Row.text("chest", "Your items", Ui.text("{inventory}, then the magnifier", ChatFormatting.WHITE)),
+				TopCard.Row.text("chest", "Your items", Ui.text("{inventory}, right-click beside it", ChatFormatting.WHITE)),
 				TopCard.Row.text("star", "Help", Ui.text("in Libreria", ChatFormatting.WHITE)));
 		TopCard.show(p, CHANNEL, new TopCard.Card(new ItemStack(Items.WRITABLE_BOOK), 0xFFAA00,
 				Ui.text("Welcome, " + p.getName().getString() + "!", ChatFormatting.GOLD), Ui.text(line, ChatFormatting.GRAY), rows),
@@ -91,9 +91,9 @@ public final class Welcome {
 		w.text(line("Libreria", key("key.quickActions", ChatFormatting.YELLOW),
 				"everything in four places: Items, Land & places, Progress and You. Also in the pause menu."));
 		w.text(line("Your items", key("key.inventory", ChatFormatting.YELLOW),
-				"then the magnifier: search your inventory and your chests. The recipe book is in there too."));
-		w.text(line("Sort", key("key.inventory", ChatFormatting.YELLOW),
-				"then the button beside the window: left-click puts items away in your nearby chests, right-click sorts."));
+				"then right-click the magnifying glass beside the window: search your inventory and your chests."));
+		w.text(line("Put away", key("key.inventory", ChatFormatting.YELLOW),
+				"then left-click the arrows beside the window: your items go into your nearby chests. Middle-click sorts."));
 		w.text(line("Land map", Component.empty().append(key("key.sneak", ChatFormatting.YELLOW)).append(" + ")
 				.append(key("key.swapOffhand", ChatFormatting.YELLOW)),
 				"claim land and see whose land is where. The mouse turns the view; jump to name your land."));
