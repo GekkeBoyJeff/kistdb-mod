@@ -184,6 +184,9 @@ public final class Players {
 				Person p = d.people.computeIfAbsent(e.getKey(), k -> new Person());
 				long t = e.getValue();
 				if (t > 0 && (p.first == 0 || t < p.first)) p.first = t;
+				// Last here: when Minecraft last saved their files, if that's later than what we know
+				long saved = h.saved.getOrDefault(e.getKey(), 0L);
+				if (server.getPlayerList().getPlayer(e.getKey()) == null && saved > p.last) p.last = saved;
 				if (t > 0 && p.last == 0) p.last = t;
 			}
 		}

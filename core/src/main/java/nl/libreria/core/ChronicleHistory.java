@@ -31,6 +31,8 @@ final class ChronicleHistory {
 	final Map<UUID, Long> seen = new HashMap<>();
 	/** Per boss ("wither"): who slew one. */
 	final Map<String, Set<UUID>> slain = new HashMap<>();
+	/** When Minecraft last wrote each player's file (about when they were last here). */
+	final Map<UUID, Long> saved = new HashMap<>();
 	/** Who has died at least once. */
 	final Set<UUID> died = new HashSet<>();
 	/** How many player files were read. */
@@ -111,6 +113,11 @@ final class ChronicleHistory {
 					who = UUID.fromString(name.substring(0, name.length() - 5));
 				} catch (IllegalArgumentException e) {
 					continue;
+				}
+				try {
+					this.saved.merge(who, Files.getLastModifiedTime(f).toMillis(), Math::max);
+				} catch (IOException ignored) {
+					// no date: fine
 				}
 				try (Reader r = Files.newBufferedReader(f, StandardCharsets.UTF_8)) {
 					JsonElement json = JsonParser.parseReader(r);
