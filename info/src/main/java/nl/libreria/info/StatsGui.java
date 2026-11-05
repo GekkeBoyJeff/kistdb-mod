@@ -89,6 +89,15 @@ final class StatsGui extends Menu {
 		return b;
 	}
 
+	/** Adds the next grade of the achievement ladder that counts this statistic (with Collector). */
+	private GuiElementBuilder graded(GuiElementBuilder b, Identifier stat) {
+		Services.progress().map(pr -> pr.nextGrade(this.player, "custom:" + stat.getPath())).ifPresent(line -> {
+			b.addLoreLine(Component.empty());
+			b.addLoreLine(line);
+		});
+		return b;
+	}
+
 	private static Component kv(String key, String value) {
 		return Ui.kv(key, value, ChatFormatting.WHITE);
 	}
@@ -134,16 +143,16 @@ final class StatsGui extends Menu {
 
 		// ---- General
 		section(1, "yellow", "General", general, List.of(
-				stat(Items.EMERALD, "Villager trades", general, times(custom(Stats.TRADED_WITH_VILLAGER)),
-						kv("Talked to villagers: ", times(custom(Stats.TALKED_TO_VILLAGER)))),
-				stat(Ui.item("red_bed"), "Slept in a bed", general, times(custom(Stats.SLEEP_IN_BED))),
-				stat(Items.ENCHANTING_TABLE, "Items enchanted", general, num(custom(Stats.ENCHANT_ITEM))),
-				stat(Items.WHEAT, "Animals bred", general, num(custom(Stats.ANIMALS_BRED))),
-				stat(Items.FISHING_ROD, "Fish caught", general, num(custom(Stats.FISH_CAUGHT))),
-				stat(Items.CHEST, "Chests opened", general, num(custom(Stats.OPEN_CHEST)),
+				graded(stat(Items.EMERALD, "Villager trades", general, times(custom(Stats.TRADED_WITH_VILLAGER)),
+						kv("Talked to villagers: ", times(custom(Stats.TALKED_TO_VILLAGER)))), Stats.TRADED_WITH_VILLAGER),
+				graded(stat(Ui.item("red_bed"), "Slept in a bed", general, times(custom(Stats.SLEEP_IN_BED))), Stats.SLEEP_IN_BED),
+				graded(stat(Items.ENCHANTING_TABLE, "Items enchanted", general, num(custom(Stats.ENCHANT_ITEM))), Stats.ENCHANT_ITEM),
+				graded(stat(Items.WHEAT, "Animals bred", general, num(custom(Stats.ANIMALS_BRED))), Stats.ANIMALS_BRED),
+				graded(stat(Items.FISHING_ROD, "Fish caught", general, num(custom(Stats.FISH_CAUGHT))), Stats.FISH_CAUGHT),
+				graded(stat(Items.CHEST, "Chests opened", general, num(custom(Stats.OPEN_CHEST)),
 						kv("Barrels: ", num(custom(Stats.OPEN_BARREL))),
 						kv("Shulker boxes: ", num(custom(Stats.OPEN_SHULKER_BOX))),
-						kv("Ender chest: ", num(custom(Stats.OPEN_ENDERCHEST)))),
+						kv("Ender chest: ", num(custom(Stats.OPEN_ENDERCHEST)))), Stats.OPEN_CHEST),
 				stat(Items.CAKE, "Fun facts", general, "",
 						kv("Cake slices eaten: ", num(custom(Stats.EAT_CAKE_SLICE))),
 						kv("Discs played: ", num(custom(Stats.PLAY_RECORD))),
@@ -153,15 +162,15 @@ final class StatsGui extends Menu {
 
 		// ---- Combat
 		section(2, "red", "Combat", combat, List.of(
-				stat(Items.IRON_SWORD, "Mobs killed", combat, num(custom(Stats.MOB_KILLS)),
-						kv("Players killed: ", num(custom(Stats.PLAYER_KILLS)))),
-				stat(Items.SKELETON_SKULL, "Deaths", combat, times(custom(Stats.DEATHS))),
+				graded(stat(Items.IRON_SWORD, "Mobs killed", combat, num(custom(Stats.MOB_KILLS)),
+						kv("Players killed: ", num(custom(Stats.PLAYER_KILLS)))), Stats.MOB_KILLS),
+				graded(stat(Items.SKELETON_SKULL, "Deaths", combat, times(custom(Stats.DEATHS))), Stats.DEATHS),
 				stat(Items.DIAMOND_SWORD, "Damage dealt", combat, hearts(custom(Stats.DAMAGE_DEALT))),
 				stat(Items.SHIELD, "Damage taken", combat, hearts(custom(Stats.DAMAGE_TAKEN)),
 						kv("Blocked by shield: ", hearts(custom(Stats.DAMAGE_BLOCKED_BY_SHIELD)))),
-				stat(Items.BELL, "Raids won", combat, num(custom(Stats.RAID_WIN)),
-						kv("Raids started: ", num(custom(Stats.RAID_TRIGGER)))),
-				stat(Items.TARGET, "Targets hit", combat, num(custom(Stats.TARGET_HIT)))));
+				graded(stat(Items.BELL, "Raids won", combat, num(custom(Stats.RAID_WIN)),
+						kv("Raids started: ", num(custom(Stats.RAID_TRIGGER)))), Stats.RAID_WIN),
+				graded(stat(Items.TARGET, "Targets hit", combat, num(custom(Stats.TARGET_HIT))), Stats.TARGET_HIT)));
 
 		// ---- Travel
 		List<Component> flight = new ArrayList<>();
@@ -185,9 +194,9 @@ final class StatsGui extends Menu {
 				stat(Ui.item("saddle"), "Riding", travel, dist(riding), rides.toArray(Component[]::new)),
 				stat(Ui.item("oak_boat"), "By boat", travel, dist(custom(Stats.BOAT_ONE_CM))),
 				stat(Ui.item("minecart"), "By minecart", travel, dist(custom(Stats.MINECART_ONE_CM))),
-				stat(Items.RABBIT_FOOT, "Jumped", travel, times(custom(Stats.JUMP)),
+				graded(stat(Items.RABBIT_FOOT, "Jumped", travel, times(custom(Stats.JUMP)),
 						kv("Fallen: ", dist(custom(Stats.FALL_ONE_CM))),
-						kv("Climbed: ", dist(custom(Stats.CLIMB_ONE_CM))))));
+						kv("Climbed: ", dist(custom(Stats.CLIMB_ONE_CM)))), Stats.JUMP)));
 
 		// ---- Top lists
 		section(4, "light_blue", "Top lists", ChatFormatting.AQUA, List.of(

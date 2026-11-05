@@ -57,6 +57,8 @@ public final class Tracker {
 			actionbar(sp, Component.literal("✔ ").withStyle(ChatFormatting.GREEN)
 					.append(Component.literal("Added to your chests").withStyle(ChatFormatting.GRAY)));
 		}
+		// The first chest you ever open: how to sort it and what the ⇅ button does
+		if (isNew) nl.libreria.core.Tips.once(sp, TIP_CHEST);
 		return InteractionResult.PASS;
 	}
 
@@ -116,6 +118,10 @@ public final class Tracker {
 		if (open == null || player.containerMenu == player.inventoryMenu || !Store.dimId(player.level()).equals(open.dim())) return null;
 		return open.key();
 	}
+
+	static final nl.libreria.core.Tips.Tip TIP_CHEST = nl.libreria.core.Tips.register("chest", nl.libreria.core.Domain.ITEMS,
+			net.minecraft.world.item.Items.CHEST, "Sorting a chest", "Middle-click (or double-click an empty slot) sorts it.",
+			"The ⇅ button: right-click puts your matching items in.");
 
 	static void forget(ServerPlayer player) {
 		OPEN.remove(player.getUUID());

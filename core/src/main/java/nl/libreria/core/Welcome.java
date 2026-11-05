@@ -108,7 +108,7 @@ public final class Welcome {
 
 	/** Every command, under the domain it belongs to. Built from what the installed modules say. */
 	public static void commands(ServerPlayer p) {
-		Window w = Window.of(Ui.text("Commands", ChatFormatting.WHITE).withStyle(ChatFormatting.BOLD));
+		Window w = Window.path("Getting started", "Commands");
 		w.text(Component.empty().append(Ui.text("/l", ChatFormatting.YELLOW)).append(Ui.text("  the start screen (also /lib)", ChatFormatting.GRAY)));
 		w.text(Component.empty().append(Ui.text("/l items · land · progress · me", ChatFormatting.YELLOW))
 				.append(Ui.text("  straight to a page", ChatFormatting.GRAY)));

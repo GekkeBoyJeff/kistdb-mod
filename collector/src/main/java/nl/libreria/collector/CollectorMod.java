@@ -105,6 +105,11 @@ public final class CollectorMod implements ModInitializer {
 			}
 
 			@Override
+			public @org.jetbrains.annotations.Nullable Component nextGrade(ServerPlayer player, String stat) {
+				return CollectorMod.nextGrade(player, stat);
+			}
+
+			@Override
 			public List<Component> card(ServerPlayer player) {
 				return CollectorMod.card(player);
 			}
@@ -419,6 +424,22 @@ public final class CollectorMod implements ModInitializer {
 				: Component.empty().append(Ui.text(id.isEmpty() ? "Your rarest: " : "", ChatFormatting.GRAY)).append(t);
 		nl.libreria.core.Notify.card(p, new net.minecraft.world.item.ItemStack(Items.NAME_TAG), nl.libreria.core.gui.Toast.GOOD,
 				Ui.text(id.equals("-") ? "No title" : "Title chosen", ChatFormatting.WHITE), sub);
+	}
+
+	/** "Next grade: Angler · 37 / 100", or "✔ Every grade earned", for a statistic with a ladder. */
+	static @org.jetbrains.annotations.Nullable Component nextGrade(ServerPlayer p, String stat) {
+		List<Achievement> grades = Catalog.byStat(stat);
+		if (grades.isEmpty()) return null;
+		Data d = STORE.get(p);
+		for (Achievement a : grades) {
+			if (d.earned.containsKey(a.id())) continue;
+			long now = a.current(p, d), target = a.target();
+			return Component.empty().append(Ui.text("Next grade: ", ChatFormatting.GRAY))
+					.append(Component.literal(a.name()).withStyle(a.rarity().color))
+					.append(Ui.text(String.format(java.util.Locale.US, "  %,d / %,d ", now, target), ChatFormatting.GRAY))
+					.append(Ui.bar(now / (double) Math.max(1, target), 8));
+		}
+		return Ui.text("✔ Every grade earned", ChatFormatting.GREEN);
 	}
 
 	/** Player card lines: points + achievements, completion bar, items collected. */

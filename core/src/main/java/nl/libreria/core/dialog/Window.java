@@ -89,6 +89,18 @@ public final class Window {
 		return new Window(crumbs(domain, path));
 	}
 
+	/** A window outside the four domains, titled like a breadcrumb: "Getting started › Tips". */
+	public static Window path(String... path) {
+		net.minecraft.network.chat.MutableComponent c = Component.empty();
+		for (int i = 0; i < path.length; i++) {
+			if (i > 0) c.append(Ui.text("  ›  ", ChatFormatting.DARK_GRAY));
+			boolean last = i == path.length - 1;
+			net.minecraft.network.chat.MutableComponent part = Ui.text(path[i], last ? ChatFormatting.WHITE : ChatFormatting.GRAY);
+			c.append(last ? part.withStyle(ChatFormatting.BOLD) : part);
+		}
+		return new Window(c);
+	}
+
 	public static net.minecraft.network.chat.MutableComponent crumbs(nl.libreria.core.Domain domain, String... path) {
 		net.minecraft.network.chat.MutableComponent c = Component.empty();
 		if (path.length == 0) return c.append(Ui.text(domain.label, domain.rgb).withStyle(ChatFormatting.BOLD));

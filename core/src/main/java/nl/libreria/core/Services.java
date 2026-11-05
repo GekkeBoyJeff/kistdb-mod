@@ -151,6 +151,14 @@ public final class Services {
 			return null;
 		}
 
+		/**
+		 * The next grade of the achievement ladder that counts this statistic ("custom:fish_caught"): its name and how
+		 * far you are, for the statistics menu. Null when no ladder counts it.
+		 */
+		default @Nullable Component nextGrade(ServerPlayer player, String stat) {
+			return null;
+		}
+
 		/** Colour (0xRRGGBB) of the rarity of the player's title, or -1. */
 		default int titleColor(ServerPlayer player) {
 			return -1;

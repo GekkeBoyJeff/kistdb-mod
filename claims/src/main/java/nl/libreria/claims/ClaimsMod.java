@@ -854,8 +854,7 @@ public final class ClaimsMod implements ModInitializer {
 			return;
 		}
 		int size = area(level, c).size();
-		nl.libreria.core.dialog.Window w = nl.libreria.core.dialog.Window.of(Ui.text("Name your land", ChatFormatting.GREEN)
-				.withStyle(ChatFormatting.BOLD));
+		nl.libreria.core.dialog.Window w = nl.libreria.core.dialog.Window.of(Domain.PLACES, "Name your land");
 		w.text(Ui.text("This piece of your land (" + (size == 1 ? "1 chunk" : size + " chunks") + ") gets a name. Anyone who walks in "
 				+ "sees it fade in at the top of their screen, like a village or a forest. Your other pieces of land can have names of "
 				+ "their own.", ChatFormatting.GRAY));

@@ -103,7 +103,7 @@ public final class Links {
 					Ui.isOp(player) ? "Add them in Settings › Server settings." : "This server hasn't set any links.");
 			return;
 		}
-		Window w = Window.of("Links").text("The game asks before it opens a web page.");
+		Window w = Window.path("Getting started", "Links").text("The game asks before it opens a web page.");
 		for (Kind k : links) {
 			w.link(Component.literal(k.name()).withStyle(st -> st.withColor(k.color())), Ui.text(k.tooltip(), ChatFormatting.GRAY), k.setting().get().strip());
 		}

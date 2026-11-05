@@ -93,7 +93,7 @@ public final class Tips {
 
 	/** Getting started → Tips: every tip, by domain; the ones you haven't come across yet are marked. */
 	public static void all(ServerPlayer p) {
-		Window w = Window.of(Ui.text("Tips", ChatFormatting.WHITE).withStyle(ChatFormatting.BOLD));
+		Window w = Window.path("Getting started", "Tips");
 		Data data = STORE.get(p);
 		boolean any = false;
 		for (Domain d : Domain.values()) {

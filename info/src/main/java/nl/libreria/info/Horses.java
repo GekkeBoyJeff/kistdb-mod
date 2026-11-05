@@ -41,7 +41,7 @@ final class Horses {
 
 	static void sendCard(ServerPlayer player, AbstractHorse horse) {
 		double speed = speed(horse), jump = jump(horse), health = horse.getMaxHealth();
-		MutableComponent msg = Component.empty()
+		MutableComponent msg = nl.libreria.core.Say.line(nl.libreria.core.Domain.YOU)
 				.append(Component.literal("━━ ").withStyle(ChatFormatting.DARK_GRAY))
 				.append(horse.getDisplayName().copy().withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD))
 				.append(Component.literal(" ━━").withStyle(ChatFormatting.DARK_GRAY));

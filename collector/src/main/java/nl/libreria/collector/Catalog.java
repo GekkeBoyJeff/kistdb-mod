@@ -52,6 +52,8 @@ public final class Catalog {
 	private static final Map<String, Achievement> BY_ID = new LinkedHashMap<>();
 	/** Achievement → the ladder it is a grade of (the same list for every grade). */
 	private static final Map<String, List<Achievement>> LADDER = new HashMap<>();
+	/** "custom:animals_bred" → the ladder that counts it (for the statistics menu: "next grade"). */
+	private static final Map<String, List<Achievement>> BY_STAT = new HashMap<>();
 	private static List<String> allItems = List.of();
 
 	private Catalog() {
@@ -103,6 +105,8 @@ public final class Catalog {
 		private @Nullable UUID who;
 		private int gen = -1;
 		private long value;
+		/** The one statistic it counts ("custom:fish_caught"), or null for sums and other counts. */
+		@Nullable String key;
 
 		Counter(ToLongBiFunction<ServerPlayer, CollectorMod.Data> f) {
 			this.f = f;
@@ -121,6 +125,7 @@ public final class Catalog {
 
 	static void build() {
 		BY_ID.clear();
+		BY_STAT.clear();
 		LADDER.clear();
 		DUPLICATES.clear();
 		List<String> items = new ArrayList<>();
@@ -195,6 +200,12 @@ public final class Catalog {
 			grades.add(a);
 		}
 		chain(grades);
+		if (value.key != null && divisor == 1 && grades.size() > 1) BY_STAT.put(value.key, List.copyOf(grades));
+	}
+
+	/** The ladder of grades that counts one statistic ("custom:fish_caught"), or an empty list. */
+	public static List<Achievement> byStat(String key) {
+		return BY_STAT.getOrDefault(key, List.of());
 	}
 
 	/** Makes these achievements one ladder (lowest target first). */
@@ -219,11 +230,13 @@ public final class Catalog {
 		List<Identifier> ids = new ArrayList<>();
 		for (String s : stats) if (BuiltInRegistries.CUSTOM_STAT.containsKey(mc(s))) ids.add(mc(s));
 		if (ids.isEmpty()) return null;
-		return new Counter((p, d) -> {
+		Counter c = new Counter((p, d) -> {
 			long n = 0;
 			for (Identifier id : ids) n += p.getStats().getValue(Stats.CUSTOM, id);
 			return n;
 		});
+		if (ids.size() == 1) c.key = "custom:" + ids.getFirst().getPath();
+		return c;
 	}
 
 	private static List<Block> blocks(String... ids) {

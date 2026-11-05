@@ -90,7 +90,7 @@ public final class PlacesMenu extends Menu {
 		}
 		tabs(counts, all.size());
 		if (Guide.has(this.player)) {
-			this.setSlot(8, actions(button(Items.BARRIER, "Stop showing the way", ChatFormatting.RED, "Removes the beam you're following."),
+			this.setSlot(8, actions(button(Ui.item("spectral_arrow"), "Stop showing the way", ChatFormatting.RED, "Removes the beam you're following."),
 					"Click: stop").setCallback((i, t, a, g) -> {
 						Ui.click(this.player);
 						Guide.clear(this.player);
@@ -133,7 +133,7 @@ public final class PlacesMenu extends Menu {
 		List<Kind> kinds = PlaceList.kinds();
 		int n = Math.min(7, kinds.size() + 1);
 		int start = 1 + (7 - n) / 2;
-		tab(start, null, Items.COMPASS, "All", total, List.of("Every place, nearest first."));
+		tab(start, null, Ui.item("recovery_compass"), "All", total, List.of("Every place, nearest first."));
 		for (int i = 0; i + 1 < n; i++) {
 			Kind k = kinds.get(i);
 			tab(start + 1 + i, k.id, k.icon, k.label, counts.getOrDefault(k.id, 0), k.aboutLines());
