@@ -78,56 +78,49 @@ public final class Screens implements FabricClientGameTest {
 				ctx.takeScreenshot("nameplate_front");
 				camera(ctx, CameraType.FIRST_PERSON);
 			});
-			// Proof of concept: enchant effects ON the armour (an extra layer, lit and animated by the core shader)
+			// Proof of concept: our own particles (sprites on item displays, moved by the client) and real light (a light
+			// block only the players nearby are told about), on top of the armour layer from the core shader
 			safe("fx_poc", () -> {
 				String[][] kits = {
-						{"fx_fire", "diamond", "fireguard_3", "fireguard_3", "fireguard_3", "fireguard_3"},
-						{"fx_mix", "netherite", "water_3", "thorns_3", "sculk_3", "soul_3"},
-						{"fx_runes", "netherite", "protection_3", "protection_3", "protection_3", "frost_3"},
-						{"fx_gold", "gold", "protection_2", "fireguard_2", "protection_2", "frost_2"}};
+						{"fire", "diamond", "fireguard_3"},
+						{"frost", "diamond", "frost_3"},
+						{"soul", "netherite", "soul_3"},
+						{"runes", "netherite", "protection_3"}};
 				String[] slots = {"head", "chest", "legs", "feet"}, items = {"helmet", "chestplate", "leggings", "boots"};
 				for (String[] kit : kits) {
 					for (int i = 0; i < 4; i++) {
 						run(server, "item replace entity @a armor." + slots[i] + " with minecraft:" + kit[1] + "_" + items[i] + "[equippable={slot:\"" + slots[i]
-								+ "\",asset_id:\"libreria:fx_" + kit[1] + "_" + kit[2 + i] + "\"}]");
+								+ "\",asset_id:\"libreria:fx_" + kit[1] + "_" + kit[2] + "\"}]");
 					}
+					server.runOnServer(s -> nl.libreria.glint.GlintMod.debugFx(player, kit[0]));
 					ctx.getInput().lookAt(0, 0);
-					camera(ctx, CameraType.THIRD_PERSON_BACK);
-					ctx.waitTicks(25);
-					ctx.takeScreenshot(kit[0] + "_back");
 					camera(ctx, CameraType.THIRD_PERSON_FRONT);
-					ctx.waitTicks(15);
-					ctx.takeScreenshot(kit[0] + "_front");
-					ctx.waitTicks(3);
-					ctx.takeScreenshot(kit[0] + "_front_2");
+					ctx.waitTicks(35);
+					ctx.takeScreenshot("fx2_" + kit[0] + "_day");
 					run(server, "time set midnight");
-					ctx.waitTicks(15);
-					ctx.takeScreenshot(kit[0] + "_night");
-					// frames for a moving picture
-					if (kit[0].equals("fx_fire") || kit[0].equals("fx_runes")) {
-						for (int f = 0; f < 10; f++) {
-							ctx.waitTicks(2);
-							ctx.takeScreenshot(kit[0] + "_anim_" + f);
+					ctx.waitTicks(20);
+					ctx.takeScreenshot("fx2_" + kit[0] + "_night");
+					camera(ctx, CameraType.THIRD_PERSON_BACK);
+					ctx.waitTicks(10);
+					ctx.takeScreenshot("fx2_" + kit[0] + "_night_back");
+					camera(ctx, CameraType.THIRD_PERSON_FRONT);
+					ctx.waitTicks(5);
+					for (int f = 0; f < 8; f++) {
+						ctx.waitTicks(2);
+						ctx.takeScreenshot("fx2_" + kit[0] + "_anim_" + f);
+					}
+					if (kit[0].equals("fire")) {
+						// A slash, as a Fire Aspect sword could do on a hit
+						server.runOnServer(s -> nl.libreria.glint.GlintMod.debugFx(player, "slash"));
+						for (int f = 0; f < 6; f++) {
+							ctx.waitTicks(1);
+							ctx.takeScreenshot("fx2_slash_" + f);
 						}
 					}
+					server.runOnServer(s -> nl.libreria.glint.GlintMod.debugFx(player, "off"));
 					run(server, "time set noon");
+					ctx.waitTicks(5);
 				}
-				// A halo above the head: an item display riding the player, always lit
-				run(server, "summon item_display 0 100 0 {Tags:[\"lbhalo\"],item:{id:\"minecraft:gold_nugget\",count:1,components:{\"minecraft:item_model\":\"libreria:fx/halo\"}},"
-						+ "item_display:\"fixed\",billboard:\"fixed\",brightness:{sky:15,block:15},transformation:{left_rotation:[0.0f,0.0f,0.0f,1.0f],"
-						+ "right_rotation:[0.0f,0.0f,0.0f,1.0f],translation:[0.0f,0.42f,0.0f],scale:[0.62f,0.62f,0.62f]}}");
-				run(server, "ride @e[tag=lbhalo,limit=1] mount @p");
-				camera(ctx, CameraType.THIRD_PERSON_FRONT);
-				ctx.waitTicks(20);
-				ctx.takeScreenshot("fx_halo_front");
-				camera(ctx, CameraType.THIRD_PERSON_BACK);
-				ctx.waitTicks(10);
-				ctx.takeScreenshot("fx_halo_back");
-				run(server, "time set midnight");
-				camera(ctx, CameraType.THIRD_PERSON_FRONT);
-				ctx.waitTicks(15);
-				ctx.takeScreenshot("fx_halo_night");
-				run(server, "time set noon", "kill @e[tag=lbhalo]");
 				camera(ctx, CameraType.FIRST_PERSON);
 				run(server, "item replace entity @a armor.head with minecraft:air", "item replace entity @a armor.chest with minecraft:air",
 						"item replace entity @a armor.legs with minecraft:air", "item replace entity @a armor.feet with minecraft:air");
