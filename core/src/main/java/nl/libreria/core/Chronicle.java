@@ -237,15 +237,21 @@ public final class Chronicle {
 			List<nl.libreria.core.gui.TopCard.Row> rows = new ArrayList<>();
 			for (Entry e : news) {
 				if (rows.size() >= 2) break;
-				// Short enough for the card: the whole line, otherwise cut
-				Component l = line(e, false);
-				String t = l.getString();
-				rows.add(nl.libreria.core.gui.TopCard.Row.text("", "", t.length() <= 44 ? l
-						: Ui.text(t.substring(0, 43).stripTrailing() + "…", e.major ? ChatFormatting.WHITE : ChatFormatting.GRAY)));
+				// Without the ✦ (the card's font has no such picture: a star in front instead), cut when too long
+				String text = (e.name.isEmpty() ? "" : e.name + (e.text.startsWith("'") ? "" : " ")) + e.text;
+				if (text.length() > 44) text = text.substring(0, 42).stripTrailing() + "...";
+				MutableComponent v = Component.empty();
+				if (!e.name.isEmpty()) {
+					v.append(Ui.text(text.substring(0, Math.min(text.length(), e.name.length())), ChatFormatting.YELLOW));
+					v.append(Ui.text(text.substring(Math.min(text.length(), e.name.length())), e.major ? ChatFormatting.WHITE : ChatFormatting.GRAY));
+				} else {
+					v.append(Ui.text(text, e.major ? ChatFormatting.WHITE : ChatFormatting.GRAY));
+				}
+				rows.add(nl.libreria.core.gui.TopCard.Row.text(e.major ? "star" : "flag", "", v));
 			}
 			for (var f : AWAY_LINES) {
 				Component extra = f.apply(p);
-				if (extra != null) rows.add(nl.libreria.core.gui.TopCard.Row.text("", "", extra));
+				if (extra != null) rows.add(nl.libreria.core.gui.TopCard.Row.text("trophy", "", extra));
 			}
 			String away = Players.ago(last).replace(" ago", "").toLowerCase(Locale.ROOT);
 			String n = news.size() == 1 ? "1 moment" : news.size() + " moments";
