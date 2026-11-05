@@ -1,0 +1,28 @@
+{
+ "layers": {
+  "humanoid": [
+   {
+    "texture": "minecraft:netherite"
+   },
+   {
+    "texture": "libreria:fx/netherite_thorns_1"
+   }
+  ],
+  "humanoid_leggings": [
+   {
+    "texture": "minecraft:netherite"
+   },
+   {
+    "texture": "libreria:fx/netherite_thorns_1"
+   }
+  ]
+ },
+ "trim_overrides": [
+  {
+   "palette": "minecraft:trim/netherite_darker",
+   "when": {
+    "material": "minecraft:netherite"
+   }
+  }
+ ]
+}

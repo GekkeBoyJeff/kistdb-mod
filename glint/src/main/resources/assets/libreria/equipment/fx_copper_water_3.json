@@ -1,0 +1,28 @@
+{
+ "layers": {
+  "humanoid": [
+   {
+    "texture": "minecraft:copper"
+   },
+   {
+    "texture": "libreria:fx/copper_water_3"
+   }
+  ],
+  "humanoid_leggings": [
+   {
+    "texture": "minecraft:copper"
+   },
+   {
+    "texture": "libreria:fx/copper_water_3"
+   }
+  ]
+ },
+ "trim_overrides": [
+  {
+   "palette": "minecraft:trim/copper_darker",
+   "when": {
+    "material": "minecraft:copper"
+   }
+  }
+ ]
+}

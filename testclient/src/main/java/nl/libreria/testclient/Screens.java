@@ -78,6 +78,37 @@ public final class Screens implements FabricClientGameTest {
 				ctx.takeScreenshot("nameplate_front");
 				camera(ctx, CameraType.FIRST_PERSON);
 			});
+			// Proof of concept: enchant effects ON the armour (an extra layer, lit and animated by the core shader)
+			safe("fx_poc", () -> {
+				String[][] kits = {
+						{"fx_fire", "diamond", "fireguard_3", "fireguard_3", "fireguard_3", "fireguard_3"},
+						{"fx_mix", "netherite", "water_3", "thorns_3", "sculk_3", "soul_3"},
+						{"fx_runes", "netherite", "protection_3", "protection_3", "protection_3", "frost_3"},
+						{"fx_gold", "gold", "protection_2", "fireguard_2", "protection_2", "frost_2"}};
+				String[] slots = {"head", "chest", "legs", "feet"}, items = {"helmet", "chestplate", "leggings", "boots"};
+				for (String[] kit : kits) {
+					for (int i = 0; i < 4; i++) {
+						run(server, "item replace entity @a armor." + slots[i] + " with minecraft:" + kit[1] + "_" + items[i] + "[equippable={slot:\"" + slots[i]
+								+ "\",asset_id:\"libreria:fx_" + kit[1] + "_" + kit[2 + i] + "\"}]");
+					}
+					ctx.getInput().lookAt(0, 0);
+					camera(ctx, CameraType.THIRD_PERSON_BACK);
+					ctx.waitTicks(25);
+					ctx.takeScreenshot(kit[0] + "_back");
+					camera(ctx, CameraType.THIRD_PERSON_FRONT);
+					ctx.waitTicks(15);
+					ctx.takeScreenshot(kit[0] + "_front");
+					ctx.waitTicks(3);
+					ctx.takeScreenshot(kit[0] + "_front_2");
+					run(server, "time set midnight");
+					ctx.waitTicks(15);
+					ctx.takeScreenshot(kit[0] + "_night");
+					run(server, "time set noon");
+				}
+				camera(ctx, CameraType.FIRST_PERSON);
+				run(server, "item replace entity @a armor.head with minecraft:air", "item replace entity @a armor.chest with minecraft:air",
+						"item replace entity @a armor.legs with minecraft:air", "item replace entity @a armor.feet with minecraft:air");
+			});
 			// Your own armour's particles in third person: a set (one orbit), and ordinary Protection armour
 			safe("armour_third", () -> {
 				run(server, "item replace entity @a armor.head with minecraft:diamond_helmet[enchantments={fire_protection:4}]",
