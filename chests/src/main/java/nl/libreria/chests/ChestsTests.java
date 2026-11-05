@@ -140,7 +140,8 @@ final class ChestsTests {
 			p.getInventory().setItem(13, new ItemStack(Items.DIRT, 5));
 			p.getInventory().setItem(2, new ItemStack(Items.COBBLESTONE, 7)); // hotbar: blijft staan
 
-			Store.track(p.getUUID(), level, Containers.keyOf(level, a), "minecraft:chest");
+			// Not in the index yet: found in the world anyway (and indexed afterwards)
+			SelfTests.check(Store.get(p.getUUID()).find(Store.dimId(level), Containers.keyOf(level, a)) == null, "chest not indexed yet");
 			int moved = QuickStack.run(p);
 			SelfTests.check(moved == 30, "30 moved, got " + moved);
 			SelfTests.check(p.getInventory().getItem(12).isEmpty(), "slot 12 empty");

@@ -1,11 +1,19 @@
-!net.minecraft.client.renderer.state.gui.GuiRenderState
-+net.minecraft.client.renderer.state.gui.GuiRenderState$Node
-!net.minecraft.client.gui.layouts.HeaderAndFooterLayout
-!net.minecraft.client.gui.components.MultiLineTextWidget
-!net.minecraft.client.gui.screens.dialog.MultiButtonDialogScreen
-!net.minecraft.client.gui.screens.inventory.ContainerScreen
-? renderer/state/gui/
-!net.minecraft.world.level.storage.LevelResource
-!net.minecraft.advancements.AdvancementProgress
-!net.minecraft.advancements.CriterionProgress
-!net.minecraft.stats.StatType
+!net.minecraft.server.level.ServerLevel
+net.minecraft.server.players.SleepStatus
+!net.minecraft.world.level.block.BedBlock
+net.minecraft.world.entity.player.Player$BedSleepingProblem
+net.minecraft.world.entity.player.Player
+net.minecraft.network.protocol.game.ClientboundSetTimePacket
+net.minecraft.world.level.storage.ServerLevelData
+net.minecraft.world.item.equipment.Equippable
+net.minecraft.world.entity.Display$ItemDisplay
+net.minecraft.world.entity.Display$TextDisplay
+eu.pb4.polymer.virtualentity.api.elements.TextDisplayElement
+eu.pb4.polymer.virtualentity.api.elements.ItemDisplayElement
+eu.pb4.polymer.virtualentity.api.elements.DisplayElement
+eu.pb4.polymer.virtualentity.api.ElementHolder
+net.minecraft.core.particles.ItemParticleOption
+net.minecraft.core.particles.TrailParticleOption
+net.minecraft.core.particles.SpellParticleOption
+? clock/|Clock|timeline/|Timeline
+? PolymerItemUtils|polymer-core

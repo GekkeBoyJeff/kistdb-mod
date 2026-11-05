@@ -28,8 +28,8 @@ public final class Libreria implements ModInitializer {
 
 	public static final Module MODULE = Module.register("libreria", "General", Items.HOPPER,
 			"The start screen, beams, cards and the resource pack.").in(Domain.YOU, "What you see");
-	public static final Setting.Toggle HUB_BUTTON = MODULE.toggle("knop", "Sort button in your inventory", true, Items.HOPPER,
-			"The button on the left edge of your", "inventory (Libreria pack): left-click", "sorts, right-click quick-stacks.")
+	public static final Setting.Toggle HUB_BUTTON = MODULE.toggle("knop", "Deposit button in your inventory", true, Items.HOPPER,
+			"The button beside your inventory (and", "any click next to it): left-click puts", "your items in your nearby chests,", "right-click sorts your inventory.")
 			.in(Domain.ITEMS, "Search & sorting");
 	public static final Setting.Toggle OWN_PLATE = MODULE.toggle("eigen_naam", "Your own name tag", true, Items.NAME_TAG,
 			"See your own title and nickname above", "your head in third person (F5).").in(Domain.YOU, "Your name");

@@ -85,8 +85,12 @@ public final class ChestsMod implements ModInitializer {
 		CommandRegistrationCallback.EVENT.register(ChestCommands::register);
 
 		// In het Libreria-menu en op de knop in het E-scherm
-		// The sort button beside your inventory window (left click sorts, right click quick-stacks into nearby chests)
-		Hub.setEdgeButton(Sorter::sortPlayer, QuickStack::run);
+		// The button beside your inventory window (any click outside the window, with an empty hand: the game doesn't
+		// say where). Left: put your items in your nearby chests. Right: sort your inventory.
+		Hub.setEdgeButton(QuickStack::run, p -> {
+			if (Sorter.sortPlayer(p)) nl.libreria.core.Notify.whisper(p, "✔ Your inventory is sorted", net.minecraft.ChatFormatting.GREEN);
+			else nl.libreria.core.Notify.whisper(p, "Your inventory is too full to sort", net.minecraft.ChatFormatting.GRAY);
+		});
 		MODULE.hubEntry(Domain.ITEMS, 10, Items.SPYGLASS, "Your items", ChestSearch::open,
 				"Everything on you and in your chests, searchable. Click one and its chest lights up.",
 				"Also: E, then the magnifier.");
@@ -94,7 +98,7 @@ public final class ChestsMod implements ModInitializer {
 				"See inside your chests from afar, find your way to them, leave one out of search.");
 		MODULE.hubEntry(Domain.ITEMS, 30, Items.CHEST_MINECART, "Quick stack", QuickStack::run,
 				"Puts what you carry into your nearby chests that already hold it (not your hotbar).",
-				"Also: right-click the button beside your inventory.");
+				"Also: click the button beside your inventory.");
 		MODULE.hubEntry(Domain.ITEMS, 40, Items.HOPPER, "Sort inventory", p -> {
 			if (Sorter.sortPlayer(p)) nl.libreria.core.Notify.whisper(p, "✔ Your inventory is sorted", net.minecraft.ChatFormatting.GREEN);
 			else nl.libreria.core.Notify.whisper(p, "Your inventory is too full to sort", net.minecraft.ChatFormatting.GRAY);

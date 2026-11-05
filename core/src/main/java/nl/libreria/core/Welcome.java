@@ -93,7 +93,7 @@ public final class Welcome {
 		w.text(line("Your items", key("key.inventory", ChatFormatting.YELLOW),
 				"then the magnifier: search your inventory and your chests. The recipe book is in there too."));
 		w.text(line("Sort", key("key.inventory", ChatFormatting.YELLOW),
-				"then the button beside the window: left-click sorts, right-click puts items away in your chests."));
+				"then the button beside the window: left-click puts items away in your nearby chests, right-click sorts."));
 		w.text(line("Land map", Component.empty().append(key("key.sneak", ChatFormatting.YELLOW)).append(" + ")
 				.append(key("key.swapOffhand", ChatFormatting.YELLOW)),
 				"claim land and see whose land is where. The mouse turns the view; jump to name your land."));

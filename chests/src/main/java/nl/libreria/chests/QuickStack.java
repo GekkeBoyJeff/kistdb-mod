@@ -23,32 +23,54 @@ import nl.libreria.core.Ui;
  * chests from your own chest index, not on noIndex, and only your own ({@link ChestOwners}): never someone else's.
  */
 public final class QuickStack {
-	private record Target(Store.Entry entry, List<Container> containers, double distance) {
+	record Target(@org.jetbrains.annotations.Nullable Store.Entry entry, BlockPos key, List<Container> containers, double distance) {
 	}
 
 	private QuickStack() {
 	}
 
-	/** @return het aantal verplaatste items */
-	public static int run(ServerPlayer player) {
+	/**
+	 * Every chest, barrel and shulker box of yours within reach, nearest first. Found in the world itself (not only
+	 * the chests in your index), so a chest you never opened, or one a hopper fills, counts too. Skipped: someone
+	 * else's, unopened loot chests, and chests you left out of your index.
+	 */
+	static List<Target> targets(ServerPlayer player) {
 		ServerLevel level = player.level();
 		String dim = Store.dimId(level);
 		Vec3 pos = player.position();
 		int radius = ChestsMod.STACK_RADIUS.get(player);
-
+		Store.PlayerData data = Store.get(player.getUUID());
 		List<Target> targets = new ArrayList<>();
-		for (Store.Entry e : new ArrayList<>(Store.get(player.getUUID()).entries)) {
-			if (!e.dim.equals(dim) || e.noIndex) continue;
-			BlockPos key = e.pos();
-			double d = pos.distanceTo(Vec3.atCenterOf(key));
-			if (d > radius || !Containers.isLoaded(level, key)) continue;
-			// Only your own chests: never someone else's, also not one of theirs you once opened
-			if (!ChestOwners.isOwn(player, level, key)) continue;
-			List<Container> cs = Containers.containersOf(level, key);
-			if (!cs.isEmpty()) targets.add(new Target(e, cs, d));
+		Set<BlockPos> seen = new java.util.HashSet<>();
+		int cx0 = ((int) Math.floor(pos.x) - radius) >> 4, cx1 = ((int) Math.floor(pos.x) + radius) >> 4;
+		int cz0 = ((int) Math.floor(pos.z) - radius) >> 4, cz1 = ((int) Math.floor(pos.z) + radius) >> 4;
+		for (int cx = cx0; cx <= cx1; cx++) {
+			for (int cz = cz0; cz <= cz1; cz++) {
+				var chunk = level.getChunkSource().getChunkNow(cx, cz);
+				if (chunk == null) continue;
+				for (var be : new ArrayList<>(chunk.getBlockEntities().values())) {
+					if (!Containers.isStorage(be)) continue;
+					BlockPos key = Containers.keyOf(level, be.getBlockPos());
+					if (!seen.add(key)) continue;
+					double d = pos.distanceTo(Containers.boxOf(level, key).getCenter());
+					if (d > radius) continue;
+					if (!ChestOwners.isOwn(player, level, key)) continue;
+					Store.Entry e = data.find(dim, key);
+					if (e != null && e.noIndex) continue;
+					List<Container> cs = Containers.containersOf(level, key);
+					if (!cs.isEmpty()) targets.add(new Target(e, key, cs, d));
+				}
+			}
 		}
 		targets.sort(Comparator.comparingDouble(Target::distance));
+		return targets;
+	}
 
+	/** @return het aantal verplaatste items */
+	public static int run(ServerPlayer player) {
+		ServerLevel level = player.level();
+		int radius = ChestsMod.STACK_RADIUS.get(player);
+		List<Target> targets = targets(player);
 		Inventory inv = player.getInventory();
 		int moved = 0;
 		Set<Target> used = new LinkedHashSet<>();
@@ -69,8 +91,14 @@ public final class QuickStack {
 
 		Store.PlayerData data = Store.get(player.getUUID());
 		for (Target t : used) {
-			Containers.refresh(level, t.entry(), data);
-			Beam.flash(player, level, t.entry().pos(), 0x55FF55, 30);
+			// A chest of yours that wasn't in your index yet is from now on (so search finds what you put in it)
+			Store.Entry e = t.entry();
+			if (e == null) {
+				Store.track(player.getUUID(), level, t.key(), Containers.blockId(level, t.key()));
+				e = data.find(Store.dimId(level), t.key());
+			}
+			if (e != null) Containers.refresh(level, e, data);
+			Beam.flash(player, level, t.key(), 0x55FF55, 30);
 		}
 		if (moved > 0) {
 			inv.setChanged();
