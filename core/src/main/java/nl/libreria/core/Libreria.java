@@ -91,7 +91,10 @@ public final class Libreria implements ModInitializer {
 		});
 		ServerLifecycleEvents.SERVER_STOPPED.register(s -> server = null);
 		net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.AFTER_DEATH.register((entity, source) -> {
-			if (entity instanceof ServerPlayer p) DeathRecap.onDeath(p);
+			if (entity instanceof ServerPlayer p) {
+				DeathRecap.onDeath(p);
+				Nameplate.onDeath(p);
+			}
 		});
 		net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
 			if (!alive) DeathRecap.onRespawn(newPlayer, newPlayer.level().getServer().getTickCount());

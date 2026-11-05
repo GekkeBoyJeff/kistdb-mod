@@ -79,6 +79,12 @@ public final class Nameplate {
 	}
 
 	private static void update(MinecraftServer server, ServerPlayer p) {
+		// Dead (on the death screen): no plate over the body; after respawning the player is a new entity and gets one
+		if (p.isDeadOrDying() || p.isRemoved()) {
+			Plate dead = PLATES.remove(p.getUUID());
+			if (dead != null) drop(server, dead);
+			return;
+		}
 		List<Component> above = new ArrayList<>();
 		for (int i = LINES.size() - 1; i >= 0; i--) {
 			Component c = LINES.get(i).line().get(p);
@@ -104,7 +110,7 @@ public final class Nameplate {
 		Plate plate = PLATES.get(p.getUUID());
 		if (empty) {
 			if (plate != null) {
-				plate.holder.destroy();
+				drop(server, plate);
 				PLATES.remove(p.getUUID());
 			}
 			return;
@@ -113,7 +119,7 @@ public final class Nameplate {
 		Component shown = p.isInvisible() || p.isSpectator() ? Component.empty() : text;
 		// Na respawnen is de speler een nieuwe entity: opnieuw vastmaken
 		if (plate == null || plate.holder.getAttachment() == null || plate.entityId != p.getId()) {
-			if (plate != null) plate.holder.destroy();
+			if (plate != null) drop(server, plate);
 			plate = new Plate();
 			plate.entityId = p.getId();
 			plate.text.setBillboardMode(Display.BillboardConstraints.CENTER);
@@ -203,13 +209,32 @@ public final class Nameplate {
 		}
 	}
 
+	/**
+	 * Takes a plate away for everyone. The text rides on the player; when that entity goes (death, leaving) the
+	 * client keeps the text where it was, and the holder may no longer know who sees it, so the removal goes to every
+	 * player rather than only to the holder's watchers.
+	 */
+	private static void drop(@Nullable MinecraftServer server, Plate plate) {
+		if (server != null) {
+			var remove = new net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket(plate.text.getEntityId());
+			for (ServerPlayer o : server.getPlayerList().getPlayers()) o.connection.send(remove);
+		}
+		plate.holder.destroy();
+	}
+
+	/** A player died: their plate goes at once (not left floating where they fell). */
+	static void onDeath(ServerPlayer p) {
+		Plate plate = PLATES.remove(p.getUUID());
+		if (plate != null) drop(p.level().getServer(), plate);
+	}
+
 	static void forget(UUID id) {
 		Plate plate = PLATES.remove(id);
-		if (plate != null) plate.holder.destroy();
+		if (plate != null) drop(Libreria.server(), plate);
 	}
 
 	static void clearAll() {
-		PLATES.values().forEach(p -> p.holder.destroy());
+		PLATES.values().forEach(p -> drop(Libreria.server(), p));
 		PLATES.clear();
 	}
 }
