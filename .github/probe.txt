@@ -6,3 +6,5 @@
 !net.minecraft.client.gui.screens.inventory.ContainerScreen
 ? renderer/state/gui/
 !net.minecraft.world.level.storage.LevelResource
+!net.minecraft.advancements.AdvancementProgress
+!net.minecraft.advancements.CriterionProgress
