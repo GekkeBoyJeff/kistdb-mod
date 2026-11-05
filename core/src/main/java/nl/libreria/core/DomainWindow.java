@@ -63,13 +63,13 @@ public final class DomainWindow extends CanvasWindow {
 				Component title = Services.progress().map(pr -> pr.title(this.player)).orElse(null);
 				int hours = this.player.getStats().getValue(net.minecraft.stats.Stats.CUSTOM, net.minecraft.stats.Stats.PLAY_TIME) / 72000;
 				return new String[] {name, title == null ? "" : title.getString(),
-						hours + (hours == 1 ? " hour" : " hours") + " on this server"};
+						hours + (hours == 1 ? " hour" : " hours") + " on this server", ""};
 			}
 			case PROGRESS -> {
 				Services.CardData d = Services.progress().map(pr -> pr.cardData(this.player)).orElse(null);
 				if (d == null) return null;
-				return new String[] {"Achievements " + d.earned() + " of " + d.total(), d.points() + " points",
-						"Items collected " + d.items() + " of " + d.itemsTotal()};
+				return new String[] {"Achievements " + d.earned() + " / " + d.total(), "",
+						"Items " + d.items() + " / " + d.itemsTotal(), d.points() + " points"};
 			}
 			default -> {
 				return null;
@@ -96,9 +96,13 @@ public final class DomainWindow extends CanvasWindow {
 			int x0 = Canvas.cellX(0) + Canvas.CARD_MARGIN + 6, x1 = Canvas.cellX(9) - Canvas.CARD_MARGIN - 6;
 			c.card(0, 0, 9, 2, this.domain.rgb);
 			int titleColor = Services.progress().map(pr -> pr.titleColor(this.player)).orElse(-1);
-			c.right(Canvas.fit(card[1], 70), x1, Canvas.cellY(0) + 9, this.domain == Domain.YOU && titleColor >= 0 ? titleColor : StartWindow.MUTED);
-			c.text(Canvas.fit(card[0], x1 - x0 - 76), x0, Canvas.cellY(0) + 9, StartWindow.TEXT);
-			c.text(Canvas.fit(card[2], x1 - x0), x0, Canvas.cellY(0) + 20, StartWindow.MUTED);
+			// Two lines, each with something on the left and (maybe) something on the right
+			int r1 = card[1].isEmpty() ? 0 : Math.min(76, nl.libreria.core.gui.Glyphs.width(Component.literal(card[1])) + 8);
+			int r2 = card[3].isEmpty() ? 0 : Math.min(76, nl.libreria.core.gui.Glyphs.width(Component.literal(card[3])) + 8);
+			if (r1 > 0) c.right(Canvas.fit(card[1], r1 - 8), x1, Canvas.cellY(0) + 9, this.domain == Domain.YOU && titleColor >= 0 ? titleColor : StartWindow.MUTED);
+			c.text(Canvas.fit(card[0], x1 - x0 - r1), x0, Canvas.cellY(0) + 9, StartWindow.TEXT);
+			if (r2 > 0) c.right(Canvas.fit(card[3], r2 - 8), x1, Canvas.cellY(0) + 20, StartWindow.MUTED);
+			c.text(Canvas.fit(card[2], x1 - x0 - r2), x0, Canvas.cellY(0) + 20, StartWindow.MUTED);
 		}
 		if (rows.isEmpty()) c.centred("Nothing here on this server yet.", 88, 60, StartWindow.MUTED);
 		for (int i = 0; i < rows.size(); i++) {
