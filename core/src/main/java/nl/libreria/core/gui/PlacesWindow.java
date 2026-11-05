@@ -100,18 +100,16 @@ public final class PlacesWindow extends CanvasWindow {
 		PlacesMenu.remember(this.player, this.kind, this.page);
 
 		Canvas c = new Canvas().panel();
+		// "Land & places › Your places", or with a kind chosen "Your places › Waypoints": three parts don't fit the width
 		int x = 8;
-		c.text(Domain.PLACES.label, x, 5, Domain.PLACES.rgb);
-		x += Glyphs.width(Component.literal(Domain.PLACES.label));
+		Kind current = this.kind == null ? null : PlaceList.kind(this.kind);
+		String first = current == null ? Domain.PLACES.label : "Your places";
+		String last = current == null ? "Your places" : current.label;
+		c.text(first, x, 5, Domain.PLACES.rgb);
+		x += Glyphs.width(Component.literal(first));
 		c.text(" › ", x, 5, Glyphs.muted);
 		x += Glyphs.width(Component.literal(" › "));
-		c.text("Your places", x, 5, TEXT);
-		Kind current = this.kind == null ? null : PlaceList.kind(this.kind);
-		if (current != null) {
-			x += Glyphs.width(Component.literal("Your places"));
-			c.text(" › ", x, 5, Glyphs.muted);
-			c.text(Canvas.fit(current.label, 168 - x - 12), x + Glyphs.width(Component.literal(" › ")), 5, TEXT);
-		}
+		c.text(Canvas.fit(last, 168 - x), x, 5, TEXT);
 		// Under the active tab, a short line in the colour of the place
 		int active = tabIndex();
 		c.picture("sm.bar", Canvas.cellX(active) + 5, Canvas.cellY(0) + 11, Domain.PLACES.rgb);
