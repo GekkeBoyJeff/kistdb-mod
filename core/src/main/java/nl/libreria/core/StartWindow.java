@@ -7,6 +7,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import nl.libreria.core.gui.Canvas;
 import nl.libreria.core.gui.CanvasWindow;
+import nl.libreria.core.gui.Glyphs;
 import nl.libreria.core.gui.SettingsWindow;
 
 /**
@@ -75,7 +76,10 @@ public final class StartWindow extends CanvasWindow {
 		List<PlaceList.Place> places = PlaceList.any() ? PlaceList.all(this.player) : List.of();
 		if (!places.isEmpty()) c.right(Integer.toString(places.size()), x0 + PAD + inner, y0 + 7, MUTED);
 		c.text("Your places", x0 + PAD, y0 + 7, TEXT);
-		c.text(Canvas.fit(nearest(places), inner), x0 + PAD, y0 + 19, MUTED);
+		String[] near = nearest(places);
+		int farW = near[1].isEmpty() ? 0 : Glyphs.width(Component.literal(near[1])) + 8;
+		if (!near[1].isEmpty()) c.right(near[1], x0 + PAD + inner, y0 + 19, MUTED);
+		c.text(Canvas.fit(near[0], inner - farW), x0 + PAD, y0 + 19, MUTED);
 		small(c, 0, 8, "Settings");
 		small(c, 5, 8, "Chronicle");
 		small(c, 0, 9, "Tips");
@@ -83,8 +87,8 @@ public final class StartWindow extends CanvasWindow {
 		return c;
 	}
 
-	/** "Nearest: Home, 12 m N" (in this world), or what to do when there's nothing yet. */
-	private String nearest(List<PlaceList.Place> places) {
+	/** {"Nearest: Home", "12 m N"} (in this world), or what to do when there's nothing yet; the distance stands apart so it is never cut off. */
+	private String[] nearest(List<PlaceList.Place> places) {
 		String dim = this.player.level().dimension().identifier().toString();
 		PlaceList.Place best = null;
 		double bestD = Double.MAX_VALUE;
@@ -96,13 +100,13 @@ public final class StartWindow extends CanvasWindow {
 				best = p;
 			}
 		}
-		if (best == null) return places.isEmpty() ? "Waypoints, graves, pets and more" : "None in this world";
+		if (best == null) return new String[] {places.isEmpty() ? "Waypoints, graves, pets and more" : "None in this world", ""};
 		double dx = best.pos.x - this.player.getX(), dz = best.pos.z - this.player.getZ();
 		double d = Math.sqrt(bestD);
 		String far = d < 8 ? "right here" : d >= 1000 ? String.format(java.util.Locale.ROOT, "%.1f km", d / 1000) : Math.round(d) + " m";
 		String[] winds = {"N", "NE", "E", "SE", "S", "SW", "W", "NW"};
 		String way = d < 8 ? "" : " " + winds[(int) Math.floorMod(Math.round(Math.toDegrees(Math.atan2(dx, -dz)) / 45.0), 8)];
-		return "Nearest: " + best.name + ", " + far + way;
+		return new String[] {"Nearest: " + best.name, far + way};
 	}
 
 	/** A one-row card four cells wide, its label centred. */
