@@ -143,19 +143,39 @@ public final class Screens implements FabricClientGameTest {
 				int w = ctx.computeOnClient(mc -> mc.getWindow().getGuiScaledWidth());
 				int h = ctx.computeOnClient(mc -> mc.getWindow().getGuiScaledHeight());
 				int left = (w - 176) / 2, top = (h - 166) / 2;
-				// The sort button on the window's left edge: a click outside the window
-				ctx.getInput().setCursorPos((left - 14) * scale, (top + 70) * scale);
+				// The buttons on the window's left edge (a click outside the window): left deposits, middle sorts
+				ctx.getInput().setCursorPos((left - 14) * scale, (top + 61) * scale);
 				ctx.waitTicks(3);
 				ctx.getInput().pressKey(o2 -> o2.keyAttack);
 				ctx.waitTicks(10);
 				ctx.getInput().setCursorPos(2, 2);
 				ctx.waitTicks(2);
+				ctx.takeScreenshot("inventory_deposit");
+				ctx.getInput().setCursorPos((left - 14) * scale, (top + 61) * scale);
+				ctx.waitTicks(3);
+				ctx.getInput().pressKey(o2 -> o2.keyPickItem);
+				ctx.waitTicks(10);
+				ctx.getInput().setCursorPos(2, 2);
+				ctx.waitTicks(2);
 				ctx.takeScreenshot("inventory_sorted");
-				// The magnifying glass (where the recipe book button is): hovered, then clicked opens your items
+				// The recipe book is the recipe book again
 				ctx.getInput().setCursorPos((left + 114) * scale, (top + 70) * scale);
 				ctx.waitTicks(3);
-				ctx.takeScreenshot("inventory_search_hover");
 				ctx.getInput().pressKey(o2 -> o2.keyAttack);
+				ctx.waitTicks(10);
+				ctx.getInput().setCursorPos(2, 2);
+				ctx.waitTicks(2);
+				ctx.takeScreenshot("inventory_recipe_book");
+				// Book open: the window sits further right (as the game places it); the same button closes the book
+				int left2 = w < 379 ? left : 177 + (w - 176 - 200) / 2;
+				ctx.getInput().setCursorPos((left2 + 114) * scale, (top + 70) * scale);
+				ctx.waitTicks(3);
+				ctx.getInput().pressKey(o2 -> o2.keyAttack);
+				ctx.waitTicks(10);
+				// The magnifying glass under the arrows: a right-click opens your items
+				ctx.getInput().setCursorPos((left - 14) * scale, (top + 80) * scale);
+				ctx.waitTicks(3);
+				ctx.getInput().pressKey(o2 -> o2.keyUse);
 				ctx.waitTicks(15);
 				ctx.getInput().setCursorPos(2, 2);
 				noToasts(ctx);

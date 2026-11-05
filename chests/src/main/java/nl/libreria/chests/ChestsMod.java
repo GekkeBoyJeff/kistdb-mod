@@ -39,8 +39,8 @@ public final class ChestsMod implements ModInitializer {
 			"Sorting, searching your chests by icon", "and showing the way to the right chest.").in(Domain.ITEMS, "Search & sorting");
 	public static final nl.libreria.core.ServerSetting.Number SEARCH_RADIUS = MODULE.serverNumber("search_radius", "Search range",
 			Items.SPYGLASS, 256, 32, 512, 16, "blocks", "How far away chests still count when", "you search your items.");
-	public static final Setting.Toggle SEARCH_BUTTON = MODULE.toggle("zoekknop", "Search button in your inventory", true, Items.SPYGLASS,
-			"With the Libreria pack, the recipe book", "button in your inventory becomes a", "magnifying glass that opens your items.");
+	public static final Setting.Toggle SEARCH_BUTTON = MODULE.toggle("zoekknop", "Right-click beside your inventory searches", true, Items.SPYGLASS,
+			"The magnifying glass beside your", "inventory: a right-click opens your", "items. Off: a right-click sorts.");
 	public static final Setting.Toggle SORT_BUTTON = MODULE.toggle("sorteerknop", "Sort button in chests", true, Items.CHEST,
 			"A ⇅ Sort button in the last empty", "slot of chests, barrels and boxes.", "Right-click: deposit matching items.");
 	public static final Setting.Toggle MIDDLE_CLICK = MODULE.toggle("middelklik", "Middle-click sorts", true, Items.HOPPER,
@@ -85,15 +85,18 @@ public final class ChestsMod implements ModInitializer {
 		CommandRegistrationCallback.EVENT.register(ChestCommands::register);
 
 		// In het Libreria-menu en op de knop in het E-scherm
-		// The button beside your inventory window (any click outside the window, with an empty hand: the game doesn't
-		// say where). Left: put your items in your nearby chests. Right: sort your inventory.
-		Hub.setEdgeButton(QuickStack::run, p -> {
+		// The buttons beside your inventory window (any click outside the window, with an empty hand: the game doesn't
+		// say where, so the mouse button decides). Left: your items into your nearby chests. Right: search. Middle: sort.
+		java.util.function.Consumer<ServerPlayer> sort = p -> {
 			if (Sorter.sortPlayer(p)) nl.libreria.core.Notify.whisper(p, "✔ Your inventory is sorted", net.minecraft.ChatFormatting.GREEN);
 			else nl.libreria.core.Notify.whisper(p, "Your inventory is too full to sort", net.minecraft.ChatFormatting.GRAY);
-		});
+		};
+		Hub.setEdgeButton(QuickStack::run, p -> {
+			if (!ChestSearch.fromInventory(p)) sort.accept(p);
+		}, sort);
 		MODULE.hubEntry(Domain.ITEMS, 10, Items.SPYGLASS, "Your items", ChestSearch::open,
 				"Everything on you and in your chests, searchable. Click one and its chest lights up.",
-				"Also: E, then the magnifier.");
+				"Also: {inventory}, then right-click beside it.");
 		MODULE.hubEntry(Domain.ITEMS, 20, Items.CHEST, "Your chests", ChestsGui::open,
 				"See inside your chests from afar, find your way to them, leave one out of search.");
 		MODULE.hubEntry(Domain.ITEMS, 30, Items.CHEST_MINECART, "Quick stack", QuickStack::run,

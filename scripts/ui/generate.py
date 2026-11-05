@@ -1244,17 +1244,6 @@ def marks():
     bitmap('marks', cells, 7, 7)
 
 
-def search_button():
-    """The recipe book button in the inventory becomes a search button: a button in the Libreria look with a
-    magnifying glass."""
-    d = os.path.join(OUT, 'assets', 'minecraft', 'textures/gui/sprites/recipe_book')
-    os.makedirs(d, exist_ok=True)
-    for name, state in (('button', 'on'), ('button_highlighted', 'hover')):
-        img = plank(20, 18, state, 0, 0)
-        draw_icon(img, MAGNIFIER, 4, 3)
-        img.save(os.path.join(d, name + '.png'))
-
-
 # Every language Minecraft ships, so the sort tab shows whatever language you play in
 LANGS = ('af_za ar_sa ast_es az_az ba_ru bar be_by be_latn bg_bg br_fr brb bs_ba ca_es cs_cz cy_gb da_dk de_at de_ch de_de '
          'el_gr en_au en_ca en_gb en_nz en_pt en_ud en_us enp enws eo_uy es_ar es_cl es_ec es_es es_mx es_uy es_ve esan et_ee '
@@ -1263,26 +1252,33 @@ LANGS = ('af_za ar_sa ast_es az_az ba_ru bar be_by be_latn bg_bg br_fr brb bs_ba
          'lo_la lol_us lt_lt lv_lv lzh mk_mk mn_mn ms_my mt_mt nah nds_de nl_be nl_nl nn_no no_no oc_fr ovd pl_pl pls pt_br '
          'pt_pt qya_aa ro_ro rpr ru_ru ry_ua sah_sah se_no sk_sk sl_si so_so sq_al sr_cs sr_sp sv_se sxu szl ta_in th_th tl_ph '
          'tlh_aa tok tr_tr tt_ru tzo_mx uk_ua val_es vec_it vi_vn vp_vl yi_de yo_ng zh_cn zh_hk zh_tw zlm_arab').split()
-# The inventory screen draws its title ("Crafting") at (97, 6). The tab hangs off the left edge of the window, on the
-# row of the search button: x -24..-4, y 61..79.
-TAB_X, TAB_Y, LABEL_X, LABEL_Y = -24, 61, 97, 6
+# The inventory screen draws its title ("Crafting") at (97, 6). The tab hangs off the left edge of the window, around
+# the row of the recipe book button: two buttons, x -24..-4, y 52..69 and 71..88.
+TAB_X, TAB_Y, LABEL_X, LABEL_Y = -24, 52, 97, 6
+TAB_H = 37
 
 
 def inventory_tab():
-    """A sort button on the left edge of your inventory, in Minecraft's own style. The inventory screen has room for
-    just one real button (the recipe book one, our search), so this one is drawn by the screen's title: the
-    "Crafting" text is replaced by a picture that hangs outside the window. A click outside the window with nothing
-    in your hand reaches the server (vanilla ignores it), and that is the sort."""
+    """Two buttons on the left edge of your inventory, in Minecraft's own style: deposit (the arrows) over search (the
+    magnifying glass). The inventory screen's one real button stays the recipe book, so these are drawn by the
+    screen's title: the "Crafting" text is replaced by a picture that hangs outside the window. A click outside the
+    window with nothing in your hand reaches the server (vanilla ignores it), but not where: left-click deposits,
+    right-click searches, middle-click sorts. The picture says which button is which."""
     tex = os.path.join(OUT, 'assets', NS, 'textures/font/ui/inv_tab.png')
     os.makedirs(os.path.dirname(tex), exist_ok=True)
-    img = plank(20, 18, 'on', 0, 0)
-    draw_icon(img, SORT, 4, 3)
+    img = Image.new('RGBA', (20, TAB_H), (0, 0, 0, 0))
+    top = plank(20, 18, 'on', 0, 0)
+    draw_icon(top, SORT, 4, 3)
+    low = plank(20, 18, 'on', 0, 0)
+    draw_icon(low, MAGNIFIER, 4, 3)
+    img.alpha_composite(top, (0, 0))
+    img.alpha_composite(low, (0, TAB_H - 18))
     img.save(tex)
     tab, back = '\ue9f0', '\ue9f1'
     font = {'providers': [
         {'type': 'space', 'advances': {back: TAB_X - LABEL_X}},
         # baseline of the title = its top + 7; the picture's top must be at TAB_Y
-        {'type': 'bitmap', 'file': f'{NS}:font/ui/inv_tab.png', 'height': 18, 'ascent': LABEL_Y + 7 - TAB_Y, 'chars': [tab]},
+        {'type': 'bitmap', 'file': f'{NS}:font/ui/inv_tab.png', 'height': TAB_H, 'ascent': LABEL_Y + 7 - TAB_Y, 'chars': [tab]},
     ]}
     d = os.path.join(OUT, 'assets', 'minecraft', 'font')
     os.makedirs(d, exist_ok=True)
@@ -1653,7 +1649,6 @@ def main():
     look_widgets()
     look_slot_highlight()
     look_background()
-    search_button()
     dialog_warning()
     anvil_field()
     inventory_tab()
