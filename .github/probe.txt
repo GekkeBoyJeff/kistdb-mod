@@ -1,7 +1,8 @@
-!net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
-!net.minecraft.client.gui.components.AbstractButton
-+net.minecraft.client.gui.components.Button
-+net.minecraft.client.gui.components.WidgetSprites
-+net.minecraft.client.gui.components.AbstractWidget
-? client/gui/screens/dialog
-? client/gui/components/Checkbox
+!net.minecraft.client.gui.screens.dialog.DialogScreen
+!net.minecraft.client.gui.screens.Screen
+!net.minecraft.client.gui.screens.dialog.body.DialogBodyHandlers$PlainMessageHandler
+!net.minecraft.client.gui.components.Checkbox
+!net.minecraft.client.gui.render.state.GuiRenderState
+!net.minecraft.client.gui.render.GuiRenderer
+? client/gui/render/
+? client/gui/screens/inventory/ContainerScreen
