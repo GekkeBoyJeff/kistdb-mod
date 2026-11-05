@@ -50,6 +50,28 @@ final class CoreTests {
 			SelfTests.check(!discord.isSet(), "reset clears it");
 			SelfTests.check(ServerSetting.all().size() >= 6, "settings registered: " + ServerSetting.all().size());
 		});
+		SelfTests.register("core.windows", level -> {
+			// The pieces of our own windows are in the pack
+			for (String g : new String[] {"win.panel", "card1.l", "card4.r", "card2.m64", "big.chest", "sm.gear", "ico.bundle"}) {
+				SelfTests.check(nl.libreria.core.gui.Glyphs.has(g), "window piece " + g);
+			}
+			SelfTests.check(!nl.libreria.core.gui.Glyphs.ICON_Y.isEmpty(), "big pictures have heights");
+			// A canvas places things in window pixels and fits text
+			var c = new nl.libreria.core.gui.Canvas().panel().card(0, 0, 4, 3, 0x62D6E8).text("Items", 15, 58, 0xFFFFFF);
+			SelfTests.check(c.build().getString().contains("Items"), "canvas text is in the title");
+			String cut = nl.libreria.core.gui.Canvas.fit("A rather long name for a little card", 60);
+			SelfTests.check(cut.endsWith("…") && nl.libreria.core.gui.Glyphs.width(Component.literal(cut)) <= 60, "text fits its card: " + cut);
+			SelfTests.check(nl.libreria.core.gui.Canvas.wrap("Sort button in your inventory", 112).size() == 2, "a long label wraps");
+			SelfTests.check(nl.libreria.core.gui.Canvas.cellY(6) == 139 && nl.libreria.core.gui.Canvas.cellY(9) == 197, "cell rows");
+			// Keys show as the player has them; pictures drawn by the server say what the key does
+			Component k = Ui.text("{sneak} + {swap}", net.minecraft.ChatFormatting.WHITE);
+			boolean keybind = k.getSiblings().stream().anyMatch(x -> x.getContents() instanceof net.minecraft.network.chat.contents.KeybindContents);
+			SelfTests.check(keybind, "a key in text is the player's own key");
+			SelfTests.check(Keys.plain("{sneak} + {swap}").equals("Sneak + Swap hands"), "keys in words: " + Keys.plain("{sneak} + {swap}"));
+			SelfTests.check(nl.libreria.core.gui.Glyphs.width(k) >= 40, "a key is measured as its name");
+			FakePlayer p = FakePlayer.get(level);
+			SelfTests.check(!nl.libreria.core.gui.CanvasWindow.available(p), "no pack, no own windows");
+		});
 		SelfTests.register("core.framework", level -> {
 			FakePlayer p = FakePlayer.get(level);
 			// The start screen comes from the data pack (the same one G opens)

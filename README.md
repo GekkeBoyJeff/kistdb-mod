@@ -68,16 +68,30 @@ itself, on the same port as the server (via Polymer AutoHost). Players are asked
 Anyone who picks "No" just plays on with the plain look; everything keeps working.
 
 With the pack you get:
-- **Menus** in Minecraft's own grey style, the same for every tool: the tool's colour as a thin line under the title
-  with its emblem; empty slots melt into the panel and coloured panes become little plaques.
+- **One look for everything**: dark wood with a bronze edge, like the cards at the top of the screen. Minecraft's own
+  buttons, checkboxes, sliders, text fields and scroll bars get it too (in every screen while you play here, from the
+  pause menu to the server's windows), each with room around it; the square under the mouse in an inventory becomes
+  bronze corners. `LIBRERIA_LOOK=glass` or `slate` in front of `generate.py` draws everything in another look.
+- **Windows of our own**: the start screen, the page of each place and the settings are drawn completely by the pack
+  over a chest screen (Minecraft draws a screen's title before its slots and items, so the title can be the whole
+  window). No slots in sight: cards in the colour of their place, Minecraft's pictures at twice the size, a list with a
+  picture beside each row, switches you flip with one click. The cells underneath are invisible click spots, so a card
+  works wherever you point at it. Your inventory is hidden while such a window is open. Without the pack the same
+  pages are dialogs.
+- **Menus** (chests, achievements, statistics …) on the same dark panel: the menu's items float on a tray, the bottom
+  row of buttons is a band of its own, your inventory keeps real slots, and tooltips get the same panel. Coloured panes
+  become little plaques. The "Inventory" line above your inventory is gone in every screen.
+- **Keys as you have them**: wherever a window or tooltip names a key (the land map key, sneak to sit up, the key that
+  opens Libreria), the client fills in your own key from Controls, so someone with sneak on Control reads "Left
+  Control + F". Pictures the server draws, which can't know your key, say what it does ("Sneak + Swap hands").
 - **The look-at tooltip** for blocks at the top of the screen (drawn in a boss bar title; the pack makes *white*
   boss bars invisible, so a custom `/bossbar` in white would only show its name), and as a card above animals: dark leather, bronze frame, the thing's icon in a slot, a gem in the
   colour of its grade, an ornamental rule and rows with small pictures and pips.
-- **Your items** from your inventory: the recipe book button becomes a magnifying glass (Minecraft's own grey button) that opens one simple search screen in Minecraft's own style: a search field on top (type right away; the results change with every letter) and below it everything you carry and everything in your chests, most first, with real totals (200 oak logs show 200; up to 999 in a slot). Click an item: the screen closes and its nearest chest lights up, with a beam; right-click: every chest with it. It's an anvil screen underneath (the only screen with a text field), drawn over by the pack. Also `/chest` and `/chest find`.
-- **Sort button** on the left edge of the inventory window, in the same style: left-click sorts, right-click quick-stacks into nearby chests. The inventory screen has room for only one real button, so this one is drawn by the screen's title (the pack replaces the "Crafting" text with it; crafting tables get "Crafting Table" as their title instead) and works through a click outside the window with an empty hand, which vanilla ignores. So any such click outside the window sorts.
+- **Your items** from your inventory: the recipe book button becomes a magnifying glass that opens one simple search screen in the same look: a search field on top (type right away; the results change with every letter) and below it everything you carry and everything in your chests, most first, with real totals (200 oak logs show 200; up to 999 in a slot). Click an item: the screen closes and its nearest chest lights up, with a beam; right-click: every chest with it. It's an anvil screen underneath (the only screen with a text field), drawn over by the pack. Also `/chest` and `/chest find`.
+- **Sort button** on the left edge of the inventory window, in the same look: left-click sorts, right-click quick-stacks into nearby chests. The inventory screen has room for only one real button, so this one is drawn by the screen's title (the pack replaces the "Crafting" text with it; crafting tables get "Crafting Table" as their title instead) and works through a click outside the window with an empty hand, which vanilla ignores. So any such click outside the window sorts.
 - **Land map button** right of the hotbar with its key, drawn by the action bar text in a font that moves it down.
-- **Windows from the server** (dialogs: the start screen and its pages, settings, admin, effects, links, Getting
-  started, the death recap) without the warning icon Minecraft puts beside their title.
+- **Windows from the server** (dialogs, where you type or confirm: names, admin, effects, links, Getting started,
+  the death recap) in the same look, without the warning icon Minecraft puts beside their title.
 - **Menu frames** in the colour and emblem of their place: Items (teal, chest), Land & places (green, map), Progress
   (gold, trophy), You (purple, name tag).
 - **Achievement banner** (Collector): when anyone earns an achievement, everyone gets a card at the top of the
@@ -93,7 +107,7 @@ With the pack you get:
 Generated assets (only needed to change them):
 
 ```
-python3 scripts/ui/generate.py                       # tooltip, menu frames, icons (core)
+python3 scripts/ui/generate.py                       # the look: widgets, windows, menu frames, tooltips, icons (core)
 python3 scripts/ui/widths.py <vanilla assets/minecraft> core/src/main/resources/libreria/font_widths.json
 python3 scripts/glint/generate.py <vanilla 26.3 assets/minecraft> glint/src/main/resources <item_components data.json>
 ```
