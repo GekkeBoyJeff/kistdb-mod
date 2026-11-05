@@ -17,7 +17,9 @@ import nl.libreria.core.gui.SettingsWindow;
  */
 public final class DomainWindow extends CanvasWindow {
 	/** Rows for entries: the six of the chest and the three of the inventory (the hotbar row is for Back). */
-	private static final int[] ROWS = {0, 1, 2, 3, 4, 5, 6, 7, 8};
+	private static final int[] ALL_ROWS = {0, 1, 2, 3, 4, 5, 6, 7, 8};
+	/** Below the card at the top (You and Progress). */
+	private static final int[] UNDER_CARD = {2, 3, 4, 5, 6, 7, 8};
 
 	private final Domain domain;
 
@@ -49,7 +51,34 @@ public final class DomainWindow extends CanvasWindow {
 						open(pl, this.domain);
 					}));
 		}
-		return out.size() > ROWS.length ? out.subList(0, ROWS.length) : out;
+		int[] rows = rowsFor();
+		return out.size() > rows.length ? out.subList(0, rows.length) : out;
+	}
+
+	/** The two lines of the card at the top of You and Progress, or null for the other places. */
+	private String[] card() {
+		switch (this.domain) {
+			case YOU -> {
+				String name = Nameplate.displayName(this.player).getString();
+				Component title = Services.progress().map(pr -> pr.title(this.player)).orElse(null);
+				int hours = this.player.getStats().getValue(net.minecraft.stats.Stats.CUSTOM, net.minecraft.stats.Stats.PLAY_TIME) / 72000;
+				return new String[] {name, title == null ? "" : title.getString(),
+						hours + (hours == 1 ? " hour" : " hours") + " on this server"};
+			}
+			case PROGRESS -> {
+				Services.CardData d = Services.progress().map(pr -> pr.cardData(this.player)).orElse(null);
+				if (d == null) return null;
+				return new String[] {"Achievements " + d.earned() + " of " + d.total(), d.points() + " points",
+						"Items collected " + d.items() + " of " + d.itemsTotal()};
+			}
+			default -> {
+				return null;
+			}
+		}
+	}
+
+	private int[] rowsFor() {
+		return card() != null ? UNDER_CARD : ALL_ROWS;
 	}
 
 	@Override
@@ -60,6 +89,17 @@ public final class DomainWindow extends CanvasWindow {
 		c.text(" › ", x, 5, StartWindow.MUTED);
 		c.text(this.domain.label, x + nl.libreria.core.gui.Glyphs.width(Component.literal(" › ")), 5, this.domain.rgb);
 		List<Row> rows = rows();
+		int[] ROWS = rowsFor();
+		String[] card = card();
+		if (card != null) {
+			// The card at the top: who you are (You) or how far you are (Progress); not a button
+			int x0 = Canvas.cellX(0) + Canvas.CARD_MARGIN + 6, x1 = Canvas.cellX(9) - Canvas.CARD_MARGIN - 6;
+			c.card(0, 0, 9, 2, this.domain.rgb);
+			int titleColor = Services.progress().map(pr -> pr.titleColor(this.player)).orElse(-1);
+			c.right(Canvas.fit(card[1], 70), x1, Canvas.cellY(0) + 9, this.domain == Domain.YOU && titleColor >= 0 ? titleColor : StartWindow.MUTED);
+			c.text(Canvas.fit(card[0], x1 - x0 - 76), x0, Canvas.cellY(0) + 9, StartWindow.TEXT);
+			c.text(Canvas.fit(card[2], x1 - x0), x0, Canvas.cellY(0) + 20, StartWindow.MUTED);
+		}
 		if (rows.isEmpty()) c.centred("Nothing here on this server yet.", 88, 60, StartWindow.MUTED);
 		for (int i = 0; i < rows.size(); i++) {
 			Row r = rows.get(i);
@@ -86,6 +126,7 @@ public final class DomainWindow extends CanvasWindow {
 	@Override
 	protected void fill() {
 		List<Row> rows = rows();
+		int[] ROWS = rowsFor();
 		for (int i = 0; i < rows.size(); i++) {
 			Row r = rows.get(i);
 			Component name = Ui.text(r.name(), r.tint()).withStyle(ChatFormatting.BOLD);
