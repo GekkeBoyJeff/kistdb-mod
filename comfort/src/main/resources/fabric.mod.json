@@ -3,13 +3,14 @@
 	"id": "libreria_comfort",
 	"version": "${version}",
 	"name": "Libreria Comfort",
-	"description": "Open double doors together, sit on stairs and slabs, and right-click harvesting with replanting. Server-side; requires Libreria (core).",
+	"description": "Open double doors together, sit on stairs and slabs, right-click harvesting with replanting, and nights that run instead of jump (plus napping). Server-side; requires Libreria (core).",
 	"authors": ["Jeffrey"],
 	"license": "MIT",
 	"environment": "*",
 	"entrypoints": {
 		"main": ["nl.libreria.comfort.ComfortMod"]
 	},
+	"mixins": ["libreria_comfort.mixins.json"],
 	"depends": {
 		"minecraft": "~26.3",
 		"fabric-api": "*",

@@ -1,0 +1,12 @@
+{
+	"required": true,
+	"package": "nl.libreria.comfort.mixin",
+	"compatibilityLevel": "JAVA_25",
+	"mixins": [
+		"SleepLevelMixin",
+		"SleepPlayerMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}

@@ -597,6 +597,56 @@ public final class Screens implements FabricClientGameTest {
 				server.runOnServer(s -> nl.libreria.core.gui.Toast.hide(player));
 			});
 
+			// Sleeping: a nap in the day (the first click, the time running, the wait after), then a night that runs
+			safe("sleep", () -> {
+				BlockPos foot = new BlockPos(x + 1, y, z - 2), head = new BlockPos(x + 1, y, z - 3);
+				run(server, "difficulty peaceful", "gamerule advance_time true", "weather clear", "time set 4000",
+						f("setblock %d %d %d minecraft:red_bed[facing=north,part=head]", head.getX(), head.getY(), head.getZ()),
+						f("setblock %d %d %d minecraft:red_bed[facing=north,part=foot]", foot.getX(), foot.getY(), foot.getZ()),
+						f("tp @a %d %d %d 180 20", x, y, z));
+				ctx.waitTicks(10);
+				server.runOnServer(s -> {
+					nl.libreria.core.gui.TopCard.forget(player.getUUID());
+					nl.libreria.comfort.ComfortMod.debugBed(player, foot);
+				});
+				ctx.waitTicks(20);
+				LOG.info("SLEEP-DEBUG first click at {}", server.computeOnServer(s -> nl.libreria.comfort.ComfortMod.debugClock(player)));
+				ctx.takeScreenshot("nap_first_click");
+				server.runOnServer(s -> nl.libreria.comfort.ComfortMod.debugBed(player, foot));
+				ctx.waitTicks(60);
+				LOG.info("SLEEP-DEBUG napping {} at {}", server.computeOnServer(s -> player.isSleeping()),
+						server.computeOnServer(s -> nl.libreria.comfort.ComfortMod.debugClock(player)));
+				ctx.takeScreenshot("nap_running");
+				ctx.waitTicks(80);
+				LOG.info("SLEEP-DEBUG napping {} at {}", server.computeOnServer(s -> player.isSleeping()),
+						server.computeOnServer(s -> nl.libreria.comfort.ComfortMod.debugClock(player)));
+				ctx.takeScreenshot("nap_running_2");
+				ctx.waitTicks(140);
+				LOG.info("SLEEP-DEBUG after the nap: sleeping {} at {}", server.computeOnServer(s -> player.isSleeping()),
+						server.computeOnServer(s -> nl.libreria.comfort.ComfortMod.debugClock(player)));
+				ctx.takeScreenshot("nap_done");
+				server.runOnServer(s -> nl.libreria.comfort.ComfortMod.debugBed(player, foot));
+				ctx.waitTicks(20);
+				ctx.takeScreenshot("nap_wait");
+				// The night
+				run(server, "time set 14000");
+				ctx.waitTicks(10);
+				LOG.info("SLEEP-DEBUG lie down: {}", server.computeOnServer(s -> nl.libreria.comfort.ComfortMod.debugSleep(player, head)));
+				ctx.waitTicks(70);
+				LOG.info("SLEEP-DEBUG night {} at {}", server.computeOnServer(s -> player.isSleeping()),
+						server.computeOnServer(s -> nl.libreria.comfort.ComfortMod.debugClock(player)));
+				ctx.takeScreenshot("sleep_running");
+				ctx.waitTicks(120);
+				ctx.takeScreenshot("sleep_running_2");
+				ctx.waitTicks(200);
+				LOG.info("SLEEP-DEBUG morning: sleeping {} at {}", server.computeOnServer(s -> player.isSleeping()),
+						server.computeOnServer(s -> nl.libreria.comfort.ComfortMod.debugClock(player)));
+				ctx.takeScreenshot("sleep_morning");
+				run(server, "difficulty normal", "time set noon",
+						f("setblock %d %d %d minecraft:air", head.getX(), head.getY(), head.getZ()),
+						f("setblock %d %d %d minecraft:air", foot.getX(), foot.getY(), foot.getZ()));
+			});
+
 			// Every menu (with a waypoint of our own, so Your places has one)
 			run(server, "execute as @a at @s run waypoint set Home");
 			ctx.waitTicks(5);

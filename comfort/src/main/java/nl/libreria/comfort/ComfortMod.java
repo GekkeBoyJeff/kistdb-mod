@@ -37,7 +37,7 @@ import org.jetbrains.annotations.Nullable;
 /** ComfortMod – een Libreria-module: dubbele deuren samen openen, zitten op trappen en platen, rechtsklik-oogsten. */
 public final class ComfortMod implements ModInitializer {
 	public static final Module MODULE = Module.register("comfort", "Comfort", Items.OAK_DOOR,
-			"Double doors, sitting on stairs", "and right-click harvesting.").in(nl.libreria.core.Domain.YOU, "Small comforts");
+			"Double doors, sitting on stairs,", "right-click harvesting, and nights", "that run instead of jump.").in(nl.libreria.core.Domain.YOU, "Small comforts");
 	public static final Setting.Toggle DOORS = MODULE.toggle("deuren", "Double doors together", true, Items.OAK_DOOR,
 			"Open one door of a double door and", "the other one opens with it.", "Hold {sneak}: only this one.");
 	public static final Setting.Toggle SIT = MODULE.toggle("zitten", "Sit on stairs and slabs", true, Items.OAK_STAIRS,
@@ -54,6 +54,10 @@ public final class ComfortMod implements ModInitializer {
 			ServerLevel level = (ServerLevel) world;
 			BlockPos pos = hit.getBlockPos();
 			BlockState state = level.getBlockState(pos);
+			if (state.getBlock() instanceof net.minecraft.world.level.block.AbstractBedBlock) {
+				InteractionResult bed = Sleep.useBed(sp, level, pos, state);
+				if (bed != null) return bed;
+			}
 			if (HARVEST.get(sp) && !sp.isShiftKeyDown() && harvest(sp, level, pos, state)) return InteractionResult.SUCCESS;
 			if (SIT.get(sp) && trySit(sp, level, pos, state, hit)) return InteractionResult.SUCCESS;
 			if (DOORS.get(sp) && !sp.isShiftKeyDown() && state.getBlock() instanceof DoorBlock door && door.type().canOpenByHand()) {
@@ -63,10 +67,11 @@ public final class ComfortMod implements ModInitializer {
 		});
 		net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents.END_SERVER_TICK.register(server -> {
 			tickDoors();
-			if (server.getTickCount() % 10 == 3) Sleep.tick(server);
+			Sleep.tick(server);
 		});
 		Sleep.init();
 		net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STARTED.register(Sleep::start);
+		net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> Sleep.forget(handler.player.getUUID()));
 		registerTests();
 	}
 
@@ -220,7 +225,52 @@ public final class ComfortMod implements ModInitializer {
 
 	// ---------------------------------------------------------------- zelftests
 
+	/** For the screenshots: a right-click on a bed, as if the player did it. */
+	public static void debugBed(ServerPlayer p, BlockPos pos) {
+		ServerLevel level = (ServerLevel) p.level();
+		Sleep.useBed(p, level, pos, level.getBlockState(pos));
+	}
+
+	/** For the screenshots: lie down in a bed at night (as a click would). */
+	public static String debugSleep(ServerPlayer p, BlockPos pos) {
+		ServerLevel level = (ServerLevel) p.level();
+		BlockState state = level.getBlockState(pos);
+		if (!(state.getBlock() instanceof net.minecraft.world.level.block.AbstractBedBlock bed)) return "no bed";
+		return String.valueOf(p.startSleepInBed(bed, state, bed.getBedRule(level, pos), pos));
+	}
+
+	/** For the screenshots: the clock now, as text. */
+	public static String debugClock(ServerPlayer p) {
+		ServerLevel level = (ServerLevel) p.level();
+		return Sleep.clock(level).map(c -> Sleep.clockText(Sleep.ticks(level.getServer(), c)) + " (" + Sleep.ticks(level.getServer(), c) + ")")
+				.orElse("no clock");
+	}
+
 	private static void registerTests() {
+		SelfTests.register("comfort.sleep", level -> {
+			SelfTests.check("06:00".equals(Sleep.clockText(0)), "tick 0 is six in the morning");
+			SelfTests.check("18:00".equals(Sleep.clockText(12000)), "12000 is six in the evening");
+			SelfTests.check("15:30".equals(Sleep.clockText(24000 * 5 + 9500)), "any day: 15:30");
+			SelfTests.check(Sleep.napWaitDays(100_000, 100_000, 3) == 3, "just napped: three days");
+			SelfTests.check(Sleep.napWaitDays(100_000 + 24000 * 2 + 1, 100_000, 3) == 1, "a bit over two days later: one more");
+			SelfTests.check(Sleep.napWaitDays(100_000 + 24000 * 3, 100_000, 3) == 0, "three days later: now");
+			SelfTests.check(Sleep.napWaitDays(50_000, 100_000, 3) == 0, "time set back: now");
+			SelfTests.check(Math.abs(Sleep.rate(11500, 15) * 15 * 20 - 11500) < 1, "a night takes the set seconds");
+			SelfTests.check(Sleep.rate(23000, 15) > Sleep.rate(11500, 15), "a longer stretch goes faster");
+			SelfTests.check(Sleep.rate(500, 15) == Sleep.rate(11500, 15), "a short stretch at the night's rate");
+			var clock = Sleep.clock(level);
+			SelfTests.check(clock.isPresent(), "the overworld has a clock");
+			if (clock.isPresent()) {
+				var server = level.getServer();
+				long before = Sleep.ticks(server, clock.get());
+				long night = Sleep.next(server, clock.get(), net.minecraft.world.clock.ClockTimeMarkers.NIGHT);
+				long morning = Sleep.next(server, clock.get(), net.minecraft.world.clock.ClockTimeMarkers.WAKE_UP_FROM_SLEEP);
+				SelfTests.check(Sleep.ticks(server, clock.get()) == before, "looking ahead leaves the clock where it was");
+				SelfTests.check(night > before && night - before <= 24000, "nightfall is ahead, within a day: " + before + " -> " + night);
+				SelfTests.check(morning > before && morning - before <= 24000, "morning is ahead, within a day: " + before + " -> " + morning);
+				org.slf4j.LoggerFactory.getLogger("Libreria comfort").info("SLEEP-CLOCK now {} night {} morning {}", before, night, morning);
+			}
+		});
 		SelfTests.register("comfort.harvest", level -> {
 			net.fabricmc.fabric.api.entity.FakePlayer p = net.fabricmc.fabric.api.entity.FakePlayer.get(level);
 			p.getInventory().clearContent();

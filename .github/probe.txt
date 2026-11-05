@@ -1,12 +1,4 @@
-net.minecraft.world.clock.ServerClockManager
-net.minecraft.world.clock.ClockManager
-net.minecraft.world.clock.WorldClock
-net.minecraft.world.clock.ClockTimeMarkers
-net.minecraft.world.clock.ClockNetworkState
-net.minecraft.world.attribute.BedRule
-net.minecraft.world.attribute.EnvironmentAttributes
-net.minecraft.world.level.dimension.DimensionType
-!net.minecraft.world.entity.player.Player
-!net.minecraft.world.level.block.BedBlock
-!net.minecraft.server.level.ServerPlayer
-? clock/
+net.minecraft.world.attribute.BedRule$Rule
+net.minecraft.world.clock.ServerClockManager$MoveResult
++net.minecraft.world.clock.ServerClockManager
+? ClockInstance
