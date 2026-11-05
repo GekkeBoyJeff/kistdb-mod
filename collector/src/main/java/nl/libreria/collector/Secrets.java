@@ -67,7 +67,7 @@ final class Secrets {
 		s("bessen", "Berry Bad Idea", "Die in a sweet berry bush", Items.SWEET_BERRIES, R);
 		s("emmer.lava", "Forgot the Bucket", "Burn in lava with a water bucket in your hand", Items.WATER_BUCKET, R);
 		s("bed.ontploft", "Intentional Game Design", "Try to sleep in the Nether or the End", Ui.item("red_bed"), U);
-		s("bliksem.dood", "Smitten", "Be struck down by lightning", Items.LIGHTNING_ROD, E);
+		s("bliksem.dood", "Smitten", "Be struck down by lightning", Ui.item("lightning_rod"), E);
 		s("aambeeld", "Anvil Headache", "Be flattened by a falling anvil", Items.ANVIL, R);
 		s("stalactiet", "Watch Your Head", "Be hit by a falling stalactite", Items.POINTED_DRIPSTONE, R);
 		s("stalagmiet", "Pointy End", "Fall onto a stalagmite", Items.DRIPSTONE_BLOCK, R);
@@ -118,7 +118,7 @@ final class Secrets {
 		s("navel", "Navel Gazer", "Stare at your feet for a whole minute", Items.LEATHER_BOOTS, U);
 		s("brandend", "Burning Desire", "Be on fire for half a minute and live", Items.BLAZE_POWDER, R);
 		s("rakelings", "Close Call", "Get down to half a heart and live", Items.GOLDEN_APPLE, U);
-		s("bliksem", "Shocking!", "Be struck by lightning and live", Items.LIGHTNING_ROD, E);
+		s("bliksem", "Shocking!", "Be struck by lightning and live", Ui.item("lightning_rod"), E);
 		s("mode", "Fashion Disaster", "Wear four pieces of armor, each of a different kind", Items.LEATHER_CHESTPLATE, U);
 		s("goud.pak", "Bling Bling", "Wear a full set of gold armor", Items.GOLDEN_HELMET, U);
 		s("pompoenhoofd", "Pumpkin Head", "Wear a pumpkin on your head for ten minutes", Items.CARVED_PUMPKIN, R);
