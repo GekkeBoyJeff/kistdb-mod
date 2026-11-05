@@ -19,18 +19,7 @@
   "text": "Libreria",
   "color": "gold"
  },
- "body": [
-  {
-   "type": "minecraft:plain_message",
-   "width": 300,
-   "contents": [
-    {
-     "text": "Everything this server adds, in four places.",
-     "color": "gray"
-    }
-   ]
-  }
- ],
+ "body": [],
  "can_close_with_escape": true,
  "pause": false,
  "after_action": "close",

@@ -1,1 +1,7 @@
-net.minecraft.world.item.component.ItemLore
+!net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
+!net.minecraft.client.gui.components.AbstractButton
++net.minecraft.client.gui.components.Button
++net.minecraft.client.gui.components.WidgetSprites
++net.minecraft.client.gui.components.AbstractWidget
+? client/gui/screens/dialog
+? client/gui/components/Checkbox

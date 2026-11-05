@@ -30,3 +30,13 @@ grep '^? ' .github/probe.txt | while read -r _ pat; do
     unzip -l "$j" 2>/dev/null | awk '{print $4}' | grep -E "$pat" | sed "s|^|?? $pat -> |" >> "$OUT"
   done
 done
+
+# The client's own GUI textures and shaders (to see what a resource pack can restyle)
+for j in $(find ~/.gradle/caches .gradle -name '*.jar' 2>/dev/null | grep -i minecraft | sort -u); do
+  if unzip -l "$j" 'assets/minecraft/textures/gui/sprites/widget/button.png' >/dev/null 2>&1; then
+    mkdir -p out/vanilla
+    unzip -q -o "$j" 'assets/minecraft/textures/gui/*' 'assets/minecraft/shaders/*' 'assets/minecraft/font/*' -d out/vanilla
+    echo "vanilla assets from $j" >> "$OUT"
+    break
+  fi
+done
