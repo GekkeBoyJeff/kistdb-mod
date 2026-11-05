@@ -70,6 +70,10 @@ public final class SettingsWindow {
 
 	/** Settings: the four domains (and for operators, the server). */
 	public static void open(ServerPlayer player) {
+		if (CanvasWindow.available(player)) {
+			SettingsCanvas.open(player);
+			return;
+		}
 		Window w = Window.of(Ui.text("Settings", ChatFormatting.WHITE).withStyle(ChatFormatting.BOLD))
 				.text(Ui.text("Only for you: nothing here changes anything for other players.", ChatFormatting.GRAY));
 		for (Domain d : Domain.values()) {
@@ -87,6 +91,10 @@ public final class SettingsWindow {
 
 	/** One domain's settings: its groups, or straight the checkboxes when there is only one. */
 	public static void open(ServerPlayer player, Domain d, Consumer<ServerPlayer> back) {
+		if (CanvasWindow.available(player)) {
+			SettingsCanvas.open(player, d, back);
+			return;
+		}
 		List<Section> sections = sections(d);
 		if (sections.size() == 1) {
 			open(player, sections.getFirst(), back);
@@ -106,6 +114,10 @@ public final class SettingsWindow {
 	/** The settings window a module's own screens link to (e.g. "Settings" in Your graves). */
 	public static void open(ServerPlayer player, Module module) {
 		Domain d = module.domain();
+		if (CanvasWindow.available(player)) {
+			SettingsCanvas.open(player, d, p -> Start.domain(p, d));
+			return;
+		}
 		for (Section s : sections(d)) {
 			for (Setting x : s.settings()) {
 				if (x.module == module) {

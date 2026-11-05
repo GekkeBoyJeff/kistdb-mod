@@ -75,6 +75,21 @@ public abstract class CanvasWindow extends SimpleGui {
 		}
 	}
 
+	/** Like {@link #area}, but the action is told whether it was a right-click. */
+	protected void areaClick(int col, int row, int w, int h, Component name, List<Component> lines,
+			java.util.function.BiConsumer<ServerPlayer, Boolean> action) {
+		for (int r = row; r < row + h; r++) {
+			for (int c = col; c < col + w; c++) {
+				GuiElementBuilder b = element(new ItemStack(Items.PAPER), true, name, lines, null);
+				b.setCallback((index, type, act, gui) -> {
+					Ui.click(this.player);
+					action.accept(this.player, type.isRight);
+				});
+				this.setSlot(cell(c, r), b);
+			}
+		}
+	}
+
 	/** A real item (an icon) in one cell of an area, with the area's tooltip and action. */
 	protected void icon(int col, int row, ItemStack stack, Component name, List<Component> lines, Consumer<ServerPlayer> action) {
 		this.setSlot(cell(col, row), element(stack, false, name, lines, action));

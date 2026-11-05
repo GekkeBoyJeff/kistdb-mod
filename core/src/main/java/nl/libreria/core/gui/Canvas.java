@@ -28,6 +28,8 @@ public final class Canvas {
 
 	private final MutableComponent out = Component.empty();
 	private int x = START_X;
+	/** Texts with a key in them: drawn last (only the client knows how wide a key's name is). */
+	private final List<Runnable> late = new ArrayList<>();
 
 	/** The window: Libreria's panel over the whole chest screen. */
 	public Canvas panel() {
@@ -131,8 +133,20 @@ public final class Canvas {
 		this.x = px;
 	}
 
+	/**
+	 * Text with the player's own keys in it ({@code {sneak}} …), its left edge at x. It is drawn after everything
+	 * else, because the width of a key's name is only known to the client; only the first of these is exact, so a
+	 * window has at most one or two.
+	 */
+	public Canvas keys(String text, int x, int y, int rgb) {
+		this.late.add(() -> text(nl.libreria.core.Keys.text(text), x, y, rgb, true));
+		return this;
+	}
+
 	/** The finished title. */
 	public Component build() {
+		for (Runnable r : this.late) r.run();
+		this.late.clear();
 		return this.out;
 	}
 

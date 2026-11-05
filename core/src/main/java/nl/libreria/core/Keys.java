@@ -64,11 +64,23 @@ public final class Keys {
 		return out;
 	}
 
-	/** The text without placeholders, for width measuring and logs: "{sneak}" reads as "Shift". */
+	/** What each key does, in words (for places that can't show the player's own key). */
+	private static final Map<String, String> ACTIONS = Map.ofEntries(
+			Map.entry("sneak", "Sneak"), Map.entry("sprint", "Sprint"), Map.entry("jump", "Jump"),
+			Map.entry("swap", "Swap hands"), Map.entry("drop", "Drop"), Map.entry("use", "Use"), Map.entry("attack", "Attack"),
+			Map.entry("pick", "Pick block"), Map.entry("inventory", "Inventory"), Map.entry("chat", "Chat"),
+			Map.entry("menu", "Quick actions"), Map.entry("forward", "Forward"), Map.entry("left", "Left"),
+			Map.entry("back", "Back"), Map.entry("right", "Right"));
+
+	/**
+	 * The text with the keys as what they do ("Sneak + Swap hands"), never a key name that could be wrong for this
+	 * player: for pictures drawn by the server, where the client can't fill in its own key.
+	 */
 	public static String plain(String s) {
-		return s.replace("{sneak}", "Shift").replace("{swap}", "F").replace("{drop}", "Q").replace("{use}", "Right Button")
-				.replace("{attack}", "Left Button").replace("{inventory}", "E").replace("{menu}", "G").replace("{sprint}", "Ctrl")
-				.replace("{jump}", "Space").replace("{pick}", "Middle Button").replace("{chat}", "T")
-				.replace("{forward}", "W").replace("{left}", "A").replace("{back}", "S").replace("{right}", "D");
+		Matcher m = TOKEN.matcher(s);
+		StringBuilder out = new StringBuilder();
+		while (m.find()) m.appendReplacement(out, Matcher.quoteReplacement(ACTIONS.getOrDefault(m.group(1), m.group())));
+		m.appendTail(out);
+		return out.toString();
 	}
 }
