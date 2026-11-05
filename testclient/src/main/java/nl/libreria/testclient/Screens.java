@@ -103,8 +103,31 @@ public final class Screens implements FabricClientGameTest {
 					run(server, "time set midnight");
 					ctx.waitTicks(15);
 					ctx.takeScreenshot(kit[0] + "_night");
+					// frames for a moving picture
+					if (kit[0].equals("fx_fire") || kit[0].equals("fx_runes")) {
+						for (int f = 0; f < 10; f++) {
+							ctx.waitTicks(2);
+							ctx.takeScreenshot(kit[0] + "_anim_" + f);
+						}
+					}
 					run(server, "time set noon");
 				}
+				// A halo above the head: an item display riding the player, always lit
+				run(server, "summon item_display 0 100 0 {Tags:[\"lbhalo\"],item:{id:\"minecraft:gold_nugget\",count:1,components:{\"minecraft:item_model\":\"libreria:fx/halo\"}},"
+						+ "item_display:\"fixed\",billboard:\"fixed\",brightness:{sky:15,block:15},transformation:{left_rotation:[0.0f,0.0f,0.0f,1.0f],"
+						+ "right_rotation:[0.0f,0.0f,0.0f,1.0f],translation:[0.0f,0.42f,0.0f],scale:[0.62f,0.62f,0.62f]}}");
+				run(server, "ride @e[tag=lbhalo,limit=1] mount @p");
+				camera(ctx, CameraType.THIRD_PERSON_FRONT);
+				ctx.waitTicks(20);
+				ctx.takeScreenshot("fx_halo_front");
+				camera(ctx, CameraType.THIRD_PERSON_BACK);
+				ctx.waitTicks(10);
+				ctx.takeScreenshot("fx_halo_back");
+				run(server, "time set midnight");
+				camera(ctx, CameraType.THIRD_PERSON_FRONT);
+				ctx.waitTicks(15);
+				ctx.takeScreenshot("fx_halo_night");
+				run(server, "time set noon", "kill @e[tag=lbhalo]");
 				camera(ctx, CameraType.FIRST_PERSON);
 				run(server, "item replace entity @a armor.head with minecraft:air", "item replace entity @a armor.chest with minecraft:air",
 						"item replace entity @a armor.legs with minecraft:air", "item replace entity @a armor.feet with minecraft:air");

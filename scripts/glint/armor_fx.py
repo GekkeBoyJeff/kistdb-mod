@@ -73,11 +73,13 @@ def columns(m):
     return out
 
 
-def flames(m, tier, stops, code, seed, height=(2, 3, 5)):
+def flames(m, tier, stops, code, seed, height=(1.6, 2.4, 3.4)):
     img = {}
     h = height[tier - 1]
     for name, x, top, bottom in columns(m):
-        tongue = h * (0.45 + 0.75 * noise(x, seed + name))
+        n = noise(x, seed + name)
+        # tongues, not a wall: some columns only glow at the rim
+        tongue = h * (0.25 + 1.1 * n * n)
         for k in range(int(round(tongue))):
             y = bottom - k
             if y < top or not m[y][x]:
@@ -87,7 +89,7 @@ def flames(m, tier, stops, code, seed, height=(2, 3, 5)):
     r = rng(seed, 'embers', tier)
     for name, x, top, bottom in columns(m):
         if r.random() < 0.10 * tier:
-            y = bottom - h - 1 - r.randrange(3)
+            y = bottom - int(h) - 1 - r.randrange(3)
             if top <= y and m[y][x] and (x, y) not in img:
                 img[(x, y)] = stops[-1][1] + (TWINKLE,)
     return img
@@ -164,13 +166,15 @@ def veins(m, tier, dark, bright, seed):
 def thorns(m, tier, seed):
     img = {}
     r = rng(seed, tier)
+    vine, leaf = (58, 42, 30), (70, 92, 40)
     for name, x, top, bottom in columns(m):
-        if r.random() < 0.18 * tier:
-            y = r.randrange(top, bottom + 1)
-            if m[y][x]:
-                img[(x, y)] = (220, 40, 50) + (STEADY,)
-                if y - 1 >= top and m[y - 1][x]:
-                    img[(x, y - 1)] = (140, 20, 30) + (PULSE,)
+        # the vine winds along the lower rim (plain pixels: lit like the armour)
+        y = bottom - 1 - (1 if math.sin(x * 0.9 + len(name)) > 0.3 else 0)
+        if top <= y and m[y][x]:
+            img[(x, y)] = (leaf if r.random() < 0.25 else vine) + (255,)
+            # thorns stick out of it, their tips glow
+            if r.random() < 0.16 + 0.1 * tier and y - 1 >= top and m[y - 1][x]:
+                img[(x, y - 1)] = (225, 40, 50) + (PULSE,)
     return img
 
 
@@ -178,14 +182,14 @@ def bubbles(m, tier, seed):
     img = {}
     r = rng(seed, tier)
     for name, x, top, bottom in columns(m):
-        if r.random() < 0.12 * tier:
-            y = r.randrange(top, bottom + 1)
-            if m[y][x]:
-                img[(x, y)] = (120, 200, 255) + (TWINKLE,)
-        # a wave along the rim
-        y = bottom - (1 if math.sin(x * 1.1) > 0 else 0)
-        if tier >= 2 and m[y][x]:
+        # a wave along the rim that flows, and bubbles above it
+        y = bottom - (1 if math.sin(x * 0.8) > 0 else 0)
+        if m[y][x]:
             img[(x, y)] = (70, 150, 255) + (FLOW,)
+        if tier >= 2 and r.random() < 0.1 * tier:
+            yy = y - 2 - r.randrange(4)
+            if yy >= top and m[yy][x]:
+                img[(x, yy)] = (170, 225, 255) + (TWINKLE,)
     return img
 
 
