@@ -152,7 +152,7 @@ def glass_piece(w, h, part):
     """The card at the top of the screen in the glass look: smoked glass with a thin light edge, rounded at the caps."""
     L = LOOK
     img = Image.new('RGBA', (w, h), (0, 0, 0, 0))
-    edge, fill = L['panel_rim'][0], lerp4(L['panel_top'], L['panel_bottom'], 0.5)
+    edge, fill = L['panel_rim'][0], (14, 16, 21, 230)
     for y in range(h):
         for x in range(w):
             if part == 'l' and rounded(x, y, w * 2, h, 3):
@@ -853,7 +853,8 @@ def anvil_field():
     d = os.path.join(OUT, 'assets', 'minecraft', 'textures/gui/sprites/container/anvil')
     os.makedirs(d, exist_ok=True)
     for name, fill in (('text_field', LOOK['field']), ('text_field_disabled', LOOK['socket'])):
-        img = Image.new('RGBA', (110, 16), (0, 0, 0, 0))
+        # opaque: the anvil's own picture lies under it
+        img = Image.new('RGBA', (110, 16), lerp4(LOOK['panel_bottom'], (0, 0, 0, 255), 0.4)[:3] + (255,))
         for y in range(16):
             for x in range(110):
                 put(img, x, y, fill)
@@ -1331,7 +1332,8 @@ LOOKS = {
         field=(0, 0, 0, 170), field_rim=(255, 255, 255, 60),
         accent=(255, 255, 255, 235), accent_mid=(205, 210, 220, 255), accent_lo=(120, 126, 140, 255),
         background=(6, 8, 12, 120),
-        panel_top=(18, 20, 26, 236), panel_bottom=(12, 13, 17, 240), panel_rim=((255, 255, 255, 56), (0, 0, 0, 0), (0, 0, 0, 0)),
+        # Windows are drawn over Minecraft's own chest picture, so their glass must not let that show through
+        panel_top=(20, 22, 28, 255), panel_bottom=(13, 14, 18, 255), panel_rim=((255, 255, 255, 56), (0, 0, 0, 0), (0, 0, 0, 0)),
         panel_rim_lo=((255, 255, 255, 36), (0, 0, 0, 0), (0, 0, 0, 0)), studs=False,
         tray=(0, 0, 0, 90), tray_shadow=(0, 0, 0, 90), tray_light=(255, 255, 255, 18), toolbar=(255, 255, 255, 12),
         tag=(232, 234, 240, 255), tag_hi=(250, 250, 252, 255), tag_lo=(200, 204, 214, 255),
