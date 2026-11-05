@@ -30,8 +30,8 @@ public final class Records {
 		FALL("fall", "Fall", "Longest fall survived", "fell", Items.FEATHER, 23, false, "Thrill Seeker"),
 		FLIGHT("flight", "Flight", "Longest elytra flight", "flew", Items.ELYTRA, 1000, false, "Ace of the Skies"),
 		SPEED("speed", "Speed", "Fastest", "moved at", Items.SUGAR, 30, false, "Speedster"),
-		DISTANCE("distance", "Distance", "Farthest from the middle of the world", "went", Items.COMPASS, 2000, false, "Far Out"),
-		ALIVE("alive", "No deaths", "Longest time without dying", "stayed alive for", Items.TOTEM_OF_UNDYING, 5, false, "Death-Defying"),
+		DISTANCE("distance", "Range", "Farthest from the middle of the world", "went", Items.COMPASS, 2000, false, "Far Out"),
+		ALIVE("alive", "Alive", "Longest time without dying", "stayed alive for", Items.TOTEM_OF_UNDYING, 5, false, "Death-Defying"),
 		SESSION("session", "Session", "Longest time online in one go", "played", Items.CLOCK, 3, false, "Marathon Gamer"),
 		HIT("hit", "Hit", "Hardest hit", "hit for", Items.NETHERITE_SWORD, 10, false, "Heavyweight"),
 		LEVELS("levels", "Levels", "Most levels at once", "reached level", Items.EXPERIENCE_BOTTLE, 30, false, "Know-It-Most"),
@@ -66,11 +66,12 @@ public final class Records {
 			return this.lower ? v < old : v > old;
 		}
 
-		/** "87 m", "14.2 km", "68 m/s", "41 h", "24 hearts", "112", "y -63". */
+		/** "87 m", "1.4 km", "14 km", "68 m/s", "41 h", "24 hearts", "112", "y -63". */
 		public String format(double v) {
 			return switch (this) {
 				case FALL -> Math.round(v) + " m";
-				case FLIGHT, DISTANCE -> v >= 1000 ? String.format(Locale.US, "%.1f km", v / 1000) : Math.round(v) + " m";
+				case FLIGHT, DISTANCE -> v >= 10000 ? Math.round(v / 1000) + " km" : v >= 1000 ? String.format(Locale.US, "%.1f km", v / 1000)
+						: Math.round(v) + " m";
 				case SPEED -> Math.round(v) + " m/s";
 				case ALIVE, SESSION -> v >= 10 ? Math.round(v) + " h" : String.format(Locale.US, "%.1f h", v);
 				case HIT -> String.format(Locale.US, "%.0f hearts", v);

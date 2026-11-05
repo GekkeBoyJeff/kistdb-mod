@@ -71,7 +71,7 @@ public final class ShowcaseWindow extends CanvasWindow {
 		c.text(" › ", x, 5, Glyphs.muted);
 		c.text("Showcase", x + Glyphs.width(Component.literal(" › ")), 5, TEXT);
 		int chosen = CollectorMod.STORE.get(this.player).showcase.size();
-		c.right(chosen == 0 ? "Auto: your rarest" : chosen + " chosen", 168 - 2, 5, Glyphs.muted);
+		c.right(chosen == 0 ? "Automatic" : chosen + " chosen", 168 - 2, 5, Glyphs.muted);
 		int left = Canvas.cellX(1) + 4, width = Canvas.cellX(9) - Canvas.CARD_MARGIN - left;
 		int from = this.page * ROWS.length;
 		for (int i = 0; i < ROWS.length && from + i < all.size(); i++) {

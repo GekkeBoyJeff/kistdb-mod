@@ -88,6 +88,7 @@ public final class Places {
 
 	/** Twice a second per player. */
 	static void tick(MinecraftServer server, int now) {
+		Discoveries.seed(server);
 		for (ServerPlayer p : server.getPlayerList().getPlayers()) {
 			if (p.isSpectator()) continue;
 			try {
@@ -130,14 +131,14 @@ public final class Places {
 			st.place = key;
 			if (found != null) {
 				boolean isNew = remember(p, found.key(), found.name(), found.kind().label(), found.at());
-				if (found.kind().named() && nl.libreria.core.Chronicle.firstTime("place:" + found.key())) {
+				boolean firstNow = Discoveries.arrive(p, found.key());
+				if (firstNow && found.kind().named() && nl.libreria.core.Chronicle.firstTime("place:" + found.key())) {
 					nl.libreria.core.Chronicle.write(p, nl.libreria.core.Chronicle.Kind.DISCOVERY, "discovered " + found.name() + ", "
 							+ article(found.kind().label()) + " " + found.kind().label().toLowerCase(java.util.Locale.ROOT), false);
 				}
 				if (mode == 0 || (mode == 1 && isNew)) {
-					show(p, st, found.key(), Component.literal(found.name()),
-							Component.literal(found.kind().named() ? found.kind().label() + (isNew ? " · discovered" : "")
-									: isNew ? "discovered" : ""), now, isNew);
+					show(p, st, found.key(), Component.literal(found.name()), found.kind().named() ? Component.literal(found.kind().label()) : null,
+							tag(p, found.key(), isNew, firstNow), now, isNew);
 				}
 				return;
 			}
@@ -153,12 +154,13 @@ public final class Places {
 				if (!markKey.equals(st.landmark)) {
 					String label = mark.type().label;
 					boolean isNew = remember(p, markKey, area.name, label, new BlockPos(area.x, mark.at().getY(), area.z));
-					if (nl.libreria.core.Chronicle.firstTime("place:" + markKey)) {
+					boolean firstNow = Discoveries.arrive(p, markKey);
+					if (firstNow && nl.libreria.core.Chronicle.firstTime("place:" + markKey)) {
 						nl.libreria.core.Chronicle.write(p, nl.libreria.core.Chronicle.Kind.DISCOVERY, "discovered " + area.name + ", "
 								+ article(label) + " " + label.toLowerCase(java.util.Locale.ROOT), false);
 					}
 					if (mode == 0 || (mode == 1 && isNew)) {
-						show(p, st, markKey, Component.literal(area.name), Component.literal(label + (isNew ? " · discovered" : "")), now, isNew);
+						show(p, st, markKey, Component.literal(area.name), Component.literal(label), tag(p, markKey, isNew, firstNow), now, isNew);
 						// No biome name right after it
 						st.biome = biome;
 						st.biomeShown = true;
@@ -185,20 +187,40 @@ public final class Places {
 			Names.Area area = Names.area(dim, biome, p.getBlockX(), p.getBlockZ(), level.getSeed());
 			String areaKey = "area|" + dim + "|" + biome + "|" + area.x + "," + area.z;
 			boolean isNew = remember(p, areaKey, area.name, biomeName(biome), new BlockPos(area.x, p.getBlockY(), area.z));
+			boolean firstNow = Discoveries.arrive(p, areaKey);
+			if (firstNow && nl.libreria.core.Chronicle.firstTime("place:" + areaKey)) {
+				nl.libreria.core.Chronicle.write(p, nl.libreria.core.Chronicle.Kind.DISCOVERY, "discovered " + area.name + ", "
+						+ article(biomeName(biome)) + " " + biomeName(biome).toLowerCase(java.util.Locale.ROOT), false);
+			}
 			if (mode == 0 || (mode == 1 && isNew)) {
 				Identifier id = Identifier.parse(biome);
 				MutableComponent kind = Component.translatable("biome." + id.getNamespace() + "." + id.getPath());
-				if (isNew) kind.append(" · discovered");
-				show(p, st, areaKey, Component.literal(area.name), kind, now, isNew);
+				show(p, st, areaKey, Component.literal(area.name), kind, tag(p, areaKey, isNew, firstNow), now, isNew);
 			}
 		}
 	}
 
 	private static void show(ServerPlayer p, State st, String key, Component name, @Nullable Component kind, int now, boolean force) {
+		show(p, st, key, name, kind, List.of(), now, force);
+	}
+
+	private static void show(ServerPlayer p, State st, String key, Component name, @Nullable Component kind, List<Caption.Part> tag, int now,
+			boolean force) {
 		Integer last = st.shownAt.get(key);
 		if (!force && last != null && now - last < AGAIN_AFTER) return;
 		st.shownAt.put(key, now);
-		Caption.show(p, name, kind == null || kind.getString().isEmpty() ? null : kind);
+		Caption.show(p, name, kind == null || kind.getString().isEmpty() ? null : kind, tag);
+	}
+
+	/**
+	 * What follows the name when it's new to you: "first discovery!" if nobody was ever here, "found by Anna" if
+	 * someone was. Nothing if you've been here before.
+	 */
+	static List<Caption.Part> tag(ServerPlayer p, String key, boolean isNew, boolean firstNow) {
+		if (!isNew) return List.of();
+		Discoveries.First f = Discoveries.first(key);
+		if (firstNow || f == null || p.getUUID().equals(f.who)) return List.of(new Caption.Part("first discovery!", Caption.GOLD));
+		return List.of(new Caption.Part("found by ", Caption.SUB), new Caption.Part(Discoveries.name(p.level().getServer(), f), Caption.MAIN));
 	}
 
 	static void forget(UUID id) {
@@ -403,6 +425,26 @@ public final class Places {
 		return true;
 	}
 
+	/** For the screenshots: someone found this place first, five days ago. */
+	public static void debugFirst(String key, UUID who, String name) {
+		Discoveries.First f = new Discoveries.First();
+		f.who = who;
+		f.name = name;
+		f.at = System.currentTimeMillis() - 5L * 24 * 3600 * 1000;
+		Discoveries.data().firsts.put(key, f);
+		Discoveries.STORE.markDirty();
+	}
+
+	/** The lines of a journal entry, and who found the place first (you, or someone before you). */
+	private static Component[] firstLine(ServerPlayer p, Place pl, Component... lines) {
+		Discoveries.First f = Discoveries.first(pl.key);
+		if (f == null) return lines;
+		Component[] out = java.util.Arrays.copyOf(lines, lines.length + 1);
+		out[lines.length] = p.getUUID().equals(f.who) ? Ui.text("You found it first", ChatFormatting.GOLD)
+				: Ui.text("First found by " + Discoveries.name(p.level().getServer(), f) + ", " + ago(f.at), ChatFormatting.GOLD);
+		return out;
+	}
+
 	/** The journal in "Your places": everything you found, with the way there. */
 	static void registerPlaces() {
 		nl.libreria.core.PlaceList.kind("journal", "Journal", Items.WRITABLE_BOOK, 50)
@@ -414,7 +456,7 @@ public final class Places {
 			for (Place pl : STORE.get(p).places) {
 				out.add(nl.libreria.core.PlaceList.place("journal", pl.name, new ItemStack(icon(pl.kind)), pl.dim,
 								new Vec3(pl.x + 0.5, p.getY(), pl.z + 0.5))
-						.lore(Ui.text(pl.kind, ChatFormatting.GRAY), Ui.kv("Found ", ago(pl.found), ChatFormatting.GRAY))
+						.lore(firstLine(p, pl, Ui.text(pl.kind, ChatFormatting.GRAY), Ui.kv("Found ", ago(pl.found), ChatFormatting.GRAY)))
 						.go(pp -> beam(pp, pl)));
 			}
 		});
@@ -431,6 +473,7 @@ public final class Places {
 		int biomesTotal = p.level().registryAccess().lookupOrThrow(Registries.BIOME).size();
 		var b = nl.libreria.core.gui.Menu.button(Items.FILLED_MAP, "Your journal", ChatFormatting.GOLD,
 				d.places.size() + (d.places.size() == 1 ? " place" : " places") + " found",
+				Discoveries.firstsOf(p.getUUID()) + " found before anyone else",
 				d.biomes.size() + " of " + biomesTotal + " biomes visited");
 		return nl.libreria.core.gui.Menu.actions(b, "Click: the chronicle of this world").setCallback((i, t, a, g) -> {
 			Ui.click(p);

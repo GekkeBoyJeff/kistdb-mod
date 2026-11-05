@@ -215,7 +215,8 @@ final class CollectorTests {
 		SelfTests.register("collector.records", level -> {
 			if (Catalog.all().isEmpty()) Catalog.build();
 			SelfTests.check("87 m".equals(Records.Kind.FALL.format(87.2)), "fall: " + Records.Kind.FALL.format(87.2));
-			SelfTests.check("14.2 km".equals(Records.Kind.FLIGHT.format(14200)), "flight: " + Records.Kind.FLIGHT.format(14200));
+			SelfTests.check("14 km".equals(Records.Kind.FLIGHT.format(14200)) && "1.5 km".equals(Records.Kind.FLIGHT.format(1490)),
+					"flight: " + Records.Kind.FLIGHT.format(14200) + ", " + Records.Kind.FLIGHT.format(1490));
 			SelfTests.check("2.5 h".equals(Records.Kind.SESSION.format(2.5)) && "41 h".equals(Records.Kind.ALIVE.format(41.2)), "hours");
 			SelfTests.check("y -64".equals(Records.Kind.DEPTH.format(-63.4)), "depth: " + Records.Kind.DEPTH.format(-63.4));
 			SelfTests.check(Records.Kind.DEPTH.beats(-60, -55) && !Records.Kind.DEPTH.beats(-50, -55), "deeper beats depth");

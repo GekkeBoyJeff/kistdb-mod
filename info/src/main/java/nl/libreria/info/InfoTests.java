@@ -65,6 +65,27 @@ final class InfoTests {
 			SelfTests.check(!Places.remember(p, "test|village|1,2", a, "Village", new BlockPos(20, 64, 40)), "second visit isn't");
 			Places.STORE.get(p).places.removeIf(pl -> pl.key.startsWith("test|"));
 		});
+		SelfTests.register("info.discoveries", level -> {
+			FakePlayer p = FakePlayer.get(level);
+			String mine = "test|disc|mine", theirs = "test|disc|theirs";
+			Discoveries.forget(mine);
+			Discoveries.forget(theirs);
+			SelfTests.check(Discoveries.arrive(p, mine) && !Discoveries.arrive(p, mine), "the first one here is its discoverer, once");
+			java.util.List<nl.libreria.core.gui.Caption.Part> first = Places.tag(p, mine, true, true);
+			SelfTests.check(first.size() == 1 && first.get(0).text().equals("first discovery!"), "first: " + first);
+			SelfTests.check(Places.tag(p, mine, false, false).isEmpty(), "been here before: just the name");
+			Discoveries.First anna = new Discoveries.First();
+			anna.who = java.util.UUID.nameUUIDFromBytes("libreria-test-anna".getBytes());
+			anna.name = "Anna";
+			anna.at = System.currentTimeMillis() - 1000;
+			Discoveries.data().firsts.put(theirs, anna);
+			SelfTests.check(!Discoveries.arrive(p, theirs), "someone else was here first");
+			java.util.List<nl.libreria.core.gui.Caption.Part> other = Places.tag(p, theirs, true, false);
+			SelfTests.check(other.size() == 2 && other.get(0).text().equals("found by ") && other.get(1).text().equals("Anna"), "other: " + other);
+			SelfTests.check(Discoveries.firstsOf(p.getUUID()) >= 1 && Discoveries.firstsOf(anna.who) == 1, "counted per player");
+			Discoveries.forget(mine);
+			Discoveries.forget(theirs);
+		});
 		SelfTests.register("info.landmarks", level -> {
 			FakePlayer p = FakePlayer.get(level);
 			var stone = Blocks.STONE.defaultBlockState();

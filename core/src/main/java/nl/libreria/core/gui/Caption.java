@@ -24,7 +24,11 @@ public final class Caption {
 	/** Above the look-at card, below toasts, banners and the land map. */
 	private static final int PRIORITY = 20;
 
-	private record Shown(Component name, @Nullable Component kind, int start) {
+	/** A bit of text after the kind, in its own colour ("first discovery!" in gold). */
+	public record Part(String text, int rgb) {
+	}
+
+	private record Shown(Component name, @Nullable Component kind, java.util.List<Part> extra, int start) {
 	}
 
 	private static final Map<UUID, Shown> SHOWN = new HashMap<>();
@@ -33,11 +37,16 @@ public final class Caption {
 	}
 
 	public static void show(ServerPlayer p, Component name, @Nullable Component kind) {
+		show(p, name, kind, java.util.List.of());
+	}
+
+	/** "~ Ashglen Forest · Forest · first discovery! ~": extra parts after the kind, each in its own colour. */
+	public static void show(ServerPlayer p, Component name, @Nullable Component kind, java.util.List<Part> extra) {
 		if (!Pack.has(p)) {
-			Hud.show(p, CHANNEL, line(name, kind, 1), Hud.PRIO_INFO, 70);
+			Hud.show(p, CHANNEL, line(name, kind, extra, 1), Hud.PRIO_INFO, 70);
 			return;
 		}
-		SHOWN.put(p.getUUID(), new Shown(name, kind, p.level().getServer().getTickCount()));
+		SHOWN.put(p.getUUID(), new Shown(name, kind, java.util.List.copyOf(extra), p.level().getServer().getTickCount()));
 		draw(p, SHOWN.get(p.getUUID()), 0);
 	}
 
@@ -61,11 +70,15 @@ public final class Caption {
 		if (Services.inCamera(p)) return;
 		double alpha = age < FADE_IN ? age / (double) FADE_IN
 				: age > TICKS - FADE_OUT ? Math.max(0, (TICKS - age) / (double) FADE_OUT) : 1;
-		TopCard.showText(p, CHANNEL, line(s.name(), s.kind(), alpha), PRIORITY, TICKS - age + 2);
+		TopCard.showText(p, CHANNEL, line(s.name(), s.kind(), s.extra(), alpha), PRIORITY, TICKS - age + 2);
 	}
 
 	/** "~ Name · Kind ~". Text has no transparency: it fades from a dim grey to warm white. */
 	static MutableComponent line(Component name, @Nullable Component kind, double alpha) {
+		return line(name, kind, java.util.List.of(), alpha);
+	}
+
+	static MutableComponent line(Component name, @Nullable Component kind, java.util.List<Part> extra, double alpha) {
 		int main = mix(0x3C3A36, 0xF2E6C8, alpha), dot = mix(0x3C3A36, 0x8A8A8A, alpha), sub = mix(0x3C3A36, 0xB8B2A6, alpha);
 		MutableComponent text = Component.empty()
 				.append(Component.literal("~ ").withStyle(st -> st.withColor(dot)))
@@ -73,8 +86,18 @@ public final class Caption {
 		if (kind != null && !kind.getString().isEmpty()) {
 			text.append(Component.literal("  ·  ").withStyle(st -> st.withColor(dot))).append(kind.copy().withStyle(st -> st.withColor(sub)));
 		}
+		if (!extra.isEmpty()) {
+			text.append(Component.literal("  ·  ").withStyle(st -> st.withColor(dot)));
+			for (Part part : extra) {
+				int rgb = mix(0x3C3A36, part.rgb(), alpha);
+				text.append(Component.literal(part.text()).withStyle(st -> st.withColor(rgb)));
+			}
+		}
 		return text.append(Component.literal(" ~").withStyle(st -> st.withColor(dot)));
 	}
+
+	/** The colours of the caption, for parts: the name's warm white, the kind's grey. */
+	public static final int MAIN = 0xF2E6C8, SUB = 0xB8B2A6, GOLD = 0xFFCB52;
 
 	private static int mix(int from, int to, double t) {
 		int r = (int) Math.round(((from >> 16) & 0xFF) + (((to >> 16) & 0xFF) - ((from >> 16) & 0xFF)) * t);

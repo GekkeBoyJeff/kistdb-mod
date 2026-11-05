@@ -98,6 +98,10 @@ public final class InfoMod implements ModInitializer {
 		Pets.init();
 		Pets.registerPlaces();
 		Places.registerPlaces();
+		nl.libreria.core.Profile.add(40, Items.FILLED_MAP, "First discoveries", (server, who, stats) -> {
+			int n = Discoveries.firstsOf(who);
+			return n == 0 ? null : nl.libreria.core.Ui.n(n);
+		});
 		Services.provideMenu(Services.MENU_PETS, Pets::open);
 		MODULE.hubEntry(Domain.PLACES, 80, Items.LEAD, "Your pets", Pets::open,
 				"Your tamed animals and where they are; click one to be shown the way.");

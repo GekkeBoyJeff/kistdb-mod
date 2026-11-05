@@ -49,21 +49,23 @@ public final class RecordsWindow extends CanvasWindow {
 		c.text("Records", x + Glyphs.width(Component.literal(" › ")), 5, TEXT);
 		Records.Kind[] kinds = Records.Kind.values();
 		int left = Canvas.cellX(1) + 4, width = Canvas.cellX(9) - Canvas.CARD_MARGIN - left;
-		// Who on the right, the value in a column left of the widest name
-		int whoW = 0;
-		for (Records.Kind k : kinds) whoW = Math.max(whoW, Glyphs.width(Component.literal(Canvas.fit(holder(Records.get(k)), 48))));
-		int valueRight = left + width - 6 - whoW - 10;
+		// Label, then the values in one column, then who; a long name gets shortened (the tooltip has it in full)
+		int labelW = 0, valueW = 0;
+		for (Records.Kind k : kinds) {
+			Records.Rec r = Records.get(k);
+			labelW = Math.max(labelW, Glyphs.width(Component.literal(k.label)));
+			valueW = Math.max(valueW, Glyphs.width(Component.literal(r == null ? "–" : k.format(r.value))));
+		}
+		int valueRight = left + 6 + labelW + 8 + valueW, whoRight = left + width - 6, whoSpace = whoRight - valueRight - 8;
 		for (int i = 0; i < kinds.length && i < ROWS.length; i++) {
 			Records.Kind k = kinds[i];
 			Records.Rec r = Records.get(k);
 			boolean mine = r != null && this.player.getUUID().equals(r.who);
 			int row = ROWS[i], y = Canvas.cellY(row) + 5;
 			c.line(left, row, width, mine ? Domain.PROGRESS.rgb : OTHER);
-			c.right(Canvas.fit(holder(r), 48), left + width - 6, y, r == null ? 0x8A909C : mine ? TEXT : Glyphs.muted);
-			String v = r == null ? "–" : k.format(r.value);
-			int vw = Glyphs.width(Component.literal(v));
-			c.right(v, valueRight, y, TEXT);
-			c.text(Canvas.fit(k.label, valueRight - vw - 8 - (left + 6)), left + 6, y, TEXT);
+			c.text(k.label, left + 6, y, TEXT);
+			c.right(r == null ? "–" : k.format(r.value), valueRight, y, TEXT);
+			c.right(Canvas.fit(holder(r), whoSpace), whoRight, y, r == null ? 0x8A909C : mine ? TEXT : Glyphs.muted);
 		}
 		c.card(0, 9, 9, 1, Glyphs.neutral);
 		c.centred("Back", Canvas.cellX(0) + 81, Canvas.cellY(9) + 5, TEXT);

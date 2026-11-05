@@ -316,17 +316,29 @@ public final class Screens implements FabricClientGameTest {
 				ctx.getInput().lookAt(0, 0);
 				ctx.waitTicks(10);
 				ctx.takeScreenshot("top_of_screen");
-				// A place name fading in under the compass, then the journal
+				// A place name fading in at the top: first of everyone, then one someone else found first
 				server.runOnServer(s -> {
-					nl.libreria.info.Places.remember(player, "screens|village", "Oakhaven", "Village", player.blockPosition().offset(120, 0, -40));
-					nl.libreria.info.Places.remember(player, "screens|temple", "Sunhollow", "Desert Temple", player.blockPosition().offset(-900, 0, 300));
+					nl.libreria.core.gui.TopCard.forget(player.getUUID());
 					nl.libreria.core.gui.Caption.show(player, net.minecraft.network.chat.Component.literal("Oakhaven"),
-							net.minecraft.network.chat.Component.literal("Village · discovered"));
+							net.minecraft.network.chat.Component.literal("Village"),
+							List.of(new nl.libreria.core.gui.Caption.Part("first discovery!", nl.libreria.core.gui.Caption.GOLD)));
 				});
 				ctx.waitTicks(6);
 				ctx.takeScreenshot("place_title_fading_in");
 				ctx.waitTicks(30);
 				ctx.takeScreenshot("place_title");
+				server.runOnServer(s -> nl.libreria.core.gui.Caption.show(player, net.minecraft.network.chat.Component.literal("Ashglen Forest"),
+						net.minecraft.network.chat.Component.literal("Forest"),
+						List.of(new nl.libreria.core.gui.Caption.Part("found by ", nl.libreria.core.gui.Caption.SUB),
+								new nl.libreria.core.gui.Caption.Part("Anna", nl.libreria.core.gui.Caption.MAIN))));
+				ctx.waitTicks(36);
+				ctx.takeScreenshot("place_title_found_by");
+				// Then into the journal (one of them someone else found first)
+				server.runOnServer(s -> {
+					nl.libreria.info.Places.remember(player, "screens|village", "Oakhaven", "Village", player.blockPosition().offset(120, 0, -40));
+					nl.libreria.info.Places.remember(player, "screens|temple", "Sunhollow", "Desert Temple", player.blockPosition().offset(-900, 0, 300));
+					nl.libreria.info.Places.debugFirst("screens|village", java.util.UUID.nameUUIDFromBytes("libreria-anna".getBytes()), "Anna");
+				});
 				// A villager with its own name, three blocks ahead
 				run(server, "execute as @a at @s run summon minecraft:villager ^ ^ ^3");
 				ctx.waitTicks(40);
@@ -365,6 +377,23 @@ public final class Screens implements FabricClientGameTest {
 			menu(ctx, server, player, "own_settings", nl.libreria.core.gui.SettingsCanvas::open);
 			menu(ctx, server, player, "own_places", p -> nl.libreria.core.gui.PlacesWindow.open(p, null, 0));
 			menu(ctx, server, player, "own_places_waypoints", p -> nl.libreria.core.gui.PlacesWindow.open(p, "waypoints", 0));
+			// The journal, with the mouse on the first two places (who found them first)
+			safe("own_journal_hover", () -> {
+				server.runOnServer(s -> nl.libreria.core.gui.PlacesWindow.open(player, "journal", 0));
+				ctx.waitTicks(12);
+				noToasts(ctx);
+				double scale = ctx.computeOnClient(mc -> (double) mc.getWindow().getGuiScale());
+				int w = ctx.computeOnClient(mc -> mc.getWindow().getGuiScaledWidth());
+				int h = ctx.computeOnClient(mc -> mc.getWindow().getGuiScaledHeight());
+				int left = (w - 176) / 2, top = (h - 222) / 2;
+				for (int row = 0; row < 2; row++) {
+					ctx.getInput().setCursorPos((left + 7 + 18 * 3) * scale, (top + 17 + 18 * row + 8) * scale);
+					ctx.waitTicks(5);
+					ctx.takeScreenshot("own_journal_hover_" + row);
+				}
+				ctx.getInput().setCursorPos(2, 2);
+				close(ctx, server, player);
+			});
 			menu(ctx, server, player, "own_chests", p -> nl.libreria.chests.gui.ChestsWindow.open(p, () -> {
 			}));
 			// Profiles, the players, and a server goal with a few people on it
