@@ -71,6 +71,10 @@ final class CoreTests {
 			SelfTests.check(nl.libreria.core.gui.Glyphs.width(k) >= 40, "a key is measured as its name");
 			FakePlayer p = FakePlayer.get(level);
 			SelfTests.check(!nl.libreria.core.gui.CanvasWindow.available(p), "no pack, no own windows");
+			// What a window's title holds (read back in the CI log when a picture looks wrong)
+			String json = nl.libreria.core.gui.SettingsCanvas.unopened(p, Domain.PLACES).pictureJson();
+			Libreria.LOG.info("LIBRERIA-PICTURE settings.places {}", json);
+			SelfTests.check(json.length() > 100, "the settings window has a picture");
 		});
 		SelfTests.register("core.framework", level -> {
 			FakePlayer p = FakePlayer.get(level);

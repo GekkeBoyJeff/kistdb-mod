@@ -47,6 +47,12 @@ public final class SettingsCanvas extends CanvasWindow {
 		new SettingsCanvas(p, null, Start::open, 0).show();
 	}
 
+	/** For the self-tests: a place's settings window, not opened. */
+	public static SettingsCanvas unopened(ServerPlayer p, Domain d) {
+		return new SettingsCanvas(p, d, q -> {
+		}, 0);
+	}
+
 	/** One place's settings; Back runs {@code back}. */
 	public static void open(ServerPlayer p, Domain d, Consumer<ServerPlayer> back) {
 		new SettingsCanvas(p, d, back, 0).show();

@@ -51,6 +51,13 @@ public abstract class CanvasWindow extends SimpleGui {
 	/** Fills the cells (areas and icons). */
 	protected abstract void fill();
 
+	/** The window's picture as JSON (for the self-tests: what exactly the title holds). */
+	public String pictureJson() {
+		var c = draw().build();
+		return net.minecraft.network.chat.ComponentSerialization.CODEC.encodeStart(com.mojang.serialization.JsonOps.INSTANCE, c)
+				.result().map(Object::toString).orElse("?");
+	}
+
 	/** Builds everything and opens the window. */
 	public void show() {
 		for (int i = 0; i < 90; i++) this.clearSlot(i);
