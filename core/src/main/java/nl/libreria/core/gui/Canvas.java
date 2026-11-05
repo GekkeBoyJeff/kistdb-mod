@@ -98,7 +98,7 @@ public final class Canvas {
 			if (Glyphs.CANVAS_CHARS.contains(cp)) sb.appendCodePoint(cp);
 			else if (LOOK_ALIKE.containsKey(cp)) sb.append(LOOK_ALIKE.get(cp));
 		});
-		return sb.toString().replaceAll("^ +| +$", "").replaceAll(" {3,}", "  ");
+		return sb.toString();
 	}
 
 	/** Text with its top at ({@code x}, {@code y}). */
