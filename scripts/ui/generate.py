@@ -742,6 +742,13 @@ def switches():
 CANVAS_CHARS = []
 
 
+def check_font(name, provs):
+    """Minecraft drops a whole font (every letter becomes a box) if one bitmap's ascent is above its height."""
+    for p in provs:
+        if p['type'] == 'bitmap':
+            assert p['ascent'] <= p.get('height', 8), (name, p['file'], p['ascent'], p.get('height', 8))
+
+
 def canvas_fonts():
     """libreria:y<N> (text and big emblems with their top at y N) and libreria:row<K> (cards)."""
     default = json.load(open(os.path.join(VANILLA, 'font/include/default.json')))['providers']
@@ -772,15 +779,18 @@ def canvas_fonts():
             if p['type'] == 'bitmap' and p['file'].split('/')[-1] in ('icons.png', 'marks.png'):
                 q = dict(p)
                 q['ascent'] = p['ascent'] - shift
-                provs.append(q)
+                if q['ascent'] <= q['height']:
+                    provs.append(q)
         if n in ICON_Y:
             for name, ch in big_icon_chars.items():
                 provs.append({'type': 'bitmap', 'file': f'minecraft:item/{name}.png', 'height': 32, 'ascent': 13 - n, 'chars': [ch]})
+        check_font(f'y{n}', provs)
         json.dump({'providers': provs}, open(os.path.join(base, f'y{n}.json'), 'w'))
     for k, top in enumerate(ROW_TOP):
         provs = list(space)
         for p in card_sheets:
             provs.append({'type': 'bitmap', 'file': p['file'], 'height': p['height'], 'ascent': 13 - (top + p['top']), 'chars': p['chars']})
+        check_font(f'row{k}', provs)
         json.dump({'providers': provs}, open(os.path.join(base, f'row{k}.json'), 'w'))
 
 
