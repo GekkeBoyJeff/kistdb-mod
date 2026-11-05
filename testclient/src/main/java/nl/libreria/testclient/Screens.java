@@ -78,6 +78,30 @@ public final class Screens implements FabricClientGameTest {
 				ctx.takeScreenshot("nameplate_front");
 				camera(ctx, CameraType.FIRST_PERSON);
 			});
+			// Your own armour's particles in third person: a set (one orbit), and ordinary Protection armour
+			safe("armour_third", () -> {
+				run(server, "item replace entity @a armor.head with minecraft:diamond_helmet[enchantments={fire_protection:4}]",
+						"item replace entity @a armor.chest with minecraft:diamond_chestplate[enchantments={fire_protection:4}]",
+						"item replace entity @a armor.legs with minecraft:diamond_leggings[enchantments={fire_protection:4}]",
+						"item replace entity @a armor.feet with minecraft:diamond_boots[enchantments={fire_protection:4}]");
+				ctx.getInput().lookAt(0, 0);
+				camera(ctx, CameraType.THIRD_PERSON_BACK);
+				ctx.waitTicks(40);
+				ctx.takeScreenshot("armour_third_set");
+				run(server, "item replace entity @a armor.head with minecraft:diamond_helmet[enchantments={protection:4,unbreaking:3,mending:1}]",
+						"item replace entity @a armor.chest with minecraft:diamond_chestplate[enchantments={protection:4,unbreaking:3,mending:1}]",
+						"item replace entity @a armor.legs with minecraft:diamond_leggings[enchantments={protection:3,unbreaking:3}]",
+						"item replace entity @a armor.feet with minecraft:diamond_boots[enchantments={feather_falling:4,protection:4}]");
+				ctx.waitTicks(40);
+				ctx.takeScreenshot("armour_third_protection");
+				ctx.waitTicks(9);
+				ctx.takeScreenshot("armour_third_protection_2");
+				camera(ctx, CameraType.FIRST_PERSON);
+				ctx.waitTicks(20);
+				ctx.takeScreenshot("armour_first_person");
+				run(server, "item replace entity @a armor.head with minecraft:air", "item replace entity @a armor.chest with minecraft:air",
+						"item replace entity @a armor.legs with minecraft:air", "item replace entity @a armor.feet with minecraft:air");
+			});
 
 			// Items of every rarity in the inventory and hotbar
 			run(server, "clear @a",
