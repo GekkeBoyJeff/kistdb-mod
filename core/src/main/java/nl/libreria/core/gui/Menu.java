@@ -72,6 +72,12 @@ public abstract class Menu extends SimpleGui {
 		if (el == null) return null;
 		net.minecraft.world.item.ItemStack st = el.getItemStack();
 		if (st.isEmpty()) return el;
+		if (!st.has(net.minecraft.core.component.DataComponents.TOOLTIP_STYLE)) {
+			// The tooltip in the look of the menu
+			st = st.copy();
+			st.set(net.minecraft.core.component.DataComponents.TOOLTIP_STYLE, CanvasWindow.TOOLTIP);
+			el = new eu.pb4.sgui.api.elements.SimpleGuiElement(st, el.getGuiCallback());
+		}
 		String path = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(st.getItem()).getPath();
 		if (!path.endsWith("_stained_glass_pane")) {
 			// Buttons (they have their own name) don't get a rarity frame: a "Close" barrier is not an epic item

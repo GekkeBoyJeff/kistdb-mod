@@ -23,6 +23,8 @@ import nl.libreria.core.Ui;
  */
 public abstract class CanvasWindow extends SimpleGui {
 	private static final Identifier EMPTY = Identifier.fromNamespaceAndPath("libreria", "gui/empty");
+	/** The tooltip of our windows and menus: the look's panel. */
+	public static final Identifier TOOLTIP = Identifier.fromNamespaceAndPath("libreria", "panel");
 
 	protected final ServerPlayer player;
 
@@ -80,7 +82,9 @@ public abstract class CanvasWindow extends SimpleGui {
 
 	private GuiElementBuilder element(ItemStack stack, boolean invisible, Component name, List<Component> lines,
 			Consumer<ServerPlayer> action) {
-		GuiElementBuilder b = GuiElementBuilder.from(stack.copyWithCount(1)).setName(name).hideDefaultTooltip();
+		ItemStack st = stack.copyWithCount(1);
+		st.set(net.minecraft.core.component.DataComponents.TOOLTIP_STYLE, TOOLTIP);
+		GuiElementBuilder b = GuiElementBuilder.from(st).setName(name).hideDefaultTooltip();
 		if (invisible) b.model(EMPTY);
 		for (Component l : lines) b.addLoreLine(l);
 		if (action != null) {

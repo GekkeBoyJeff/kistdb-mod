@@ -44,6 +44,8 @@ public final class Glyphs {
 	/** Colour of a window's title in the pack's look, and of its shadow. */
 	public static int titleColor = 0xECDCB4;
 	public static int titleShadow = 0x140C06;
+	/** The heights (window y) at which the big item pictures ("ico.…") exist. */
+	public static final java.util.Set<Integer> ICON_Y = new java.util.HashSet<>();
 
 	static {
 		try {
@@ -62,6 +64,7 @@ public final class Glyphs {
 				ADVANCE_BY_CP.put(g[0], g[1]);
 			}
 			if (meta.has("hudLines")) hudLines = meta.get("hudLines").getAsInt();
+			if (meta.has("iconY")) meta.getAsJsonArray("iconY").forEach(e -> ICON_Y.add(e.getAsInt()));
 			if (meta.has("look")) {
 				JsonObject look = meta.getAsJsonObject("look");
 				titleColor = look.get("title").getAsInt();
@@ -149,22 +152,38 @@ public final class Glyphs {
 		return Component.literal(text).withStyle(s -> s.withFont(FONT).withBold(false).withItalic(false).withColor(TextColor.fromRgb(rgb)));
 	}
 
-	/** Exact width of a component in pixels, as the client will draw it. */
+	/** Exact width of a component in pixels, as the client will draw it (a key is measured as its usual name). */
 	public static int width(Component c) {
 		int[] total = {0};
-		c.visit((FormattedText.StyledContentConsumer<Object>) (style, text) -> {
-			boolean ui = style.getFont() instanceof FontDescription.Resource r && r.id().getNamespace().equals("libreria");
-			boolean bold = style.isBold();
-			text.codePoints().forEach(cp -> {
-				if (ui) {
-					total[0] += ADVANCE_BY_CP.getOrDefault(cp, 0);
-				} else {
-					total[0] += WIDTHS.getOrDefault(cp, defaultWidth) + (bold && cp != ' ' ? 1 : 0);
-				}
-			});
-			return Optional.empty();
-		}, Style.EMPTY);
+		measure(c, Style.EMPTY, total);
 		return total[0];
+	}
+
+	/** How wide the client's name of a key usually is ("Left Shift", or "Left Control" for those who moved it). */
+	private static final java.util.Map<String, String> KEY_NAMES = java.util.Map.ofEntries(
+			java.util.Map.entry("key.sneak", "Left Control"), java.util.Map.entry("key.sprint", "Left Control"),
+			java.util.Map.entry("key.use", "Right Button"), java.util.Map.entry("key.attack", "Left Button"),
+			java.util.Map.entry("key.pickItem", "Middle Button"), java.util.Map.entry("key.jump", "Space"));
+
+	private static void measure(Component c, Style parent, int[] total) {
+		Style style = c.getStyle().applyTo(parent);
+		if (c.getContents() instanceof net.minecraft.network.chat.contents.KeybindContents k) {
+			total[0] += width(Component.literal(KEY_NAMES.getOrDefault(k.getName(), "F")).withStyle(style));
+		} else {
+			c.getContents().visit((FormattedText.StyledContentConsumer<Object>) (st, text) -> {
+				boolean ui = st.getFont() instanceof FontDescription.Resource r && r.id().getNamespace().equals("libreria");
+				boolean bold = st.isBold();
+				text.codePoints().forEach(cp -> {
+					if (ui && ADVANCE_BY_CP.containsKey(cp)) {
+						total[0] += ADVANCE_BY_CP.get(cp);
+					} else {
+						total[0] += WIDTHS.getOrDefault(cp, defaultWidth) + (bold && cp != ' ' ? 1 : 0);
+					}
+				});
+				return Optional.empty();
+			}, style);
+		}
+		for (Component sib : c.getSiblings()) measure(sib, style, total);
 	}
 
 	public static int width(List<? extends Component> lines) {

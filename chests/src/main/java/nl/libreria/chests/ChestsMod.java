@@ -49,7 +49,7 @@ public final class ChestsMod implements ModInitializer {
 			"Handy without a middle mouse button", "(for example on a laptop).");
 	public static final Setting.Toggle NEW_MESSAGE = MODULE.toggle("melding", "Message for new chests", true, Items.PAPER,
 			"\"Added to your chests\" when you open", "a chest for the first time.");
-	public static final Setting.Toggle SNEAK_NOINDEX = MODULE.toggle("sneak", "Sneak + left-click skips a chest", true, Items.BARRIER,
+	public static final Setting.Toggle SNEAK_NOINDEX = MODULE.toggle("sneak", "{sneak} + {attack} skips a chest", true, Items.BARRIER,
 			"With an empty hand on a chest: leave", "it out of search (or take it back in).");
 	public static final Setting.Choice STACK_RADIUS = MODULE.choice("opbergen", "Quick stack range", Items.CHEST_MINECART, 1,
 			new int[]{6, 10, 16, 24}, new String[]{"6 blocks", "10 blocks", "16 blocks", "24 blocks"},

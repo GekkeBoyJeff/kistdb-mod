@@ -69,6 +69,6 @@ public final class ChestSearch {
 		p.connection.send(new ClientboundRecipeBookSettingsPacket(settings));
 		p.closeContainer();
 		nl.libreria.core.gui.Toast.show(p, net.minecraft.world.item.Items.KNOWLEDGE_BOOK, nl.libreria.core.gui.Toast.INFO,
-				"Recipe book ready", "Press E: it's open in your inventory");
+				"Recipe book ready", "Press {inventory}: it's open in your inventory");
 	}
 }

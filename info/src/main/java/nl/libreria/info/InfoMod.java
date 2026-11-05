@@ -33,7 +33,7 @@ public final class InfoMod implements ModInitializer {
 			new int[] {0, 1, 2}, new String[] {"Always", "Only new places", "Off"},
 			"Walk into a village, a temple or another", "stretch of land: its name fades in, small,", "at the top. Everything goes in your journal.").in(Domain.PLACES, "Finding your way");
 	public static final Setting.Toggle HORSE = MODULE.toggle("paard", "Horse stats", true, Items.SADDLE,
-			"Speed, jump and health of horses,", "donkeys and mules. Sneak-right-click", "a horse for the full card.");
+			"Speed, jump and health of horses,", "donkeys and mules. Hold {sneak} and", "press {use} on a horse for the full card.");
 
 	/** For the screenshot test: an enchanted sword with a long story, that just earned its name (in hotbar slot 1). */
 	public static void debugLegend(ServerPlayer p) {

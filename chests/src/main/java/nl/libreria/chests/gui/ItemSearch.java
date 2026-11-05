@@ -218,7 +218,7 @@ public final class ItemSearch extends AnvilInputGui {
 	/** The way to the recipe book, which sits behind the same button as this search. */
 	private GuiElementBuilder recipeBook() {
 		GuiElementBuilder b = Menu.button(Items.KNOWLEDGE_BOOK, "Recipe book", ChatFormatting.GREEN,
-				"The magnifying glass took the recipe", "book's place. Click here: it's open", "the next time you press E.");
+				"The magnifying glass took the recipe", "book's place. Click here: it's open", "the next time you press {inventory}.");
 		Menu.actions(b, "Click: open the recipe book");
 		return b.setCallback((index, type, action, gui) -> {
 			Ui.click(this.viewer);

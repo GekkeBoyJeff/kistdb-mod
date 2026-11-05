@@ -26,99 +26,82 @@ public final class StartWindow extends CanvasWindow {
 		new StartWindow(p).show();
 	}
 
-	private static String emblem(Domain d) {
+	/** Minecraft's picture for each domain (twice as big on its card). */
+	private static String icon(Domain d) {
 		return switch (d) {
-			case ITEMS -> "chest";
-			case PLACES -> "map";
-			case PROGRESS -> "trophy";
-			case YOU -> "tag";
+			case ITEMS -> "bundle";
+			case PLACES -> "filled_map";
+			case PROGRESS -> "nether_star";
+			case YOU -> "name_tag";
 		};
 	}
 
-	/** Where each domain's card sits (column, row). */
+	/** The cards, staggered (4 + 5 wide, then 5 + 4), so every cell belongs to one and they keep 4 px apart. */
 	private static int[] spot(Domain d) {
 		return switch (d) {
-			case ITEMS -> new int[] {0, 0};
-			case PLACES -> new int[] {5, 0};
-			case PROGRESS -> new int[] {0, 3};
-			case YOU -> new int[] {5, 3};
+			case ITEMS -> new int[] {0, 0, 4};
+			case PLACES -> new int[] {4, 0, 5};
+			case PROGRESS -> new int[] {0, 3, 5};
+			case YOU -> new int[] {5, 3, 4};
 		};
 	}
+
+	private static final int PAD = 6;
 
 	@Override
 	protected Canvas draw() {
 		Canvas c = new Canvas().panel();
 		c.text("Libreria", 8, 5, TITLE);
-		c.right(this.player.getName().getString(), 168, 5, MUTED);
+		c.right(Canvas.fit(this.player.getName().getString(), 90), 168, 5, MUTED);
 		for (Domain d : Domain.values()) {
 			int[] s = spot(d);
-			c.card(s[0], s[1], 4, 3, d.rgb);
 			int x0 = Canvas.cellX(s[0]) + Canvas.CARD_MARGIN, y0 = Canvas.cellY(s[1]) + Canvas.CARD_MARGIN;
-			int w = 18 * 4 - 2 * Canvas.CARD_MARGIN;
-			c.picture("big." + emblem(d), x0 + (w - 24) / 2, y0 + 6, d.rgb);
-			List<String> lines = Canvas.wrap(d.label, w - 6);
-			int y = lines.size() == 1 ? y0 + 36 : y0 + 32;
-			for (String l : lines) {
-				c.centred(l, x0 + w / 2, y, TEXT);
-				y += 9;
-			}
+			int w = 18 * s[2] - 2 * Canvas.CARD_MARGIN;
+			c.card(s[0], s[1], s[2], 3, d.rgb);
+			c.icon(icon(d), x0 + PAD, s[1], 4);
+			c.text(Canvas.fit(d.label, w - 2 * PAD), x0 + PAD, y0 + 39, TEXT);
 		}
-		// Between the cards: settings and getting started
-		small(c, 1, "sm.gear");
-		small(c, 4, "sm.help");
-		// Your places, over the first two rows of where your inventory is
-		c.card(0, 6, 9, 2, Domain.PLACES.rgb);
+		// Below, where your inventory normally is: your places (lined up with Progress), and the small ones beside it
 		int x0 = Canvas.cellX(0) + Canvas.CARD_MARGIN, y0 = Canvas.cellY(6) + Canvas.CARD_MARGIN;
-		c.picture("big.compass", x0 + 5, y0 + 4, Domain.PLACES.rgb);
-		c.text("Your places", x0 + 36, y0 + 7, TEXT);
+		c.card(0, 6, 5, 3, Domain.PLACES.rgb);
+		c.icon("compass_00", x0 + PAD, 6, 4);
 		int places = PlaceList.any() ? PlaceList.all(this.player).size() : 0;
-		c.text(places == 0 ? "Nothing to show the way to yet" : places + (places == 1 ? " place" : " places") + " to be shown the way to",
-				x0 + 36, y0 + 18, MUTED);
-		// The small ones
-		row(c, 8, new String[] {"Chronicle", "Tips", "Commands"});
-		c.card(0, 9, 3, 1, NEUTRAL);
-		c.centred("Links", Canvas.cellX(0) + 27, Canvas.cellY(9) + 5, TEXT);
-		c.card(6, 9, 3, 1, 0x9A8C74);
-		c.centred("Close", Canvas.cellX(6) + 27, Canvas.cellY(9) + 5, TEXT);
-		c.centred("G opens this", Canvas.cellX(4) + 9, Canvas.cellY(9) + 5, MUTED);
+		if (places > 0) c.right(Integer.toString(places), x0 + 86 - PAD, y0 + PAD, MUTED);
+		c.text("Your places", x0 + PAD, y0 + 39, TEXT);
+		small(c, 5, 6, 4, "Settings");
+		small(c, 5, 7, 4, "Chronicle");
+		small(c, 5, 8, 4, "Tips");
+		small(c, 0, 9, 5, "Getting started");
+		small(c, 5, 9, 4, "Links");
 		return c;
 	}
 
-	private static void small(Canvas c, int row, String glyph) {
-		c.card(4, row, 1, 1, NEUTRAL);
-		c.picture(glyph, Canvas.cellX(4) + Canvas.CARD_MARGIN + 3, Canvas.cellY(row) + Canvas.CARD_MARGIN + 3, 0xFFE6B0);
-	}
-
-	private static void row(Canvas c, int row, String[] labels) {
-		for (int i = 0; i < labels.length; i++) {
-			c.card(3 * i, row, 3, 1, NEUTRAL);
-			c.centred(labels[i], Canvas.cellX(3 * i) + 27, Canvas.cellY(row) + 5, TEXT);
-		}
+	/** A one-row card with its label centred. */
+	private static void small(Canvas c, int col, int row, int w, String label) {
+		c.card(col, row, w, 1, NEUTRAL);
+		int inner = 18 * w - 2 * Canvas.CARD_MARGIN - 2 * PAD;
+		c.centred(Canvas.fit(label, inner), Canvas.cellX(col) + 9 * w, Canvas.cellY(row) + 5, TEXT);
 	}
 
 	@Override
 	protected void fill() {
 		for (Domain d : Domain.values()) {
 			int[] s = spot(d);
-			area(s[0], s[1], 4, 3, d.title().withStyle(ChatFormatting.BOLD), lore(d.blurb, "Click: open"), p -> Start.domain(p, d));
+			area(s[0], s[1], s[2], 3, d.title().withStyle(ChatFormatting.BOLD), lore(d.blurb, "Click: open"), p -> Start.domain(p, d));
 		}
-		area(4, 1, 1, 1, Ui.text("Settings", ChatFormatting.WHITE).withStyle(ChatFormatting.BOLD),
-				lore("Your own settings, by the same four places.", "Click: open"), SettingsWindow::open);
-		area(4, 4, 1, 1, Ui.text("Getting started", ChatFormatting.WHITE).withStyle(ChatFormatting.BOLD),
-				lore("Keys, tips and links.", "Click: open"), Welcome::guide);
-		item(0, 8, "Chronicle", "What happened in this world.", Chronicle::open);
-		item(3, 8, "Tips", "Every tip, by the four places.", Tips::all);
-		item(6, 8, "Commands", "Every command, in short.", Welcome::commands);
-		item(0, 9, "Links", "The server's website, Discord and rules.", Links::open);
-		area(6, 9, 3, 1, Ui.text("Close", ChatFormatting.GRAY), List.of(), p -> p.closeContainer());
-		area(3, 9, 3, 1, Ui.text("Libreria", ChatFormatting.WHITE), lore("Press G (or Libreria in the pause menu) to come back here."), null);
-		area(0, 6, 9, 2, Ui.text("Your places", Domain.PLACES.rgb).withStyle(ChatFormatting.BOLD),
+		area(0, 6, 5, 3, Ui.text("Your places", Domain.PLACES.rgb).withStyle(ChatFormatting.BOLD),
 				lore("Your waypoints, land, graves, pets and the places you found: click one to be shown the way.", "Click: open"),
 				PlaceList::open);
+		item(5, 6, 4, "Settings", "Your own settings, by the same four places.", SettingsWindow::open);
+		item(5, 7, 4, "Chronicle", "What happened in this world.", Chronicle::open);
+		item(5, 8, 4, "Tips", "Every tip, by the four places.", Tips::all);
+		item(0, 9, 5, "Getting started", "Keys, tips and links. Press {menu} (or Libreria in the pause menu) to come back here.",
+				Welcome::guide);
+		item(5, 9, 4, "Links", "The server's website, Discord and rules.", Links::open);
 	}
 
-	private void item(int col, int row, String name, String about, Consumer<ServerPlayer> action) {
-		area(col, row, 3, 1, Ui.text(name, ChatFormatting.WHITE).withStyle(ChatFormatting.BOLD), lore(about, "Click: open"), action);
+	private void item(int col, int row, int w, String name, String about, Consumer<ServerPlayer> action) {
+		area(col, row, w, 1, Ui.text(name, ChatFormatting.WHITE).withStyle(ChatFormatting.BOLD), lore(about, "Click: open"), action);
 	}
 
 	/** Grey description (wrapped) and a yellow action line. */

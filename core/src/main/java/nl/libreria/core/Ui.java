@@ -20,14 +20,21 @@ public final class Ui {
 	private Ui() {
 	}
 
-	/** Tekst zonder het standaard-cursief van item-namen en lore. */
+	/**
+	 * Text without the default italics of item names and lore. Keys written as {@code {sneak}}, {@code {swap}} …
+	 * show as the player's own keys (see {@link Keys}).
+	 */
 	public static MutableComponent text(String s, ChatFormatting color) {
-		return Component.literal(s).withStyle(st -> st.withItalic(false).withColor(color));
+		return literal(s).withStyle(st -> st.withItalic(false).withColor(color));
 	}
 
 	/** Same, in any colour (0xRRGGBB). */
 	public static MutableComponent text(String s, int rgb) {
-		return Component.literal(s).withStyle(st -> st.withItalic(false).withColor(rgb));
+		return literal(s).withStyle(st -> st.withItalic(false).withColor(rgb));
+	}
+
+	private static MutableComponent literal(String s) {
+		return Keys.has(s) ? Keys.text(s) : Component.literal(s);
 	}
 
 	public static MutableComponent kv(String key, String value, ChatFormatting valueColor) {

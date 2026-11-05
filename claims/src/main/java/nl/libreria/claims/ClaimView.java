@@ -1005,13 +1005,13 @@ final class ClaimView {
 			TopCard.show(v.p, CARD, new TopCard.Card(new ItemStack(Items.FILLED_MAP), accent, name, subtitle, rows), 100);
 			MutableComponent keys = Component.literal("Mouse").withStyle(ChatFormatting.WHITE)
 					.append(Component.literal(" turn  ·  ").withStyle(ChatFormatting.GRAY))
-					.append(Component.literal("WASD").withStyle(ChatFormatting.WHITE))
+					.append(nl.libreria.core.Keys.text("{forward}{left}{back}{right}").withStyle(ChatFormatting.WHITE))
 					.append(Component.literal(" glide  ·  ").withStyle(ChatFormatting.GRAY))
 					.append(Component.literal("Scroll").withStyle(ChatFormatting.WHITE))
 					.append(Component.literal(" zoom  ·  ").withStyle(ChatFormatting.GRAY))
-					.append(Component.literal("Sneak").withStyle(ChatFormatting.WHITE))
+					.append(nl.libreria.core.Keys.key("sneak").withStyle(ChatFormatting.WHITE))
 					.append(Component.literal(" or ").withStyle(ChatFormatting.GRAY))
-					.append(Component.literal("Q").withStyle(ChatFormatting.WHITE))
+					.append(nl.libreria.core.Keys.key("drop").withStyle(ChatFormatting.WHITE))
 					.append(Component.literal(" back").withStyle(ChatFormatting.GRAY));
 			Hud.show(v.p, HUD, keys, Hud.PRIO_INFO, 10);
 			return;

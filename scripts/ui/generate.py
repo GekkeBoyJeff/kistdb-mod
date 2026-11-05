@@ -589,6 +589,48 @@ def window_panel():
     return img
 
 
+# Minecraft's own item pictures, twice as big (32 px), for the cards of a window. They are referenced, not copied, and
+# exist only at a few heights (a card's top + 4, + 6 or + 8), so the pack stays light.
+BIG_ICONS = ['bundle', 'filled_map', 'nether_star', 'name_tag', 'compass_00', 'comparator', 'book', 'writable_book',
+             'lantern', 'paper', 'ender_eye', 'knowledge_book', 'recovery_compass_00', 'clock_00', 'spyglass', 'map']
+ICON_Y = sorted({top + CARD_M + d for top in ROW_TOP for d in (4, 6, 8)})
+big_icon_chars = {}
+
+
+def big_icons():
+    for name in BIG_ICONS:
+        im = Image.open(os.path.join(VANILLA, 'textures/item', name + '.png')).convert('RGBA')
+        first = im.crop((0, 0, im.width, im.width))
+        w = actual_width(first, 0, first.width, first.height)
+        cp = next_cp()
+        big_icon_chars[name] = chr(cp)
+        # Minecraft's advance for a picture: its width at this size, plus one
+        glyphs['ico.' + name] = [cp, int(0.5 + w * 32 / im.width) + 1]
+
+
+def tooltip_style():
+    """libreria:panel, the tooltip of Libreria's windows and menus: the look's panel (Minecraft draws the sprite 12 px
+    beyond the text on every side; the panel starts 5 px in, so there are 3 px of room around the text)."""
+    d = os.path.join(OUT, 'assets', NS, 'textures/gui/sprites/tooltip')
+    os.makedirs(d, exist_ok=True)
+    L = LOOK
+    img = Image.new('RGBA', (100, 100), (0, 0, 0, 0))
+    o = 5
+    box = Image.new('RGBA', (100 - 2 * o, 100 - 2 * o), (0, 0, 0, 0))
+    panel_box(box, 0, 0, box.width, box.height)
+    # flat fill: the middle of the sprite is repeated, a gradient would show stripes
+    for y in range(4, box.height - 4):
+        for x in range(4, box.width - 4):
+            box.putpixel((x, y), lerp4(L['panel_top'], L['panel_bottom'], 0.5)[:3] + (248,))
+    img.alpha_composite(box, (o, o))
+    img.save(os.path.join(d, 'panel_background.png'))
+    json.dump({'gui': {'scaling': {'type': 'nine_slice', 'width': 100, 'height': 100, 'border': 12}}},
+              open(os.path.join(d, 'panel_background.png.mcmeta'), 'w'))
+    Image.new('RGBA', (100, 100), (0, 0, 0, 0)).save(os.path.join(d, 'panel_frame.png'))
+    json.dump({'gui': {'scaling': {'type': 'nine_slice', 'width': 100, 'height': 100, 'border': 12}}},
+              open(os.path.join(d, 'panel_frame.png.mcmeta'), 'w'))
+
+
 def canvas_fonts():
     """libreria:y<N> (text and big emblems with their top at y N) and libreria:row<K> (cards)."""
     default = json.load(open(os.path.join(VANILLA, 'font/include/default.json')))['providers']
@@ -604,6 +646,9 @@ def canvas_fonts():
             provs.append(q)
         for p in canvas_pictures:
             provs.append({'type': 'bitmap', 'file': p['file'], 'height': p['height'], 'ascent': 13 - n, 'chars': p['chars']})
+        if n in ICON_Y:
+            for name, ch in big_icon_chars.items():
+                provs.append({'type': 'bitmap', 'file': f'minecraft:item/{name}.png', 'height': 32, 'ascent': 13 - n, 'chars': [ch]})
         json.dump({'providers': provs}, open(os.path.join(base, f'y{n}.json'), 'w'))
     for k, top in enumerate(ROW_TOP):
         provs = list(space)
@@ -1112,7 +1157,8 @@ def hotbar_font():
                 c = (0, 0, 0, 120)
             slot.putpixel((x, y), c)
     shift = Image.new('RGBA', (5, 7), (0, 0, 0, 0))
-    for y, row in enumerate(['..#..', '.###.', '#####', '.###.', '.###.', '.###.', '.....']):
+    # Someone crouching: "sneak" (with whatever key the player put it on), not the Shift key itself
+    for y, row in enumerate(['..##.', '..##.', '.##..', '#.##.', '..#..', '.#.#.', '#..#.']):
         for x, ch in enumerate(row):
             if ch == '#':
                 shift.putpixel((x, y), (255, 255, 255, 255))
@@ -1415,7 +1461,9 @@ def main():
     icons()
     frames()
     canvas_pictures_sheet()
+    big_icons()
     cards()
+    tooltip_style()
     bitmap('window', [('win.panel', window_panel())], WIN_H, 13)
     # Its top is SEARCH_OY above the anvil's top; the title's baseline is 13 below that top
     bitmap('search_frame', [('frame.search', search_frame())], 166 + 2 * SEARCH_OY, 13 + SEARCH_OY)
@@ -1439,7 +1487,7 @@ def main():
     hotbar_font()
     meta = {"hudLines": HUD_LINES, "icons": icon_map, 'lineHeight': LH, 'padX': PAD_X, 'padTop': PAD_TOP, 'padBottom': PAD_BOTTOM,
             'panelLines': [min(PANEL_LINES), max(PANEL_LINES)], 'themes': list(THEMES), 'glyphs': glyphs,
-            'look': {'title': LOOK['title'], 'titleShadow': LOOK['title_shadow']}}
+            'look': {'title': LOOK['title'], 'titleShadow': LOOK['title_shadow']}, 'iconY': ICON_Y}
     os.makedirs(os.path.join(OUT, NS), exist_ok=True)
     json.dump(meta, open(os.path.join(OUT, NS, 'ui_glyphs.json'), 'w'), indent=1)
     print(len(glyphs), 'glyphs,', len(providers), 'providers')

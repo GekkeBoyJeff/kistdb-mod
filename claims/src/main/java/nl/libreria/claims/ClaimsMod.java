@@ -86,10 +86,10 @@ public final class ClaimsMod implements ModInitializer {
 					"/claim trust <name> – add a friend",
 					"/claim release – give a chunk up");
 
-	/** The land map key: sneak + swap hands (F), swap hands alone, or none. */
+	/** The land map key: sneak + swap hands, swap hands alone, or none (shown with the player's own keys). */
 	public static final nl.libreria.core.Setting.Choice MAP_KEY = MODULE.choice("kaarttoets", "Land map key", Items.FILLED_MAP, 0,
-			new int[] {0, 1, 2}, new String[] {"Sneak + swap hands (F)", "Swap hands (F)", "Off"},
-			"Opens and closes the land map.", "Swap hands is F unless you changed", "it in Controls.");
+			new int[] {0, 1, 2}, new String[] {"{sneak} + {swap}", "{swap}", "Off"},
+			"Opens and closes the land map: sneak and", "swap hands together, or swap hands alone.");
 	public static final nl.libreria.core.Setting.Toggle SHOW_ME = MODULE.toggle("show_me", "Show me on land maps", false, Items.PLAYER_HEAD,
 			"Other players see you as a marker", "on their land maps. Off: nobody does.");
 	public static final nl.libreria.core.Setting.Toggle MAP_BUTTON = MODULE.toggle("kaartknop", "Land map button", true, Items.MAP,
@@ -147,7 +147,7 @@ public final class ClaimsMod implements ModInitializer {
 	private static final Map<UUID, Integer> TIP_AT = new HashMap<>();
 
 	static final Tips.Tip TIP_START = Tips.register("claim_start", Domain.PLACES, Items.GOLDEN_SHOVEL, "Protect your base",
-			"Stand inside it and type /claim,", "or open the land map: sneak + swap hands (F).");
+			"Stand inside it and type /claim,", "or open the land map: {sneak} + {swap}.");
 	static final Tips.Tip TIP_DENIED = Tips.register("claim_denied", Domain.PLACES, Items.BARRIER, "Someone else's land",
 			"Only the owner and their friends can build here.", "Ask them to trust you: /claim trust <your name>.");
 
@@ -156,7 +156,7 @@ public final class ClaimsMod implements ModInitializer {
 		LandPlaces.register();
 		MODULE.hubEntry(Domain.PLACES, 20, Items.FILLED_MAP, "Land map", ClaimView::open,
 				"Your land and others' from above: claim chunks, name your land, see whose land is where.",
-				"Key: sneak + swap hands (F).");
+				"Key: {sneak} + {swap}.");
 		MODULE.hubEntry(Domain.PLACES, 30, Items.MAP, "Land map to hold", LandMapItem::give,
 				"A real map item that shows the claims around you as you walk.");
 		MODULE.hubEntry(Domain.PLACES, 40, Items.NAME_TAG, "Trusted players", MapGui.TrustGui::open,

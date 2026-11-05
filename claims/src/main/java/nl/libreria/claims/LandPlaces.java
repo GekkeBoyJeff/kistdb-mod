@@ -127,7 +127,7 @@ final class LandPlaces {
 
 	private static GuiElementBuilder mapButton(ServerPlayer p) {
 		return Menu.actions(Menu.button(Items.FILLED_MAP, "Land map", ChatFormatting.GREEN,
-				"Your land and others' from above:", "claim chunks, name your land.", "", "Key: sneak + swap hands (F)"), "Click: open")
+				"Your land and others' from above:", "claim chunks, name your land.", "", "Key: {sneak} + {swap}"), "Click: open")
 				.setCallback((i, t, a, g) -> {
 					Ui.click(p);
 					p.closeContainer();

@@ -39,9 +39,9 @@ public final class ComfortMod implements ModInitializer {
 	public static final Module MODULE = Module.register("comfort", "Comfort", Items.OAK_DOOR,
 			"Double doors, sitting on stairs", "and right-click harvesting.").in(nl.libreria.core.Domain.YOU, "Small comforts");
 	public static final Setting.Toggle DOORS = MODULE.toggle("deuren", "Double doors together", true, Items.OAK_DOOR,
-			"Open one door of a double door and", "the other one opens with it.", "Sneak = only this one.");
+			"Open one door of a double door and", "the other one opens with it.", "Hold {sneak}: only this one.");
 	public static final Setting.Toggle SIT = MODULE.toggle("zitten", "Sit on stairs and slabs", true, Items.OAK_STAIRS,
-			"Right-click a stair or bottom slab with", "empty hands to sit. Sneak = stand up.");
+			"Right-click a stair or bottom slab with", "empty hands to sit. {sneak}: stand up.");
 	public static final Setting.Toggle HARVEST = MODULE.toggle("oogsten", "Right-click harvesting", true, Items.WHEAT,
 			"Right-click a ripe crop (empty hand or", "hoe) to harvest and replant it at once.");
 

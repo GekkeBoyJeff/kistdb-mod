@@ -93,10 +93,27 @@ public final class Canvas {
 		return text(text, right - Glyphs.width(Component.literal(text)), y, rgb);
 	}
 
-	/** One of the pack's pictures (a big or small emblem: "big.chest", "sm.gear" …) with its top left at (x, y). */
+	/**
+	 * One of the pack's pictures with its top left at (x, y): an emblem ("big.chest", "sm.gear") anywhere, or one of
+	 * Minecraft's item pictures at twice the size ("ico.bundle"), which exist a card's top + 4, 6 or 8 px down.
+	 */
 	public Canvas picture(String glyph, int x, int y, int rgb) {
 		if (y < MIN_Y || y > MAX_Y || !Glyphs.has(glyph)) return this;
+		if (glyph.startsWith("ico.") && !Glyphs.ICON_Y.contains(y)) return this;
 		return glyph(x, font(y), glyph, rgb);
+	}
+
+	/** A big item picture on a card, {@code dy} (4, 6 or 8) below the top of the card's first row. */
+	public Canvas icon(String item, int x, int row, int dy) {
+		return picture("ico." + item, x, cellY(row) + CARD_MARGIN + dy, 0xFFFFFF);
+	}
+
+	/** {@code text}, cut short with "…" if it is wider than {@code max} pixels. */
+	public static String fit(String text, int max) {
+		if (Glyphs.width(Component.literal(text)) <= max) return text;
+		String t = text;
+		while (t.length() > 1 && Glyphs.width(Component.literal(t + "…")) > max) t = t.substring(0, t.length() - 1);
+		return t.stripTrailing() + "…";
 	}
 
 	private Canvas glyph(int px, FontDescription font, String glyph, int rgb) {
