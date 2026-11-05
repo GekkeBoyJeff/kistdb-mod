@@ -83,6 +83,8 @@ final class CoreTests {
 			SelfTests.check(PlaceList.all(p) != null, "places listed");
 			// Tips: once, then never again
 			Tips.Tip tip = Tips.all(Domain.ITEMS).getFirst();
+			// Start clean: other tests may have left tips waiting for this (fake) player, and the queue is first come, first served
+			Tips.forget(p.getUUID());
 			nl.libreria.core.gui.TopCard.forget(p.getUUID());
 			Tips.STORE.get(p).seen.remove(tip.key());
 			nl.libreria.core.gui.Toast.show(p, Items.BOOK, nl.libreria.core.gui.Toast.INFO, "Busy", "A card is on top");
