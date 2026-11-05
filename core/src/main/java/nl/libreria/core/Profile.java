@@ -36,19 +36,46 @@ public final class Profile {
 		@Nullable String of(MinecraftServer server, UUID who, Stats stats);
 	}
 
-	public record Line(int order, Item icon, String label, Value value) {
+	/** {@code main}: a row of its own (four at most); otherwise in the tooltip of the card at the top. */
+	public record Line(int order, Item icon, String label, Value value, boolean main) {
+	}
+
+	/** An achievement (or anything) shown big on a profile: picture, name, the colour of its rim and name, tooltip. */
+	public record Shown(net.minecraft.world.item.ItemStack icon, String name, int rgb, List<net.minecraft.network.chat.Component> lore) {
+	}
+
+	/** Where the showcase comes from (the Collector): what someone shows, and choosing your own. */
+	public interface Showcase {
+		List<Shown> of(MinecraftServer server, UUID who);
+
+		void choose(ServerPlayer viewer, int slot, java.util.function.Consumer<ServerPlayer> back);
 	}
 
 	private static final List<Line> LINES = new ArrayList<>();
+	private static @Nullable Showcase showcase;
 	private static final DateTimeFormatter DATE = DateTimeFormatter.ofPattern("d MMM yyyy", Locale.ENGLISH);
 
 	private Profile() {
 	}
 
-	/** A line on every profile, ordered by {@code order} (core: playtime 10, since 20, monsters 60). */
+	/** A line in the tooltip of the profile's card, ordered by {@code order} (core: since 20, monsters 60). */
 	public static void add(int order, Item icon, String label, Value value) {
-		LINES.add(new Line(order, icon, label, value));
+		LINES.add(new Line(order, icon, label, value, false));
 		LINES.sort(Comparator.comparingInt(Line::order));
+	}
+
+	/** A row of its own on every profile (core: playtime 10); four fit. */
+	public static void main(int order, Item icon, String label, Value value) {
+		LINES.add(new Line(order, icon, label, value, true));
+		LINES.sort(Comparator.comparingInt(Line::order));
+	}
+
+	public static void showcase(Showcase s) {
+		showcase = s;
+	}
+
+	public static @Nullable Showcase showcase() {
+		return showcase;
 	}
 
 	public static List<Line> lines() {
@@ -56,7 +83,7 @@ public final class Profile {
 	}
 
 	static void init() {
-		add(10, Items.CLOCK, "Playtime", (s, who, st) -> {
+		main(10, Items.CLOCK, "Playtime", (s, who, st) -> {
 			long ticks = st.custom("play_time");
 			long hours = ticks / 72000;
 			if (hours >= 1) return Ui.n(hours) + (hours == 1 ? " hour" : " hours");

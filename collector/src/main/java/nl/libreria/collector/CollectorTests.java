@@ -186,6 +186,70 @@ final class CollectorTests {
 			p.getInventory().clearContent();
 			d.earned.clear();
 		});
+		SelfTests.register("collector.secrets", level -> {
+			if (Catalog.all().isEmpty()) Catalog.build();
+			SelfTests.check(Secrets.ALL.size() >= 60, "lots of secrets: " + Secrets.ALL.size());
+			for (Secrets.Secret s : Secrets.ALL.values()) {
+				Achievement a = Catalog.get("geheim." + s.id());
+				SelfTests.check(a != null && Catalog.isSecret(a) && a.category() == Achievement.Category.GEHEIM, "secret is an achievement: " + s.id());
+				SelfTests.check(!s.clue().isEmpty(), "secret has a clue: " + s.id());
+			}
+			SelfTests.check("Something about how you die.".equals(Catalog.secretClue(Catalog.get("geheim.cactus"))), "clue for the cactus");
+			SelfTests.check(!Catalog.isSecret(Catalog.get("verzamel.wol")), "ordinary achievements aren't secret");
+			FakePlayer p = FakePlayer.get(level);
+			CollectorMod.Data d = CollectorMod.STORE.get(p);
+			d.secrets.clear();
+			d.earned.clear();
+			d.initialized = true;
+			d.catalog = Catalog.signature();
+			Secrets.award(p, "cactus");
+			SelfTests.check(d.secrets.isEmpty(), "a fake player finds no secrets");
+			d.secrets.add("cactus");
+			CollectorMod.check(p);
+			SelfTests.check(d.earned.containsKey("geheim.cactus"), "found secret = earned");
+			SelfTests.check(d.earned.containsKey("geheimen.1"), "first secret: Curious Cat");
+			SelfTests.check(!d.earned.containsKey("geheim.bessen"), "the others stay hidden");
+			d.secrets.clear();
+			d.earned.clear();
+		});
+		SelfTests.register("collector.records", level -> {
+			if (Catalog.all().isEmpty()) Catalog.build();
+			SelfTests.check("87 m".equals(Records.Kind.FALL.format(87.2)), "fall: " + Records.Kind.FALL.format(87.2));
+			SelfTests.check("14.2 km".equals(Records.Kind.FLIGHT.format(14200)), "flight: " + Records.Kind.FLIGHT.format(14200));
+			SelfTests.check("2.5 h".equals(Records.Kind.SESSION.format(2.5)) && "41 h".equals(Records.Kind.ALIVE.format(41.2)), "hours");
+			SelfTests.check("y -64".equals(Records.Kind.DEPTH.format(-63.4)), "depth: " + Records.Kind.DEPTH.format(-63.4));
+			SelfTests.check(Records.Kind.DEPTH.beats(-60, -55) && !Records.Kind.DEPTH.beats(-50, -55), "deeper beats depth");
+			SelfTests.check(!Records.Kind.FALL.beats(30.5, 30) && Records.Kind.FALL.beats(31, 30), "a fall must be a block longer");
+			SelfTests.check(Records.Kind.FLIGHT.beats(1201, 1200), "farther flight beats");
+			SelfTests.check(!Records.Kind.FALL.counts(5) && Records.Kind.FALL.counts(40), "a short fall isn't a record");
+			Records.Rec before = Records.get(Records.Kind.FALL);
+			Records.offer(FakePlayer.get(level), Records.Kind.FALL, 999);
+			SelfTests.check(Records.get(Records.Kind.FALL) == before, "a fake player sets no records");
+			for (Records.Kind k : Records.Kind.values()) {
+				SelfTests.check(Catalog.get("record." + k.id) != null, "achievement for holding " + k.id);
+			}
+			SelfTests.check(Catalog.get("records.1") != null && Catalog.get("records.20") != null, "record breaker ladder");
+		});
+		SelfTests.register("collector.showcase", level -> {
+			if (Catalog.all().isEmpty()) Catalog.build();
+			FakePlayer p = FakePlayer.get(level);
+			CollectorMod.Data d = CollectorMod.STORE.get(p);
+			d.earned.clear();
+			d.showcase.clear();
+			SelfTests.check(CollectorMod.showcase(d).isEmpty(), "nothing earned: empty showcase");
+			d.earned.put("fok.1", 1L);
+			d.earned.put("items.drakenei", 2L);
+			d.earned.put("mijn.1000", 3L);
+			d.earned.put("tijd.1", 4L);
+			java.util.List<Achievement> auto = CollectorMod.showcase(d);
+			SelfTests.check(auto.size() == 3 && auto.get(0).id().equals("items.drakenei"), "automatic: rarest first, three of them");
+			d.showcase.add("tijd.1");
+			d.showcase.add("verzamel.wol");
+			java.util.List<Achievement> chosen = CollectorMod.showcase(d);
+			SelfTests.check(chosen.size() == 1 && chosen.get(0).id().equals("tijd.1"), "chosen: only earned ones, in your order");
+			d.earned.clear();
+			d.showcase.clear();
+		});
 		SelfTests.register("collector.advancements", level -> {
 			if (Catalog.all().isEmpty()) Catalog.build();
 			if (Advancements.holder("verzamel.wol") == null) Advancements.inject(level.getServer());

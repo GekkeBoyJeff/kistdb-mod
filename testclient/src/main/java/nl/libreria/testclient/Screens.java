@@ -384,6 +384,22 @@ public final class Screens implements FabricClientGameTest {
 					r.done.put(sanne, r.target * 2 / 100);
 				}
 				nl.libreria.core.Guide.clear(player);
+				// Records, and a few achievements for the showcase (one of them a secret)
+				String me = player.getName().getString();
+				nl.libreria.collector.Records.debugSet(nl.libreria.collector.Records.Kind.FALL, player.getUUID(), me, 87, null, 0);
+				nl.libreria.collector.Records.debugSet(nl.libreria.collector.Records.Kind.FLIGHT, anna, "Anna", 14200, "Bram", 9800);
+				nl.libreria.collector.Records.debugSet(nl.libreria.collector.Records.Kind.SPEED, bram, "Bram", 68, null, 0);
+				nl.libreria.collector.Records.debugSet(nl.libreria.collector.Records.Kind.DISTANCE, player.getUUID(), me, 31400, "Sanne", 12000);
+				nl.libreria.collector.Records.debugSet(nl.libreria.collector.Records.Kind.ALIVE, sanne, "Sanne", 41, null, 0);
+				nl.libreria.collector.Records.debugSet(nl.libreria.collector.Records.Kind.SESSION, anna, "Anna", 6.5, null, 0);
+				nl.libreria.collector.Records.debugSet(nl.libreria.collector.Records.Kind.LEVELS, player.getUUID(), me, 112, null, 0);
+				nl.libreria.collector.Records.debugSet(nl.libreria.collector.Records.Kind.DEPTH, bram, "Bram", -64, null, 0);
+				var cd = nl.libreria.collector.CollectorMod.STORE.get(player);
+				for (String id : new String[] {"items.drakenei", "record.fall", "geheim.cactus", "baas.draak", "tijd.1"}) {
+					if (nl.libreria.collector.Catalog.get(id) != null) cd.earned.putIfAbsent(id, now);
+				}
+				cd.secrets.add("cactus");
+				cd.recordsHeld.add("fall");
 			});
 			menu(ctx, server, player, "own_domain_me_new", p -> nl.libreria.core.DomainWindow.open(p, nl.libreria.core.Domain.YOU));
 			menu(ctx, server, player, "own_domain_progress_goal", p -> nl.libreria.core.DomainWindow.open(p, nl.libreria.core.Domain.PROGRESS));
@@ -392,6 +408,11 @@ public final class Screens implements FabricClientGameTest {
 			menu(ctx, server, player, "own_profile_other", p -> nl.libreria.core.ProfileWindow.open(p, anna, "Players",
 					nl.libreria.core.PlayersWindow::open));
 			menu(ctx, server, player, "own_players", nl.libreria.core.PlayersWindow::open);
+			menu(ctx, server, player, "own_showcase", p -> nl.libreria.collector.gui.ShowcaseWindow.open(p, 1, q -> {
+			}));
+			menu(ctx, server, player, "own_records", nl.libreria.collector.gui.RecordsWindow::open);
+			menu(ctx, server, player, "own_secrets", p -> nl.libreria.collector.gui.AchievementsGui.openCategory(p,
+					nl.libreria.collector.Achievement.Category.GEHEIM));
 			menu(ctx, server, player, "own_goal", nl.libreria.collector.gui.GoalWindow::open);
 			safe("goal_bar", () -> {
 				server.runOnServer(s -> nl.libreria.core.Hud.show(player, "goal", net.minecraft.network.chat.Component.empty()

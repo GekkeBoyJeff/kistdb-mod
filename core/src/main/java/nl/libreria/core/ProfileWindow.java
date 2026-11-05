@@ -17,12 +17,16 @@ import nl.libreria.core.gui.Glyphs;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * A player's profile, as a window of our own: a card with their name, whether they're here and their title, then one
- * row per thing they did (playtime, achievements…), the value on the right.
+ * A player's profile, as a window of our own: a card with their name, whether they're here and their title; their
+ * showcase (three achievements, rim and name in the rarity's colour); then four rows (playtime, achievements, points,
+ * records). The rest (since when, items, monsters…) is in the tooltip of the card. On your own profile a click on the
+ * showcase lets you choose what's in it.
  */
 public final class ProfileWindow extends CanvasWindow {
-	/** The rows under the card. */
-	private static final int[] ROWS = {2, 3, 4, 5, 6, 7, 8};
+	/** The showcase, and the rows under it (without a showcase the rows start right under the card). */
+	private static final int[] SHOW = {2, 3, 4};
+	private static final int[] MAIN = {5, 6, 7, 8};
+	private static final int[] ALL = {2, 3, 4, 5, 6, 7, 8};
 	static final int ONLINE = 0x7CE07C;
 
 	private final Players.Known who;
@@ -31,6 +35,9 @@ public final class ProfileWindow extends CanvasWindow {
 	private final String via;
 	private final List<String[]> facts = new ArrayList<>();
 	private final List<ItemStack> icons = new ArrayList<>();
+	private final List<String[]> more = new ArrayList<>();
+	private final List<Profile.Shown> shown = new ArrayList<>();
+	private final boolean showcase;
 
 	private ProfileWindow(ServerPlayer p, Players.Known who, String via, Consumer<ServerPlayer> back) {
 		super(p);
@@ -39,8 +46,17 @@ public final class ProfileWindow extends CanvasWindow {
 		this.back = back;
 		MinecraftServer server = p.level().getServer();
 		Profile.Stats stats = Profile.stats(server, who.id());
+		Profile.Showcase sc = Profile.showcase();
+		this.showcase = sc != null;
+		if (sc != null) {
+			try {
+				this.shown.addAll(sc.of(server, who.id()));
+			} catch (RuntimeException e) {
+				Libreria.LOG.warn("Profile showcase failed", e);
+			}
+		}
+		int room = this.showcase ? MAIN.length : ALL.length;
 		for (Profile.Line l : Profile.lines()) {
-			if (this.facts.size() >= ROWS.length) break;
 			String v;
 			try {
 				v = l.value().of(server, who.id(), stats);
@@ -49,8 +65,12 @@ public final class ProfileWindow extends CanvasWindow {
 				v = null;
 			}
 			if (v == null) continue;
-			this.facts.add(new String[] {l.label(), v});
-			this.icons.add(new ItemStack(l.icon()));
+			if (l.main() && this.facts.size() < room) {
+				this.facts.add(new String[] {l.label(), v});
+				this.icons.add(new ItemStack(l.icon()));
+			} else {
+				this.more.add(new String[] {l.label(), v});
+			}
 		}
 	}
 
@@ -92,6 +112,10 @@ public final class ProfileWindow extends CanvasWindow {
 		return own() ? "Online (you)" : "Online";
 	}
 
+	private int[] factRows() {
+		return this.showcase ? MAIN : ALL;
+	}
+
 	@Override
 	protected Canvas draw() {
 		Canvas c = new Canvas().panel();
@@ -119,15 +143,29 @@ public final class ProfileWindow extends CanvasWindow {
 		c.text(Canvas.fit(this.who.label(), x1 - x0 - sw), x0, Canvas.cellY(0) + 9, StartWindow.TEXT);
 		Component title = title();
 		int titleColor = title != null && title.getStyle().getColor() != null ? title.getStyle().getColor().getValue() : StartWindow.MUTED;
-		String second = title != null ? title.getString().replace("✦", "").trim()
-				: !this.who.shown().isEmpty() ? this.who.name() : "";
+		String second = title != null ? title.getString().replace("✦", "").trim() : !this.who.shown().isEmpty() ? this.who.name() : "";
 		if (!second.isEmpty()) c.text(Canvas.fit(second, x1 - x0), x0, Canvas.cellY(0) + 20, title != null ? titleColor : StartWindow.MUTED);
 
-		// One row per thing they did
 		int left = Canvas.cellX(1) + 4, width = Canvas.cellX(9) - Canvas.CARD_MARGIN - left;
+		// The showcase: rim and name in the rarity's colour (on your own profile an empty place says what to do)
+		if (this.showcase) {
+			for (int i = 0; i < SHOW.length; i++) {
+				int row = SHOW[i], y = Canvas.cellY(row) + 5;
+				if (i < this.shown.size()) {
+					Profile.Shown s = this.shown.get(i);
+					c.line(left, row, width, s.rgb());
+					c.text(Canvas.fit(s.name(), width - 12), left + 6, y, s.rgb());
+				} else if (own()) {
+					c.line(left, row, width, 0x6E7480);
+					c.text("Choose an achievement", left + 6, y, StartWindow.MUTED);
+				}
+			}
+		}
+		// The main rows
+		int[] rows = factRows();
 		for (int i = 0; i < this.facts.size(); i++) {
 			String[] f = this.facts.get(i);
-			int row = ROWS[i];
+			int row = rows[i];
 			c.line(left, row, width, Domain.YOU.rgb);
 			int y = Canvas.cellY(row) + 5;
 			int vw = Glyphs.width(Component.literal(f[1]));
@@ -147,16 +185,45 @@ public final class ProfileWindow extends CanvasWindow {
 		if (title != null) about.add(Component.empty().append(Ui.text("Title: ", ChatFormatting.GRAY)).append(title));
 		about.add(Ui.text(this.who.online() != null ? "Here now" : "Last here: " + Players.ago(this.who.last()).toLowerCase(java.util.Locale.ROOT),
 				ChatFormatting.GRAY));
+		if (!this.more.isEmpty()) about.add(Component.empty());
+		for (String[] m : this.more) {
+			about.add(Component.empty().append(Ui.text(m[0] + ": ", ChatFormatting.GRAY)).append(Ui.text(m[1], ChatFormatting.WHITE)));
+		}
 		Component name = Ui.text(this.who.label(), Domain.YOU.rgb).withStyle(ChatFormatting.BOLD);
 		area(0, 0, 9, 2, name, about, p -> {
 		});
+		Profile.Showcase sc = Profile.showcase();
+		if (sc != null) {
+			Consumer<ServerPlayer> reopen = q -> open(q, this.who.id(), this.via, this.back);
+			for (int i = 0; i < SHOW.length; i++) {
+				int slot = i;
+				Consumer<ServerPlayer> choose = own() ? q -> sc.choose(q, slot, reopen) : q -> {
+				};
+				if (i < this.shown.size()) {
+					Profile.Shown s = this.shown.get(i);
+					List<Component> lore = new ArrayList<>(s.lore());
+					if (own()) {
+						lore.add(Component.empty());
+						lore.add(Ui.text("▸ Click: choose another", ChatFormatting.YELLOW));
+					}
+					Component label = Ui.text(s.name(), s.rgb()).withStyle(ChatFormatting.BOLD);
+					area(1, SHOW[i], 8, 1, label, lore, choose);
+					icon(0, SHOW[i], s.icon(), label, lore, choose);
+				} else if (own()) {
+					List<Component> lore = List.of(Ui.text("Three achievements on your profile,", ChatFormatting.GRAY),
+							Ui.text("for everyone to see.", ChatFormatting.GRAY), Component.empty(), Ui.text("▸ Click: choose", ChatFormatting.YELLOW));
+					area(0, SHOW[i], 9, 1, Ui.text("Your showcase", Domain.YOU.rgb).withStyle(ChatFormatting.BOLD), lore, choose);
+				}
+			}
+		}
+		int[] rows = factRows();
 		for (int i = 0; i < this.facts.size(); i++) {
 			String[] f = this.facts.get(i);
 			Component label = Ui.text(f[0], Domain.YOU.rgb).withStyle(ChatFormatting.BOLD);
 			List<Component> lore = List.of(Ui.text(f[1], ChatFormatting.WHITE));
-			area(1, ROWS[i], 8, 1, label, lore, p -> {
+			area(1, rows[i], 8, 1, label, lore, p -> {
 			});
-			icon(0, ROWS[i], this.icons.get(i), label, lore, p -> {
+			icon(0, rows[i], this.icons.get(i), label, lore, p -> {
 			});
 		}
 		area(0, 9, 9, 1, Ui.text("Back", ChatFormatting.WHITE).withStyle(ChatFormatting.BOLD), List.of(), this.back);

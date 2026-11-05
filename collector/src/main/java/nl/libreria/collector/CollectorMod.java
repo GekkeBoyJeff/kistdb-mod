@@ -71,6 +71,20 @@ public final class CollectorMod implements ModInitializer {
 		public boolean initialized;
 		/** {@link Catalog#signature()} at the last check: when it changes, new achievements are given quietly. */
 		public int catalog;
+		/** Secrets found (ids without "geheim."). */
+		public Set<String> secrets = new HashSet<>();
+		/** Up to three achievements on your profile ("" or missing = your rarest). */
+		public List<String> showcase = new ArrayList<>();
+		/** Records you have ever held, and how many times you took one. */
+		public Set<String> recordsHeld = new HashSet<>();
+		public int recordsTaken;
+		/** Chat messages sent. */
+		public long chats;
+		/** Days you played, the last one (yyyy-MM-dd), and days in a row (now and best). */
+		public int daysPlayed;
+		public String lastDay = "";
+		public int streak;
+		public int bestStreak;
 	}
 
 	public static final PlayerStore<Data> STORE = PlayerStore.create("libreria/collector", Data.class, Data::new, d -> {
@@ -78,6 +92,10 @@ public final class CollectorMod implements ModInitializer {
 		if (d.earned == null) d.earned = new HashMap<>();
 		if (d.bred == null) d.bred = new HashSet<>();
 		if (d.title == null) d.title = "";
+		if (d.secrets == null) d.secrets = new HashSet<>();
+		if (d.showcase == null) d.showcase = new ArrayList<>();
+		if (d.recordsHeld == null) d.recordsHeld = new HashSet<>();
+		if (d.lastDay == null) d.lastDay = "";
 	});
 
 	@Override
@@ -85,7 +103,16 @@ public final class CollectorMod implements ModInitializer {
 		MODULE.hubEntry(Domain.PROGRESS, 10, Items.NETHER_STAR, "Achievements", AchievementsGui::open,
 				"What you've done and what's still to do, in grades. Every one is within reach.");
 		Goals.init();
+		Secrets.init();
 		profileLines();
+		MODULE.hubEntry(Domain.PROGRESS, 25, Items.GOLD_BLOCK, "Records", nl.libreria.collector.gui.RecordsWindow::open,
+				"The server's records: the longest fall survived, the longest flight, the fastest, the farthest out. Who holds them?");
+		nl.libreria.core.DomainWindow.value("Records", p -> {
+			int held = Records.held(p.getUUID());
+			return held == 0 ? "" : held + " held";
+		});
+		MODULE.commands(Domain.PROGRESS, "/records – the server's records");
+		MODULE.commands(Domain.YOU, "/showcase – choose the achievements on your profile");
 		MODULE.hubEntry(Domain.YOU, 20, Items.NAME_TAG, "Title", AchievementsGui::openTitles,
 				"Choose the title that floats above your name.");
 		Services.provideMenu(Services.MENU_ACHIEVEMENTS, AchievementsGui::open);
@@ -152,6 +179,8 @@ public final class CollectorMod implements ModInitializer {
 		});
 		net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
 			ServerPlayer p = handler.player;
+			Secrets.WATCH.put(p.getUUID(), new Secrets.Watch());
+			day(p);
 			scanNow(p);
 			check(p);
 			Advancements.sync(p);
@@ -161,9 +190,12 @@ public final class CollectorMod implements ModInitializer {
 			if (t % 20 == 7) scanAll(server);
 			if (t % 100 == 13) checkAll(server);
 			if (t % 100 == 41) Goals.tick(server);
+			Secrets.tick(server);
+			if (t % 1200 == 77) for (ServerPlayer p : server.getPlayerList().getPlayers()) day(p);
 			Banner.tick(server);
 		});
 		ServerLifecycleEvents.SERVER_STOPPING.register(server -> Banner.clear());
+		net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> Secrets.forget(handler.player.getUUID()));
 		ServerEntityEvents.ENTITY_LOAD.register((entity, level) -> {
 			if (entity instanceof Villager baby) onVillagerAdded(level, baby);
 		});
@@ -181,6 +213,16 @@ public final class CollectorMod implements ModInitializer {
 					return 1;
 				}));
 			}
+			dispatcher.register(Commands.literal("records").executes(ctx -> {
+				nl.libreria.collector.gui.RecordsWindow.open(ctx.getSource().getPlayerOrException());
+				return 1;
+			}));
+			dispatcher.register(Commands.literal("showcase").executes(ctx -> {
+				ServerPlayer p = ctx.getSource().getPlayerOrException();
+				nl.libreria.collector.gui.ShowcaseWindow.open(p, 0, q -> nl.libreria.core.ProfileWindow.open(q, q.getUUID(), "",
+						r -> nl.libreria.core.Start.domain(r, Domain.YOU)));
+				return 1;
+			}));
 			dispatcher.register(Commands.literal("titles").executes(ctx -> {
 				AchievementsGui.openTitles(ctx.getSource().getPlayerOrException());
 				return 1;
@@ -208,15 +250,51 @@ public final class CollectorMod implements ModInitializer {
 		CollectorTests.register();
 	}
 
-	/** Lines on everyone's profile: achievements, points, items, server goals. */
+	/** A new day: days played, days in a row. */
+	static void day(ServerPlayer p) {
+		if (p instanceof net.fabricmc.fabric.api.entity.FakePlayer) return;
+		Data d = STORE.get(p);
+		java.time.LocalDate today = java.time.LocalDate.now();
+		if (today.toString().equals(d.lastDay)) return;
+		d.streak = today.minusDays(1).toString().equals(d.lastDay) ? d.streak + 1 : 1;
+		d.bestStreak = Math.max(d.bestStreak, d.streak);
+		d.daysPlayed++;
+		d.lastDay = today.toString();
+		STORE.markDirty(p);
+	}
+
+	/** Lines on everyone's profile: achievements, points, records (the main ones), items, server goals; and the showcase. */
 	private static void profileLines() {
-		nl.libreria.core.Profile.add(30, Items.NETHER_STAR, "Achievements", (s, who, st) -> {
+		nl.libreria.core.Profile.main(30, Items.NETHER_STAR, "Achievements", (s, who, st) -> {
 			Data d = STORE.get(who);
 			int earned = 0;
 			for (String id : d.earned.keySet()) if (Catalog.get(id) != null) earned++;
-			return Ui.n(earned) + " / " + Ui.n(Catalog.all().size());
+			return Ui.n(earned);
 		});
-		nl.libreria.core.Profile.add(40, Items.GOLD_INGOT, "Points", (s, who, st) -> Ui.n(points(STORE.get(who))));
+		nl.libreria.core.Profile.main(40, Items.GOLD_INGOT, "Points", (s, who, st) -> Ui.n(points(STORE.get(who))));
+		nl.libreria.core.Profile.main(45, Items.GOLD_BLOCK, "Records", (s, who, st) -> {
+			int held = Records.held(who);
+			return held == 0 ? "none" : held + " held";
+		});
+		nl.libreria.core.Profile.showcase(new nl.libreria.core.Profile.Showcase() {
+			@Override
+			public List<nl.libreria.core.Profile.Shown> of(MinecraftServer server, java.util.UUID who) {
+				List<nl.libreria.core.Profile.Shown> out = new ArrayList<>();
+				for (Achievement a : showcase(STORE.get(who))) {
+					net.minecraft.network.chat.TextColor c = net.minecraft.network.chat.TextColor.fromLegacyFormat(a.rarity().color);
+					String grade = Catalog.gradeText(a);
+					out.add(new nl.libreria.core.Profile.Shown(new ItemStack(a.icon()), a.name(), c == null ? 0xFFFFFF : c.getValue(),
+							List.of(Component.literal(a.rarity().label + (grade == null ? "" : " · " + grade)).withStyle(a.rarity().color),
+									Ui.text(a.description(), ChatFormatting.GRAY))));
+				}
+				return out;
+			}
+
+			@Override
+			public void choose(ServerPlayer viewer, int slot, java.util.function.Consumer<ServerPlayer> back) {
+				nl.libreria.collector.gui.ShowcaseWindow.open(viewer, slot, back);
+			}
+		});
 		nl.libreria.core.Profile.add(50, Items.CHEST, "Items", (s, who, st) -> Ui.n(Catalog.countAll(STORE.get(who))) + " / "
 				+ Ui.n(Catalog.allItems().size()));
 		nl.libreria.core.Profile.add(70, Items.BELL, "Server goals", (s, who, st) -> {
@@ -410,6 +488,35 @@ public final class CollectorMod implements ModInitializer {
 			if (a != null && (best == null || a.rarity().ordinal() > best.ordinal())) best = a.rarity();
 		}
 		return best;
+	}
+
+	/** Your earned achievements, rarest first (newest first within a rarity). */
+	public static List<Achievement> earnedRarestFirst(Data d) {
+		List<Map.Entry<String, Long>> es = new ArrayList<>(d.earned.entrySet());
+		es.sort((x, y) -> {
+			Achievement a = Catalog.get(x.getKey()), b = Catalog.get(y.getKey());
+			int ra = a == null ? -1 : a.rarity().ordinal(), rb = b == null ? -1 : b.rarity().ordinal();
+			if (ra != rb) return Integer.compare(rb, ra);
+			return Long.compare(y.getValue(), x.getValue());
+		});
+		List<Achievement> out = new ArrayList<>();
+		for (Map.Entry<String, Long> e : es) {
+			Achievement a = Catalog.get(e.getKey());
+			if (a != null) out.add(a);
+		}
+		return out;
+	}
+
+	/** The three on your profile: the ones you chose, or else your rarest. */
+	public static List<Achievement> showcase(Data d) {
+		List<Achievement> out = new ArrayList<>();
+		for (String id : d.showcase) {
+			Achievement a = Catalog.get(id);
+			if (a != null && d.earned.containsKey(id) && !out.contains(a) && out.size() < 3) out.add(a);
+		}
+		if (!out.isEmpty()) return out;
+		List<Achievement> rarest = earnedRarestFirst(d);
+		return rarest.size() > 3 ? rarest.subList(0, 3) : rarest;
 	}
 
 	/** De titel-prestatie: gekozen, of automatisch de zeldzaamste (bij gelijkspel de nieuwste). */

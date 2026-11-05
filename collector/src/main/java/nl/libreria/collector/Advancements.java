@@ -114,7 +114,7 @@ final class Advancements {
 			MutableComponent desc = Component.literal(a.description()).withStyle(ChatFormatting.GRAY)
 					.append(Component.literal("\n" + r.label + (grade == null ? "" : " · " + grade)).withStyle(r.color))
 					.append(Component.literal(" · title ✦ " + a.name() + " ✦").withStyle(ChatFormatting.DARK_GRAY));
-			boolean secret = a.id().equals("fok.blauw") || a.id().equals("items.drakenei");
+			boolean secret = a.id().equals("fok.blauw") || a.id().equals("items.drakenei") || Catalog.isSecret(a);
 			b.display(a.icon(), Component.literal(a.name()).withStyle(r.color), desc, frame(r), true, false, secret);
 			if (perItem(a)) {
 				for (String item : a.items()) b.addCriterion(itemCriterion(item), CriteriaTriggers.IMPOSSIBLE.createCriterion(never));

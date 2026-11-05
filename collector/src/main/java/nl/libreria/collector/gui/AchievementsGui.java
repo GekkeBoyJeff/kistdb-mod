@@ -189,7 +189,8 @@ public final class AchievementsGui {
 				if (seen.add(ladder.get(0).id())) ladders.add(ladder);
 			}
 			// What you're closest to first; finished ladders at the end
-			ladders.sort(Comparator.<List<Achievement>>comparingInt(l -> next(d, l) == null ? 1 : 0)
+			// (and secrets you haven't found after everything else)
+			ladders.sort(Comparator.<List<Achievement>>comparingInt(l -> next(d, l) == null ? 1 : Catalog.isSecret(next(d, l)) ? 2 : 0)
 					.thenComparingDouble(l -> {
 						Achievement n = next(d, l);
 						return n == null ? 0 : -((double) n.current(p, d) / Math.max(1, n.target()));
@@ -202,6 +203,16 @@ public final class AchievementsGui {
 				if (idx >= ladders.size()) break;
 				List<Achievement> ladder = ladders.get(idx);
 				Achievement shown = next(d, ladder) != null ? next(d, ladder) : ladder.get(ladder.size() - 1);
+				if (Catalog.isSecret(shown) && !d.earned.containsKey(shown.id())) {
+					// Hidden: no name, no description; only how rare it is and a vague clue
+					this.setSlot(i, new GuiElementBuilder(Items.FIREWORK_STAR).setName(Ui.text("???", ChatFormatting.DARK_GRAY).withStyle(ChatFormatting.BOLD))
+							.hideDefaultTooltip()
+							.addLoreLine(Ui.text("Secret · " + shown.rarity().label, shown.rarity().color))
+							.addLoreLine(Component.empty())
+							.addLoreLine(Ui.text(Catalog.secretClue(shown), ChatFormatting.GRAY))
+							.addLoreLine(Ui.text("You'll know when you find it.", ChatFormatting.DARK_GRAY)));
+					continue;
+				}
 				Achievement best = best(d, ladder);
 				GuiElementBuilder b = ladder.size() > 1 ? base(p, d, shown) : icon(p, d, shown);
 				if (ladder.size() > 1) {

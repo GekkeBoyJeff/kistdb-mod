@@ -125,6 +125,7 @@ public final class Catalog {
 
 	static void build() {
 		BY_ID.clear();
+		SECRET.clear();
 		BY_STAT.clear();
 		LADDER.clear();
 		DUPLICATES.clear();
@@ -145,6 +146,8 @@ public final class Catalog {
 		Extra.build();
 		Goals.build();
 		buildTogether();
+		Records.build();
+		Secrets.build();
 		// (+ a version: bumped when existing achievements start counting differently, so what players already
 		// did is given quietly, with one card, instead of a banner for each)
 		signature = BY_ID.keySet().hashCode() * 31 + COUNTING_VERSION;
@@ -165,6 +168,24 @@ public final class Catalog {
 
 	/** Ids or names given twice while building (a mistake in this file; the self-test reports it). */
 	static final List<String> DUPLICATES = new ArrayList<>();
+
+	/** Secret achievements: hidden until earned. */
+	private static final java.util.Set<String> SECRET = new java.util.HashSet<>();
+
+	static void addSecret(Achievement a) {
+		add(a);
+		SECRET.add(a.id());
+	}
+
+	public static boolean isSecret(Achievement a) {
+		return SECRET.contains(a.id());
+	}
+
+	/** The vague clue for a secret while it's hidden ("Something about how you die."). */
+	public static String secretClue(Achievement a) {
+		String c = Secrets.clue(a.id());
+		return c == null || c.isEmpty() ? "Keep playing: you'll stumble on it." : c;
+	}
 
 	static void add(Achievement a) {
 		if (BY_ID.containsKey(a.id())) DUPLICATES.add(a.id());

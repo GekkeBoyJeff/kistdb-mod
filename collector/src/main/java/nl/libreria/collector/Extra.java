@@ -38,6 +38,7 @@ final class Extra {
 	}
 
 	static void build() {
+		corny();
 		mining();
 		combat();
 		deaths();
@@ -473,6 +474,84 @@ final class Extra {
 		ladder(c, "kampvuur", Items.CAMPFIRE, "Cook on a campfire %,d times", custom("interact_with_campfire"), 1, r(C), 10, "Campfire Stories");
 		ladder(c, "stemmen", Items.NOTE_BLOCK, "Tune a note block %,d times", custom("tune_noteblock"), 1, r(C), 100, "Piano Tuner");
 		ladder(c, "kroeg", Items.ENDER_CHEST, "Open an ender chest %,d times", custom("open_enderchest"), 1, r(R), 1000, "Void Regular");
+	}
+
+	/** Puns and days: what you eat, place and use, how often you come back, how much you talk. */
+	private static void corny() {
+		Category life = Category.TIJD, farm = Category.FOKKEN, make = Category.MAKEN, mine = Category.MIJNBOUW;
+		ladder(life, "dagen", Items.CLOCK, "Play on %,d different days", new Catalog.Counter((p, d) -> d.daysPlayed), 1, r(C, U, R, E),
+				5, "Frequent Flyer", 30, "Season Ticket Holder", 100, "Mortgage Holder", 365, "Year-Rounder");
+		ladder(life, "reeks", Items.SUNFLOWER, "Play %,d days in a row", new Catalog.Counter((p, d) -> d.bestStreak), 1, r(U, R, E, L),
+				3, "Habit Forming", 7, "Creature of Habit", 30, "Can't Stay Away", 100, "Lives Here Now");
+		ladder(life, "praatjes", Items.WRITABLE_BOOK, "Send %,d chat messages", new Catalog.Counter((p, d) -> d.chats), 1, r(C, U, R),
+				100, "Chatterbox", 1000, "Motormouth", 10000, "Talk of the Town");
+		// Food puns
+		ladder(life, "meloen.eet", Items.MELON_SLICE, "Eat %,d melon slices", used(itemsOf("melon_slice")), 1, r(C, U), 64, "One in a Melon",
+				640, "Melon-choly");
+		ladder(life, "appel.eet", Items.APPLE, "Eat %,d apples", used(itemsOf("apple")), 1, r(C, U), 64, "Apple of My Eye", 640, "Core Values");
+		ladder(life, "biet.eet", Items.BEETROOT, "Eat %,d beetroots", used(itemsOf("beetroot")), 1, r(C, U), 64, "Can't Beet This", 640, "Beet Poet");
+		ladder(life, "bes.eet", Items.SWEET_BERRIES, "Eat %,d sweet berries", used(itemsOf("sweet_berries")), 1, r(C, U), 64, "Berry Good",
+				640, "Berry Much So");
+		ladder(life, "gloeibes.eet", Items.GLOW_BERRIES, "Eat %,d glow berries", used(itemsOf("glow_berries")), 1, r(C, U), 64, "Light Snack",
+				640, "Bright Idea");
+		ladder(life, "aardappel.eet", Items.BAKED_POTATO, "Eat %,d baked potatoes", used(itemsOf("baked_potato")), 1, r(C, U), 64, "Hot Potato",
+				640, "Spud-tacular");
+		ladder(life, "kip.eet", Items.COOKED_CHICKEN, "Eat %,d cooked chicken", used(itemsOf("cooked_chicken")), 1, r(C, U), 64, "Chicken Dinner",
+				640, "Wing It");
+		ladder(life, "varken.eet", Items.COOKED_PORKCHOP, "Eat %,d porkchops", used(itemsOf("cooked_porkchop", "porkchop")), 1, r(C, U), 64,
+				"Pigging Out", 640, "Hamming It Up");
+		ladder(life, "schaap.eet", Items.COOKED_MUTTON, "Eat %,d mutton", used(itemsOf("cooked_mutton", "mutton")), 1, r(C, U), 64, "Ewe Hungry?",
+				640, "Lamb-bition");
+		ladder(life, "vis.eet", Items.COOKED_SALMON, "Eat %,d fish", used(itemsOf("cooked_cod", "cooked_salmon", "cod", "salmon")), 1, r(C, U),
+				64, "Something Fishy", 640, "Living Off the Sea");
+		ladder(life, "wortel.eet", Items.CARROT, "Eat %,d carrots", used(itemsOf("carrot")), 1, r(C, U), 64, "Carrot Cruncher", 640, "Rabbit Food");
+		ladder(life, "tropisch.eet", Items.TROPICAL_FISH, "Eat %,d tropical fish", used(itemsOf("tropical_fish")), 1, r(U), 10, "Exotic Taste");
+		ladder(life, "oogjes", Items.ENDER_EYE, "Throw %,d eyes of ender", used(itemsOf("ender_eye")), 1, r(U, R), 12, "Eye Spy", 100, "Stronghold Seeker");
+		ladder(life, "wind", Items.WIND_CHARGE, "Throw %,d wind charges", used(itemsOf("wind_charge")), 1, r(C, U), 100, "Windbag", 1000, "Full of Hot Air");
+		ladder(life, "plons", Items.SPLASH_POTION, "Throw %,d splash potions", used(itemsOf("splash_potion", "lingering_potion")), 1, r(C, U),
+				64, "Splash Zone", 640, "Making Waves");
+		ladder(life, "ervaring", Items.EXPERIENCE_BOTTLE, "Throw %,d bottles o' enchanting", used(itemsOf("experience_bottle")), 1, r(C, U),
+				64, "Quick Study", 640, "Crammer");
+		// Gathering puns
+		ladder(farm, "paddenstoel.pluk", Items.BROWN_MUSHROOM, "Gather %,d mushrooms and fungi", gathered(itemsOf("red_mushroom", "brown_mushroom",
+				"crimson_fungus", "warped_fungus")), 1, r(C, U), 64, "Fun Guy", 640, "Spore Lord");
+		ladder(farm, "vangst", Items.SALMON, "Reel in %,d fish", gathered(itemsOf("cod", "salmon", "tropical_fish", "pufferfish")), 1, r(C, U, R),
+				10, "Reel Talk", 100, "Hook, Line and Sinker", 1000, "Fishy Business");
+		ladder(mine, "gneis", Items.GRANITE, "Mine %,d granite, diorite and andesite", mined("granite", "diorite", "andesite"), 1, r(C, U, R),
+				100, "Gneiss Work", 1000, "Rock Solid", 10000, "Boulder Than Ever");
+		// Building puns
+		ladder(make, "tapijt.leg", Ui.item("red_carpet"), "Place %,d carpets", used(itemsWhere(id -> id.endsWith("_carpet"))), 1, r(C, U),
+				100, "Rug Life", 1000, "Wall-to-Wall");
+		ladder(make, "hek.leg", Items.OAK_FENCE, "Place %,d fences", used(itemsWhere(id -> id.endsWith("_fence"))), 1, r(C, U), 100, "On the Fence",
+				1000, "Good Fences, Good Neighbours");
+		ladder(make, "ruit.leg", Items.GLASS_PANE, "Place %,d glass panes", used(itemsWhere(id -> id.endsWith("glass_pane"))), 1, r(C, U),
+				100, "Window Dresser", 1000, "Pane in the Neck");
+		ladder(make, "ladder.leg", Items.LADDER, "Place %,d ladders", used(itemsOf("ladder")), 1, r(C, U), 100, "Climbing the Ladder",
+				1000, "Social Climber");
+		ladder(make, "steiger.leg", Items.SCAFFOLDING, "Place %,d scaffolding", used(itemsOf("scaffolding")), 1, r(C, U), 100, "Scaffold Hopper",
+				1000, "Under Construction");
+		ladder(make, "ketting.leg", Ui.item("iron_chain"), "Place %,d chains", used(itemsWhere(id -> id.endsWith("chain"))), 1, r(C, U), 64,
+				"Chain Reaction", 640, "Chained Up");
+		ladder(make, "plaat.leg", Items.STONE_SLAB, "Place %,d slabs", used(itemsWhere(id -> id.endsWith("_slab"))), 1, r(C, U), 1000, "Slab Happy",
+				10000, "Half-Baked Builder");
+		ladder(make, "blad.leg", Items.OAK_LEAVES, "Place %,d leaves", used(itemsWhere(id -> id.endsWith("_leaves"))), 1, r(C, U), 100,
+				"Turning Over a New Leaf", 1000, "Treehouse Architect");
+		ladder(make, "hooi.leg", Items.HAY_BLOCK, "Place %,d hay bales", used(itemsOf("hay_block")), 1, r(C, U), 64, "Hit the Hay", 640, "Haystack");
+		ladder(make, "honing.leg", Items.HONEY_BLOCK, "Place %,d honey blocks", used(itemsOf("honey_block")), 1, r(U), 16, "Hive Mind");
+		ladder(make, "lijst.leg", Items.ITEM_FRAME, "Hang %,d item frames", used(itemsOf("item_frame", "glow_item_frame")), 1, r(C, U), 64,
+				"Frame of Mind", 640, "Framed for Life");
+		ladder(make, "standaard.leg", Items.ARMOR_STAND, "Place %,d armor stands", used(itemsOf("armor_stand")), 1, r(C, U), 10, "Stand-up Comedian",
+				100, "Standing Ovation");
+		ladder(make, "schilderij.leg", Items.PAINTING, "Hang %,d paintings", used(itemsOf("painting")), 1, r(C, U), 10, "Gallery Wall",
+				100, "Curator");
+		ladder(make, "bed.leg", Ui.item("red_bed"), "Place %,d beds", used(itemsWhere(id -> id.endsWith("_bed"))), 1, r(C, U), 16, "Bedtime Stories",
+				160, "Bed and Breakfast");
+		ladder(make, "trap.leg", Items.OAK_STAIRS, "Place %,d stairs", used(itemsWhere(id -> id.endsWith("_stairs"))), 1, r(C, U), 1000,
+				"Stair-ing Contest", 10000, "Stairway Legend");
+		ladder(make, "boot.leg", Items.OAK_BOAT, "Put %,d boats in the water", used(itemsWhere(id -> id.endsWith("_boat") || id.endsWith("_raft"))),
+				1, r(C, U), 10, "Boatload", 100, "Fleet Admiral");
+		ladder(make, "kar.leg", Items.MINECART, "Place %,d minecarts", used(itemsWhere(id -> id.endsWith("minecart"))), 1, r(C, U), 10, "Cart Wheel",
+				100, "Rush Hour");
 	}
 
 	private static List<Block> blocksWhere(java.util.function.Predicate<String> match) {

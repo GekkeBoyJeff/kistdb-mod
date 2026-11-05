@@ -45,7 +45,7 @@ final class CoreTests {
 					"active players counted");
 			SelfTests.check(Profile.lines().size() >= 3, "lines on a profile: " + Profile.lines().size());
 			String picture = ProfileWindow.picture(p, anna);
-			SelfTests.check(picture.contains("Anna") && picture.contains("Here since"), "a profile is drawn: " + picture.length());
+			SelfTests.check(picture.contains("Anna") && picture.contains("Playtime"), "a profile is drawn: " + picture.length());
 			SelfTests.check(Profile.stats(s, anna).custom("play_time") == 0, "no statistics file: zero");
 			// While you were away: what others did, not what you did
 			Chronicle.write(anna, "Anna", Chronicle.Kind.BOSS, "slew the Wither (self-test)", true);
