@@ -127,6 +127,9 @@ public final class SettingsCanvas extends CanvasWindow {
 			Row r = all.get(i);
 			int h = height(r);
 			if (h == 2 && at == 5) at = 6;
+			// A header goes where its first row can follow right under it (not across the gap)
+			if (r instanceof Header && i + 1 < all.size() && height(all.get(i + 1)) == 2 && at == 4) at = 6;
+			if (r instanceof Header && at == 5) at = 6;
 			int need = h + (r instanceof Header && i + 1 < all.size() ? height(all.get(i + 1)) : 0);
 			if (at + need > LIST_ROWS && !cur.isEmpty()) {
 				pages.add(cur);
@@ -166,7 +169,7 @@ public final class SettingsCanvas extends CanvasWindow {
 			int i = pl.at(), h = pl.height();
 			int top = Canvas.cellY(i);
 			// one line: 5 px down; two lines: centred on the card
-			int y1 = h == 1 ? top + 5 : top + 2 + (18 * h - 4 - 17) / 2, y2 = y1 + 9;
+			int y1 = h == 1 ? top + 5 : top + 2 + (18 * h - 4 - 18) / 2, y2 = y1 + 10;
 			switch (pl.row()) {
 				case Header hd -> c.text(hd.name(), Canvas.cellX(0) + 3, top + 5, tint);
 				case Toggle t -> {
@@ -174,18 +177,19 @@ public final class SettingsCanvas extends CanvasWindow {
 					lines(c, Keys.plain(t.setting().label), left, y1, y2, h);
 				}
 				case Choice ch -> {
-					c.card(1, i, 7, h, tint);
-					c.text(Canvas.fit(Keys.plain(ch.setting().label), ROOM), left, y1, TEXT);
+					// A choice has no switch: its card runs to the edge, with ‹ › for "click to change" on the value line
+					c.card(1, i, 8, h, tint);
+					c.text(Canvas.fit(Keys.plain(ch.setting().label), ROOM + 18), left, y1, TEXT);
+					c.text("‹›", Canvas.cellX(9) - Canvas.CARD_MARGIN - 5 - Glyphs.width(Component.literal("‹›")), y2, MUTED);
 					String value = ch.setting().labelAt(ch.setting().index(this.player));
 					// A value with keys ("{sneak} + {swap}") shows the player's own keys
 					if (Keys.has(value)) c.keys(value, left, y2, VALUE);
 					else c.text(Canvas.fit(value, ROOM), left, y2, VALUE);
-					c.text("‹›", Canvas.cellX(8) + 4, top + 5, MUTED);
 				}
 				case Link l -> {
-					c.card(1, i, 7, h, l.tint());
+					c.card(1, i, 8, h, l.tint());
 					lines(c, l.label(), left, y1, y2, h);
-					c.text("›", Canvas.cellX(8) + 7, top + 5, MUTED);
+					c.text("›", Canvas.cellX(9) - Canvas.CARD_MARGIN - 8, y1, MUTED);
 				}
 			}
 		}
