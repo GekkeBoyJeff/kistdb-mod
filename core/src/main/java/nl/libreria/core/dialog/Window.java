@@ -89,7 +89,7 @@ public final class Window {
 		return new Window(crumbs(domain, path));
 	}
 
-	/** A window outside the four domains, titled like a breadcrumb: "Getting started › Tips". */
+	/** A window outside the four domains, titled like a breadcrumb: "Help › Tips". */
 	public static Window path(String... path) {
 		net.minecraft.network.chat.MutableComponent c = Component.empty();
 		for (int i = 0; i < path.length; i++) {

@@ -673,7 +673,11 @@ ICON_Y = sorted({top + CARD_M + d for top in ROW_TOP for d in (4, 6, 8)})
 big_icon_chars = {}
 
 
+small_icon_chars = {}
+
+
 def big_icons():
+    """The same pictures at 32 px ("ico.…") and at their own 16 px ("ico16.…")."""
     for name in BIG_ICONS:
         im = Image.open(os.path.join(VANILLA, 'textures/item', name + '.png')).convert('RGBA')
         first = im.crop((0, 0, im.width, im.width))
@@ -682,6 +686,9 @@ def big_icons():
         big_icon_chars[name] = chr(cp)
         # Minecraft's advance for a picture: its width at this size, plus one
         glyphs['ico.' + name] = [cp, int(0.5 + w * 32 / im.width) + 1]
+        cp = next_cp()
+        small_icon_chars[name] = chr(cp)
+        glyphs['ico16.' + name] = [cp, int(0.5 + w * 16 / im.width) + 1]
 
 
 def tooltip_style():
@@ -784,6 +791,8 @@ def canvas_fonts():
         if n in ICON_Y:
             for name, ch in big_icon_chars.items():
                 provs.append({'type': 'bitmap', 'file': f'minecraft:item/{name}.png', 'height': 32, 'ascent': 13 - n, 'chars': [ch]})
+            for name, ch in small_icon_chars.items():
+                provs.append({'type': 'bitmap', 'file': f'minecraft:item/{name}.png', 'height': 16, 'ascent': 13 - n, 'chars': [ch]})
         check_font(f'y{n}', provs)
         json.dump({'providers': provs}, open(os.path.join(base, f'y{n}.json'), 'w'))
     for k, top in enumerate(ROW_TOP):

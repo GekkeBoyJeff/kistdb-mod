@@ -19,7 +19,7 @@ import nl.libreria.core.gui.TopCard;
 /**
  * Tips at the moment they're useful, once: the first time you open a chest you learn that middle-click sorts it; the
  * first time you're on the land map, that the mouse turns it. A card at the top in the colour of its domain, never chat.
- * Every tip can be read back under Getting started → Tips, so nothing is lost by missing one.
+ * Every tip can be read back under Help → Tips, so nothing is lost by missing one.
  *
  * <pre>{@code
  * static final Tips.Tip SORT = Tips.register("chest_sort", Domain.ITEMS, Items.CHEST, "Sorting a chest",
@@ -42,7 +42,7 @@ public final class Tips {
 	});
 
 	public static final Setting.Toggle ENABLED = Libreria.MODULE.toggle("tips", "Tips when they're useful", true, Items.LANTERN,
-			"A card at the top, once, the first time", "something is useful. All of them are under", "Getting started › Tips.")
+			"A card at the top, once, the first time", "something is useful. All of them are under", "Help › Tips.")
 			.in(Domain.YOU, "What you see");
 
 	private static final Map<String, Tip> TIPS = new LinkedHashMap<>();
@@ -126,9 +126,9 @@ public final class Tips {
 		return out;
 	}
 
-	/** Getting started → Tips: every tip, by domain; the ones you haven't come across yet are marked. */
+	/** Help → Tips: every tip, by domain; the ones you haven't come across yet are marked. */
 	public static void all(ServerPlayer p) {
-		Window w = Window.path("Getting started", "Tips");
+		Window w = Window.path("Help", "Tips");
 		Data data = STORE.get(p);
 		boolean any = false;
 		for (Domain d : Domain.values()) {

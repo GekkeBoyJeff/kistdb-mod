@@ -130,11 +130,12 @@ public final class Canvas {
 
 	/**
 	 * One of the pack's pictures with its top left at (x, y): an emblem ("big.chest", "sm.gear") anywhere, or one of
-	 * Minecraft's item pictures at twice the size ("ico.bundle"), which exist a card's top + 4, 6 or 8 px down.
+	 * Minecraft's item pictures at twice the size ("ico.bundle") or at their own size ("ico16.bundle"), which exist a
+	 * card's top + 4, 6 or 8 px down.
 	 */
 	public Canvas picture(String glyph, int x, int y, int rgb) {
 		if (y < MIN_Y || y > MAX_Y || !Glyphs.has(glyph)) return this;
-		if (glyph.startsWith("ico.") && !Glyphs.ICON_Y.contains(y)) return this;
+		if (glyph.startsWith("ico") && !Glyphs.ICON_Y.contains(y)) return this;
 		return glyph(x, font(y), glyph, rgb);
 	}
 

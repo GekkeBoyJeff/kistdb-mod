@@ -45,7 +45,7 @@ public final class Start {
 		Window w = Window.of(Ui.text("Libreria", ChatFormatting.WHITE).withStyle(ChatFormatting.BOLD));
 		for (Domain d : Domain.values()) w.button(d.title(), Ui.text(d.blurb, ChatFormatting.GRAY), (pl, v) -> domain(pl, d));
 		w.button("Settings", "Your own settings, by the same four places.", SettingsWindow::open);
-		w.button("Getting started", "Keys, tips and links.", Welcome::guide);
+		w.button("Help", "Keys, tips and links.", Welcome::guide);
 		w.done().show(p);
 	}
 

@@ -103,8 +103,9 @@ public final class SettingsCanvas extends CanvasWindow {
 		return out;
 	}
 
-	/** Room for a label on a card from column 1 to 7. */
-	private static final int ROOM = 18 * 7 - 2 * Canvas.CARD_MARGIN - 10;
+	/** Room for a label on a toggle's card (columns 0–7; the switch is in column 8) and on a full-width card. */
+	private static final int ROOM = 18 * 8 - 2 * Canvas.CARD_MARGIN - 12;
+	private static final int ROOM_FULL = 18 * 9 - 2 * Canvas.CARD_MARGIN - 12;
 
 	/** How many rows of cells a row of the list takes: two when its label needs two lines, and for a choice. */
 	private static int height(Row r) {
@@ -112,7 +113,7 @@ public final class SettingsCanvas extends CanvasWindow {
 			case Header h -> 1;
 			case Toggle t -> Glyphs.width(Component.literal(Keys.plain(t.setting().label))) > ROOM ? 2 : 1;
 			case Choice c -> 2;
-			case Link l -> Glyphs.width(Component.literal(l.label())) > ROOM ? 2 : 1;
+			case Link l -> Glyphs.width(Component.literal(l.label())) > ROOM_FULL - 10 ? 2 : 1;
 		};
 	}
 
@@ -170,7 +171,8 @@ public final class SettingsCanvas extends CanvasWindow {
 			int x = 8 + Glyphs.width(Component.literal(this.domain.label));
 			c.text(" › ", x, 5, MUTED).text("Settings", x + Glyphs.width(Component.literal(" › ")), 5, TEXT);
 		}
-		int left = Canvas.cellX(1) + Canvas.CARD_MARGIN + 5;
+		// No pictures in front of the rows: the cards start at the window's edge, a toggle's switch sits right of its card
+		int left = Canvas.cellX(0) + Canvas.CARD_MARGIN + 6;
 		for (Placed pl : rows()) {
 			int i = pl.at(), h = pl.height();
 			int top = Canvas.cellY(i);
@@ -179,21 +181,21 @@ public final class SettingsCanvas extends CanvasWindow {
 			switch (pl.row()) {
 				case Header hd -> c.text(hd.name(), Canvas.cellX(0) + 3, top + 5, tint);
 				case Toggle t -> {
-					c.card(1, i, 7, h, tint);
+					c.card(0, i, 8, h, tint);
 					lines(c, Keys.plain(t.setting().label), left, y1, y2, h);
 				}
 				case Choice ch -> {
-					// A choice has no switch: its card runs to the edge, with ‹ › for "click to change" on the value line
-					c.card(1, i, 8, h, tint);
-					c.text(Canvas.fit(Keys.plain(ch.setting().label), ROOM + 18), left, y1, TEXT);
+					// A choice has no switch: its card runs the full width, with ‹ › for "click to change" on the value line
+					c.card(0, i, 9, h, tint);
+					c.text(Canvas.fit(Keys.plain(ch.setting().label), ROOM_FULL), left, y1, TEXT);
 					c.text("‹›", Canvas.cellX(9) - Canvas.CARD_MARGIN - 5 - Glyphs.width(Component.literal("‹›")), y2, MUTED);
 					String value = ch.setting().labelAt(ch.setting().index(this.player));
 					// A value with keys ("{sneak} + {swap}") shows the player's own keys
 					if (Keys.has(value)) c.keys(value, left, y2, VALUE);
-					else c.text(Canvas.fit(value, ROOM), left, y2, VALUE);
+					else c.text(Canvas.fit(value, ROOM_FULL - 16), left, y2, VALUE);
 				}
 				case Link l -> {
-					c.card(1, i, 8, h, l.tint());
+					c.card(0, i, 9, h, l.tint());
 					lines(c, l.label(), left, y1, y2, h);
 					c.text("›", Canvas.cellX(9) - Canvas.CARD_MARGIN - 8, y1, MUTED);
 				}
@@ -247,10 +249,8 @@ public final class SettingsCanvas extends CanvasWindow {
 						Notify.whisper(p, Ui.text(s.label + ": " + (s.get(p) ? "on" : "off"), ChatFormatting.GRAY));
 						refreshCells();
 					};
-					area(1, row, 7, h, name, lore, flip);
+					area(0, row, 8, h, name, lore, flip);
 					if (h == 2) area(8, row + 1, 1, 1, name, lore, flip);
-					if (h == 2) area(0, row + 1, 1, 1, name, lore, flip);
-					icon(0, row, new ItemStack(s.icon), name, lore, flip);
 					ItemStack sw = new ItemStack(Items.PAPER);
 					sw.set(net.minecraft.core.component.DataComponents.ITEM_MODEL, on ? SWITCH_ON : SWITCH_OFF);
 					icon(8, row, sw, name, lore, flip);
@@ -271,16 +271,12 @@ public final class SettingsCanvas extends CanvasWindow {
 						Notify.whisper(p, Ui.text(s.label + ": " + s.labelAt(s.index(p)), ChatFormatting.GRAY));
 						redraw();
 					};
-					areaClick(0, row + 1, 9, 1, name, lore, cycle);
-					areaClick(1, row, 8, 1, name, lore, cycle);
-					icon(0, row, new ItemStack(s.icon), name, lore, p -> cycle.accept(p, false));
+					areaClick(0, row, 9, h, name, lore, cycle);
 				}
 				case Link l -> {
 					Component name = Ui.text(l.label(), l.tint()).withStyle(ChatFormatting.BOLD);
 					List<Component> lore = lore(List.of(l.about()), null, "Click: open");
-					area(1, row, 8, h, name, lore, l.action());
-					if (h == 2) area(0, row + 1, 1, 1, name, lore, l.action());
-					icon(0, row, l.icon(), name, lore, l.action());
+					area(0, row, 9, h, name, lore, l.action());
 				}
 			}
 		}

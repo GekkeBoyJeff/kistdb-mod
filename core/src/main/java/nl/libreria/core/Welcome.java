@@ -17,7 +17,7 @@ import nl.libreria.core.gui.TopCard;
 
 /**
  * A quiet hello for players who are new here: a card at the top of the screen for a few seconds, a little while after
- * they joined. Never a popup, never chat. The "Getting started" window (quick menu, G) explains the rest with the
+ * they joined. Never a popup, never chat. The "Help" window (quick menu, G) explains the rest with the
  * player's own keys.
  */
 public final class Welcome {
@@ -69,8 +69,8 @@ public final class Welcome {
 		String line = LINE.isSet() ? LINE.get() : "A few handy extras here. No mods needed.";
 		List<TopCard.Row> rows = List.of(
 				TopCard.Row.text("key", "Libreria", key("key.quickActions")),
-				TopCard.Row.text("chest", "Your items", Ui.text("E, then the magnifier", ChatFormatting.WHITE)),
-				TopCard.Row.text("star", "Getting started", Ui.text("in Libreria", ChatFormatting.WHITE)));
+				TopCard.Row.text("chest", "Your items", Ui.text("{inventory}, then the magnifier", ChatFormatting.WHITE)),
+				TopCard.Row.text("star", "Help", Ui.text("in Libreria", ChatFormatting.WHITE)));
 		TopCard.show(p, CHANNEL, new TopCard.Card(new ItemStack(Items.WRITABLE_BOOK), 0xFFAA00,
 				Ui.text("Welcome, " + p.getName().getString() + "!", ChatFormatting.GOLD), Ui.text(line, ChatFormatting.GRAY), rows),
 				38, SHOWN);
@@ -84,9 +84,9 @@ public final class Welcome {
 		return Component.keybind(mapping).withStyle(s -> s.withColor(color).withItalic(false));
 	}
 
-	/** "Getting started": what's here and how to reach it, with the player's own keys. */
+	/** "Help": what's here and how to reach it, with the player's own keys. */
 	public static void guide(ServerPlayer p) {
-		Window w = Window.of(Ui.text("Getting started", ChatFormatting.WHITE).withStyle(ChatFormatting.BOLD));
+		Window w = Window.of(Ui.text("Help", ChatFormatting.WHITE).withStyle(ChatFormatting.BOLD));
 		w.text(Ui.text("Everything works with a normal Minecraft: nothing to install.", ChatFormatting.GRAY));
 		w.text(line("Libreria", key("key.quickActions", ChatFormatting.YELLOW),
 				"everything in four places: Items, Land & places, Progress and You. Also in the pause menu."));
@@ -108,7 +108,7 @@ public final class Welcome {
 
 	/** Every command, under the domain it belongs to. Built from what the installed modules say. */
 	public static void commands(ServerPlayer p) {
-		Window w = Window.path("Getting started", "Commands");
+		Window w = Window.path("Help", "Commands");
 		w.text(Component.empty().append(command("/l – the start screen (also /lib)")).append("\n")
 				.append(command("/l items · land · progress · me – straight to a page")).append("\n")
 				.append(command("/l settings · start · help – settings, this guide, this list")));

@@ -64,8 +64,10 @@ public final class DomainWindow extends CanvasWindow {
 		for (int i = 0; i < rows.size(); i++) {
 			Row r = rows.get(i);
 			int row = ROWS[i];
-			c.card(1, row, 8, 1, r.tint());
-			int left = Canvas.cellX(1) + Canvas.CARD_MARGIN + 5, right = Canvas.cellX(9) - Canvas.CARD_MARGIN - 5;
+			// The row's card is as high as the picture beside it, with a little room between them
+			int x0 = Canvas.cellX(1) + 4, w = Canvas.cellX(9) - Canvas.CARD_MARGIN - x0;
+			c.line(x0, row, w, r.tint());
+			int left = x0 + 6, right = x0 + w - 6;
 			int y = Canvas.cellY(row) + 5;
 			c.text(Canvas.fit(r.name(), right - left - 10), left, y, StartWindow.TEXT);
 			c.text("›", right - 3, y, StartWindow.MUTED);
