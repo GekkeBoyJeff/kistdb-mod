@@ -14,9 +14,9 @@ import nl.libreria.core.gui.SettingsWindow;
  * started" between them, and below them your places and the small things (chronicle, tips, commands, links).
  */
 public final class StartWindow extends CanvasWindow {
-	/** Cards that belong to no domain: bronze. */
-	static final int NEUTRAL = 0xC8A060;
-	static final int TEXT = 0xFFFFFF, MUTED = 0xB9AD95, TITLE = 0xECDCB4;
+	/** Cards that belong to no domain, quiet text and the title: in the pack's look. */
+	static final int NEUTRAL = nl.libreria.core.gui.Glyphs.neutral;
+	static final int TEXT = 0xFFFFFF, MUTED = nl.libreria.core.gui.Glyphs.muted, TITLE = nl.libreria.core.gui.Glyphs.titleColor;
 
 	private StartWindow(ServerPlayer p) {
 		super(p);

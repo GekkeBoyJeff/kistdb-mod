@@ -148,7 +148,33 @@ def stud(img, cx, cy):
     px(img, cx, cy, (255, 236, 170, 255))
 
 
+def glass_piece(w, h, part):
+    """The card at the top of the screen in the glass look: smoked glass with a thin light edge, rounded at the caps."""
+    L = LOOK
+    img = Image.new('RGBA', (w, h), (0, 0, 0, 0))
+    edge, fill = L['panel_rim'][0], lerp4(L['panel_top'], L['panel_bottom'], 0.5)
+    for y in range(h):
+        for x in range(w):
+            if part == 'l' and rounded(x, y, w * 2, h, 3):
+                continue
+            if part == 'r' and rounded(x + w, y, w * 2, h, 3):
+                continue
+            put(img, x, y, fill[:3] + (230,))
+            ring = y in (0, h - 1) or (part == 'l' and x == 0) or (part == 'r' and x == w - 1)
+            if part == 'l' and x + min(y, h - 1 - y) == 2:
+                ring = True
+            if part == 'r' and (w - 1 - x) + min(y, h - 1 - y) == 2:
+                ring = True
+            if ring:
+                put(img, x, y, edge)
+            elif y == 1:
+                put(img, x, y, (255, 255, 255, 14))
+    return img
+
+
 def panel_cap(h, right):
+    if LOOK['outline'][3] == 0:
+        return glass_piece(6, h, 'r' if right else 'l')
     img = Image.new('RGBA', (6, h), (0, 0, 0, 0))
     for x in range(6):
         edge_rows(img, x, h)
@@ -173,6 +199,8 @@ def panel_cap(h, right):
 
 
 def panel_mid(w, h):
+    if LOOK['outline'][3] == 0:
+        return glass_piece(w, h, 'm')
     img = Image.new('RGBA', (w, h), (0, 0, 0, 0))
     for x in range(w):
         edge_rows(img, x, h)
@@ -206,6 +234,15 @@ def gem():
 def slot():
     """Dark recessed square behind the icon (spans the first two lines)."""
     img = Image.new('RGBA', (20, 20), (0, 0, 0, 0))
+    if LOOK['outline'][3] == 0:
+        for x in range(20):
+            for y in range(20):
+                if rounded(x, y, 20, 20, 2):
+                    continue
+                edge = x in (0, 19) or y in (0, 19)
+                img.putpixel((x, y), (255, 255, 255, 44) if edge else (0, 0, 0, 110))
+        bitmap('slot', [('slot', img)], 20, 8)
+        return
     for x in range(20):
         for y in range(20):
             edge = x in (0, 19) or y in (0, 19)
@@ -235,6 +272,9 @@ def divider():
                 a = int(255 * (x + 1) / (w + 1))
             elif fade == 'out':
                 a = int(255 * (w - x) / (w + 1))
+            if LOOK['outline'][3] == 0:
+                px(img, x, 2, (255, 255, 255, a // 4))
+                continue
             px(img, x, 1, BRONZE_HI[:3] + (a // 3,))
             px(img, x, 2, BRONZE[:3] + (a,))
             px(img, x, 3, (14, 9, 5, a * 2 // 3))
@@ -243,9 +283,12 @@ def divider():
     center = Image.new('RGBA', (7, h), (0, 0, 0, 0))
     shape = ['...#...', '..#h#..', '-#hbl#-', '..#l#..', '...#...']
     pal = {'#': OUTLINE, 'h': BRONZE_HI, 'b': BRONZE, 'l': BRONZE_LO, '-': BRONZE}
+    if LOOK['outline'][3] == 0:
+        pal = {'#': (0, 0, 0, 0), 'h': (255, 255, 255, 150), 'b': (255, 255, 255, 110), 'l': (255, 255, 255, 80),
+               '-': (255, 255, 255, 64)}
     for y, row in enumerate(shape):
         for x, ch in enumerate(row):
-            if ch in pal:
+            if ch in pal and pal[ch][3]:
                 px(center, x, y, pal[ch])
     cells = [('div.l', piece(10, 'in')), ('div.r', piece(10, 'out')), ('div.c', center)]
     cells += [(f'div.m{w}', piece(w)) for w in (64, 32, 16, 8, 4, 2, 1)]
@@ -264,7 +307,10 @@ def pips():
             v = shade[y]
             px(full, x, y, (v, v, v, 255))
             rim = x in (0, 3) or y in (0, 5)
-            px(empty, x, y, (96, 76, 54, 255) if rim else (34, 25, 18, 255))
+            if LOOK['outline'][3] == 0:
+                px(empty, x, y, (255, 255, 255, 70) if rim else (0, 0, 0, 120))
+            else:
+                px(empty, x, y, (96, 76, 54, 255) if rim else (34, 25, 18, 255))
     bitmap('pips', [('pip.full', full), ('pip.empty', empty)], 6, 6)
 
 
@@ -528,6 +574,8 @@ def canvas_pictures_sheet():
 
 def card_piece(w, h, part):
     """A card: greyscale, tinted by the text colour (white = bright rim, the fill stays dark). part: l, m or r."""
+    if LOOK['outline'][3] == 0:
+        return glass_card_piece(w, h, part)
     img = Image.new('RGBA', (w, h), (0, 0, 0, 0))
     r = 2
     for y in range(h):
@@ -553,6 +601,30 @@ def card_piece(w, h, part):
                 v = int(round(70 - 22 * t))       # the fill, darker towards the bottom
                 c = (v, v, v, 246)
             img.putpixel((x, y), c)
+    return img
+
+
+def glass_card_piece(w, h, part):
+    """A card in the glass look: a thin edge in the card's colour around a dark, see-through fill in that colour."""
+    img = Image.new('RGBA', (w, h), (0, 0, 0, 0))
+    for y in range(h):
+        for x in range(w):
+            cx = x if part == 'l' else x + 100 if part == 'm' else x + 200
+            W2 = 200 + w
+            if part == 'l' and rounded(x, y, 400, h, 3):
+                continue
+            if part == 'r' and rounded(cx, y, W2, h, 3):
+                continue
+            put(img, x, y, (64, 64, 64, 170))
+            ring = y in (0, h - 1) or (part == 'l' and x == 0) or (part == 'r' and x == w - 1)
+            if part == 'l' and x + min(y, h - 1 - y) == 2:
+                ring = True
+            if part == 'r' and (w - 1 - x) + min(y, h - 1 - y) == 2:
+                ring = True
+            if ring:
+                img.putpixel((x, y), (235, 235, 235, 200))
+            elif y == 1:
+                img.putpixel((x, y), (120, 120, 120, 190))
     return img
 
 
@@ -740,7 +812,7 @@ def search_frame():
     L = LOOK
     img = Image.new('RGBA', (W, H), (0, 0, 0, 0))
     panel_box(img, 0, 0, W, H)
-    muted, faint = (200, 190, 170), (150, 140, 122)
+    muted, faint = LOOK['muted_rgb'], LOOK['faint_rgb']
 
     def hole(hx, hy, hw, hh):
         for yy in range(hy, hy + hh):
@@ -1243,7 +1315,8 @@ LOOKS = {
         panel_rim_lo=((122, 86, 38, 255), (198, 152, 74, 255), (40, 26, 16, 255)), studs=True,
         tray=(22, 15, 9, 255), tray_shadow=(12, 8, 5, 255), tray_light=(66, 47, 30, 255), toolbar=(30, 21, 13, 255),
         tag=(205, 188, 150, 255), tag_hi=(222, 208, 174, 255), tag_lo=(176, 158, 120, 255),
-        title=0xECDCB4, title_shadow=0x140C06,
+        title=0xECDCB4, title_shadow=0x140C06, neutral=0xC8A060, muted=0xB9AD95,
+        muted_rgb=(200, 190, 170), faint_rgb=(150, 140, 122),
     ),
     # Modern and flat: smoked glass with a thin light edge; the world shows through a little
     'glass': dict(
@@ -1262,7 +1335,8 @@ LOOKS = {
         panel_rim_lo=((255, 255, 255, 36), (0, 0, 0, 0), (0, 0, 0, 0)), studs=False,
         tray=(0, 0, 0, 90), tray_shadow=(0, 0, 0, 90), tray_light=(255, 255, 255, 18), toolbar=(255, 255, 255, 12),
         tag=(232, 234, 240, 255), tag_hi=(250, 250, 252, 255), tag_lo=(200, 204, 214, 255),
-        title=0xFFFFFF, title_shadow=0x000000,
+        title=0xFFFFFF, title_shadow=0x000000, neutral=0xC4CAD6, muted=0xA6ACB8,
+        muted_rgb=(214, 218, 226), faint_rgb=(150, 156, 168),
     ),
     # Cool deepslate with a thin gold edge: crisp, a little more serious
     'slate': dict(
@@ -1281,10 +1355,11 @@ LOOKS = {
         panel_rim_lo=((50, 54, 62, 255), (70, 75, 86, 255), (24, 26, 31, 255)), studs=False,
         tray=(26, 28, 33, 255), tray_shadow=(16, 17, 21, 255), tray_light=(64, 69, 80, 255), toolbar=(34, 37, 43, 255),
         tag=(208, 212, 222, 255), tag_hi=(228, 231, 238, 255), tag_lo=(170, 175, 188, 255),
-        title=0xE8EBF2, title_shadow=0x0A0B0E,
+        title=0xE8EBF2, title_shadow=0x0A0B0E, neutral=0xB8BECA, muted=0xA0A6B2,
+        muted_rgb=(210, 214, 222), faint_rgb=(150, 156, 168),
     ),
 }
-LOOK = LOOKS[os.environ.get('LIBRERIA_LOOK', 'wood')]
+LOOK = LOOKS[os.environ.get('LIBRERIA_LOOK', 'glass')]
 
 
 def sprite_dir(*sub):
@@ -1520,7 +1595,7 @@ def main():
     hotbar_font()
     meta = {"hudLines": HUD_LINES, "icons": icon_map, 'lineHeight': LH, 'padX': PAD_X, 'padTop': PAD_TOP, 'padBottom': PAD_BOTTOM,
             'panelLines': [min(PANEL_LINES), max(PANEL_LINES)], 'themes': list(THEMES), 'glyphs': glyphs,
-            'look': {'title': LOOK['title'], 'titleShadow': LOOK['title_shadow']}, 'iconY': ICON_Y}
+            'look': {'title': LOOK['title'], 'titleShadow': LOOK['title_shadow'], 'neutral': LOOK['neutral'], 'muted': LOOK['muted']}, 'iconY': ICON_Y}
     os.makedirs(os.path.join(OUT, NS), exist_ok=True)
     json.dump(meta, open(os.path.join(OUT, NS, 'ui_glyphs.json'), 'w'), indent=1)
     print(len(glyphs), 'glyphs,', len(providers), 'providers')

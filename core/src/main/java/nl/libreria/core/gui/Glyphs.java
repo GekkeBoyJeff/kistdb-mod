@@ -44,6 +44,9 @@ public final class Glyphs {
 	/** Colour of a window's title in the pack's look, and of its shadow. */
 	public static int titleColor = 0xECDCB4;
 	public static int titleShadow = 0x140C06;
+	/** Cards that belong to no place, and quiet text, in the pack's look. */
+	public static int neutral = 0xC4CAD6;
+	public static int muted = 0xA6ACB8;
 	/** The heights (window y) at which the big item pictures ("ico.…") exist. */
 	public static final java.util.Set<Integer> ICON_Y = new java.util.HashSet<>();
 
@@ -69,6 +72,8 @@ public final class Glyphs {
 				JsonObject look = meta.getAsJsonObject("look");
 				titleColor = look.get("title").getAsInt();
 				titleShadow = look.get("titleShadow").getAsInt();
+				if (look.has("neutral")) neutral = look.get("neutral").getAsInt();
+				if (look.has("muted")) muted = look.get("muted").getAsInt();
 			}
 			if (meta.has("icons")) {
 				for (var e : meta.getAsJsonObject("icons").entrySet()) {

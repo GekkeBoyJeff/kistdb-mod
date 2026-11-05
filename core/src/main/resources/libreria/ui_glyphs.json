@@ -9364,8 +9364,10 @@
   ]
  },
  "look": {
-  "title": 15522996,
-  "titleShadow": 1313798
+  "title": 16777215,
+  "titleShadow": 0,
+  "neutral": 12896982,
+  "muted": 10923192
  },
  "iconY": [
   23,

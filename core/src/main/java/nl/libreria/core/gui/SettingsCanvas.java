@@ -26,7 +26,7 @@ import nl.libreria.core.Ui;
 public final class SettingsCanvas extends CanvasWindow {
 	private static final Identifier SWITCH_ON = Identifier.fromNamespaceAndPath("libreria", "gui/switch_on");
 	private static final Identifier SWITCH_OFF = Identifier.fromNamespaceAndPath("libreria", "gui/switch_off");
-	private static final int TEXT = 0xFFFFFF, MUTED = 0xB9AD95, VALUE = 0x8FE3F0, NEUTRAL = 0xC8A060;
+	private static final int TEXT = 0xFFFFFF, MUTED = Glyphs.muted, VALUE = 0x8FE3F0, NEUTRAL = Glyphs.neutral;
 	/** Rows for the list (the hotbar row is for Back and the page buttons). */
 	private static final int LIST_ROWS = 9;
 
