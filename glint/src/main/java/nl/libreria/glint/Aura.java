@@ -53,6 +53,9 @@ final class Aura {
 			Map.entry("silk", ParticleTypes.CHERRY_LEAVES), Map.entry("curse", ParticleTypes.SQUID_INK),
 			Map.entry("luck", ParticleTypes.HAPPY_VILLAGER), Map.entry("sea", ParticleTypes.BUBBLE_POP));
 
+	/** Particles that are tiny (enchanting glyphs, ash, wax): a few at a time, or you'd never see them. */
+	static final Set<String> TINY = Set.of("protection", "feather", "haste");
+
 	/** Particles that are loud to look at (big, bright or fast): half as often. */
 	static final Set<String> BUSY = Set.of("breach", "multishot", "thorns", "sweep", "curse", "blast", "water", "wind", "sea");
 
@@ -260,6 +263,8 @@ final class Aura {
 		flat = flat.lengthSqr() < 1e-4 ? new Vec3(0, 0, 1) : flat.normalize();
 		Vec3 right = new Vec3(-flat.z, 0, flat.x).scale(0.35);
 		boolean hidden = view == View.THIRD_PERSON;
+		// Tiny particles come a few at a time; your own armour in third person a little fuller, as it's further away
+		int count = (TINY.contains(s.family()) ? 3 : 1) + (hidden ? 1 : 0);
 		switch (s.kind()) {
 			case HAND, OFFHAND -> {
 				// A little in front of the body, on the side of that hand
@@ -271,10 +276,11 @@ final class Aura {
 			case ARMOUR -> {
 				Vec3 pos = base.add(0, h * s.height(), 0);
 				if (hidden) {
+					// Just behind your back: between you and a third-person camera, behind a first-person one
 					pos = behindCamera(eye, look, pos.subtract(flat.scale(0.3)));
-					level.sendParticles(viewer, particle, false, false, pos.x, pos.y, pos.z, 1, 0.04, 0.04, 0.04, 0.005);
+					level.sendParticles(viewer, particle, false, false, pos.x, pos.y, pos.z, count, 0.2, 0.1, 0.06, 0.005);
 				} else {
-					level.sendParticles(viewer, particle, false, false, pos.x, pos.y, pos.z, 1, 0.15, 0.1, 0.15, 0.01);
+					level.sendParticles(viewer, particle, false, false, pos.x, pos.y, pos.z, count, 0.15, 0.1, 0.15, 0.01);
 				}
 			}
 			case SET -> {
@@ -284,9 +290,11 @@ final class Aura {
 					double angle = Math.toRadians(run * 40.0 + i * 180.0);
 					double y = h * (0.5 + 0.42 * Math.sin(run * 0.23 + i * Math.PI));
 					Vec3 pos = base.add(Math.cos(angle) * 0.6, y, Math.sin(angle) * 0.6);
-					// On yourself only the half behind your camera (the front half is hidden by your body in F5 anyway)
-					if (hidden && pos.subtract(eye).dot(look) > -BEHIND) continue;
-					level.sendParticles(viewer, particle, false, false, pos.x, pos.y, pos.z, 1, 0, 0, 0, 0);
+					// On yourself the whole orbit is pressed to just behind your camera: there a first-person camera
+					// can't see it, and a third-person one sees it go round your back
+					if (hidden) pos = behindCamera(eye, look, pos);
+					if (count == 1) level.sendParticles(viewer, particle, false, false, pos.x, pos.y, pos.z, 1, 0, 0, 0, 0);
+					else level.sendParticles(viewer, particle, false, false, pos.x, pos.y, pos.z, count, 0.06, 0.06, 0.06, 0.005);
 				}
 			}
 		}
