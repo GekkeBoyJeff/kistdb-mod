@@ -73,7 +73,7 @@ public final class Welcome {
 				TopCard.Row.text("star", "Getting started", Ui.text("in Libreria", ChatFormatting.WHITE)));
 		TopCard.show(p, CHANNEL, new TopCard.Card(new ItemStack(Items.WRITABLE_BOOK), 0xFFAA00,
 				Ui.text("Welcome, " + p.getName().getString() + "!", ChatFormatting.GOLD), Ui.text(line, ChatFormatting.GRAY), rows),
-				30, SHOWN);
+				38, SHOWN);
 	}
 
 	private static MutableComponent key(String mapping) {

@@ -83,10 +83,17 @@ final class CoreTests {
 			SelfTests.check(PlaceList.all(p) != null, "places listed");
 			// Tips: once, then never again
 			Tips.Tip tip = Tips.all(Domain.ITEMS).getFirst();
+			nl.libreria.core.gui.TopCard.forget(p.getUUID());
 			Tips.STORE.get(p).seen.remove(tip.key());
+			nl.libreria.core.gui.Toast.show(p, Items.BOOK, nl.libreria.core.gui.Toast.INFO, "Busy", "A card is on top");
 			Tips.once(p, tip);
-			SelfTests.check(Tips.seen(p, tip), "a tip is remembered once seen");
+			SelfTests.check(!Tips.seen(p, tip), "a tip waits while a card is on top");
+			nl.libreria.core.gui.Toast.hide(p);
+			Tips.once(p, tip);
+			SelfTests.check(Tips.seen(p, tip), "a tip shows (and is remembered) once the top is free");
 			Tips.STORE.get(p).seen.remove(tip.key());
+			Tips.forget(p.getUUID());
+			nl.libreria.core.gui.TopCard.forget(p.getUUID());
 			// Commands and help built from the modules
 			int lines = 0;
 			for (Module m : Module.all()) lines += m.commandHelp().size();
