@@ -41,6 +41,9 @@ public final class Glyphs {
 	public static int padBottom = 5;
 	public static int minPanel = 2;
 	public static int maxPanel = 14;
+	/** Colour of a window's title in the pack's look, and of its shadow. */
+	public static int titleColor = 0xECDCB4;
+	public static int titleShadow = 0x140C06;
 
 	static {
 		try {
@@ -59,6 +62,11 @@ public final class Glyphs {
 				ADVANCE_BY_CP.put(g[0], g[1]);
 			}
 			if (meta.has("hudLines")) hudLines = meta.get("hudLines").getAsInt();
+			if (meta.has("look")) {
+				JsonObject look = meta.getAsJsonObject("look");
+				titleColor = look.get("title").getAsInt();
+				titleShadow = look.get("titleShadow").getAsInt();
+			}
 			if (meta.has("icons")) {
 				for (var e : meta.getAsJsonObject("icons").entrySet()) {
 					JsonArray a = e.getValue().getAsJsonArray();

@@ -341,47 +341,275 @@ EMBLEMS = {
 }
 
 
-def frame(rows, theme):
-    """A menu in Minecraft's own grey style (like the search screen): the vanilla panel with its bevel, the title in
-    the usual dark grey, and the tool's colour as a thin line under the title with its emblem on the right. Holes
-    where the slots are; empty slots get a grey tile (filler_tile) so they melt into the panel."""
-    color, emblem = THEMES[theme]
-    W, H = 176, 114 + 18 * rows
-    LIGHT, FILL, SHADE, BLACK = (255, 255, 255), (198, 198, 198), (85, 85, 85), (0, 0, 0)
-    img = Image.new('RGBA', (W, H), FILL + (255,))
-    for y in range(H):
-        for x in range(W):
-            corner = min(x, W - 1 - x) + min(y, H - 1 - y)
-            if (x in (0, W - 1) or y in (0, H - 1)) and corner < 2:
-                img.putpixel((x, y), (0, 0, 0, 0))
-            elif x in (0, W - 1) or y in (0, H - 1) or corner < 3:
-                img.putpixel((x, y), BLACK + (255,))
-            elif x in (1, 2) or y in (1, 2):
-                img.putpixel((x, y), LIGHT + (255,))
-            elif x in (W - 2, W - 3) or y in (H - 2, H - 3):
-                img.putpixel((x, y), SHADE + (255,))
-    # holes for the slots (the container's own slots show through)
-    holes = [(7, 17, 162, 18 * rows), (7, 30 + 18 * rows, 162, 54), (7, 88 + 18 * rows, 162, 18)]
-    for hx, hy, hw, hh in holes:
-        for y in range(hy, hy + hh):
-            for x in range(hx, hx + hw):
-                img.putpixel((x, y), (0, 0, 0, 0))
-    # the tool's colour: a thin line under the title, fading out to the right, and its emblem
-    for x in range(7, W - 7):
-        t = (x - 7) / (W - 14)
-        a = int(255 * max(0.0, 1 - t * 1.15))
-        px(img, x, 15, lerp(color, FILL, 1 - a / 255) + (255,))
-    rows_e = EMBLEMS[emblem]
-    ex, ey = W - 17, 5
+def panel_box(img, x0, y0, w, h):
+    """The outer panel of a menu, in the current look: rim, rounded corners, fill from top to bottom (and the little
+    rivets in the corners of the wooden look)."""
+    L = LOOK
+    tl, br = L['panel_rim'], L['panel_rim_lo']
+    has_outline = L['outline'][3] > 0
+    r = L['radius'] + 1
+    for y in range(h):
+        for x in range(w):
+            if rounded(x, y, w, h, r + (1 if has_outline else 0)):
+                continue
+            c = lerp4(L['panel_top'], L['panel_bottom'], y / max(1, h - 1))
+            ring = None
+            k = min(x, y, w - 1 - x, h - 1 - y)
+            if has_outline and k == 0:
+                ring = L['outline']
+            else:
+                i = k - (1 if has_outline else 0)
+                if 0 <= i < 3:
+                    bottom_right = (x >= w - 4 or y >= h - 4) and not (x < 4 or y < 4)
+                    ring = (br if bottom_right else tl)[i]
+                    if ring[3] == 0:
+                        ring = None
+            put(img, x0 + x, y0 + y, c)
+            if ring is not None:
+                put(img, x0 + x, y0 + y, ring)
+    if L['studs']:
+        for cx, cy in ((5, 5), (w - 6, 5), (5, h - 6), (w - 6, h - 6)):
+            stud(img, x0 + cx, y0 + cy)
+
+
+def tray(img, x0, y0, w, h, accent=None):
+    """A recessed area where the menu's items float (no grid of slots): shadow at the top, light at the bottom."""
+    L = LOOK
+    for y in range(h):
+        for x in range(w):
+            if rounded(x, y, w, h, L['radius']):
+                continue
+            if y == 0 or x == 0:
+                c = L['tray_shadow']
+            elif y == h - 1 or x == w - 1:
+                c = L['tray_light']
+            else:
+                c = L['tray']
+            put(img, x0 + x, y0 + y, c)
+    if accent is not None:
+        # The domain's colour along the top of the tray, fading out to the right
+        for x in range(1, w - 1):
+            t = x / (w - 2)
+            a = max(0.0, 1 - t * 1.25)
+            if a > 0:
+                put(img, x0 + x, y0, accent + (int(255 * a),))
+
+
+def sockets(img, x0, y0, cols, rows_):
+    """Real slots (your inventory): a grid of recessed squares, 18 px apart like Minecraft's."""
+    L = LOOK
+    for j in range(rows_):
+        for i in range(cols):
+            sx, sy = x0 + 18 * i, y0 + 18 * j
+            for y in range(18):
+                for x in range(18):
+                    if x == 0 or y == 0:
+                        c = L['socket_shadow']
+                    elif x == 17 or y == 17:
+                        c = L['socket_light']
+                    else:
+                        c = L['socket']
+                    put(img, sx + x, sy + y, c)
+
+
+def tag(img, x0, y0, w, h):
+    """A small light label plate (behind the "Inventory" line, which Minecraft writes in dark grey)."""
+    L = LOOK
+    for y in range(h):
+        for x in range(w + h // 2):
+            # pointed right end
+            if x >= w and (x - w) > min(y, h - 1 - y):
+                continue
+            if rounded(x, y, w + h // 2, h, 1) and x < w:
+                continue
+            c = L['tag_hi'] if y == 0 else L['tag_lo'] if y == h - 1 else L['tag']
+            put(img, x0 + x, y0 + y, c)
+
+
+def emblem(img, name, ex, ey, color):
     dark = lerp(color, (0, 0, 0), 0.35) + (255,)
     light = lerp(color, (255, 255, 255), 0.45) + (255,)
-    for y, row in enumerate(rows_e):
+    for y, row in enumerate(EMBLEMS[name]):
         for x, ch in enumerate(row):
             if ch == '#':
                 px(img, ex + x, ey + y, dark)
             elif ch in 'wg':
                 px(img, ex + x, ey + y, light)
+
+
+def frame(rows, theme):
+    """A whole menu window, drawn by its title over Minecraft's chest screen (Minecraft draws the title before the slots
+    and the items, so the items stay on top). The menu's own part is one recessed tray without a grid: its items float
+    on it; the bottom row (the menu's buttons) is a band of its own. Your inventory keeps real slots. (The pack takes away the
+    "Inventory" line above it, see inventory_tab.) Coordinates are the chest screen's own."""
+    color, emb = THEMES[theme]
+    W, H = 176, 114 + 18 * rows
+    img = Image.new('RGBA', (W, H), (0, 0, 0, 0))
+    panel_box(img, 0, 0, W, H)
+    # The menu's slots: x 7..168, y 17..17+18*rows. The tray has a pixel of room around them.
+    top, bottom = 16, 18 + 18 * rows
+    tray(img, 6, top, 164, bottom - top + 1, color)
+    if rows > 1:
+        y = 17 + 18 * (rows - 1)
+        for x in range(7, 169):
+            put(img, x, y - 1, LOOK['tray_light'])
+            for yy in range(y, bottom):
+                put(img, x, yy, LOOK['toolbar'])
+    emblem(img, emb, W - 17, 5, color)
+    sockets(img, 7, 30 + 18 * rows, 9, 3)
+    sockets(img, 7, 88 + 18 * rows, 9, 1)
     return img
+
+
+# ------------------------------------------------------------------ own windows (the window kit)
+# A Libreria window is a chest screen whose whole picture is drawn by its title: one panel over the window, cards on
+# the grid of cells (Minecraft's clickable spots, 18 px apart, invisible here), text and pictures anywhere. The cells
+# hold invisible items, so a card is clickable wherever you point at it.
+#
+# The title line is drawn at y 6 of the window. libreria:y<N> is Minecraft's font (and the big emblems) with its top
+# at y N of the window; libreria:row<K> holds the cards, their top 2 px below the top of cell row K.
+
+WIN_W, WIN_H = 176, 222
+CANVAS_Y = range(5, 220)
+# Top of each row of cells (the slot's frame): 6 rows of the chest, 3 of your inventory, the hotbar
+ROW_TOP = [17 + 18 * k for k in range(6)] + [139 + 18 * k for k in range(3)] + [197]
+CARD_M = 2
+
+
+def big_emblem(name, scale=3):
+    rows_e = EMBLEMS[name]
+    img = Image.new('RGBA', (8 * scale, 8 * scale), (0, 0, 0, 0))
+    for y, row in enumerate(rows_e):
+        for x, ch in enumerate(row):
+            c = {'#': (70, 70, 70, 255), 'w': (255, 255, 255, 255), 'g': (200, 200, 200, 255)}.get(ch)
+            if c:
+                for dy in range(scale):
+                    for dx in range(scale):
+                        img.putpixel((x * scale + dx, y * scale + dy), c)
+    return img
+
+
+EMBLEMS.update({
+    'gear': ['..#..#..', '.##ww##.', '.#w##w#.', '#w#..#w#', '#w#..#w#', '.#w##w#.', '.##ww##.', '..#..#..'],
+    'help': ['.######.', '#wwwwww#', '#ww##ww#', '.#..#ww#', '...#ww#.', '...#ww#.', '........', '...#ww#.'],
+    'compass': ['..####..', '.#wwww#.', '#ww#www#', '#w###ww#', '#ww###w#', '#www#ww#', '.#wwww#.', '..####..'],
+    'scroll': EMBLEMS['scroll'],
+})
+BIG_EMBLEMS = ['chest', 'map', 'trophy', 'tag', 'book', 'gear', 'help', 'compass', 'scroll', 'heart', 'grave']
+canvas_pictures = []
+
+
+def canvas_pictures_sheet():
+    """Big emblems (24 px), drawn white and grey so the text colour tints them."""
+    cells = [(f'big.{n}', big_emblem(n)) for n in BIG_EMBLEMS]
+    cw, ch = 24, 24
+    sheet = Image.new('RGBA', (cw * len(cells), ch), (0, 0, 0, 0))
+    chars = ''
+    for i, (name, im) in enumerate(cells):
+        sheet.paste(im, (i * cw, 0))
+        cp = next_cp()
+        chars += chr(cp)
+        glyphs[name] = [cp, actual_width(sheet, i * cw, cw, ch) + 1]
+    path = os.path.join(OUT, 'assets', NS, 'textures/font/ui/big_emblems.png')
+    sheet.save(path)
+    canvas_pictures.append({'file': f'{NS}:font/ui/big_emblems.png', 'height': ch, 'chars': [chars]})
+    # The same emblems small (8 px), for little buttons and list rows
+    cells = [(f'sm.{n}', big_emblem(n, 1)) for n in BIG_EMBLEMS]
+    sheet = Image.new('RGBA', (8 * len(cells), 8), (0, 0, 0, 0))
+    chars = ''
+    for i, (name, im) in enumerate(cells):
+        sheet.paste(im, (i * 8, 0))
+        cp = next_cp()
+        chars += chr(cp)
+        glyphs[name] = [cp, actual_width(sheet, i * 8, 8, 8) + 1]
+    sheet.save(os.path.join(OUT, 'assets', NS, 'textures/font/ui/small_emblems.png'))
+    canvas_pictures.append({'file': f'{NS}:font/ui/small_emblems.png', 'height': 8, 'chars': [chars]})
+
+
+def card_piece(w, h, part):
+    """A card: greyscale, tinted by the text colour (white = bright rim, the fill stays dark). part: l, m or r."""
+    img = Image.new('RGBA', (w, h), (0, 0, 0, 0))
+    r = 2
+    for y in range(h):
+        for x in range(w):
+            # position in the whole card: only the caps know the corners
+            left = part == 'l' and x == 0
+            right = part == 'r' and x == w - 1
+            left2 = part == 'l' and x == 1
+            right2 = part == 'r' and x == w - 2
+            corner = (part == 'l' and x + min(y, h - 1 - y) < r) or (part == 'r' and (w - 1 - x) + min(y, h - 1 - y) < r)
+            if corner:
+                continue
+            if y == 0 or left:
+                c = (232, 232, 232, 255)          # rim, light side
+            elif y == h - 1 or right:
+                c = (150, 150, 150, 255)          # rim, shaded side
+            elif y == 1 or left2:
+                c = (96, 96, 96, 255)             # inner light
+            elif y == h - 2 or right2:
+                c = (40, 40, 40, 255)
+            else:
+                t = (y - 2) / max(1, h - 5)
+                v = int(round(70 - 22 * t))       # the fill, darker towards the bottom
+                c = (v, v, v, 246)
+            img.putpixel((x, y), c)
+    return img
+
+
+card_sheets = []
+
+
+def cards():
+    """Card pieces for 1 to 4 rows of cells, in libreria:row<K> (their top on cell row K)."""
+    for hc in range(1, 5):
+        h = 18 * hc - 2 * CARD_M
+        cells = [(f'card{hc}.l', card_piece(4, h, 'l')), (f'card{hc}.r', card_piece(4, h, 'r'))]
+        cells += [(f'card{hc}.m{w}', card_piece(w, h, 'm')) for w in (64, 32, 16, 8, 4, 2, 1)]
+        cw = max(im.width for _, im in cells)
+        sheet = Image.new('RGBA', (cw * len(cells), h), (0, 0, 0, 0))
+        chars = ''
+        for i, (name, im) in enumerate(cells):
+            sheet.paste(im, (i * cw, 0))
+            cp = next_cp()
+            chars += chr(cp)
+            glyphs[name] = [cp, im.width + 1]
+        path = os.path.join(OUT, 'assets', NS, f'textures/font/ui/card_{hc}.png')
+        sheet.save(path)
+        card_sheets.append({'file': f'{NS}:font/ui/card_{hc}.png', 'height': h, 'chars': [chars]})
+
+
+def window_panel():
+    """The window itself: the panel over the whole chest screen (176 x 222), top at y 0."""
+    img = Image.new('RGBA', (WIN_W, WIN_H), (0, 0, 0, 0))
+    panel_box(img, 0, 0, WIN_W, WIN_H)
+    # a thin line under the header
+    for x in range(7, WIN_W - 7):
+        t = abs(x - WIN_W / 2) / (WIN_W / 2 - 7)
+        put(img, x, 15, LOOK['accent_lo'][:3] + (int(200 * (1 - t ** 2)),))
+    return img
+
+
+def canvas_fonts():
+    """libreria:y<N> (text and big emblems with their top at y N) and libreria:row<K> (cards)."""
+    default = json.load(open(os.path.join(VANILLA, 'font/include/default.json')))['providers']
+    space = [p for p in providers if p['type'] == 'space']
+    base = os.path.join(OUT, 'assets', NS, 'font')
+    os.makedirs(base, exist_ok=True)
+    for n in CANVAS_Y:
+        shift = n - 6
+        provs = [{'type': 'space', 'advances': {' ': 4}}] + space
+        for p in default:
+            q = dict(p)
+            q['ascent'] = p.get('ascent', 7) - shift
+            provs.append(q)
+        for p in canvas_pictures:
+            provs.append({'type': 'bitmap', 'file': p['file'], 'height': p['height'], 'ascent': 13 - n, 'chars': p['chars']})
+        json.dump({'providers': provs}, open(os.path.join(base, f'y{n}.json'), 'w'))
+    for k, top in enumerate(ROW_TOP):
+        provs = list(space)
+        for p in card_sheets:
+            provs.append({'type': 'bitmap', 'file': p['file'], 'height': p['height'], 'ascent': 13 - (top + CARD_M), 'chars': p['chars']})
+        json.dump({'providers': provs}, open(os.path.join(base, f'row{k}.json'), 'w'))
 
 
 # ------------------------------------------------------------------ the item search screen
@@ -426,91 +654,60 @@ SEARCH_OX, SEARCH_OY = 8, 6
 
 
 def search_frame():
-    """Your items: a search screen in Minecraft's own grey style, drawn by the title of an anvil screen (the only
-    screen with a text field) over the whole anvil and a little beyond. Holes where the text field and the 36 result
-    slots are; the anvil's own slots and hammer are covered. The dark bar above the results hides the anvil's
-    "Inventory" label (it's drawn in exactly that grey) and carries the summary the server writes into it.
-    Coordinates below are the anvil screen's own (0, 0 = its top left)."""
+    """Your items: a search screen in the Libreria look, drawn by the title of an anvil screen (the only screen with a
+    text field) over the whole anvil and a little beyond. One hole, where the anvil draws the text you type (it does so
+    before the title); everything else is ours, and the items stay on top. Coordinates below are the anvil screen's
+    own (0, 0 = its top left)."""
     W, H = 176 + 2 * SEARCH_OX, 166 + 2 * SEARCH_OY
     ox, oy = SEARCH_OX, SEARCH_OY
-    LIGHT, FILL, SHADE, BLACK = (255, 255, 255), (198, 198, 198), (85, 85, 85), (0, 0, 0)
-    img = Image.new('RGBA', (W, H), FILL + (255,))
-    for y in range(H):
-        for x in range(W):
-            corner = min(x, W - 1 - x) + min(y, H - 1 - y)
-            if (x in (0, W - 1) or y in (0, H - 1)) and corner < 2:
-                img.putpixel((x, y), (0, 0, 0, 0))
-            elif x in (0, W - 1) or y in (0, H - 1) or corner < 3:
-                img.putpixel((x, y), BLACK + (255,))
-            elif x in (1, 2) or y in (1, 2):
-                img.putpixel((x, y), LIGHT + (255,))
-            elif x in (W - 2, W - 3) or y in (H - 2, H - 3):
-                img.putpixel((x, y), SHADE + (255,))
+    L = LOOK
+    img = Image.new('RGBA', (W, H), (0, 0, 0, 0))
+    panel_box(img, 0, 0, W, H)
+    muted, faint = (200, 190, 170), (150, 140, 122)
 
     def hole(hx, hy, hw, hh):
         for yy in range(hy, hy + hh):
             for xx in range(hx, hx + hw):
                 img.putpixel((ox + xx, oy + yy), (0, 0, 0, 0))
 
-    def box(bx, by, bw, bh, fill, inset=True):
-        for yy in range(by, by + bh):
-            for xx in range(bx, bx + bw):
-                if xx == bx or yy == by:
-                    c = SHADE if inset else LIGHT
-                elif xx == bx + bw - 1 or yy == by + bh - 1:
-                    c = LIGHT if inset else SHADE
-                else:
-                    c = fill
-                img.putpixel((ox + xx, oy + yy), c + (255,))
-
     # A thin line under the title
-    for xx in range(-4, 180):
-        img.putpixel((ox + xx, oy + 16), (170, 170, 170, 255))
-        img.putpixel((ox + xx, oy + 17), (230, 230, 230, 255))
-    # One wide search bar: a magnifying glass and "Search" on the left, a thin divider, then the text you type (the
-    # screen's own text field shows through the hole; the pack draws that field black like this bar)
+    for xx in range(-2, 178):
+        t = abs(xx - 88) / 90
+        put(img, ox + xx, oy + 16, L['accent_lo'][:3] + (int(200 * (1 - t ** 2)),))
+    # The search bar: a magnifying glass and "Search" on the left, then the field you type in
     for yy in range(20, 36):
         for xx in range(-3, 180):
             edge = xx in (-3, 179) or yy in (20, 35)
-            img.putpixel((ox + xx, oy + yy), ((160, 160, 160) if edge else (0, 0, 0)) + (255,))
-    # The label part in a lighter grey, so it reads as a label and the black part as the field
+            put(img, ox + xx, oy + yy, L['field_rim'] if edge else L['field'])
     for yy in range(21, 35):
         for xx in range(-2, 52):
-            img.putpixel((ox + xx, oy + yy), (52, 52, 52, 255))
-    for yy in range(21, 35):
-        img.putpixel((ox + 52, oy + yy), (100, 100, 100, 255))
+            put(img, ox + xx, oy + yy, L['socket'])
+        put(img, ox + 52, oy + yy, L['field_rim'])
     draw_icon(img, MAGNIFIER, ox + 0, oy + 22)
-    draw_text(img, ox + 15, oy + 24, 'Search', (205, 205, 205))
+    draw_text(img, ox + 15, oy + 24, 'Search', muted)
     hole(60, 21, 108, 14)
-    # Hints where the anvil's first two slots were
-    box(-3, 41, 132, 24, (186, 186, 186))
+    # Hints, where the anvil's first two slots were; the filter button sits in the anvil's result slot
+    tray(img, ox - 3, oy + 40, 132, 26)
     for i, line in enumerate(('Click: light up its chest', 'Right-click: all  Shift: pin')):
-        draw_text(img, ox + 2, oy + 44 + 10 * i, line, (70, 70, 70) if i == 0 else (112, 112, 112))
-    # The filter button lives in the anvil's result slot: a little panel with "Show" next to it
-    box(130, 41, 50, 24, (186, 186, 186))
-    hole(133, 46, 18, 18)
-    draw_text(img, ox + 153, oy + 51, 'Show', (70, 70, 70))
-    # The dark bar over the results (the anvil's "Inventory" label vanishes into it)
-    for yy in range(68, 81):
-        for xx in range(-3, 179):
-            img.putpixel((ox + xx, oy + yy), (64, 64, 64, 255))
-    # The 36 result slots: the anvil's own slots show through
-    hole(7, 83, 162, 54)
-    hole(7, 141, 162, 18)
+        draw_text(img, ox + 2, oy + 44 + 10 * i, line, muted if i == 0 else faint)
+    tray(img, ox + 131, oy + 40, 49, 26)
+    draw_text(img, ox + 153, oy + 51, 'Show', muted)
+    # The bar with the totals (the server writes them in) and the results, floating on one tray
+    tray(img, ox - 3, oy + 68, 183, 13)
+    tray(img, ox + 6, oy + 82, 164, 78)
     return img
 
 
 def anvil_field():
-    """The anvil's text field as a normal Minecraft text box (black with a grey border) instead of its tan one: the
-    search screen uses it, and real anvils get the same clean field."""
+    """The anvil's text field in the look's colours: the search screen shows it through its hole, and real anvils get
+    the same field."""
     d = os.path.join(OUT, 'assets', 'minecraft', 'textures/gui/sprites/container/anvil')
     os.makedirs(d, exist_ok=True)
-    for name, border in (('text_field', (160, 160, 160)), ('text_field_disabled', (90, 90, 90))):
-        img = Image.new('RGBA', (110, 16), (0, 0, 0, 255))
+    for name, fill in (('text_field', LOOK['field']), ('text_field_disabled', LOOK['socket'])):
+        img = Image.new('RGBA', (110, 16), (0, 0, 0, 0))
         for y in range(16):
             for x in range(110):
-                if x in (0, 109) or y in (0, 15):
-                    img.putpixel((x, y), border + (255,))
+                put(img, x, y, fill)
         img.save(os.path.join(d, name + '.png'))
 
 
@@ -521,19 +718,10 @@ def frames():
 
 
 def filler_tile():
-    """Item model for empty menu slots: an 18x18 piece of the grey panel that hides the slot (needs oversized_in_gui)."""
-    img = Image.new('RGBA', (18, 18), (198, 198, 198, 255))
+    """Item model for empty menu slots. The menu's frame already covers Minecraft's slots, so it draws nothing."""
     base = os.path.join(OUT, 'assets', NS)
-    os.makedirs(os.path.join(base, 'textures/item/gui'), exist_ok=True)
-    img.save(os.path.join(base, 'textures/item/gui/tile.png'))
-    os.makedirs(os.path.join(base, 'models/item/gui'), exist_ok=True)
-    json.dump({'parent': 'minecraft:item/generated', 'textures': {'layer0': f'{NS}:item/gui/tile'},
-               'gui_light': 'front',
-               'display': {'gui': {'rotation': [0, 0, 0], 'translation': [0, 0, 0], 'scale': [1.125, 1.125, 1.125]}}},
-              open(os.path.join(base, 'models/item/gui/tile.json'), 'w'), indent=1)
     os.makedirs(os.path.join(base, 'items/gui'), exist_ok=True)
-    json.dump({'model': {'type': 'minecraft:model', 'model': f'{NS}:item/gui/tile'}, 'oversized_in_gui': True},
-              open(os.path.join(base, 'items/gui/tile.json'), 'w'), indent=1)
+    json.dump({'model': {'type': 'minecraft:empty'}}, open(os.path.join(base, 'items/gui/tile.json'), 'w'))
 
 
 DYES = {
@@ -588,10 +776,12 @@ def claim_buildings():
 
 
 def plaques():
-    """Coloured glass panes in menus (headers, on/off lamps) become little coloured plaques on the grey panel."""
+    """Coloured glass panes in menus (headers, on/off lamps) become little coloured plaques on the menu's tray."""
     base = os.path.join(OUT, 'assets', NS)
+    for sub in ('textures/item/gui', 'models/item/gui', 'items/gui'):
+        os.makedirs(os.path.join(base, sub), exist_ok=True)
     for name, c in DYES.items():
-        img = Image.new('RGBA', (18, 18), (198, 198, 198, 255))
+        img = Image.new('RGBA', (18, 18), (0, 0, 0, 0))
         dark = lerp(c, (0, 0, 0), 0.45) + (255,)
         light = lerp(c, (255, 255, 255), 0.35) + (255,)
         for y in range(2, 16):
@@ -610,9 +800,9 @@ def plaques():
                 img.putpixel((x, y), col)
         # soft shadow under the plaque
         for x in range(3, 16):
-            img.putpixel((x, 16), (150, 150, 150, 255))
+            img.putpixel((x, 16), (0, 0, 0, 90))
         for y in range(3, 16):
-            img.putpixel((16, y), (150, 150, 150, 255))
+            img.putpixel((16, y), (0, 0, 0, 90))
         img.save(os.path.join(base, f'textures/item/gui/pane_{name}.png'))
         json.dump({'parent': 'minecraft:item/generated', 'textures': {'layer0': f'{NS}:item/gui/pane_{name}'},
                    'gui_light': 'front',
@@ -842,12 +1032,12 @@ def marks():
 
 
 def search_button():
-    """The recipe book button in the inventory becomes a search button: Minecraft's own grey button with a
-    magnifying glass (and the same blue when you hover it)."""
+    """The recipe book button in the inventory becomes a search button: a button in the Libreria look with a
+    magnifying glass."""
     d = os.path.join(OUT, 'assets', 'minecraft', 'textures/gui/sprites/recipe_book')
     os.makedirs(d, exist_ok=True)
-    for name, hi in (('button', False), ('button_highlighted', True)):
-        img = vanilla_button(20, 18, hi)
+    for name, state in (('button', 'on'), ('button_highlighted', 'hover')):
+        img = plank(20, 18, state, 0, 0)
         draw_icon(img, MAGNIFIER, 4, 3)
         img.save(os.path.join(d, name + '.png'))
 
@@ -872,7 +1062,7 @@ def inventory_tab():
     in your hand reaches the server (vanilla ignores it), and that is the sort."""
     tex = os.path.join(OUT, 'assets', NS, 'textures/font/ui/inv_tab.png')
     os.makedirs(os.path.dirname(tex), exist_ok=True)
-    img = vanilla_button(20, 18)
+    img = plank(20, 18, 'on', 0, 0)
     draw_icon(img, SORT, 4, 3)
     img.save(tex)
     tab, back = '\ue9f0', '\ue9f1'
@@ -887,8 +1077,9 @@ def inventory_tab():
     ld = os.path.join(OUT, 'assets', 'minecraft', 'lang')
     os.makedirs(ld, exist_ok=True)
     for code in LANGS:
-        # white (a title is drawn dark grey), back to the tab's place, the tab
-        json.dump({'container.crafting': '\u00a7f' + back + tab}, open(os.path.join(ld, code + '.json'), 'w'))
+        # white (a title is drawn dark grey), back to the tab's place, the tab. And no "Inventory" line above your
+        # inventory in chests and other screens: it says nothing you don't see, and Libreria's windows use that spot
+        json.dump({'container.crafting': '\u00a7f' + back + tab, 'container.inventory': ''}, open(os.path.join(ld, code + '.json'), 'w'))
 
 
 def dialog_warning():
@@ -946,6 +1137,261 @@ def hotbar_font():
     json.dump({'providers': provs}, open(os.path.join(base, 'font/hotbar.json'), 'w'))
 
 
+# ------------------------------------------------------------------ the Libreria look for Minecraft's own widgets
+# Buttons, checkboxes, sliders, text fields and scroll bars are Minecraft's own (a window the server sends is built from
+# them), so they get the look of the cards at the top of the screen. That holds for every screen while you play here:
+# one look, from the pause menu to the windows of Libreria.
+#
+# Minecraft puts only 2 px between the buttons of a window, so every widget is drawn with a see-through margin inside
+# its own box: what you see has room around it (MARGIN_X / MARGIN_Y on each side).
+
+MARGIN_X, MARGIN_Y = 2, 1
+
+LOOKS = {
+    # Warm dark wood with a bronze rim, like the cards at the top of the screen
+    'wood': dict(
+        outline=(18, 11, 7, 255), radius=1,
+        on=dict(rim_tl=(160, 120, 64, 255), rim_br=(110, 79, 40, 255), top=(76, 53, 35, 255), bottom=(52, 36, 24, 255),
+                hi=(98, 70, 45, 255), shade=(36, 25, 16, 255)),
+        hover=dict(rim_tl=(240, 204, 120, 255), rim_br=(214, 166, 84, 255), top=(104, 74, 47, 255), bottom=(78, 55, 35, 255),
+                   hi=(150, 110, 66, 255), shade=(58, 41, 26, 255)),
+        off=dict(rim_tl=(66, 51, 38, 255), rim_br=(66, 51, 38, 255), top=(42, 33, 26, 255), bottom=(42, 33, 26, 255),
+                 hi=None, shade=None),
+        socket=(26, 17, 11, 255), socket_shadow=(12, 8, 5, 255), socket_light=(82, 58, 36, 255),
+        field=(14, 9, 6, 255), field_rim=(122, 86, 38, 255),
+        accent=(240, 204, 120, 255), accent_mid=(198, 152, 74, 255), accent_lo=(122, 86, 38, 255),
+        background=(18, 11, 6, 104),
+        panel_top=(50, 35, 24, 255), panel_bottom=(30, 21, 14, 255), panel_rim=((240, 204, 120, 255), (198, 152, 74, 255), (40, 26, 16, 255)),
+        panel_rim_lo=((122, 86, 38, 255), (198, 152, 74, 255), (40, 26, 16, 255)), studs=True,
+        tray=(22, 15, 9, 255), tray_shadow=(12, 8, 5, 255), tray_light=(66, 47, 30, 255), toolbar=(30, 21, 13, 255),
+        tag=(205, 188, 150, 255), tag_hi=(222, 208, 174, 255), tag_lo=(176, 158, 120, 255),
+        title=0xECDCB4, title_shadow=0x140C06,
+    ),
+    # Modern and flat: smoked glass with a thin light edge; the world shows through a little
+    'glass': dict(
+        outline=(0, 0, 0, 0), radius=2,
+        on=dict(rim_tl=(255, 255, 255, 52), rim_br=(255, 255, 255, 34), top=(16, 18, 24, 196), bottom=(10, 11, 15, 210),
+                hi=(255, 255, 255, 22), shade=None),
+        hover=dict(rim_tl=(255, 255, 255, 200), rim_br=(255, 255, 255, 160), top=(46, 50, 60, 214), bottom=(34, 37, 45, 222),
+                   hi=(255, 255, 255, 40), shade=None),
+        off=dict(rim_tl=(255, 255, 255, 20), rim_br=(255, 255, 255, 20), top=(10, 10, 12, 130), bottom=(10, 10, 12, 130),
+                 hi=None, shade=None),
+        socket=(0, 0, 0, 120), socket_shadow=(0, 0, 0, 120), socket_light=(255, 255, 255, 26),
+        field=(0, 0, 0, 170), field_rim=(255, 255, 255, 60),
+        accent=(255, 255, 255, 235), accent_mid=(205, 210, 220, 255), accent_lo=(120, 126, 140, 255),
+        background=(6, 8, 12, 120),
+        panel_top=(18, 20, 26, 236), panel_bottom=(12, 13, 17, 240), panel_rim=((255, 255, 255, 56), (0, 0, 0, 0), (0, 0, 0, 0)),
+        panel_rim_lo=((255, 255, 255, 36), (0, 0, 0, 0), (0, 0, 0, 0)), studs=False,
+        tray=(0, 0, 0, 90), tray_shadow=(0, 0, 0, 90), tray_light=(255, 255, 255, 18), toolbar=(255, 255, 255, 12),
+        tag=(232, 234, 240, 255), tag_hi=(250, 250, 252, 255), tag_lo=(200, 204, 214, 255),
+        title=0xFFFFFF, title_shadow=0x000000,
+    ),
+    # Cool deepslate with a thin gold edge: crisp, a little more serious
+    'slate': dict(
+        outline=(14, 15, 18, 255), radius=1,
+        on=dict(rim_tl=(92, 98, 110, 255), rim_br=(58, 62, 72, 255), top=(62, 67, 78, 255), bottom=(46, 50, 59, 255),
+                hi=(80, 86, 98, 255), shade=(36, 39, 46, 255)),
+        hover=dict(rim_tl=(236, 196, 110, 255), rim_br=(196, 150, 70, 255), top=(78, 84, 97, 255), bottom=(60, 65, 76, 255),
+                   hi=(100, 107, 121, 255), shade=(46, 50, 59, 255)),
+        off=dict(rim_tl=(48, 51, 58, 255), rim_br=(48, 51, 58, 255), top=(36, 38, 44, 255), bottom=(36, 38, 44, 255),
+                 hi=None, shade=None),
+        socket=(28, 30, 36, 255), socket_shadow=(16, 17, 21, 255), socket_light=(74, 79, 90, 255),
+        field=(16, 17, 21, 255), field_rim=(92, 98, 110, 255),
+        accent=(236, 196, 110, 255), accent_mid=(196, 150, 70, 255), accent_lo=(120, 90, 40, 255),
+        background=(8, 10, 14, 104),
+        panel_top=(44, 48, 56, 255), panel_bottom=(32, 35, 41, 255), panel_rim=((110, 116, 128, 255), (70, 75, 86, 255), (24, 26, 31, 255)),
+        panel_rim_lo=((50, 54, 62, 255), (70, 75, 86, 255), (24, 26, 31, 255)), studs=False,
+        tray=(26, 28, 33, 255), tray_shadow=(16, 17, 21, 255), tray_light=(64, 69, 80, 255), toolbar=(34, 37, 43, 255),
+        tag=(208, 212, 222, 255), tag_hi=(228, 231, 238, 255), tag_lo=(170, 175, 188, 255),
+        title=0xE8EBF2, title_shadow=0x0A0B0E,
+    ),
+}
+LOOK = LOOKS[os.environ.get('LIBRERIA_LOOK', 'wood')]
+
+
+def sprite_dir(*sub):
+    d = os.path.join(OUT, 'assets', 'minecraft', 'textures/gui/sprites', *sub)
+    os.makedirs(d, exist_ok=True)
+    return d
+
+
+def save_sprite(img, d, name, scaling=None):
+    img.save(os.path.join(d, name + '.png'))
+    if scaling:
+        json.dump({'gui': {'scaling': scaling}}, open(os.path.join(d, name + '.png.mcmeta'), 'w'))
+
+
+def put(img, x, y, c):
+    """Like px, but draws over what's there (for see-through colours)."""
+    if c is None or not (0 <= x < img.width and 0 <= y < img.height):
+        return
+    if len(c) == 3:
+        c = c + (255,)
+    img.alpha_composite(Image.new('RGBA', (1, 1), c), (x, y))
+
+
+def lerp4(a, b, t):
+    return tuple(int(round(a[i] + (b[i] - a[i]) * t)) for i in range(4))
+
+
+def rounded(x, y, w, h, r):
+    """Is (x, y) outside the rounded corners of a w×h box?"""
+    for cx, cy in ((0, 0), (w - 1, 0), (0, h - 1), (w - 1, h - 1)):
+        dx, dy = abs(x - cx), abs(y - cy)
+        if dx + dy < r:
+            return True
+    return False
+
+
+def plank(w, h, state, mx=MARGIN_X, my=MARGIN_Y):
+    """A button. state: 'on', 'hover' (mouse over or focused) or 'off' (can't be pressed)."""
+    st = LOOK[state]
+    img = Image.new('RGBA', (w, h), (0, 0, 0, 0))
+    bw, bh = w - 2 * mx, h - 2 * my
+    r = LOOK['radius']
+    has_outline = LOOK['outline'][3] > 0
+    for y in range(bh):
+        for x in range(bw):
+            if rounded(x, y, bw, bh, r + (1 if has_outline else 0)):
+                continue
+            ring = 0 if has_outline else 1
+            if has_outline and (x in (0, bw - 1) or y in (0, bh - 1)):
+                c = LOOK['outline']
+            elif x in (ring, bw - 1 - ring) or y in (ring, bh - 1 - ring):
+                bottom_right = (x == bw - 1 - ring or y == bh - 1 - ring) and not (x == ring or y == ring)
+                c = st['rim_br'] if bottom_right else st['rim_tl']
+                put(img, mx + x, my + y, lerp4(st['top'], st['bottom'], 0.5))
+            else:
+                c = lerp4(st['top'], st['bottom'], (y - ring - 1) / max(1, bh - 2 * ring - 3))
+                if st['hi'] is not None and y == ring + 1:
+                    put(img, mx + x, my + y, c)
+                    c = st['hi']
+                elif st['shade'] is not None and y == bh - 2 - ring:
+                    c = st['shade']
+            put(img, mx + x, my + y, c)
+    return img
+
+
+def socket(w, h, rim=None, fill=None, m=1):
+    """A recessed box (text fields, checkboxes, slider tracks): shadow at the top left, light at the bottom right."""
+    img = Image.new('RGBA', (w, h), (0, 0, 0, 0))
+    fill = fill or LOOK['socket']
+    rim = rim or (LOOK['outline'] if LOOK['outline'][3] else LOOK['socket_light'])
+    bw, bh = w - 2 * m, h - 2 * m
+    for y in range(bh):
+        for x in range(bw):
+            if rounded(x, y, bw, bh, LOOK['radius'] + 1):
+                continue
+            if x in (0, bw - 1) or y in (0, bh - 1):
+                c = rim
+            elif x == 1 or y == 1:
+                c = LOOK['socket_shadow']
+            elif x == bw - 2 or y == bh - 2:
+                c = LOOK['socket_light']
+            else:
+                c = fill
+            put(img, m + x, m + y, c)
+    return img
+
+
+CHECK = ['........##', '.......###', '......###.', '##...###..', '###.###...', '.#####....', '..###.....', '...#......']
+
+
+def look_widgets():
+    d = sprite_dir('widget')
+    btn = {'type': 'nine_slice', 'width': 200, 'height': 20,
+           'border': {'left': MARGIN_X + 3, 'right': MARGIN_X + 3, 'top': MARGIN_Y + 3, 'bottom': MARGIN_Y + 3}}
+    save_sprite(plank(200, 20, 'on'), d, 'button', btn)
+    save_sprite(plank(200, 20, 'hover'), d, 'button_highlighted', btn)
+    save_sprite(plank(200, 20, 'off'), d, 'button_disabled', btn)
+
+    # Checkbox: Minecraft draws it 17 px square (font height + 8), so it is drawn at exactly that size
+    for name, focus, checked in (('checkbox', False, False), ('checkbox_highlighted', True, False),
+                                 ('checkbox_selected', False, True), ('checkbox_selected_highlighted', True, True)):
+        img = socket(17, 17, LOOK['accent'] if focus else None)
+        if checked:
+            for y, row in enumerate(CHECK):
+                for x, ch in enumerate(row):
+                    if ch == '#':
+                        put(img, 3 + x, 5 + y, (0, 0, 0, 140))
+            for y, row in enumerate(CHECK):
+                for x, ch in enumerate(row):
+                    if ch == '#':
+                        put(img, 3 + x, 4 + y, LOOK['accent'] if y < 4 else LOOK['accent_mid'])
+        save_sprite(img, d, name)
+
+    # Text fields and slider tracks: a recessed box; the accent colour when it has focus
+    flat = {'type': 'nine_slice', 'width': 200, 'height': 20, 'border': 3}
+    save_sprite(socket(200, 20, LOOK['field_rim'], LOOK['field']), d, 'text_field', flat)
+    save_sprite(socket(200, 20, LOOK['accent'], LOOK['field']), d, 'text_field_highlighted', flat)
+    save_sprite(socket(200, 20), d, 'slider', flat)
+    save_sprite(socket(200, 20, LOOK['accent_lo']), d, 'slider_highlighted', flat)
+
+    # The slider's handle: a small knob in the accent colour with three grip lines
+    def knob(hover):
+        img = Image.new('RGBA', (8, 20), (0, 0, 0, 0))
+        top = LOOK['accent'] if hover else LOOK['accent_mid']
+        bottom = LOOK['accent_mid'] if hover else LOOK['accent_lo']
+        for y in range(1, 19):
+            for x in range(8):
+                if rounded(x, y - 1, 8, 18, 2):
+                    continue
+                if x in (0, 7) or y in (1, 18):
+                    c = (0, 0, 0, 200)
+                else:
+                    c = lerp4(top, bottom, (y - 2) / 15)
+                    if y in (7, 9, 11) and 2 <= x <= 5:
+                        c = lerp4(c, (0, 0, 0, 255), 0.35)
+                put(img, x, y, c)
+        return img
+
+    handle = {'type': 'nine_slice', 'width': 8, 'height': 20, 'border': {'left': 2, 'top': 3, 'right': 2, 'bottom': 3}}
+    save_sprite(knob(False), d, 'slider_handle', handle)
+    save_sprite(knob(True), d, 'slider_handle_highlighted', handle)
+
+    # Scroll bar: a thumb in the accent colour in a dark groove
+    bar = {'type': 'nine_slice', 'width': 6, 'height': 32, 'border': 1}
+    thumb = Image.new('RGBA', (6, 32), (0, 0, 0, 0))
+    for y in range(32):
+        for x in range(1, 5):
+            put(thumb, x, y, LOOK['accent'] if x == 1 else LOOK['accent_mid'] if x < 4 else LOOK['accent_lo'])
+    save_sprite(thumb, d, 'scroller', bar)
+    groove = Image.new('RGBA', (6, 32), (0, 0, 0, 0))
+    for y in range(32):
+        for x in range(1, 5):
+            put(groove, x, y, LOOK['socket'])
+    save_sprite(groove, d, 'scroller_background', bar)
+
+
+def look_slot_highlight():
+    """The square under the mouse in every inventory: corners in the accent colour around the slot and a soft glow,
+    all drawn behind the item (the front part is empty, so nothing lies over the item itself)."""
+    d = sprite_dir('container')
+    scaling = {'type': 'nine_slice', 'width': 24, 'height': 24, 'border': 4}
+    a = LOOK['accent']
+    back = Image.new('RGBA', (24, 24), (0, 0, 0, 0))
+    for y in range(4, 20):
+        for x in range(4, 20):
+            back.putpixel((x, y), a[:3] + (46,))
+    arm = 5
+    for (cx, cy, sx, sy) in ((3, 3, 1, 1), (20, 3, -1, 1), (3, 20, 1, -1), (20, 20, -1, -1)):
+        for i in range(1, arm - 1):
+            for (x, y) in ((cx + sx * i, cy + sy), (cx + sx, cy + sy * i)):
+                back.putpixel((x, y), (0, 0, 0, 110))
+        for i in range(arm):
+            for (x, y) in ((cx + sx * i, cy), (cx, cy + sy * i)):
+                back.putpixel((x, y), a[:3] + (240,))
+    save_sprite(back, d, 'slot_highlight_back', scaling)
+    save_sprite(Image.new('RGBA', (24, 24), (0, 0, 0, 0)), d, 'slot_highlight_front', scaling)
+
+
+def look_background():
+    """Behind windows and the pause menu: the world a little darker, so the widgets read well on it."""
+    d = os.path.join(OUT, 'assets', 'minecraft', 'textures/gui')
+    os.makedirs(d, exist_ok=True)
+    Image.new('RGBA', (16, 16), LOOK['background']).save(os.path.join(d, 'inworld_menu_background.png'))
+
+
 def boss_bar():
     """The boss bar of the top tooltip uses the white colour; the pack makes white bars invisible (only the title)."""
     d = os.path.join(OUT, 'assets', 'minecraft', 'textures/gui/sprites/boss_bar')
@@ -968,6 +1414,9 @@ def main():
     pips()
     icons()
     frames()
+    canvas_pictures_sheet()
+    cards()
+    bitmap('window', [('win.panel', window_panel())], WIN_H, 13)
     # Its top is SEARCH_OY above the anvil's top; the title's baseline is 13 below that top
     bitmap('search_frame', [('frame.search', search_frame())], 166 + 2 * SEARCH_OY, 13 + SEARCH_OY)
     filler_tile()
@@ -978,14 +1427,19 @@ def main():
     os.makedirs(os.path.join(base, 'font'), exist_ok=True)
     json.dump({'providers': providers}, open(os.path.join(base, 'font/ui.json'), 'w'), indent=1)
     icon_map = hud_fonts()
+    canvas_fonts()
     boss_bar()
+    look_widgets()
+    look_slot_highlight()
+    look_background()
     search_button()
     dialog_warning()
     anvil_field()
     inventory_tab()
     hotbar_font()
     meta = {"hudLines": HUD_LINES, "icons": icon_map, 'lineHeight': LH, 'padX': PAD_X, 'padTop': PAD_TOP, 'padBottom': PAD_BOTTOM,
-            'panelLines': [min(PANEL_LINES), max(PANEL_LINES)], 'themes': list(THEMES), 'glyphs': glyphs}
+            'panelLines': [min(PANEL_LINES), max(PANEL_LINES)], 'themes': list(THEMES), 'glyphs': glyphs,
+            'look': {'title': LOOK['title'], 'titleShadow': LOOK['title_shadow']}}
     os.makedirs(os.path.join(OUT, NS), exist_ok=True)
     json.dump(meta, open(os.path.join(OUT, NS, 'ui_glyphs.json'), 'w'), indent=1)
     print(len(glyphs), 'glyphs,', len(providers), 'providers')

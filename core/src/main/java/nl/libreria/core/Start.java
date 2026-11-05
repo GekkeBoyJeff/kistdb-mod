@@ -29,8 +29,12 @@ public final class Start {
 	private Start() {
 	}
 
-	/** The start screen (the same one G opens). */
+	/** The start screen: with the pack Libreria's own window, otherwise the same window G opens. */
 	public static void open(ServerPlayer p) {
+		if (nl.libreria.core.gui.CanvasWindow.available(p)) {
+			StartWindow.open(p);
+			return;
+		}
 		var dialogs = p.level().getServer().registryAccess().lookupOrThrow(Registries.DIALOG);
 		var start = dialogs.get(START);
 		if (start.isPresent()) {

@@ -27,8 +27,8 @@ import nl.libreria.core.gui.Menu;
  * logs show 200). Click an item: the screen closes and its nearest chest lights up, with a beam to it. Right-click:
  * every chest that has it.
  *
- * <p>It is an anvil screen (the only screen with a text field); the Libreria pack draws a search screen in
- * Minecraft's own grey style over the whole anvil, and the results fill the slots where your inventory normally is.
+ * <p>It is an anvil screen (the only screen with a text field); the Libreria pack draws a search screen in the
+ * Libreria look over the whole anvil, and the results fill the slots where your inventory normally is.
  */
 public final class ItemSearch extends AnvilInputGui {
 	/** The anvil's own three slots come first, then the 36 slots of the player inventory area. */
@@ -157,7 +157,8 @@ public final class ItemSearch extends AnvilInputGui {
 		int adv = Glyphs.advance("frame.search");
 		// The anvil writes its title at x 60. The screen starts 8 px left of the anvil's own left edge; after it,
 		// "Your items" centred on top, then the totals right-aligned in the dark bar.
-		Component name = Component.literal("Your items");
+		Component name = Component.literal("Your items")
+				.withStyle(st -> st.withColor(Glyphs.titleColor).withShadowColor(0xFF000000 | Glyphs.titleShadow));
 		int nameX = (176 - Glyphs.width(name)) / 2;
 		MutableComponent t = Component.empty()
 				.append(Glyphs.ui(Glyphs.space(-68) + Glyphs.g("frame.search") + Glyphs.space(nameX - 60 - (-68 + adv)), 0xFFFFFF));

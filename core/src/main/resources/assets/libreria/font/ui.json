@@ -243,11 +243,20 @@
   },
   {
    "type": "bitmap",
+   "file": "libreria:font/ui/window.png",
+   "height": 222,
+   "ascent": 13,
+   "chars": [
+    "\ue102"
+   ]
+  },
+  {
+   "type": "bitmap",
    "file": "libreria:font/ui/search_frame.png",
    "height": 178,
    "ascent": 19,
    "chars": [
-    "\ue0c8"
+    "\ue103"
    ]
   },
   {
@@ -256,7 +265,7 @@
    "height": 7,
    "ascent": 7,
    "chars": [
-    "\ue0c9\ue0ca\ue0cb\ue0cc\ue0cd\ue0ce\ue0cf"
+    "\ue104\ue105\ue106\ue107\ue108\ue109\ue10a"
    ]
   }
  ]

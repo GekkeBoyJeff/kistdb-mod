@@ -357,6 +357,22 @@ public final class Screens implements FabricClientGameTest {
 			});
 			menu(ctx, server, player, "window_links", nl.libreria.core.Links::open);
 			menu(ctx, server, player, "window_start", nl.libreria.core.Welcome::guide);
+			// Libreria's own start window (drawn by the pack), then with the mouse on the Items card
+			menu(ctx, server, player, "own_start", nl.libreria.core.StartWindow::open);
+			safe("own_start_hover", () -> {
+				server.runOnServer(s -> nl.libreria.core.StartWindow.open(player));
+				ctx.waitTicks(12);
+				noToasts(ctx);
+				double scale = ctx.computeOnClient(mc -> (double) mc.getWindow().getGuiScale());
+				int w = ctx.computeOnClient(mc -> mc.getWindow().getGuiScaledWidth());
+				int h = ctx.computeOnClient(mc -> mc.getWindow().getGuiScaledHeight());
+				int left = (w - 176) / 2, top = (h - 222) / 2;
+				ctx.getInput().setCursorPos((left + 30) * scale, (top + 40) * scale);
+				ctx.waitTicks(5);
+				ctx.takeScreenshot("own_start_hover");
+				ctx.getInput().setCursorPos(2, 2);
+				close(ctx, server, player);
+			});
 			menu(ctx, server, player, "window_commands", nl.libreria.core.Welcome::commands);
 			menu(ctx, server, player, "window_tips", nl.libreria.core.Tips::all);
 			safe("tip", () -> {

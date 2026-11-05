@@ -45,15 +45,16 @@ public abstract class Menu extends SimpleGui {
 	}
 
 	/**
-	 * Sets the title; with the pack the menu gets Minecraft's own grey panel with the tool's colour under the title,
-	 * and the title in the usual dark grey.
+	 * Sets the title; with the pack the menu gets the Libreria panel with its domain's colour and emblem, and the title
+	 * in the light colour of the look, with a shadow.
 	 */
 	@Override
 	public void setTitle(Component title) {
 		this.plainTitle = title;
 		if (this.pack) {
-			Component grey = Component.literal(title.getString()).withStyle(s -> s.withColor(0x404040));
-			super.setTitle(Glyphs.framedTitle(theme(), this.rows, grey));
+			Component light = Component.literal(title.getString())
+					.withStyle(s -> s.withColor(Glyphs.titleColor).withShadowColor(0xFF000000 | Glyphs.titleShadow));
+			super.setTitle(Glyphs.framedTitle(theme(), this.rows, light));
 		} else {
 			// Without the pack there's no coloured frame: a small diamond in the domain's colour says where you are
 			nl.libreria.core.Domain d = domain();
@@ -61,7 +62,7 @@ public abstract class Menu extends SimpleGui {
 		}
 	}
 
-	/** With the pack, coloured glass panes (headers, lamps) are shown as little plaques on the grey panel. */
+	/** With the pack, coloured glass panes (headers, lamps) are shown as little plaques on the menu's tray. */
 	@Override
 	public void setSlot(int index, eu.pb4.sgui.api.elements.GuiElement element) {
 		super.setSlot(index, this.pack ? plaque(element) : element);
@@ -133,7 +134,7 @@ public abstract class Menu extends SimpleGui {
 	}
 
 	/**
-	 * Fills every slot that is still empty: with the pack a piece of the grey panel (the slot disappears),
+	 * Fills every slot that is still empty: with the pack an invisible item (the frame already hides the slot),
 	 * otherwise dark glass above and black glass in the navigation bar.
 	 */
 	protected void finish() {
