@@ -367,6 +367,56 @@ public final class Screens implements FabricClientGameTest {
 			menu(ctx, server, player, "own_places_waypoints", p -> nl.libreria.core.gui.PlacesWindow.open(p, "waypoints", 0));
 			menu(ctx, server, player, "own_chests", p -> nl.libreria.chests.gui.ChestsWindow.open(p, () -> {
 			}));
+			// Profiles, the players, and a server goal with a few people on it
+			java.util.UUID anna = java.util.UUID.nameUUIDFromBytes("libreria-anna".getBytes()), bram = java.util.UUID.nameUUIDFromBytes(
+					"libreria-bram".getBytes()), sanne = java.util.UUID.nameUUIDFromBytes("libreria-sanne".getBytes());
+			server.runOnServer(s -> {
+				long now = System.currentTimeMillis(), day = 24L * 3600 * 1000;
+				nl.libreria.core.Players.note(anna, "Anna", now - 40 * day, now - 2 * 3600 * 1000L);
+				nl.libreria.core.Players.note(bram, "Bram", now - 30 * day, now - 3 * day);
+				nl.libreria.core.Players.note(sanne, "Sanne", now - 20 * day, now - 20 * 3600 * 1000L);
+				var r = nl.libreria.collector.Goals.startNow(s, "mine.stone");
+				if (r != null) {
+					r.done.put(anna, 4812L);
+					r.done.put(player.getUUID(), 3960L);
+					r.done.put(bram, 2105L);
+					r.done.put(sanne, 1013L);
+				}
+			});
+			menu(ctx, server, player, "own_domain_me_new", p -> nl.libreria.core.DomainWindow.open(p, nl.libreria.core.Domain.YOU));
+			menu(ctx, server, player, "own_domain_progress_goal", p -> nl.libreria.core.DomainWindow.open(p, nl.libreria.core.Domain.PROGRESS));
+			menu(ctx, server, player, "own_profile", p -> nl.libreria.core.ProfileWindow.open(p, p.getUUID(), "", q -> {
+			}));
+			menu(ctx, server, player, "own_profile_other", p -> nl.libreria.core.ProfileWindow.open(p, anna, "Players",
+					nl.libreria.core.PlayersWindow::open));
+			menu(ctx, server, player, "own_players", nl.libreria.core.PlayersWindow::open);
+			menu(ctx, server, player, "own_goal", nl.libreria.collector.gui.GoalWindow::open);
+			safe("goal_bar", () -> {
+				server.runOnServer(s -> nl.libreria.core.Hud.show(player, "goal", net.minecraft.network.chat.Component.empty()
+						.append(nl.libreria.core.Ui.text("Stone Age  ", net.minecraft.ChatFormatting.GOLD))
+						.append(nl.libreria.core.Ui.text("11,890 / 12,500", net.minecraft.ChatFormatting.WHITE))
+						.append(nl.libreria.core.Ui.text("  · you 3,960", net.minecraft.ChatFormatting.GRAY)), 1, 60));
+				ctx.waitTicks(6);
+				ctx.takeScreenshot("goal_bar");
+			});
+			server.runOnServer(s -> nl.libreria.collector.Goals.endNow(s, true));
+			menu(ctx, server, player, "own_goal_past", nl.libreria.collector.gui.GoalWindow::openPast);
+			safe("away_card", () -> {
+				server.runOnServer(s -> {
+					// Nothing else waiting at the top, so the card shows right away
+					nl.libreria.core.gui.TopCard.forget(player.getUUID());
+					boolean cards = nl.libreria.collector.Goals.CARDS.get(player);
+					nl.libreria.collector.Goals.CARDS.set(player, false);
+					nl.libreria.core.Chronicle.write(anna, "Anna", nl.libreria.core.Chronicle.Kind.BOSS, "slew the Wither", true);
+					nl.libreria.core.Chronicle.write(bram, "Bram", nl.libreria.core.Chronicle.Kind.FIRST, "was the first to reach the End", true);
+					nl.libreria.collector.Goals.startNow(s, "farm.crops");
+					nl.libreria.collector.Goals.CARDS.set(player, cards);
+					nl.libreria.core.Chronicle.welcomeBack(player, System.currentTimeMillis() - 3L * 24 * 3600 * 1000);
+				});
+				ctx.waitTicks(30);
+				ctx.takeScreenshot("away_card");
+				server.runOnServer(s -> nl.libreria.core.gui.TopCard.hide(player, "away"));
+			});
 			for (var d : nl.libreria.core.Domain.values()) {
 				menu(ctx, server, player, "own_settings_" + d.word, p -> nl.libreria.core.gui.SettingsCanvas.open(p, d, q -> {
 				}));

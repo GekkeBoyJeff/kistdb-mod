@@ -17,6 +17,7 @@ import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import nl.libreria.core.dialog.Window;
 import org.jetbrains.annotations.Nullable;
@@ -187,15 +188,82 @@ public final class Chronicle {
 	 * Those things aren't "the first" any more, and a moment that called somebody the first while somebody else did it
 	 * earlier becomes an ordinary one.
 	 */
-	static void seed(MinecraftServer server) {
+	static @Nullable ChronicleHistory seed(MinecraftServer server) {
 		try {
 			ChronicleHistory h = ChronicleHistory.read(server.getWorldPath(net.minecraft.world.level.storage.LevelResource.ROOT),
 					STORY.keySet(), BOSSES.keySet());
 			int fixed = apply(data(), h);
 			Libreria.LOG.info("Chronicle: read {} player files; {} moment(s) no longer called a first", h.files, fixed);
+			return h;
 		} catch (RuntimeException e) {
 			Libreria.LOG.warn("Chronicle: could not read the players' history", e);
+			return null;
 		}
+	}
+
+	// ---------------------------------------------------------------- while you were away
+
+	public static final Setting.Toggle AWAY = Libreria.MODULE.toggle("away_card", "While you were away", true, Items.WRITABLE_BOOK,
+			"Back after a while: a card with what", "happened in the chronicle meanwhile.").in(Domain.PROGRESS, "Chronicle");
+	/** Away at least this long before there's a card. */
+	static final long AWAY_MS = 30 * 60 * 1000L;
+	private static final List<java.util.function.Function<ServerPlayer, Component>> AWAY_LINES = new ArrayList<>();
+
+	/** One more line for the card, e.g. the server goal ("Server goal Stone Age: 24%"); null = nothing to say. */
+	public static void addAwayLine(java.util.function.Function<ServerPlayer, Component> line) {
+		AWAY_LINES.add(line);
+	}
+
+	/** What others did since {@code since}, newest first, the big moments first. */
+	static List<Entry> since(UUID who, long since) {
+		List<Entry> out = new ArrayList<>();
+		for (Entry e : data().entries) if (e.at > since && !who.equals(e.who)) out.add(e);
+		out.sort(java.util.Comparator.<Entry>comparingInt(e -> e.major ? 0 : 1).thenComparing(java.util.Comparator.comparingLong((Entry e) -> e.at).reversed()));
+		return out;
+	}
+
+	/** Takes moments out again (for self-tests that wrote some). */
+	public static void forget(java.util.function.Predicate<Entry> which) {
+		if (data().entries.removeIf(which)) STORE.markDirty();
+	}
+
+	/** A player came back: if they were away a while and others did things, a card (and a line in chat). */
+	public static void welcomeBack(ServerPlayer p, long last) {
+		try {
+			long now = System.currentTimeMillis();
+			if (last <= 0 || now - last < AWAY_MS || !AWAY.get(p)) return;
+			List<Entry> news = since(p.getUUID(), last);
+			if (news.isEmpty()) return;
+			List<nl.libreria.core.gui.TopCard.Row> rows = new ArrayList<>();
+			for (Entry e : news) {
+				if (rows.size() >= 2) break;
+				// Short enough for the card: the whole line, otherwise cut
+				Component l = line(e, false);
+				String t = l.getString();
+				rows.add(nl.libreria.core.gui.TopCard.Row.text("", "", t.length() <= 44 ? l
+						: Ui.text(t.substring(0, 43).stripTrailing() + "…", e.major ? ChatFormatting.WHITE : ChatFormatting.GRAY)));
+			}
+			for (var f : AWAY_LINES) {
+				Component extra = f.apply(p);
+				if (extra != null) rows.add(nl.libreria.core.gui.TopCard.Row.text("", "", extra));
+			}
+			String away = Players.ago(last).replace(" ago", "").toLowerCase(Locale.ROOT);
+			String n = news.size() == 1 ? "1 moment" : news.size() + " moments";
+			Component title = Ui.text("While you were away", Domain.PROGRESS.rgb);
+			Component sub = Ui.text((away.equals("yesterday") ? "A day" : cap(away)) + " · " + n + " in the chronicle", ChatFormatting.GRAY);
+			nl.libreria.core.gui.TopCard.whenFree(p, "away", new nl.libreria.core.gui.TopCard.Card(new ItemStack(Items.WRITABLE_BOOK),
+					Domain.PROGRESS.rgb, title, sub, rows), 240, 3 * 60 * 20);
+			p.sendSystemMessage(Say.line(Domain.PROGRESS).append(Ui.text("While you were away: " + n + " in the chronicle. ", ChatFormatting.GRAY))
+					.append(Component.literal("[Read]").withStyle(st -> st.withColor(ChatFormatting.AQUA)
+							.withClickEvent(new net.minecraft.network.chat.ClickEvent.RunCommand("/chronicle"))
+							.withHoverEvent(new HoverEvent.ShowText(Ui.text("Open the chronicle", ChatFormatting.GRAY))))));
+		} catch (RuntimeException e) {
+			Libreria.LOG.warn("Chronicle: could not make the away card", e);
+		}
+	}
+
+	private static String cap(String s) {
+		return s.isEmpty() ? s : Character.toUpperCase(s.charAt(0)) + s.substring(1);
 	}
 
 	/** Brings {@code d} in line with {@code h}; returns how many moments were corrected. */

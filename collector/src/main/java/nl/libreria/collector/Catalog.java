@@ -142,6 +142,9 @@ public final class Catalog {
 		buildExploring();
 		buildCrafting();
 		buildLife();
+		Extra.build();
+		Goals.build();
+		buildTogether();
 		signature = BY_ID.keySet().hashCode();
 	}
 
@@ -159,13 +162,13 @@ public final class Catalog {
 	/** Ids or names given twice while building (a mistake in this file; the self-test reports it). */
 	static final List<String> DUPLICATES = new ArrayList<>();
 
-	private static void add(Achievement a) {
+	static void add(Achievement a) {
 		if (BY_ID.containsKey(a.id())) DUPLICATES.add(a.id());
 		for (Achievement b : BY_ID.values()) if (b.name().equals(a.name())) DUPLICATES.add(a.name());
 		BY_ID.put(a.id(), a);
 	}
 
-	private static Achievement.Goal goal(long target, ToLongBiFunction<ServerPlayer, CollectorMod.Data> current) {
+	static Achievement.Goal goal(long target, ToLongBiFunction<ServerPlayer, CollectorMod.Data> current) {
 		return new Achievement.Goal() {
 			@Override
 			public long current(ServerPlayer player, CollectorMod.Data data) {
@@ -184,7 +187,7 @@ public final class Catalog {
 	 * format with %,d; "singular|plural" uses the left part when the target is 1. {@code divisor} turns the statistic
 	 * into the unit (centimetres → km). Nothing is added if {@code value} is null (that part of the game isn't there).
 	 */
-	private static void ladder(Category c, String id, Item icon, String unit, @Nullable Counter value, long divisor, Rarity[] rarities,
+	static void ladder(Category c, String id, Item icon, String unit, @Nullable Counter value, long divisor, Rarity[] rarities,
 			Object... steps) {
 		if (value == null) return;
 		int bar = unit.indexOf('|');
@@ -209,24 +212,24 @@ public final class Catalog {
 	}
 
 	/** Makes these achievements one ladder (lowest target first). */
-	private static void chain(List<Achievement> grades) {
+	static void chain(List<Achievement> grades) {
 		if (grades.size() < 2) return;
 		List<Achievement> list = List.copyOf(grades);
 		for (Achievement a : list) LADDER.put(a.id(), list);
 	}
 
-	private static Rarity[] r(Rarity... rs) {
+	static Rarity[] r(Rarity... rs) {
 		return rs;
 	}
 
 	// ---------------------------------------------------------------- what counts
 
-	private static Identifier mc(String path) {
+	static Identifier mc(String path) {
 		return Identifier.withDefaultNamespace(path);
 	}
 
 	/** A statistic from the "custom" list (play time, distances…), or null if this version has no such statistic. */
-	private static @Nullable Counter custom(String... stats) {
+	static @Nullable Counter custom(String... stats) {
 		List<Identifier> ids = new ArrayList<>();
 		for (String s : stats) if (BuiltInRegistries.CUSTOM_STAT.containsKey(mc(s))) ids.add(mc(s));
 		if (ids.isEmpty()) return null;
@@ -239,13 +242,13 @@ public final class Catalog {
 		return c;
 	}
 
-	private static List<Block> blocks(String... ids) {
+	static List<Block> blocks(String... ids) {
 		List<Block> out = new ArrayList<>();
 		for (String id : ids) BuiltInRegistries.BLOCK.getOptional(mc(id)).ifPresent(out::add);
 		return out;
 	}
 
-	private static @Nullable Counter mined(List<Block> blocks) {
+	static @Nullable Counter mined(List<Block> blocks) {
 		if (blocks.isEmpty()) return null;
 		List<Block> list = List.copyOf(blocks);
 		return new Counter((p, d) -> {
@@ -255,11 +258,45 @@ public final class Catalog {
 		});
 	}
 
-	private static @Nullable Counter mined(String... ids) {
+	static @Nullable Counter mined(String... ids) {
 		return mined(blocks(ids));
 	}
 
-	private static @Nullable Counter killed(String... ids) {
+	/** Kills of every kind of mob in a category (monsters, animals…). */
+	static Counter killedCategory(net.minecraft.world.entity.MobCategory category) {
+		List<EntityType<?>> types = new ArrayList<>();
+		for (EntityType<?> t : BuiltInRegistries.ENTITY_TYPE) if (t.getCategory() == category) types.add(t);
+		return new Counter((p, d) -> {
+			long n = 0;
+			for (EntityType<?> t : types) n += p.getStats().getValue(Stats.ENTITY_KILLED, t);
+			return n;
+		});
+	}
+
+	/** Times these mobs killed you. */
+	static @Nullable Counter killedBy(String... ids) {
+		List<EntityType<?>> types = new ArrayList<>();
+		for (String id : ids) BuiltInRegistries.ENTITY_TYPE.getOptional(mc(id)).ifPresent(types::add);
+		if (types.isEmpty()) return null;
+		return new Counter((p, d) -> {
+			long n = 0;
+			for (EntityType<?> t : types) n += p.getStats().getValue(Stats.ENTITY_KILLED_BY, t);
+			return n;
+		});
+	}
+
+	/** Made: crafted, smelted (taken out of a furnace), traded for… as Minecraft counts "crafted". */
+	static @Nullable Counter crafted(List<Item> items) {
+		if (items.isEmpty()) return null;
+		List<Item> list = List.copyOf(items);
+		return new Counter((p, d) -> {
+			long n = 0;
+			for (Item i : list) n += p.getStats().getValue(Stats.ITEM_CRAFTED, i);
+			return n;
+		});
+	}
+
+	static @Nullable Counter killed(String... ids) {
 		List<EntityType<?>> types = new ArrayList<>();
 		for (String id : ids) BuiltInRegistries.ENTITY_TYPE.getOptional(mc(id)).ifPresent(types::add);
 		if (types.isEmpty()) return null;
@@ -270,23 +307,23 @@ public final class Catalog {
 		});
 	}
 
-	private static Item item(String id) {
+	static Item item(String id) {
 		return BuiltInRegistries.ITEM.getValue(mc(id));
 	}
 
-	private static List<Item> itemsWhere(Predicate<String> match) {
+	static List<Item> itemsWhere(Predicate<String> match) {
 		List<Item> out = new ArrayList<>();
 		for (String id : allItems) if (match.test(id)) out.add(item(id));
 		return out;
 	}
 
-	private static List<Item> itemsOf(String... ids) {
+	static List<Item> itemsOf(String... ids) {
 		Set<String> want = Set.of(ids);
 		return itemsWhere(want::contains);
 	}
 
 	/** Times used: eaten, placed, thrown, swung… */
-	private static @Nullable Counter used(List<Item> items) {
+	static @Nullable Counter used(List<Item> items) {
 		if (items.isEmpty()) return null;
 		List<Item> list = List.copyOf(items);
 		return new Counter((p, d) -> {
@@ -297,7 +334,7 @@ public final class Catalog {
 	}
 
 	/** Picked up minus dropped: what you really gathered (dropping and picking up again doesn't count). */
-	private static @Nullable Counter gathered(List<Item> items) {
+	static @Nullable Counter gathered(List<Item> items) {
 		if (items.isEmpty()) return null;
 		List<Item> list = List.copyOf(items);
 		return new Counter((p, d) -> {
@@ -314,15 +351,15 @@ public final class Catalog {
 	}
 
 	/** Item tag by name (not every tag still has a Java constant in 26.x). */
-	private static net.minecraft.tags.TagKey<Item> tag(String name) {
+	static net.minecraft.tags.TagKey<Item> tag(String name) {
 		return net.minecraft.tags.TagKey.create(net.minecraft.core.registries.Registries.ITEM, mc(name));
 	}
 
-	private static boolean is(String id, net.minecraft.tags.TagKey<Item> tag) {
+	static boolean is(String id, net.minecraft.tags.TagKey<Item> tag) {
 		return new ItemStack(item(id)).is(tag);
 	}
 
-	private static boolean has(String id, net.minecraft.core.component.DataComponentType<?> type) {
+	static boolean has(String id, net.minecraft.core.component.DataComponentType<?> type) {
 		return new ItemStack(item(id)).has(type);
 	}
 
@@ -474,18 +511,19 @@ public final class Catalog {
 		Category c = Category.MIJNBOUW;
 		List<Block> everything = new ArrayList<>();
 		BuiltInRegistries.BLOCK.forEach(everything::add);
-		ladder(c, "mijn", Items.IRON_PICKAXE, "Mine %,d blocks", mined(everything), 1, r(C, U, R, E, L),
-				1000, "Little Digger", 10000, "Miner", 50000, "Tunnel Vision", 200000, "Mountain Mover", 500000, "World Eater");
+		ladder(c, "mijn", Items.IRON_PICKAXE, "Mine %,d blocks", mined(everything), 1, r(C, U, R, E, L, M),
+				1000, "Little Digger", 10000, "Miner", 50000, "Tunnel Vision", 200000, "Mountain Mover", 500000, "World Eater",
+				1000000, "Planet Cracker");
 		ladder(c, "steen", Items.COBBLESTONE, "Mine %,d stone", mined("stone", "deepslate", "cobblestone", "cobbled_deepslate", "granite",
-				"diorite", "andesite", "tuff", "calcite", "dripstone_block", "smooth_basalt", "mossy_cobblestone"), 1, r(C, U, R, E),
-				100, "Pebble Picker", 1000, "Rock Breaker", 10000, "Quarryman", 50000, "Mountain Carver");
+				"diorite", "andesite", "tuff", "calcite", "dripstone_block", "smooth_basalt", "mossy_cobblestone"), 1, r(C, U, R, E, L),
+				100, "Pebble Picker", 1000, "Rock Breaker", 10000, "Quarryman", 50000, "Mountain Carver", 250000, "Bedrock Botherer");
 		ladder(c, "grond", Items.DIRT, "Dig %,d dirt, sand and gravel", mined("dirt", "grass_block", "coarse_dirt", "rooted_dirt", "podzol",
 				"mycelium", "sand", "red_sand", "gravel", "clay", "mud", "muddy_mangrove_roots", "soul_sand", "soul_soil", "snow_block"), 1,
 				r(C, U, R, E), 100, "Dirt Digger", 1000, "Trench Digger", 10000, "Earthmover", 50000, "Landscaper");
 		List<Block> logs = new ArrayList<>();
 		for (Block b : BuiltInRegistries.BLOCK) if (b.defaultBlockState().is(BlockTags.LOGS)) logs.add(b);
-		ladder(c, "hout", Items.IRON_AXE, "Chop %,d logs", mined(logs), 1, r(C, U, R, E, L),
-				64, "Twig Snapper", 500, "Woodcutter", 2500, "Timber!", 10000, "Forest Feller", 25000, "Deforester");
+		ladder(c, "hout", Items.IRON_AXE, "Chop %,d logs", mined(logs), 1, r(C, U, R, E, L, M),
+				64, "Twig Snapper", 500, "Woodcutter", 2500, "Timber!", 10000, "Forest Feller", 25000, "Deforester", 100000, "Last Tree Standing");
 		ladder(c, "kolen", Items.COAL, "Mine %,d coal ore", mined("coal_ore", "deepslate_coal_ore"), 1, r(C, U, R),
 				10, "Sooty Hands", 100, "Coal Miner", 1000, "Coal Baron");
 		ladder(c, "ijzer", Items.RAW_IRON, "Mine %,d iron ore", mined("iron_ore", "deepslate_iron_ore"), 1, r(C, U, R),
@@ -501,9 +539,10 @@ public final class Catalog {
 		ladder(c, "smaragd", Items.EMERALD, "Mine your first emerald ore|Mine %,d emerald ore", mined("emerald_ore", "deepslate_emerald_ore"),
 				1, r(U, R, E), 1, "Lucky Strike", 10, "Emerald Eye", 50, "Emerald Emperor");
 		ladder(c, "diamant", Items.DIAMOND, "Mine your first diamond ore|Mine %,d diamond ore", mined("diamond_ore", "deepslate_diamond_ore"),
-				1, r(C, U, R, E, L), 1, "Diamonds!", 25, "Sparkle Seeker", 100, "Diamond Hunter", 500, "Diamond Baron", 1000, "Diamond King");
+				1, r(C, U, R, E, L, M), 1, "Diamonds!", 25, "Sparkle Seeker", 100, "Diamond Hunter", 500, "Diamond Baron", 1000, "Diamond King",
+				5000, "Diamond Deity");
 		ladder(c, "puin", Items.ANCIENT_DEBRIS, "Mine your first ancient debris|Mine %,d ancient debris", mined("ancient_debris"), 1,
-				r(U, R, E, L), 1, "Ancient Find", 16, "Debris Digger", 64, "Netherite Miner", 256, "Lord of the Depths");
+				r(U, R, E, L, M), 1, "Ancient Find", 16, "Debris Digger", 64, "Netherite Miner", 256, "Lord of the Depths", 1024, "Netherite Tycoon");
 		ladder(c, "kwarts", Items.QUARTZ, "Mine %,d nether quartz ore", mined("nether_quartz_ore"), 1, r(C, U, R),
 				10, "Quartz Picker", 100, "Quartz Miner", 1000, "Crystal Baron");
 		ladder(c, "obsidiaan", Items.OBSIDIAN, "Mine %,d obsidian", mined("obsidian", "crying_obsidian"), 1, r(C, U, E),
@@ -532,8 +571,8 @@ public final class Catalog {
 
 	private static void buildCombat() {
 		Category c = Category.GEVECHT;
-		ladder(c, "monster", Items.IRON_SWORD, "Defeat your first mob|Defeat %,d mobs", custom("mob_kills"), 1, r(C, U, R, E, L),
-				10, "First Blood", 100, "Monster Hunter", 1000, "Pest Control", 10000, "Slayer", 50000, "Unstoppable");
+		ladder(c, "monster", Items.IRON_SWORD, "Defeat your first mob|Defeat %,d mobs", custom("mob_kills"), 1, r(C, U, R, E, L, M),
+				10, "First Blood", 100, "Monster Hunter", 1000, "Pest Control", 10000, "Slayer", 50000, "Unstoppable", 150000, "Extinction Event");
 		ladder(c, "zombie", Items.ROTTEN_FLESH, "Defeat %,d zombies (husks and drowned too)", killed("zombie", "zombie_villager", "husk", "drowned"),
 				1, r(C, U, R, E), 10, "Zombie Swatter", 100, "Zombie Hunter", 1000, "Zombie Slayer", 5000, "Bane of the Undead");
 		ladder(c, "skelet", Items.BONE, "Defeat %,d skeletons (strays and bogged too)", killed("skeleton", "stray", "bogged", "parched"), 1,
@@ -595,12 +634,12 @@ public final class Catalog {
 				1, "Hero of the Village", 3, "Village Guardian", 10, "Protector");
 
 		// Damage, in hearts (the statistic is in tenths of a health point)
-		ladder(c, "schade", Items.NETHERITE_SWORD, "Deal %,d hearts of damage", custom("damage_dealt"), 20, r(U, R, E),
-				1000, "Bruiser", 10000, "Heavy Hitter", 100000, "Juggernaut");
+		ladder(c, "schade", Items.NETHERITE_SWORD, "Deal %,d hearts of damage", custom("damage_dealt"), 20, r(U, R, E, L, M),
+				1000, "Bruiser", 10000, "Heavy Hitter", 100000, "Juggernaut", 500000, "Walking Apocalypse", 2000000, "End of Days");
 		ladder(c, "schild", Items.SHIELD, "Block %,d hearts with a shield", custom("damage_blocked_by_shield"), 20, r(C, U, R),
 				100, "Shield Bearer", 1000, "Bulwark", 10000, "Living Wall");
-		ladder(c, "incasseren", Items.IRON_CHESTPLATE, "Take %,d hearts of damage", custom("damage_taken"), 20, r(U, R),
-				1000, "Punching Bag", 10000, "Thick Skin");
+		ladder(c, "incasseren", Items.IRON_CHESTPLATE, "Take %,d hearts of damage", custom("damage_taken"), 20, r(U, R, E),
+				1000, "Punching Bag", 10000, "Thick Skin", 100000, "Human Shield");
 	}
 
 	/** A boss: one kill, then a second grade with more. */
@@ -620,8 +659,8 @@ public final class Catalog {
 
 	private static void buildFarming() {
 		Category c = Category.FOKKEN;
-		ladder(c, "fok", Items.WHEAT, "Breed an animal|Breed %,d animals", custom("animals_bred"), 1, r(C, U, R, E, L),
-				1, "Baby Steps", 25, "Old MacDonald", 100, "Breeder", 500, "Rancher", 2000, "Animal Empire");
+		ladder(c, "fok", Items.WHEAT, "Breed an animal|Breed %,d animals", custom("animals_bred"), 1, r(C, U, R, E, L, M),
+				1, "Baby Steps", 25, "Old MacDonald", 100, "Breeder", 500, "Rancher", 2000, "Animal Empire", 10000, "Overpopulation");
 
 		List<String> species = new ArrayList<>();
 		for (String s : BREEDABLE) if (BuiltInRegistries.ENTITY_TYPE.containsKey(mc(s))) species.add(s);
@@ -646,16 +685,16 @@ public final class Catalog {
 
 		ladder(c, "oogst", Items.WHEAT, "Gather %,d crops", gathered(itemsOf("wheat", "carrot", "potato", "beetroot", "nether_wart",
 				"cocoa_beans", "sweet_berries", "glow_berries", "melon_slice", "pumpkin", "sugar_cane", "torchflower", "pitcher_plant")), 1,
-				r(C, U, R, E), 100, "Green Thumb", 1000, "Farmhand", 10000, "Harvester", 50000, "Breadbasket");
-		ladder(c, "vis", Items.FISHING_ROD, "Reel something in|Reel something in %,d times", custom("fish_caught"), 1, r(C, U, R, E),
-				1, "Hooked", 10, "Angler", 100, "Fisherman", 1000, "Old Sea Dog");
+				r(C, U, R, E, L), 100, "Green Thumb", 1000, "Farmhand", 10000, "Harvester", 50000, "Breadbasket", 250000, "Agricultural Revolution");
+		ladder(c, "vis", Items.FISHING_ROD, "Reel something in|Reel something in %,d times", custom("fish_caught"), 1, r(C, U, R, E, L, M),
+				1, "Hooked", 10, "Angler", 100, "Fisherman", 1000, "Old Sea Dog", 10000, "Ocean Emptier", 50000, "Sea Has No Fish Left");
 		ladder(c, "scheren", Items.SHEARS, "Use shears %,d times", used(itemsOf("shears")), 1, r(C, U, R),
 				10, "Snip Snip", 100, "Wool Gatherer", 1000, "Master Shearer");
 		ladder(c, "beendermeel", Items.BONE_MEAL, "Use %,d bone meal", used(itemsOf("bone_meal")), 1, r(C, U), 64, "Fertilizer", 1000, "Grow Master");
 		ladder(c, "planten", Items.OAK_SAPLING, "Plant %,d saplings", used(itemsWhere(id -> is(id, ItemTags.SAPLINGS))), 1, r(C, U, R),
 				10, "Tree Hugger", 100, "Reforester", 1000, "Forest Maker");
 		ladder(c, "handel", Items.EMERALD, "Trade with a villager|Trade with villagers %,d times", custom("traded_with_villager"), 1,
-				r(C, U, R, E, L), 1, "First Deal", 10, "Customer", 100, "Haggler", 1000, "Tycoon", 10000, "Merchant Prince");
+				r(C, U, R, E, L, M), 1, "First Deal", 10, "Customer", 100, "Haggler", 1000, "Tycoon", 10000, "Merchant Prince", 50000, "Market Mogul");
 		ladder(c, "praten", Items.BOOK, "Talk to villagers %,d times", custom("talked_to_villager"), 1, r(C, U), 10, "Small Talk", 100, "Village Gossip");
 	}
 
@@ -664,15 +703,15 @@ public final class Catalog {
 	private static void buildExploring() {
 		Category c = Category.ONTDEKKEN;
 		long km = 100_000, m = 100;
-		ladder(c, "loop", Items.LEATHER_BOOTS, "Walk %,d km", custom("walk_one_cm", "sprint_one_cm"), km, r(C, U, R, L),
-				1, "First Steps", 10, "Hiker", 100, "Traveler", 1000, "Globetrotter");
+		ladder(c, "loop", Items.LEATHER_BOOTS, "Walk %,d km", custom("walk_one_cm", "sprint_one_cm"), km, r(C, U, R, L, M),
+				1, "First Steps", 10, "Hiker", 100, "Traveler", 1000, "Globetrotter", 10000, "Never Stops Walking");
 		ladder(c, "zwem", Items.TURTLE_HELMET, "Swim %,d km", custom("swim_one_cm"), km, r(C, U, R), 1, "Paddler", 10, "Swimmer",
 				100, "Channel Crosser");
 		ladder(c, "boot", Items.OAK_BOAT, "Row %,d km by boat", custom("boat_one_cm"), km, r(C, U, R), 5, "Rower", 50, "Sailor", 250, "Admiral");
 		ladder(c, "paard", Items.SADDLE, "Ride %,d km on horseback", custom("horse_one_cm"), km, r(C, U, R), 5, "Rider", 50, "Cavalier",
 				250, "Long Rider");
-		ladder(c, "vlieg", Items.ELYTRA, "Fly %,d km with an elytra", custom("aviate_one_cm"), km, r(U, R, E, L),
-				1, "First Flight", 10, "Free as a Bird", 100, "Sky Captain", 500, "Ace Pilot");
+		ladder(c, "vlieg", Items.ELYTRA, "Fly %,d km with an elytra", custom("aviate_one_cm"), km, r(U, R, E, L, M),
+				1, "First Flight", 10, "Free as a Bird", 100, "Sky Captain", 500, "Ace Pilot", 5000, "Sky Sovereign");
 		ladder(c, "mijnkar", Items.MINECART, "Ride %,d km by minecart", custom("minecart_one_cm"), km, r(C, U, R), 1, "Rail Rider",
 				10, "Conductor", 100, "Iron Horse");
 		ladder(c, "strider", Items.WARPED_FUNGUS_ON_A_STICK, "Ride a strider %,d m", custom("strider_one_cm"), m, r(U, R),
@@ -680,9 +719,12 @@ public final class Catalog {
 		ladder(c, "varken", Items.CARROT_ON_A_STICK, "Ride a pig %,d m", custom("pig_one_cm"), m, r(U, R), 100, "Pig Rider", 1000, "Bacon Express");
 		ladder(c, "spookrit", Ui.item("white_harness"), "Fly %,d km on a happy ghast", custom("happy_ghast_one_cm"), km, r(U, R),
 				1, "Cloud Rider", 10, "Sky Sailor");
-		ladder(c, "klim", Items.LADDER, "Climb %,d m", custom("climb_one_cm"), m, r(C, U), 100, "Climber", 1000, "Ladder Legend");
-		ladder(c, "sluip", Items.LEATHER_LEGGINGS, "Sneak %,d m", custom("crouch_one_cm"), m, r(U), 1000, "Sneaky");
-		ladder(c, "val", Items.FEATHER, "Fall %,d m in total", custom("fall_one_cm"), m, r(C), 1000, "Gravity Check");
+		ladder(c, "klim", Items.LADDER, "Climb %,d m", custom("climb_one_cm"), m, r(C, U, R, E), 100, "Climber", 1000, "Ladder Legend",
+				10000, "Human Fly", 100000, "Ladder to Heaven");
+		ladder(c, "sluip", Items.LEATHER_LEGGINGS, "Sneak %,d m", custom("crouch_one_cm"), m, r(U, R, E), 1000, "Sneaky", 10000, "Ninja",
+				100000, "Shadow Walker");
+		ladder(c, "val", Items.FEATHER, "Fall %,d m in total", custom("fall_one_cm"), m, r(C, U, R, E), 1000, "Gravity Check",
+				10000, "Gravity's Favourite", 100000, "Skydiver Without a Parachute", 1000000, "Professional Faller");
 
 		// With the Info module: what your journal holds
 		ladder(c, "plekken", Items.FILLED_MAP, "Find %,d places (villages, temples, peaks, lands…)", discovered((dd, p) -> dd.places(p)), 1,
@@ -724,10 +766,10 @@ public final class Catalog {
 			for (Item i : every) n += p.getStats().getValue(Stats.ITEM_CRAFTED, i);
 			return n;
 		});
-		ladder(c, "maak", Items.CRAFTING_TABLE, "Craft %,d items", crafted, 1, r(C, U, R, E),
-				100, "Tinkerer", 1000, "Craftsman", 10000, "Artisan", 100000, "Master Crafter");
-		ladder(c, "bouw", Items.BRICKS, "Place %,d blocks", used(itemsWhere(id -> item(id) instanceof BlockItem)), 1, r(C, U, R, E),
-				500, "Bricklayer", 5000, "Builder", 50000, "Architect", 200000, "Master Builder");
+		ladder(c, "maak", Items.CRAFTING_TABLE, "Craft %,d items", crafted, 1, r(C, U, R, E, L),
+				100, "Tinkerer", 1000, "Craftsman", 10000, "Artisan", 100000, "Master Crafter", 1000000, "One-Person Factory");
+		ladder(c, "bouw", Items.BRICKS, "Place %,d blocks", used(itemsWhere(id -> item(id) instanceof BlockItem)), 1, r(C, U, R, E, L),
+				500, "Bricklayer", 5000, "Builder", 50000, "Architect", 200000, "Master Builder", 1000000, "World Builder");
 		ladder(c, "fakkel", Items.TORCH, "Place %,d torches", used(itemsOf("torch", "soul_torch", "copper_torch")), 1, r(C, U, R),
 				64, "Torchbearer", 640, "Light Bringer", 5000, "Sunmaker");
 		ladder(c, "spoor", Items.RAIL, "Lay %,d rails", used(itemsOf("rail", "powered_rail", "detector_rail", "activator_rail")), 1, r(C, U),
@@ -764,24 +806,53 @@ public final class Catalog {
 		ladder(c, "doel", Items.TARGET, "Hit a target block %,d times", custom("target_hit"), 1, r(C, U), 10, "Sharpshooter", 100, "Marksman");
 	}
 
+	// ---------------------------------------------------------------- together (server goals)
+
+	private static void buildTogether() {
+		Category c = Category.SAMEN;
+		for (Goals.Kind k : Goals.kinds()) {
+			String id = "samen." + k.id();
+			Rarity help = k.hard() ? R : U, champ = k.hard() ? L : E;
+			Achievement helped = new Achievement(id, c, k.name(), "Help the server reach the server goal " + k.name(), k.icon(), help,
+					goal(1, (p, d) -> Goals.helped(p.getUUID(), k.id()) ? 1 : 0), null);
+			Achievement best = new Achievement(id + ".kampioen", c, k.name() + " Champion", "Do the most for the server goal " + k.name(), k.icon(),
+					champ, goal(1, (p, d) -> Goals.champion(p.getUUID(), k.id()) ? 1 : 0), null);
+			add(helped);
+			add(best);
+			chain(List.of(helped, best));
+		}
+		if (Goals.kinds().isEmpty()) return;
+		Counter helped = new Counter((p, d) -> Goals.helpedCount(p.getUUID()));
+		ladder(c, "samen.geholpen", Items.BELL, "Help reach a server goal|Help reach %,d server goals", helped, 1, r(C, U, R, E, L, M),
+				1, "Team Player", 5, "Helping Hand", 10, "Pillar of the Server", 25, "Heart of the Server", 50, "Soul of the Server",
+				100, "The Server Itself");
+		Counter champs = new Counter((p, d) -> Goals.championCount(p.getUUID()));
+		ladder(c, "samen.kampioen", Items.GOLDEN_HELMET, "Do the most for a server goal|Do the most for %,d server goals", champs, 1,
+				r(R, E, L, M), 1, "Champion", 3, "Triple Champion", 10, "Grand Champion", 25, "Undisputed");
+		int areas = Goals.areas().size();
+		add(new Achievement("samen.overal", c, "Jack of All Trades", "Help reach a server goal in every corner of the game (" + areas + ")",
+				Items.COMPASS, E, goal(areas, (p, d) -> Goals.areasHelped(p.getUUID())), null));
+	}
+
 	// ---------------------------------------------------------------- playtime and life
 
 	private static void buildLife() {
 		Category c = Category.TIJD;
 		Counter hours = custom("play_time");
-		ladder(c, "tijd", Items.CLOCK, "Play %,d hour on the server|Play %,d hours on the server", hours, 72000, r(C, C, U, U, R, E, L, M, M),
+		ladder(c, "tijd", Items.CLOCK, "Play %,d hour on the server|Play %,d hours on the server", hours, 72000, r(C, C, U, U, R, E, L, M, M, M),
 				1, "Welcome!", 5, "Getting Comfy", 10, "Returning Guest", 25, "Settler", 50, "Regular", 100, "Resident", 250, "Veteran",
-				500, "Legend", 1000, "Immortal");
-		ladder(c, "leven", Items.GOLDEN_APPLE, "Survive %,d hours without dying", custom("time_since_death"), 72000, r(U, R, E, L),
-				2, "Careful", 10, "Survivor", 25, "Still Standing", 50, "Untouchable");
+				500, "Legend", 1000, "Immortal", 2500, "Part of the Furniture");
+		ladder(c, "leven", Items.GOLDEN_APPLE, "Survive %,d hours without dying", custom("time_since_death"), 72000, r(U, R, E, L, M),
+				2, "Careful", 10, "Survivor", 25, "Still Standing", 50, "Untouchable", 100, "Death Who?");
 		List<Item> food = itemsWhere(id -> has(id, DataComponents.FOOD));
-		ladder(c, "eten", Items.BREAD, "Eat %,d times", used(food), 1, r(C, U, R), 100, "Snacker", 1000, "Foodie", 10000, "Bottomless Pit");
+		ladder(c, "eten", Items.BREAD, "Eat %,d times", used(food), 1, r(C, U, R, E, L), 100, "Snacker", 1000, "Foodie", 10000, "Bottomless Pit",
+				50000, "Black Hole Stomach", 200000, "Eats the World");
 		ladder(c, "taart", Items.CAKE, "Eat a slice of cake|Eat %,d slices of cake", custom("eat_cake_slice"), 1, r(C, U, R),
 				1, "Cake Day", 50, "Sweet Tooth", 500, "Cake Monster");
 		ladder(c, "slaap", Ui.item("red_bed"), "Sleep in a bed %,d times", custom("sleep_in_bed"), 1, r(C, R, E),
 				10, "Sleepyhead", 100, "Hibernator", 365, "A Year of Dreams");
-		ladder(c, "spring", Items.RABBIT_FOOT, "Jump %,d times", custom("jump"), 1, r(C, U, R), 1000, "Hop Skip", 10000, "Kangaroo",
-				100000, "Bouncy Ball");
+		ladder(c, "spring", Items.RABBIT_FOOT, "Jump %,d times", custom("jump"), 1, r(C, U, R, E), 1000, "Hop Skip", 10000, "Kangaroo",
+				100000, "Bouncy Ball", 1000000, "Pogo Stick");
 		List<Item> breakable = itemsWhere(id -> has(id, DataComponents.MAX_DAMAGE));
 		Counter broken = breakable.isEmpty() ? null : new Counter((p, d) -> {
 			long n = 0;
@@ -790,7 +861,8 @@ public final class Catalog {
 		});
 		ladder(c, "kapot", Items.STONE_PICKAXE, "Wear out %,d tools, weapons or armor", broken, 1, r(C, U), 10, "Wear and Tear",
 				100, "Tool Breaker");
-		ladder(c, "dood", Items.SKELETON_SKULL, "Die %,d times", custom("deaths"), 1, r(C, U), 10, "Accident Prone", 100, "Nine Lives");
+		ladder(c, "dood", Items.SKELETON_SKULL, "Die %,d times", custom("deaths"), 1, r(C, U, R, E, L), 10, "Accident Prone", 100, "Nine Lives",
+				500, "Respawn Enjoyer", 1000, "Death's Best Customer", 5000, "Frequent Dier");
 
 		// Tasting: different foods eaten, up to everything
 		if (food.size() > 5) {

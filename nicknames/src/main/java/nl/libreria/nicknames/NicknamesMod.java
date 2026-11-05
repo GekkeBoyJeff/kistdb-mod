@@ -191,14 +191,15 @@ public final class NicknamesMod implements ModInitializer {
 		return styled(p);
 	}
 
-	/** Voor chat en andere berichten: nickname met je echte naam in de hover en klik = privébericht. */
+	/** For chat and other messages: the nickname, the real name on hover, and a click opens their profile. */
 	public static @Nullable Component chatName(ServerPlayer p) {
 		MutableComponent nick = styled(p);
 		if (nick == null) return null;
 		String real = p.getName().getString();
 		return Component.empty().append(nick).withStyle(s -> s
-				.withHoverEvent(new HoverEvent.ShowText(Component.literal("Real name: " + real).withStyle(ChatFormatting.GRAY)))
-				.withClickEvent(new ClickEvent.SuggestCommand("/tell " + real + " "))
+				.withHoverEvent(new HoverEvent.ShowText(Component.literal("Real name: " + real).withStyle(ChatFormatting.GRAY)
+						.append(Component.literal("\nClick: their profile").withStyle(ChatFormatting.YELLOW))))
+				.withClickEvent(new ClickEvent.RunCommand("/profile " + real))
 				.withInsertion(real));
 	}
 

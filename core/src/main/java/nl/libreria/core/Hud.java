@@ -74,6 +74,14 @@ public final class Hud {
 		show(player, "flash", text, PRIO_FLASH, 40);
 	}
 
+	/** True when nothing of ours is in the action bar now (so something unimportant may show). */
+	public static boolean idle(ServerPlayer player) {
+		State s = STATES.get(player.getUUID());
+		if (s == null) return true;
+		for (Line l : s.lines.values()) if (l.until() > now) return false;
+		return true;
+	}
+
 	public static void hide(ServerPlayer player, String channel) {
 		State s = STATES.get(player.getUUID());
 		if (s != null && s.lines.remove(channel) != null) update(player, s, false);

@@ -22,6 +22,13 @@ public final class DomainWindow extends CanvasWindow {
 	private static final int[] UNDER_CARD = {2, 3, 4, 5, 6, 7, 8};
 
 	private final Domain domain;
+	/** A short value right of a row's name ("24%" for the server goal), by the name of the row. */
+	private static final java.util.Map<String, java.util.function.Function<ServerPlayer, String>> VALUES = new java.util.HashMap<>();
+
+	/** Shows {@code value} (short; null or "" = nothing) on the right of the row called {@code name}. */
+	public static void value(String name, java.util.function.Function<ServerPlayer, String> value) {
+		VALUES.put(name, value);
+	}
 
 	private DomainWindow(ServerPlayer p, Domain d) {
 		super(p);
@@ -41,7 +48,11 @@ public final class DomainWindow extends CanvasWindow {
 		List<Row> out = new ArrayList<>();
 		for (Module.HubEntry e : Module.hubEntries(this.domain)) {
 			String about = String.join(" ", e.lore());
-			out.add(new Row(new ItemStack(e.icon()), e.name(), firstSentence(about), lore(about), this.domain.rgb, e.action()));
+			// A player head is your own head
+			ItemStack icon = e.icon() == Items.PLAYER_HEAD
+					? new eu.pb4.sgui.api.elements.GuiElementBuilder(Items.PLAYER_HEAD).setProfile(this.player.getGameProfile()).asStack()
+					: new ItemStack(e.icon());
+			out.add(new Row(icon, e.name(), firstSentence(about), lore(about), this.domain.rgb, e.action()));
 		}
 		if (this.domain == Domain.PLACES && Guide.has(this.player)) {
 			out.add(new Row(new ItemStack(Items.SPECTRAL_ARROW), "Stop showing the way", "Removes the beam",
@@ -113,7 +124,11 @@ public final class DomainWindow extends CanvasWindow {
 			c.line(x0, row, w, r.tint());
 			int left = x0 + 6, right = x0 + w - 6;
 			int y = Canvas.cellY(row) + 5;
-			c.text(Canvas.fit(r.name(), right - left - 10), left, y, StartWindow.TEXT);
+			var f = VALUES.get(r.name());
+			String value = f == null ? null : f.apply(this.player);
+			int vw = value == null || value.isEmpty() ? 0 : nl.libreria.core.gui.Glyphs.width(Component.literal(value)) + 8;
+			if (vw > 0) c.right(value, right - 9, y, StartWindow.MUTED);
+			c.text(Canvas.fit(r.name(), right - left - 10 - vw), left, y, StartWindow.TEXT);
 			c.text("›", right - 3, y, StartWindow.MUTED);
 		}
 		boolean settings = SettingsWindow.has(this.domain);

@@ -23,7 +23,8 @@ public record Achievement(String id, Category category, String name, String desc
 		FOKKEN("Farming & animals", "Crops, breeding, fishing and villagers", "wheat", "gui/advancements/backgrounds/husbandry"),
 		ONTDEKKEN("Exploring", "Travel, places and the far corners", "compass", "gui/advancements/backgrounds/adventure"),
 		MAKEN("Crafting & building", "What you make, place and use", "crafting_table", "block/oak_planks"),
-		TIJD("Playtime & life", "Time here, eating, sleeping, staying alive", "clock", "gui/advancements/backgrounds/end");
+		TIJD("Playtime & life", "Time here, eating, sleeping, staying alive", "clock", "gui/advancements/backgrounds/end"),
+		SAMEN("Together", "Server goals: reached together, the most by one", "bell", "block/honeycomb_block");
 
 		public final String label;
 		public final String hint;

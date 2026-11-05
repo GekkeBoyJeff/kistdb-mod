@@ -84,6 +84,8 @@ public final class CollectorMod implements ModInitializer {
 	public void onInitialize() {
 		MODULE.hubEntry(Domain.PROGRESS, 10, Items.NETHER_STAR, "Achievements", AchievementsGui::open,
 				"What you've done and what's still to do, in grades. Every one is within reach.");
+		Goals.init();
+		profileLines();
 		MODULE.hubEntry(Domain.YOU, 20, Items.NAME_TAG, "Title", AchievementsGui::openTitles,
 				"Choose the title that floats above your name.");
 		Services.provideMenu(Services.MENU_ACHIEVEMENTS, AchievementsGui::open);
@@ -124,6 +126,12 @@ public final class CollectorMod implements ModInitializer {
 			}
 
 			@Override
+			public @Nullable Component titleOf(java.util.UUID player) {
+				Achievement a = titleAchievement(STORE.get(player));
+				return a == null ? null : Component.literal("✦ " + a.name() + " ✦").withStyle(a.rarity().color);
+			}
+
+			@Override
 			public int titleColor(ServerPlayer player) {
 				Achievement a = titleAchievement(STORE.get(player));
 				net.minecraft.network.chat.TextColor c = a == null ? null : net.minecraft.network.chat.TextColor.fromLegacyFormat(a.rarity().color);
@@ -152,6 +160,7 @@ public final class CollectorMod implements ModInitializer {
 			int t = server.getTickCount();
 			if (t % 20 == 7) scanAll(server);
 			if (t % 100 == 13) checkAll(server);
+			if (t % 100 == 41) Goals.tick(server);
 			Banner.tick(server);
 		});
 		ServerLifecycleEvents.SERVER_STOPPING.register(server -> Banner.clear());
@@ -163,6 +172,12 @@ public final class CollectorMod implements ModInitializer {
 			for (String name : new String[] {"achievements", "collection"}) {
 				dispatcher.register(Commands.literal(name).executes(ctx -> {
 					AchievementsGui.open(ctx.getSource().getPlayerOrException());
+					return 1;
+				}));
+			}
+			for (String name : new String[] {"goal", "goals"}) {
+				dispatcher.register(Commands.literal(name).executes(ctx -> {
+					nl.libreria.collector.gui.GoalWindow.open(ctx.getSource().getPlayerOrException());
 					return 1;
 				}));
 			}
@@ -191,6 +206,24 @@ public final class CollectorMod implements ModInitializer {
 		MODULE.commands("/achievements – your achievements", "L – the advancements screen has Libreria tabs too");
 		MODULE.commands(Domain.YOU, "/titles – choose your title");
 		CollectorTests.register();
+	}
+
+	/** Lines on everyone's profile: achievements, points, items, server goals. */
+	private static void profileLines() {
+		nl.libreria.core.Profile.add(30, Items.NETHER_STAR, "Achievements", (s, who, st) -> {
+			Data d = STORE.get(who);
+			int earned = 0;
+			for (String id : d.earned.keySet()) if (Catalog.get(id) != null) earned++;
+			return Ui.n(earned) + " / " + Ui.n(Catalog.all().size());
+		});
+		nl.libreria.core.Profile.add(40, Items.GOLD_INGOT, "Points", (s, who, st) -> Ui.n(points(STORE.get(who))));
+		nl.libreria.core.Profile.add(50, Items.CHEST, "Items", (s, who, st) -> Ui.n(Catalog.countAll(STORE.get(who))) + " / "
+				+ Ui.n(Catalog.allItems().size()));
+		nl.libreria.core.Profile.add(70, Items.BELL, "Server goals", (s, who, st) -> {
+			int helped = Goals.helpedCount(who), most = Goals.championCount(who);
+			if (helped == 0 && Goals.past().isEmpty()) return null;
+			return most > 0 ? helped + " · " + most + "x most" : helped + " helped";
+		});
 	}
 
 	// ---------------------------------------------------------------- verzamelen

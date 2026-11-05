@@ -78,6 +78,21 @@ public final class Canvas {
 		return this;
 	}
 
+	/**
+	 * A bar in a list row: a row card from {@code x}, {@code width} wide, filled for {@code fraction} in {@code rgb}.
+	 * Text drawn after it lands on top.
+	 */
+	public Canvas bar(int x, int row, int width, double fraction, int rgb) {
+		line(x, row, width, Glyphs.neutral);
+		int fill = (int) Math.round(Math.max(0, Math.min(1, fraction)) * (width - 6));
+		if (fill > 0 && Glyphs.has("fill.m1")) {
+			move(x + 3);
+			this.out.append(Component.literal(Glyphs.tiles("fill.m", fill)).withStyle(s -> s.withFont(row(row)).withColor(TextColor.fromRgb(rgb))));
+			this.x += fill;
+		}
+		return this;
+	}
+
 	/** Text with its top at ({@code x}, {@code y}), with a soft shadow. */
 	public Canvas text(String text, int x, int y, int rgb) {
 		return text(Component.literal(clean(text)), x, y, rgb, true);

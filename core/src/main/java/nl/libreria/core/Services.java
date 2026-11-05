@@ -163,6 +163,11 @@ public final class Services {
 		default int titleColor(ServerPlayer player) {
 			return -1;
 		}
+
+		/** The title of any player (also offline), in its rarity's colour, for their profile; null for none. */
+		default @Nullable Component titleOf(java.util.UUID player) {
+			return null;
+		}
 	}
 
 	/** Points, achievements earned of total, items collected of total. */

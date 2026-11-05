@@ -52,6 +52,14 @@ public final class TopCard {
 	}
 
 	private static final Map<UUID, Top> TOPS = new HashMap<>();
+
+	/** A card waiting until nothing else is at the top of this player's screen. */
+	private record Waiting(UUID player, String channel, Card card, int ticks, int until) {
+	}
+
+	private static final java.util.List<Waiting> WAITING = new java.util.ArrayList<>();
+	/** The priority of waiting cards once shown: the lowest of all, so anything else goes over them. */
+	public static final int UNDER_ALL = -5;
 	private static int now;
 
 	private TopCard() {
@@ -84,9 +92,36 @@ public final class TopCard {
 		update(p, top);
 	}
 
+	/**
+	 * Shows a card for {@code ticks} once nothing else is at the top of the player's screen (and below everything
+	 * that comes after); it is dropped if that doesn't happen within {@code waitTicks}. For news that may wait, so it
+	 * never covers something the player is looking at.
+	 */
+	public static void whenFree(ServerPlayer p, String channel, Card card, int ticks, int waitTicks) {
+		WAITING.removeIf(w -> w.player().equals(p.getUUID()) && w.channel().equals(channel));
+		WAITING.add(new Waiting(p.getUUID(), channel, card, ticks, now + waitTicks));
+	}
+
 	/** Takes cards whose time is up away (from the core tick). */
 	public static void tick(net.minecraft.server.MinecraftServer server, int tick) {
 		now = tick;
+		if (!WAITING.isEmpty() && tick % 10 == 0) {
+			java.util.Set<UUID> shownNow = new java.util.HashSet<>();
+			var it = WAITING.iterator();
+			while (it.hasNext()) {
+				Waiting w = it.next();
+				ServerPlayer p = server.getPlayerList().getPlayer(w.player());
+				if (p == null || w.until() < tick) {
+					it.remove();
+					continue;
+				}
+				// One at a time, and only on a free screen
+				if (shownNow.contains(w.player()) || shownPriority(p) >= 0) continue;
+				show(p, w.channel(), w.card(), UNDER_ALL, w.ticks());
+				shownNow.add(w.player());
+				it.remove();
+			}
+		}
 		for (Map.Entry<UUID, Top> e : TOPS.entrySet()) {
 			Top top = e.getValue();
 			if (!top.cards.values().removeIf(c -> c.until() >= 0 && c.until() <= tick)) continue;
@@ -113,6 +148,7 @@ public final class TopCard {
 	}
 
 	public static void forget(UUID id) {
+		WAITING.removeIf(w -> w.player().equals(id));
 		Top top = TOPS.remove(id);
 		if (top != null) top.bar.removeAllPlayers();
 	}

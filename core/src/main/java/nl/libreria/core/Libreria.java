@@ -61,6 +61,21 @@ public final class Libreria implements ModInitializer {
 		Tips.init();
 
 		Chronicle.init();
+		Profile.init();
+		MODULE.hubEntry(Domain.YOU, 1, Items.PLAYER_HEAD, "Your profile", p -> ProfileWindow.open(p, p.getUUID(), "", q -> Start.domain(q, Domain.YOU)),
+				"What others see when they look you up: playtime, achievements and more.");
+		MODULE.hubEntry(Domain.YOU, 2, Items.BOOK, "Players", PlayersWindow::open,
+				"Everybody who has played here. Click someone: their profile.");
+		MODULE.commands(Domain.YOU, "/profile <name> – someone's profile", "/players – everybody who has played here",
+				"{sneak} + right-click a player – their profile");
+		net.fabricmc.fabric.api.event.player.UseEntityCallback.EVENT.register((player, world, hand, entity, hit) -> {
+			if (!world.isClientSide() && hand == net.minecraft.world.InteractionHand.MAIN_HAND && player instanceof ServerPlayer sp
+					&& entity instanceof ServerPlayer target && sp.isShiftKeyDown() && sp.getMainHandItem().isEmpty()) {
+				ProfileWindow.open(sp, target.getUUID(), "Players", PlayersWindow::open);
+				return net.minecraft.world.InteractionResult.SUCCESS;
+			}
+			return net.minecraft.world.InteractionResult.PASS;
+		});
 		// Opslag zo vroeg mogelijk klaarzetten, zodat modules ze in hun eigen SERVER_STARTED al kunnen lezen
 		ServerLifecycleEvents.SERVER_STARTING.register(s -> {
 			server = s;
@@ -82,11 +97,13 @@ public final class Libreria implements ModInitializer {
 			if (!alive) DeathRecap.onRespawn(newPlayer, newPlayer.level().getServer().getTickCount());
 		});
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, s) -> {
+			long before = Players.onJoin(handler.player);
+			Chronicle.welcomeBack(handler.player, before);
 			Links.send(handler.player);
 			Welcome.onJoin(handler.player, s.getTickCount());
 		});
 		ServerLifecycleEvents.SERVER_STARTED.register(server -> {
-			Chronicle.seed(server);
+			Players.seed(server, Chronicle.seed(server));
 			if (SelfTests.enabled()) server.execute(() -> SelfTests.runAll(server));
 		});
 		ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
@@ -98,6 +115,7 @@ public final class Libreria implements ModInitializer {
 		});
 		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
 			UUID id = handler.player.getUUID();
+			Players.onLeave(handler.player);
 			Guide.clear(handler.player);
 			Guide.clearFlashes(id);
 			Hud.forget(id);
@@ -122,6 +140,29 @@ public final class Libreria implements ModInitializer {
 				Chronicle.open(c.getSource().getPlayerOrException());
 				return 1;
 			}));
+			dispatcher.register(Commands.literal("players").executes(c -> {
+				PlayersWindow.open(c.getSource().getPlayerOrException());
+				return 1;
+			}));
+			dispatcher.register(Commands.literal("profile").executes(c -> {
+				ServerPlayer p = c.getSource().getPlayerOrException();
+				ProfileWindow.open(p, p.getUUID(), "", q -> Start.domain(q, Domain.YOU));
+				return 1;
+			}).then(Commands.argument("player", com.mojang.brigadier.arguments.StringArgumentType.word()).suggests((c, b) -> {
+				MinecraftServer s = c.getSource().getServer();
+				for (Players.Known k : Players.all(s)) b.suggest(k.name());
+				return b.buildFuture();
+			}).executes(c -> {
+				ServerPlayer p = c.getSource().getPlayerOrException();
+				String name = com.mojang.brigadier.arguments.StringArgumentType.getString(c, "player");
+				Players.Known k = Players.byName(c.getSource().getServer(), name);
+				if (k == null) {
+					Notify.warn(p, Items.PLAYER_HEAD, "Nobody called " + name, "Only players who have been here have a profile.");
+					return 0;
+				}
+				ProfileWindow.open(p, k.id(), "Players", PlayersWindow::open);
+				return 1;
+			})));
 			// /l (or /lib, /libreria) opens the start screen; /l items|land|progress|me a domain page
 			for (String name : new String[] {"l", "lib", "libreria"}) {
 				var root = Commands.literal(name).executes(c -> {
@@ -173,6 +214,7 @@ public final class Libreria implements ModInitializer {
 		Welcome.tick(server, tick);
 		if (tick % 20 == 7) Afk.tick(server, tick);
 		if (tick % 1200 == 600) Chronicle.tick(server);
+		if (tick % 1200 == 300) Players.tick(server);
 		if (tick % 10 == 4) Tips.tick(server);
 		DeathRecap.tick(server, tick);
 		if (tick % 40 == 11) Tab.tick(server);

@@ -29,6 +29,34 @@ final class CoreTests {
 			d.entries.removeIf(e -> e.text.equals("A test moment") || e.text.equals("tested the chronicle"));
 			d.firsts.remove("test:first");
 		});
+		SelfTests.register("core.profile", level -> {
+			FakePlayer p = FakePlayer.get(level);
+			net.minecraft.server.MinecraftServer s = level.getServer();
+			UUID anna = UUID.fromString("00000000-0000-0000-0000-0000000000a9");
+			long now = System.currentTimeMillis(), day = 24L * 3600 * 1000;
+			Players.note(anna, "Anna", now - 10 * day, now - 3 * day);
+			Players.Known k = Players.get(s, anna);
+			SelfTests.check(k != null && k.name().equals("Anna") && k.online() == null && k.first() == now - 10 * day, "known: " + k);
+			SelfTests.check(Players.byName(s, "anna") != null, "by name, any case");
+			SelfTests.check(Players.ago(now - 3 * day - 1000).equals("3 days ago") && Players.ago(now).equals("Just now")
+					&& Players.ago(now - 26 * 3600 * 1000L).equals("Yesterday") && Players.ago(now - 90 * 60 * 1000L).equals("1 hour ago"),
+					"how long ago: " + Players.ago(now - 3 * day - 1000));
+			SelfTests.check(Players.activeWithin(s, 7 * day) >= 1 && Players.activeWithin(s, day) < Players.activeWithin(s, 7 * day) + 1,
+					"active players counted");
+			SelfTests.check(Profile.lines().size() >= 3, "lines on a profile: " + Profile.lines().size());
+			String picture = ProfileWindow.picture(p, anna);
+			SelfTests.check(picture.contains("Anna") && picture.contains("Here since"), "a profile is drawn: " + picture.length());
+			SelfTests.check(Profile.stats(s, anna).custom("play_time") == 0, "no statistics file: zero");
+			// While you were away: what others did, not what you did
+			Chronicle.write(anna, "Anna", Chronicle.Kind.BOSS, "slew the Wither (self-test)", true);
+			SelfTests.check(Chronicle.since(p.getUUID(), now - 1000).stream().anyMatch(e -> e.text.equals("slew the Wither (self-test)")),
+					"others' moments since");
+			SelfTests.check(Chronicle.since(anna, now - 1000).stream().noneMatch(e -> e.text.equals("slew the Wither (self-test)")),
+					"not your own");
+			Chronicle.forget(e -> e.text.equals("slew the Wither (self-test)"));
+			Players.forget(anna);
+			SelfTests.check(Players.get(s, anna) == null, "forgotten again");
+		});
 		SelfTests.register("core.chronicle-history", level -> {
 			// Anna found diamonds on 1 January, before the chronicle; Bram on 1 February, and was called the first
 			UUID anna = UUID.fromString("00000000-0000-0000-0000-00000000000a"), bram = UUID.fromString("00000000-0000-0000-0000-00000000000b");

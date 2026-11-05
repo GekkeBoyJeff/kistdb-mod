@@ -208,6 +208,8 @@ public final class ComfortMod implements ModInitializer {
 			}
 		}
 		level.setBlock(pos, replant, Block.UPDATE_ALL);
+		// Counts as harvesting it by hand (statistics, achievements, server goals)
+		p.awardStat(net.minecraft.stats.Stats.BLOCK_MINED.get(block));
 		level.levelEvent(null, 2001, pos, Block.getId(state));
 		for (ItemStack d : drops) {
 			if (!d.isEmpty()) Block.popResource(level, pos, d);

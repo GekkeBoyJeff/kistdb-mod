@@ -49,6 +49,11 @@ public final class Ui {
 		return Math.round(d) + " m";
 	}
 
+	/** 12,402: a whole number with thousands separators. */
+	public static String n(long v) {
+		return String.format(java.util.Locale.US, "%,d", v);
+	}
+
 	/** Gekleurde balk, bv. ▮▮▮▮▮▮▯▯▯▯ voor 60%. */
 	public static MutableComponent bar(double fraction, int segments) {
 		fraction = Math.max(0, Math.min(1, fraction));

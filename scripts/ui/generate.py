@@ -652,6 +652,27 @@ def cards():
         path = os.path.join(OUT, 'assets', NS, f'textures/font/ui/card_{hc}.png')
         sheet.save(path)
         card_sheets.append({'file': f'{NS}:font/ui/card_{hc}.png', 'height': h, 'chars': [chars], 'top': 1 if hc == 0 else CARD_M})
+    # The fill of a bar inside a list row ("fill.m…"): 10 px high, 3 px below the row card's top, tinted by the text
+    # colour (a muted shade, so white text on it stays readable)
+    h = 10
+    cells = []
+    for w in (64, 32, 16, 8, 4, 2, 1):
+        im = Image.new('RGBA', (w, h), (0, 0, 0, 0))
+        for y in range(h):
+            v = 210 if y == 0 else 120 if y == h - 1 else 150
+            for x in range(w):
+                put(im, x, y, (v, v, v, 255))
+        cells.append((f'fill.m{w}', im))
+    cw = max(im.width for _, im in cells)
+    sheet = Image.new('RGBA', (cw * len(cells), h), (0, 0, 0, 0))
+    chars = ''
+    for i, (name, im) in enumerate(cells):
+        sheet.paste(im, (i * cw, 0))
+        cp = next_cp()
+        chars += chr(cp)
+        glyphs[name] = [cp, im.width + 1]
+    sheet.save(os.path.join(OUT, 'assets', NS, 'textures/font/ui/bar_fill.png'))
+    card_sheets.append({'file': f'{NS}:font/ui/bar_fill.png', 'height': h, 'chars': [chars], 'top': 4})
 
 
 def window_panel():
