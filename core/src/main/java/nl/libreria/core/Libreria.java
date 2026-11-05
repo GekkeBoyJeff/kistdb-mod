@@ -86,6 +86,7 @@ public final class Libreria implements ModInitializer {
 			Welcome.onJoin(handler.player, s.getTickCount());
 		});
 		ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+			Chronicle.seed(server);
 			if (SelfTests.enabled()) server.execute(() -> SelfTests.runAll(server));
 		});
 		ServerLifecycleEvents.SERVER_STOPPING.register(server -> {

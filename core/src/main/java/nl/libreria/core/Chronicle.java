@@ -180,6 +180,56 @@ public final class Chronicle {
 	private static final Set<String> SKIP = Set.of("end/kill_dragon", "nether/summon_wither", "end/root", "story/root",
 			"nether/root", "adventure/root", "husbandry/root");
 
+	private static final String FIRST_ARRIVAL = "was the first to arrive in this world", ARRIVAL_TEXT = "arrived in the world";
+
+	/**
+	 * At start: what the players' own files say happened before the chronicle was there (or while it wasn't loaded).
+	 * Those things aren't "the first" any more, and a moment that called somebody the first while somebody else did it
+	 * earlier becomes an ordinary one.
+	 */
+	static void seed(MinecraftServer server) {
+		try {
+			ChronicleHistory h = ChronicleHistory.read(server.getWorldPath(net.minecraft.world.level.storage.LevelResource.ROOT),
+					STORY.keySet(), BOSSES.keySet());
+			int fixed = apply(data(), h);
+			Libreria.LOG.info("Chronicle: read {} player files; {} moment(s) no longer called a first", h.files, fixed);
+		} catch (RuntimeException e) {
+			Libreria.LOG.warn("Chronicle: could not read the players' history", e);
+		}
+	}
+
+	/** Brings {@code d} in line with {@code h}; returns how many moments were corrected. */
+	static int apply(Data d, ChronicleHistory h) {
+		int before = d.firsts.size() + d.arrived.size();
+		h.done.forEach((adv, who) -> {
+			if (!who.isEmpty()) d.firsts.add("adv:" + adv);
+		});
+		h.slain.forEach((boss, who) -> {
+			if (!who.isEmpty()) d.firsts.add("boss:" + boss);
+		});
+		for (UUID u : h.died) d.firsts.add("death:" + u);
+		d.arrived.addAll(h.seen.keySet());
+		int fixed = 0;
+		for (Entry e : d.entries) {
+			if (!e.major || e.who == null) continue;
+			if (Kind.FIRST.name().equals(e.kind)) {
+				for (Map.Entry<String, String[]> s : STORY.entrySet()) {
+					if (!s.getValue()[1].equals(e.text)) continue;
+					if (!ChronicleHistory.earlier(h.done.getOrDefault(s.getKey(), Map.of()), e.who, e.at)) continue;
+					e.text = s.getValue()[0];
+					e.major = false;
+					fixed++;
+				}
+			} else if (Kind.ARRIVAL.name().equals(e.kind) && FIRST_ARRIVAL.equals(e.text) && ChronicleHistory.earlier(h.seen, e.who, e.at)) {
+				e.text = ARRIVAL_TEXT;
+				e.major = false;
+				fixed++;
+			}
+		}
+		if (fixed > 0 || d.firsts.size() + d.arrived.size() != before) STORE.markDirty();
+		return fixed;
+	}
+
 	/** A player completed an advancement (from the mixin). Never throws. */
 	public static void onAdvancement(ServerPlayer p, net.minecraft.advancements.AdvancementHolder holder) {
 		try {
@@ -187,7 +237,15 @@ public final class Chronicle {
 			if (!id.getNamespace().equals("minecraft") || SKIP.contains(id.getPath())) return;
 			String[] story = STORY.get(id.getPath());
 			if (story != null) {
-				boolean first = firstTime("adv:" + id.getPath());
+				// Not the first when somebody online did it already (before the chronicle was there, say)
+				boolean already = false;
+				MinecraftServer server = p.level().getServer();
+				if (server != null) {
+					for (ServerPlayer o : server.getPlayerList().getPlayers()) {
+						if (o != p && o.getAdvancements().getOrStartProgress(holder).isDone()) already = true;
+					}
+				}
+				boolean first = firstTime("adv:" + id.getPath()) && !already;
 				write(p, Kind.FIRST, first ? story[1] : story[0], first);
 				return;
 			}
@@ -241,7 +299,7 @@ public final class Chronicle {
 		if (d.arrived.add(p.getUUID())) {
 			STORE.markDirty();
 			boolean first = d.arrived.size() == 1;
-			write(p, Kind.ARRIVAL, first ? "was the first to arrive in this world" : "arrived in the world", first);
+			write(p, Kind.ARRIVAL, first ? FIRST_ARRIVAL : ARRIVAL_TEXT, first);
 		}
 	}
 

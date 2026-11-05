@@ -39,6 +39,17 @@ final class ChestsTests {
 	}
 
 	static void register() {
+		SelfTests.register("chests.labels", level -> {
+			// Labels on for all: every chest but the ones you took it from; off for all: only the ones you gave one
+			Store.Entry e = new Store.Entry();
+			SelfTests.check(e.labelled(true) && !e.labelled(false), "a new chest: a label only while labels are on");
+			e.noLabel = true;
+			SelfTests.check(!e.labelled(true) && !e.labelled(false), "taken away");
+			e.alwaysLabel = true;
+			SelfTests.check(!e.labelled(true) && e.labelled(false), "given one while labels are off");
+			e.noLabel = false;
+			SelfTests.check(e.labelled(true) && e.labelled(false), "both");
+		});
 		SelfTests.register("chests.supply", level -> {
 			FakePlayer p = FakePlayer.get(level);
 			BlockPos at = new BlockPos(40, 120, 40);

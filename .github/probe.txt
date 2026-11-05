@@ -5,3 +5,4 @@
 !net.minecraft.client.gui.screens.dialog.MultiButtonDialogScreen
 !net.minecraft.client.gui.screens.inventory.ContainerScreen
 ? renderer/state/gui/
+!net.minecraft.world.level.storage.LevelResource

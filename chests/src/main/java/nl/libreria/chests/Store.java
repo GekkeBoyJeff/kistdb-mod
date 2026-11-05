@@ -44,8 +44,15 @@ public final class Store {
 		public long seen;
 		/** Crafting and hotbar refills may take from this chest (only while it stands on your own land). Off by default. */
 		public boolean supply;
-		/** No floating label above this chest. */
+		/** No floating label above this chest (while labels are on in the settings). */
 		public boolean noLabel;
+		/** A floating label above this chest even while labels are off in the settings. */
+		public boolean alwaysLabel;
+
+		/** Whether this chest gets a label, with labels on or off for all chests ({@code all}). */
+		public boolean labelled(boolean all) {
+			return all ? !this.noLabel : this.alwaysLabel;
+		}
 
 		public BlockPos pos() {
 			return new BlockPos(this.x, this.y, this.z);

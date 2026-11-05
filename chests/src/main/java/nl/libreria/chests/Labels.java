@@ -23,8 +23,8 @@ import org.joml.Vector3f;
 
 /**
  * A small floating picture above each of your chests: what it holds most of. Only you see your own labels, only for
- * chests near you, and they update when the chest's contents change. Turn them off in the settings, or per chest in its
- * options (shift-click the Sort button).
+ * chests near you, and they update when the chest's contents change. Per chest in its options (shift-click the Sort
+ * button): with labels on in the settings you can take one away, with labels off you can give one chest a label anyway.
  */
 public final class Labels {
 	private static final double RANGE = 14;
@@ -41,15 +41,16 @@ public final class Labels {
 
 	static void tick(ServerPlayer p) {
 		Map<String, Shown> shown = SHOWN.computeIfAbsent(p.getUUID(), k -> new HashMap<>());
-		if (!ChestsMod.LABELS.get(p) || p.isSpectator()) {
+		if (p.isSpectator()) {
 			clear(shown);
 			return;
 		}
+		boolean all = ChestsMod.LABELS.get(p);
 		ServerLevel level = p.level();
 		String dim = Store.dimId(level);
 		List<Store.Entry> near = new ArrayList<>();
 		for (Store.Entry e : Store.get(p.getUUID()).entries) {
-			if (e.noLabel || !e.dim.equals(dim) || e.items.isEmpty()) continue;
+			if (!e.labelled(all) || !e.dim.equals(dim) || e.items.isEmpty()) continue;
 			if (p.distanceToSqr(e.x + 0.5, e.y + 0.5, e.z + 0.5) > RANGE * RANGE) continue;
 			if (!Containers.isLoaded(level, e.pos())) continue;
 			near.add(e);

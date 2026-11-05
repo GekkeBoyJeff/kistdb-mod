@@ -56,7 +56,8 @@ public final class ChestsMod implements ModInitializer {
 			"How far your chests can be for quick stack.").in(Domain.ITEMS, "Quick stack & supply chests");
 
 	public static final Setting.Toggle LABELS = MODULE.toggle("labels", "Labels above your chests", true, Items.ITEM_FRAME,
-			"A small picture above each of your", "chests: what it holds most of.", "Only you see them.");
+			"A small picture above each of your", "chests: what it holds most of.", "Only you see them.",
+			"Off: only above the chests you give", "one in their options ({sneak}-click Sort).");
 	public static final Setting.Toggle CRAFT = MODULE.toggle("craft_supply", "Craft from supply chests", true, Items.CRAFTING_TABLE,
 			"Clicking a recipe in the recipe book", "takes what you miss from your", "supply chests.").in(Domain.ITEMS, "Quick stack & supply chests");
 	public static final Setting.Toggle REFILL = MODULE.toggle("refill", "Refill from supply chests", true, Items.BUNDLE,

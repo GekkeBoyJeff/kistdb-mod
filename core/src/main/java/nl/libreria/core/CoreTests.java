@@ -1,5 +1,7 @@
 package nl.libreria.core;
 
+import java.util.Set;
+import java.util.UUID;
 import net.fabricmc.fabric.api.entity.FakePlayer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
@@ -26,6 +28,47 @@ final class CoreTests {
 			Chronicle.open(p);
 			d.entries.removeIf(e -> e.text.equals("A test moment") || e.text.equals("tested the chronicle"));
 			d.firsts.remove("test:first");
+		});
+		SelfTests.register("core.chronicle-history", level -> {
+			// Anna found diamonds on 1 January, before the chronicle; Bram on 1 February, and was called the first
+			UUID anna = UUID.fromString("00000000-0000-0000-0000-00000000000a"), bram = UUID.fromString("00000000-0000-0000-0000-00000000000b");
+			java.nio.file.Path world;
+			try {
+				world = java.nio.file.Files.createTempDirectory("libreria-history");
+				java.nio.file.Path adv = java.nio.file.Files.createDirectories(world.resolve("players").resolve("advancements"));
+				java.nio.file.Path stats = java.nio.file.Files.createDirectories(world.resolve("stats"));
+				java.nio.file.Files.writeString(adv.resolve(anna + ".json"), """
+						{"minecraft:recipes/misc/crafting_table": {"criteria": {"unlock_right_away": "2025-12-31 09:00:00 +0100"}, "done": true},
+						 "minecraft:story/mine_diamond": {"criteria": {"diamond": "2026-01-01 10:00:00 +0100"}, "done": true},
+						 "minecraft:story/enter_the_nether": {"criteria": {"entered_nether": "2026-03-01 10:00:00 +0100"}, "done": true},
+						 "DataVersion": 4000}""");
+				java.nio.file.Files.writeString(adv.resolve(bram + ".json"), """
+						{"minecraft:story/mine_diamond": {"criteria": {"diamond": "2026-02-01 10:00:00 +0100"}, "done": true},
+						 "minecraft:story/enter_the_nether": {"criteria": {"entered_nether": "2026-02-01 10:00:00 +0100"}, "done": true},
+						 "DataVersion": 4000}""");
+				java.nio.file.Files.writeString(stats.resolve(anna + ".json"),
+						"{\"stats\": {\"minecraft:killed\": {\"minecraft:wither\": 1}, \"minecraft:custom\": {\"minecraft:deaths\": 2}}}");
+				java.nio.file.Files.writeString(world.resolve("players").resolve("advancements").resolve("not-a-player.json"), "{}");
+			} catch (java.io.IOException e) {
+				throw new IllegalStateException(e);
+			}
+			ChronicleHistory h = ChronicleHistory.read(world, Set.of("story/mine_diamond", "story/enter_the_nether"), Set.of("wither", "warden"));
+			SelfTests.check(h.files == 3, "three player files read: " + h.files);
+			SelfTests.check(h.done.get("story/mine_diamond").size() == 2, "both found diamonds");
+			Chronicle.Data d = new Chronicle.Data();
+			long feb = java.time.OffsetDateTime.parse("2026-02-01T10:00:05+01:00").toInstant().toEpochMilli();
+			d.entries.add(entry(bram, "Bram", Chronicle.Kind.FIRST, "was the first to find diamonds", feb));
+			d.entries.add(entry(bram, "Bram", Chronicle.Kind.FIRST, "was the first to reach the Nether", feb));
+			d.entries.add(entry(bram, "Bram", Chronicle.Kind.ARRIVAL, "was the first to arrive in this world", feb - 3_600_000L));
+			int fixed = Chronicle.apply(d, h);
+			SelfTests.check(fixed == 2, "two moments corrected: " + fixed);
+			SelfTests.check(d.entries.get(0).text.equals("found diamonds") && !d.entries.get(0).major, "diamonds: " + d.entries.get(0).text);
+			SelfTests.check(d.entries.get(1).text.equals("was the first to reach the Nether") && d.entries.get(1).major, "Bram was first in the Nether");
+			SelfTests.check(d.entries.get(2).text.equals("arrived in the world"), "arrival: " + d.entries.get(2).text);
+			SelfTests.check(d.firsts.containsAll(Set.of("adv:story/mine_diamond", "adv:story/enter_the_nether", "boss:wither", "death:" + anna))
+					&& !d.firsts.contains("boss:warden"), "firsts: " + d.firsts);
+			SelfTests.check(d.arrived.containsAll(Set.of(anna, bram)), "both arrived already");
+			SelfTests.check(Chronicle.apply(d, h) == 0, "a second start changes nothing");
 		});
 		SelfTests.register("core.settings", level -> {
 			FakePlayer p = FakePlayer.get(level);
@@ -152,5 +195,16 @@ final class CoreTests {
 			Hud.show(p, "test", Component.literal("hud"), Hud.PRIO_INFO, 20);
 			Hud.flash(p, Component.literal("flash"));
 		});
+	}
+
+	private static Chronicle.Entry entry(UUID who, String name, Chronicle.Kind kind, String text, long at) {
+		Chronicle.Entry e = new Chronicle.Entry();
+		e.who = who;
+		e.name = name;
+		e.kind = kind.name();
+		e.text = text;
+		e.major = true;
+		e.at = at;
+		return e;
 	}
 }

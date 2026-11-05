@@ -49,7 +49,10 @@ public final class ChestOptions {
 			w.text(Ui.text(claims ? "Supply chest: only for chests on your own land. Claim this land first."
 					: "Supply chest: needs land claims on this server.", ChatFormatting.DARK_GRAY));
 		}
-		w.toggle("label", Ui.text("Label above it (only you see it)", ChatFormatting.WHITE), !entry.noLabel);
+		// With labels off for all chests (settings), this one can have one anyway
+		boolean all = nl.libreria.chests.ChestsMod.LABELS.get(player);
+		w.toggle("label", Ui.text(all ? "Label above it (only you see it)" : "Label above it, though labels are off for your other chests",
+				ChatFormatting.WHITE), entry.labelled(all));
 		w.toggle("search", Ui.text("Include in your item search", ChatFormatting.WHITE), !entry.noIndex);
 		w.button(Ui.text("✔ Save", ChatFormatting.GREEN), Ui.text("Keep these options", ChatFormatting.GRAY), (p, v) -> {
 			Store.PlayerData d = Store.get(p.getUUID());
@@ -57,20 +60,24 @@ public final class ChestOptions {
 			if (e == null) return;
 			// Checked again: the land could have changed while the window was open
 			e.supply = Services.onOwnLand(p, level, key) && v.bool("supply", e.supply);
-			e.noLabel = !v.bool("label", !e.noLabel);
+			boolean allNow = nl.libreria.chests.ChestsMod.LABELS.get(p);
+			boolean label = v.bool("label", e.labelled(allNow));
+			if (allNow) e.noLabel = !label;
+			else e.alwaysLabel = label;
 			e.noIndex = !v.bool("search", !e.noIndex);
 			d.markDirty();
 			Labels.refresh(p);
 			Beam.flash(p, level, key, e.supply ? 0x55FF55 : 0xFFAA00, 30);
 			Toast.show(p, icon(e), Toast.GOOD, Ui.text(cap(kind) + " saved", ChatFormatting.WHITE),
-					Ui.text(summary(e), ChatFormatting.GRAY));
+					Ui.text(summary(e, allNow), ChatFormatting.GRAY));
 		});
 		w.cancel().show(player);
 	}
 
-	private static String summary(Store.Entry e) {
+	private static String summary(Store.Entry e, boolean all) {
 		StringBuilder b = new StringBuilder(e.supply ? "Supply chest" : "Not a supply chest");
-		if (e.noLabel) b.append(" · no label");
+		if (all && e.noLabel) b.append(" · no label");
+		if (!all && e.alwaysLabel) b.append(" · with a label");
 		if (e.noIndex) b.append(" · left out of searches");
 		return b.toString();
 	}
