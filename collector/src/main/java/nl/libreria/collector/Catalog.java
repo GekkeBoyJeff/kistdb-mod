@@ -815,8 +815,9 @@ public final class Catalog {
 			Rarity help = k.hard() ? R : U, champ = k.hard() ? L : E;
 			Achievement helped = new Achievement(id, c, k.name(), "Help the server reach the server goal " + k.name(), k.icon(), help,
 					goal(1, (p, d) -> Goals.helped(p.getUUID(), k.id()) ? 1 : 0), null);
+			// The next grade of the same goal: helped, and did the most
 			Achievement best = new Achievement(id + ".kampioen", c, k.name() + " Champion", "Do the most for the server goal " + k.name(), k.icon(),
-					champ, goal(1, (p, d) -> Goals.champion(p.getUUID(), k.id()) ? 1 : 0), null);
+					champ, goal(2, (p, d) -> (Goals.helped(p.getUUID(), k.id()) ? 1 : 0) + (Goals.champion(p.getUUID(), k.id()) ? 1 : 0)), null);
 			add(helped);
 			add(best);
 			chain(List.of(helped, best));

@@ -377,11 +377,13 @@ public final class Screens implements FabricClientGameTest {
 				nl.libreria.core.Players.note(sanne, "Sanne", now - 20 * day, now - 20 * 3600 * 1000L);
 				var r = nl.libreria.collector.Goals.startNow(s, "mine.stone");
 				if (r != null) {
-					r.done.put(anna, 4812L);
-					r.done.put(player.getUUID(), 3960L);
-					r.done.put(bram, 2105L);
-					r.done.put(sanne, 1013L);
+					// About a quarter of the way
+					r.done.put(anna, r.target * 10 / 100);
+					r.done.put(player.getUUID(), r.target * 8 / 100);
+					r.done.put(bram, r.target * 4 / 100);
+					r.done.put(sanne, r.target * 2 / 100);
 				}
+				nl.libreria.core.Guide.clear(player);
 			});
 			menu(ctx, server, player, "own_domain_me_new", p -> nl.libreria.core.DomainWindow.open(p, nl.libreria.core.Domain.YOU));
 			menu(ctx, server, player, "own_domain_progress_goal", p -> nl.libreria.core.DomainWindow.open(p, nl.libreria.core.Domain.PROGRESS));
@@ -399,8 +401,6 @@ public final class Screens implements FabricClientGameTest {
 				ctx.waitTicks(6);
 				ctx.takeScreenshot("goal_bar");
 			});
-			server.runOnServer(s -> nl.libreria.collector.Goals.endNow(s, true));
-			menu(ctx, server, player, "own_goal_past", nl.libreria.collector.gui.GoalWindow::openPast);
 			safe("away_card", () -> {
 				server.runOnServer(s -> {
 					// Nothing else waiting at the top, so the card shows right away
@@ -409,7 +409,6 @@ public final class Screens implements FabricClientGameTest {
 					nl.libreria.collector.Goals.CARDS.set(player, false);
 					nl.libreria.core.Chronicle.write(anna, "Anna", nl.libreria.core.Chronicle.Kind.BOSS, "slew the Wither", true);
 					nl.libreria.core.Chronicle.write(bram, "Bram", nl.libreria.core.Chronicle.Kind.FIRST, "was the first to reach the End", true);
-					nl.libreria.collector.Goals.startNow(s, "farm.crops");
 					nl.libreria.collector.Goals.CARDS.set(player, cards);
 					nl.libreria.core.Chronicle.welcomeBack(player, System.currentTimeMillis() - 3L * 24 * 3600 * 1000);
 				});
@@ -417,6 +416,8 @@ public final class Screens implements FabricClientGameTest {
 				ctx.takeScreenshot("away_card");
 				server.runOnServer(s -> nl.libreria.core.gui.TopCard.hide(player, "away"));
 			});
+			server.runOnServer(s -> nl.libreria.collector.Goals.endNow(s, true));
+			menu(ctx, server, player, "own_goal_past", nl.libreria.collector.gui.GoalWindow::openPast);
 			for (var d : nl.libreria.core.Domain.values()) {
 				menu(ctx, server, player, "own_settings_" + d.word, p -> nl.libreria.core.gui.SettingsCanvas.open(p, d, q -> {
 				}));

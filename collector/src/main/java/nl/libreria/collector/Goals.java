@@ -183,6 +183,11 @@ public final class Goals {
 				if (k != null) e.areas.computeIfAbsent(h.getKey(), x -> new HashSet<>()).add(k.area);
 			}
 			if (p.champion != null) {
+				// The one who did the most always helped
+				if (e.helped.computeIfAbsent(p.champion, x -> new HashSet<>()).add(p.kind)) {
+					e.helpedCount.merge(p.champion, 1, Integer::sum);
+					if (k != null) e.areas.computeIfAbsent(p.champion, x -> new HashSet<>()).add(k.area);
+				}
 				e.champion.computeIfAbsent(p.champion, x -> new HashSet<>()).add(p.kind);
 				e.championCount.merge(p.champion, 1, Integer::sum);
 			}
