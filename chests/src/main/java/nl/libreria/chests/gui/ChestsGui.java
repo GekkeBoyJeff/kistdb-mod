@@ -73,6 +73,10 @@ public final class ChestsGui extends Menu {
 	}
 
 	static void open(ServerPlayer player, String backLabel, Runnable back) {
+		if (nl.libreria.core.gui.CanvasWindow.available(player)) {
+			ChestsWindow.open(player, back);
+			return;
+		}
 		new ChestsGui(player, backLabel, back, Show.ALL, Order.NEAREST, 0).open();
 	}
 

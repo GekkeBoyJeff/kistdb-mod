@@ -90,6 +90,38 @@ public abstract class CanvasWindow extends SimpleGui {
 		}
 	}
 
+	/** Like {@link #area}, but the action gets the kind of click (left, right, shift, Q …). */
+	protected void areaTyped(int col, int row, int w, int h, Component name, List<Component> lines,
+			java.util.function.BiConsumer<ServerPlayer, eu.pb4.sgui.api.ClickType> action) {
+		for (int r = row; r < row + h; r++) {
+			for (int c = col; c < col + w; c++) {
+				this.setSlot(cell(c, r), typed(new ItemStack(Items.PAPER), true, name, lines, action));
+			}
+		}
+	}
+
+	/** A real item in one cell, with a tooltip and an action that gets the kind of click. */
+	protected void iconTyped(int col, int row, ItemStack stack, Component name, List<Component> lines,
+			java.util.function.BiConsumer<ServerPlayer, eu.pb4.sgui.api.ClickType> action) {
+		this.setSlot(cell(col, row), typed(stack, false, name, lines, action));
+	}
+
+	private GuiElementBuilder typed(ItemStack stack, boolean invisible, Component name, List<Component> lines,
+			java.util.function.BiConsumer<ServerPlayer, eu.pb4.sgui.api.ClickType> action) {
+		GuiElementBuilder b = element(stack, invisible, name, lines, null);
+		return b.setCallback((index, type, act, gui) -> action.accept(this.player, type));
+	}
+
+	/** One of the old menus' buttons (a builder with its tooltip and action) as an invisible area. */
+	protected void areaFrom(int col, int row, int w, GuiElementBuilder button) {
+		button.model(EMPTY).hideDefaultTooltip();
+		var el = button.build();
+		ItemStack st = el.getItemStack().copy();
+		st.set(net.minecraft.core.component.DataComponents.TOOLTIP_STYLE, TOOLTIP);
+		var wrapped = new eu.pb4.sgui.api.elements.SimpleGuiElement(st, el.getGuiCallback());
+		for (int c = col; c < col + w; c++) this.setSlot(cell(c, row), wrapped);
+	}
+
 	/** A real item (an icon) in one cell of an area, with the area's tooltip and action. */
 	protected void icon(int col, int row, ItemStack stack, Component name, List<Component> lines, Consumer<ServerPlayer> action) {
 		this.setSlot(cell(col, row), element(stack, false, name, lines, action));

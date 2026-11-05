@@ -65,6 +65,19 @@ public final class Canvas {
 		return this;
 	}
 
+	/**
+	 * The card of a list row: from window x {@code x}, {@code width} wide, 16 px high and level with the item picture
+	 * in a cell of that row (so a picture beside it is exactly as high).
+	 */
+	public Canvas line(int x, int row, int width, int rgb) {
+		String back = Glyphs.g("space-1");
+		String pieces = Glyphs.g("line.l") + back + Glyphs.tiles("line.m", width - 8) + Glyphs.g("line.r") + back;
+		move(x);
+		this.out.append(Component.literal(pieces).withStyle(s -> s.withFont(row(row)).withColor(TextColor.fromRgb(rgb))));
+		this.x += width;
+		return this;
+	}
+
 	/** Text with its top at ({@code x}, {@code y}), with a soft shadow. */
 	public Canvas text(String text, int x, int y, int rgb) {
 		return text(Component.literal(text), x, y, rgb, true);

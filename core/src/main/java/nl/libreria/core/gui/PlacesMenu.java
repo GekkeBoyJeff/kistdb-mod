@@ -52,6 +52,10 @@ public final class PlacesMenu extends Menu {
 
 	public static void open(ServerPlayer player, @Nullable String kind) {
 		if (kind != null && PlaceList.kind(kind) == null) kind = null;
+		if (CanvasWindow.available(player)) {
+			PlacesWindow.open(player, kind, 0);
+			return;
+		}
 		new PlacesMenu(player, kind, 0).open();
 	}
 
@@ -62,11 +66,20 @@ public final class PlacesMenu extends Menu {
 			open(player, null);
 			return;
 		}
+		if (CanvasWindow.available(player)) {
+			PlacesWindow.open(player, s.kind() != null && PlaceList.kind(s.kind()) == null ? null : s.kind(), s.page());
+			return;
+		}
 		new PlacesMenu(player, s.kind() != null && PlaceList.kind(s.kind()) == null ? null : s.kind(), s.page()).open();
 	}
 
 	public static void forget(java.util.UUID id) {
 		LAST.remove(id);
+	}
+
+	/** Remembers the tab and page (the own window uses the same memory). */
+	static void remember(ServerPlayer player, @Nullable String kind, int page) {
+		LAST.put(player.getUUID(), new Spot(kind, page));
 	}
 
 
@@ -228,8 +241,13 @@ public final class PlacesMenu extends Menu {
 
 	/** "120 m · north-east". */
 	private String distance(Place pl) {
-		double dx = pl.pos.x - this.player.getX(), dz = pl.pos.z - this.player.getZ();
-		double d = Math.sqrt(dx * dx + dz * dz + Math.pow(pl.pos.y - this.player.getY(), 2));
+		return distance(this.player, pl);
+	}
+
+	/** "120 m · north-east" from where the player stands. */
+	static String distance(ServerPlayer player, Place pl) {
+		double dx = pl.pos.x - player.getX(), dz = pl.pos.z - player.getZ();
+		double d = Math.sqrt(dx * dx + dz * dz + Math.pow(pl.pos.y - player.getY(), 2));
 		if (d < 8) return "Right here";
 		String far = d >= 1000 ? String.format(java.util.Locale.ROOT, "%.1f km", d / 1000) : Math.round(d) + " m";
 		double angle = Math.toDegrees(Math.atan2(dx, -dz));

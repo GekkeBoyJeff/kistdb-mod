@@ -540,8 +540,10 @@ EMBLEMS.update({
     'help': ['.######.', '#wwwwww#', '#ww##ww#', '.#..#ww#', '...#ww#.', '...#ww#.', '........', '...#ww#.'],
     'compass': ['..####..', '.#wwww#.', '#ww#www#', '#w###ww#', '#ww###w#', '#www#ww#', '.#wwww#.', '..####..'],
     'scroll': EMBLEMS['scroll'],
+    # the line under the active tab (in the last two rows, tinted by the text colour)
+    'bar': ['........'] * 6 + ['wwwwwwww', 'wwwwwwww'],
 })
-BIG_EMBLEMS = ['chest', 'map', 'trophy', 'tag', 'book', 'gear', 'help', 'compass', 'scroll', 'heart', 'grave']
+BIG_EMBLEMS = ['chest', 'map', 'trophy', 'tag', 'book', 'gear', 'help', 'compass', 'scroll', 'heart', 'grave', 'bar']
 canvas_pictures = []
 
 
@@ -632,11 +634,13 @@ card_sheets = []
 
 
 def cards():
-    """Card pieces for 1 to 4 rows of cells, in libreria:row<K> (their top on cell row K)."""
-    for hc in range(1, 5):
-        h = 18 * hc - 2 * CARD_M
-        cells = [(f'card{hc}.l', card_piece(4, h, 'l')), (f'card{hc}.r', card_piece(4, h, 'r'))]
-        cells += [(f'card{hc}.m{w}', card_piece(w, h, 'm')) for w in (64, 32, 16, 8, 4, 2, 1)]
+    """Card pieces for 1 to 4 rows of cells, in libreria:row<K> (their top on cell row K). And "line": the card of a
+    list row, 16 px high like the item picture beside it (its top 1 px below the row's top, level with the item)."""
+    for hc in range(0, 5):
+        h = 16 if hc == 0 else 18 * hc - 2 * CARD_M
+        pre = 'line' if hc == 0 else f'card{hc}'
+        cells = [(f'{pre}.l', card_piece(4, h, 'l')), (f'{pre}.r', card_piece(4, h, 'r'))]
+        cells += [(f'{pre}.m{w}', card_piece(w, h, 'm')) for w in (64, 32, 16, 8, 4, 2, 1)]
         cw = max(im.width for _, im in cells)
         sheet = Image.new('RGBA', (cw * len(cells), h), (0, 0, 0, 0))
         chars = ''
@@ -647,7 +651,7 @@ def cards():
             glyphs[name] = [cp, im.width + 1]
         path = os.path.join(OUT, 'assets', NS, f'textures/font/ui/card_{hc}.png')
         sheet.save(path)
-        card_sheets.append({'file': f'{NS}:font/ui/card_{hc}.png', 'height': h, 'chars': [chars]})
+        card_sheets.append({'file': f'{NS}:font/ui/card_{hc}.png', 'height': h, 'chars': [chars], 'top': 1 if hc == 0 else CARD_M})
 
 
 def window_panel():
@@ -757,7 +761,7 @@ def canvas_fonts():
     for k, top in enumerate(ROW_TOP):
         provs = list(space)
         for p in card_sheets:
-            provs.append({'type': 'bitmap', 'file': p['file'], 'height': p['height'], 'ascent': 13 - (top + CARD_M), 'chars': p['chars']})
+            provs.append({'type': 'bitmap', 'file': p['file'], 'height': p['height'], 'ascent': 13 - (top + p['top']), 'chars': p['chars']})
         json.dump({'providers': provs}, open(os.path.join(base, f'row{k}.json'), 'w'))
 
 

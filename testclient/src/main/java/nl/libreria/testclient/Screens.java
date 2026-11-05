@@ -363,6 +363,10 @@ public final class Screens implements FabricClientGameTest {
 				menu(ctx, server, player, "own_domain_" + d.word, p -> nl.libreria.core.DomainWindow.open(p, d));
 			}
 			menu(ctx, server, player, "own_settings", nl.libreria.core.gui.SettingsCanvas::open);
+			menu(ctx, server, player, "own_places", p -> nl.libreria.core.gui.PlacesWindow.open(p, null, 0));
+			menu(ctx, server, player, "own_places_waypoints", p -> nl.libreria.core.gui.PlacesWindow.open(p, "waypoints", 0));
+			menu(ctx, server, player, "own_chests", p -> nl.libreria.chests.gui.ChestsWindow.open(p, () -> {
+			}));
 			for (var d : nl.libreria.core.Domain.values()) {
 				menu(ctx, server, player, "own_settings_" + d.word, p -> nl.libreria.core.gui.SettingsCanvas.open(p, d, q -> {
 				}));
