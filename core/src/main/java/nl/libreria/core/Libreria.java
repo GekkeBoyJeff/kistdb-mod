@@ -39,6 +39,7 @@ public final class Libreria implements ModInitializer {
 
 
 	private static @Nullable MinecraftServer server;
+	private static boolean placesButton;
 
 	/** The running server, or null between worlds. */
 	public static @Nullable MinecraftServer server() {
@@ -58,13 +59,18 @@ public final class Libreria implements ModInitializer {
 		});
 		QuickMenu.init();
 		Tips.init();
-		MODULE.hubEntry(Domain.PLACES, 10, Items.COMPASS, "Your places", PlaceList::open,
-				"Everything you can be shown the way to: waypoints, graves, pets, the journal, your land.");
-		MODULE.commands(Domain.PLACES, "/places – everything you can be shown the way to");
+
 		Chronicle.init();
 		// Opslag zo vroeg mogelijk klaarzetten, zodat modules ze in hun eigen SERVER_STARTED al kunnen lezen
 		ServerLifecycleEvents.SERVER_STARTING.register(s -> {
 			server = s;
+			// "Your places" only when a module puts places in it (waypoints, graves, pets, journal, land)
+			if (PlaceList.any() && !placesButton) {
+				placesButton = true;
+				MODULE.hubEntry(Domain.PLACES, 10, Items.COMPASS, "Your places", PlaceList::open,
+						"Everything you can be shown the way to: waypoints, graves, pets, the journal, your land.");
+				MODULE.commands(Domain.PLACES, "/places – everything you can be shown the way to");
+			}
 			PlayerStore.initAll(s);
 			WorldStore.initAll(s);
 		});

@@ -86,7 +86,7 @@ public final class AdminWindow {
 			for (ServerSetting s : module.serverSettings()) h.text(explain(s));
 			h.back(pl -> open(pl, module)).show(p);
 		});
-		w.back(AdminWindow::open).show(player);
+		w.cancel(AdminWindow::open).show(player);
 	}
 
 	private static boolean allowed(ServerPlayer p) {

@@ -231,6 +231,17 @@ public final class Window {
 		return back(p -> nl.libreria.core.Start.domain(p, domain));
 	}
 
+	/** "Cancel" at the bottom (and Escape): leaves without saving. For forms with their own Save button. */
+	public Window cancel() {
+		this.bottom = new ActionButton(new CommonButtonData(Ui.text("Cancel", ChatFormatting.GRAY), Optional.empty(), 200), Optional.empty());
+		return this;
+	}
+
+	/** "Cancel" that goes back to another window. */
+	public Window cancel(Consumer<ServerPlayer> to) {
+		return bottom(Ui.text("Cancel", ChatFormatting.GRAY), (p, v) -> to.accept(p));
+	}
+
 	/** "Done" at the bottom: just closes. */
 	public Window done() {
 		this.bottom = new ActionButton(new CommonButtonData(Ui.text("Done", ChatFormatting.WHITE), Optional.empty(), 200), Optional.empty());

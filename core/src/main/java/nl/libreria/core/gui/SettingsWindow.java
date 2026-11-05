@@ -136,11 +136,7 @@ public final class SettingsWindow {
 		}
 		if (!section.settings().isEmpty()) {
 			w.button(Ui.text("✔ Save", ChatFormatting.GREEN), Ui.text("Keep these settings", ChatFormatting.GRAY), (p, v) -> {
-				int changed = apply(p, section, v);
-				Ui.sound(p, SoundEvents.NOTE_BLOCK_PLING.value(), 0.5f, 1.4f);
-				Toast.show(p, section.icon(), Toast.GOOD, Ui.text(changed == 0 ? "Nothing changed" : "Settings saved", ChatFormatting.WHITE),
-						Ui.text(section.name() + (changed == 0 ? "" : " · " + changed + (changed == 1 ? " change" : " changes")),
-								ChatFormatting.GRAY));
+				saved(p, section, apply(p, section, v), true);
 				back.accept(p);
 			});
 			w.button(Ui.text("Defaults", ChatFormatting.YELLOW), Ui.text("Back to how they were at the start", ChatFormatting.GRAY),
@@ -149,15 +145,34 @@ public final class SettingsWindow {
 							if (s instanceof Setting.Toggle t) t.set(p, t.def);
 							else if (s instanceof Setting.Choice c) c.set(p, c.defaultValue());
 						}
+						nl.libreria.core.Notify.whisper(p, "Back to the defaults", ChatFormatting.GRAY);
 						open(p, section, back);
 					});
 			w.button(Ui.text("What do these do?", ChatFormatting.WHITE), Ui.text("One line per setting", ChatFormatting.GRAY),
-					(p, v) -> help(p, section, back));
+					(p, v) -> {
+						saved(p, section, apply(p, section, v), false);
+						help(p, section, back);
+					});
 		}
 		for (Module.SettingsButton b : section.buttons()) {
-			w.button(Ui.text(b.label() + " ▸", ChatFormatting.AQUA), Ui.text(b.tooltip(), ChatFormatting.GRAY), (p, v) -> b.action().accept(p));
+			w.button(Ui.text(b.label() + " ▸", ChatFormatting.AQUA), Ui.text(b.tooltip(), ChatFormatting.GRAY), (p, v) -> {
+				saved(p, section, apply(p, section, v), false);
+				b.action().accept(p);
+			});
 		}
-		w.back(back).show(player);
+		// Back (and Escape) keep what you changed too: nothing is lost by not pressing Save
+		w.bottom(Ui.text("◀ Back", ChatFormatting.WHITE), (p, v) -> {
+			saved(p, section, apply(p, section, v), false);
+			back.accept(p);
+		}).show(player);
+	}
+
+	/** The card after saving; {@code always}: also when nothing changed (the Save button). */
+	private static void saved(ServerPlayer p, Section section, int changed, boolean always) {
+		if (changed == 0 && !always) return;
+		Ui.sound(p, SoundEvents.NOTE_BLOCK_PLING.value(), 0.5f, 1.4f);
+		Toast.show(p, section.icon(), Toast.GOOD, Ui.text(changed == 0 ? "Nothing changed" : "Settings saved", ChatFormatting.WHITE),
+				Ui.text(section.name() + (changed == 0 ? "" : " · " + changed + (changed == 1 ? " change" : " changes")), ChatFormatting.GRAY));
 	}
 
 	/** What each setting of a group does. */

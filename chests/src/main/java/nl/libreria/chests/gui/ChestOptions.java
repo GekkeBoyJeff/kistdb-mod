@@ -65,7 +65,7 @@ public final class ChestOptions {
 			Toast.show(p, icon(e), Toast.GOOD, Ui.text(cap(kind) + " saved", ChatFormatting.WHITE),
 					Ui.text(summary(e), ChatFormatting.GRAY));
 		});
-		w.done().show(player);
+		w.cancel().show(player);
 	}
 
 	private static String summary(Store.Entry e) {

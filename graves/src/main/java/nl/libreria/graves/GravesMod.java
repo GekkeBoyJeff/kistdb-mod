@@ -132,6 +132,7 @@ public final class GravesMod implements ModInitializer {
 		Services.addDeathAction(p -> {
 			Grave g = newestOf(p);
 			if (g == null || System.currentTimeMillis() - g.created > 60_000) return null;
+			if (!g.dim.equals(p.level().dimension().identifier().toString())) return null;
 			return new Services.DeathAction("Show the way to your grave", g.count() + (g.count() == 1 ? " item waits there" : " items wait there"),
 					pl -> beam(pl, g));
 		});

@@ -443,7 +443,10 @@ public final class ClaimsMod implements ModInitializer {
 
 	static boolean claim(ServerPlayer p, ServerLevel level, ChunkPos c) {
 		Claim existing = claimAt(level, c);
+		// On the land map its own card says why (red frame, "budget full"): no second card that pops up after closing it
+		boolean quiet = ClaimView.isOpen(p);
 		if (existing != null) {
+			if (quiet) return false;
 			if (existing.owner.equals(p.getUUID())) {
 				Notify.info(p, Items.GOLDEN_SHOVEL, "Already yours", "This chunk is part of your land.");
 			} else {
@@ -453,6 +456,7 @@ public final class ClaimsMod implements ModInitializer {
 		}
 		int have = owned(p.getUUID()), max = budget(p);
 		if (have >= max) {
+			if (quiet) return false;
 			List<String> next = nextChunkLines(p);
 			nl.libreria.core.gui.Toast.show(p, new net.minecraft.world.item.ItemStack(Items.GOLDEN_SHOVEL), nl.libreria.core.gui.Toast.WARN,
 					Ui.text("Your land is at its budget", ChatFormatting.WHITE),
@@ -493,6 +497,7 @@ public final class ClaimsMod implements ModInitializer {
 	static boolean unclaim(ServerPlayer p, ServerLevel level, ChunkPos c) {
 		Claim existing = claimAt(level, c);
 		if (existing == null || !existing.owner.equals(p.getUUID())) {
+			if (ClaimView.isOpen(p)) return false;
 			Notify.warn(p, Items.BARRIER, existing == null ? "Not claimed" : "Not your land",
 					existing == null ? "Nobody owns this chunk." : "This chunk belongs to " + existing.ownerName + ".");
 			return false;
@@ -870,7 +875,7 @@ public final class ClaimsMod implements ModInitializer {
 				ClaimView.refresh(pp);
 			});
 		}
-		w.done().show(p);
+		w.cancel().show(p);
 	}
 
 

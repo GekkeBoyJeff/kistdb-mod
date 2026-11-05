@@ -1,6 +1,7 @@
 package nl.libreria.core;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import net.minecraft.ChatFormatting;
@@ -67,8 +68,14 @@ public final class DeathRecap {
 			where += " · " + Math.round(Math.sqrt(p.blockPosition().distSqr(d.pos()))) + " m from here";
 		}
 		w.text(Ui.text(where, ChatFormatting.GRAY));
-		for (Component note : Services.deathNotes(p)) w.text(note);
-		for (Services.DeathAction a : Services.deathActions(p)) w.button(a.label(), a.tooltip(), a.run());
+		// The modules' buttons say the rest ("Show the way to your grave · 23 items wait there"); their chat notes
+		// would only say the same thing twice here
+		List<Services.DeathAction> actions = Services.deathActions(p);
+		if (actions.isEmpty()) for (Component note : Services.deathNotes(p)) w.text(note);
+		for (Services.DeathAction a : actions) w.button(a.label(), a.tooltip(), a.run());
+		if (!p.level().dimension().identifier().toString().equals(d.dim())) {
+			w.text(Ui.text("Go back to " + dimension(d.dim()) + " to be shown the way there.", ChatFormatting.DARK_GRAY));
+		}
 		w.done().show(p);
 	}
 

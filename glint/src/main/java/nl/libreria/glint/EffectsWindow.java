@@ -36,24 +36,45 @@ final class EffectsWindow {
 		w.toggle("third", Ui.text("Third person: your armour", ChatFormatting.WHITE), GlintMod.AURA_THIRD.get(p));
 		w.toggle("others", Ui.text("On other players", ChatFormatting.WHITE), GlintMod.AURA.get(p));
 		w.button(Ui.text("✔ Save", ChatFormatting.GREEN), Ui.text("Keep these settings", ChatFormatting.GRAY), (pl, v) -> {
-			int level;
-			try {
-				level = Math.max(1, Math.min(3, Integer.parseInt(v.text("intensity", "2"))));
-			} catch (NumberFormatException e) {
-				level = GlintMod.INTENSITY.get(pl);
-			}
-			GlintMod.INTENSITY.set(pl, level);
-			GlintMod.AURA_FIRST.set(pl, v.bool("first", GlintMod.AURA_FIRST.get(pl)));
-			GlintMod.AURA_THIRD.set(pl, v.bool("third", GlintMod.AURA_THIRD.get(pl)));
-			GlintMod.AURA.set(pl, v.bool("others", GlintMod.AURA.get(pl)));
-			Ui.sound(pl, SoundEvents.AMETHYST_BLOCK_CHIME, 0.8f, 1.2f);
-			Toast.show(pl, new ItemStack(Items.BLAZE_POWDER), Toast.GOOD, Ui.text("Effects saved", ChatFormatting.WHITE),
-					Ui.text(GlintMod.INTENSITY.display(pl) + " · " + where(pl), ChatFormatting.GRAY));
+			save(pl, v);
+			toast(pl);
 			nl.libreria.core.Start.domain(pl, nl.libreria.core.Domain.YOU);
 		});
 		w.button(Ui.text("Choose effects ▸", ChatFormatting.AQUA), Ui.text("Flames yes, smoke no: per effect", ChatFormatting.GRAY),
-				(pl, v) -> EffectsGui.open(pl));
-		w.up(nl.libreria.core.Domain.YOU).show(p);
+				(pl, v) -> {
+					if (save(pl, v)) toast(pl);
+					EffectsGui.open(pl);
+				});
+		// Back (and Escape) keep what you changed too
+		w.bottom(Ui.text("◀ Back", ChatFormatting.WHITE), (pl, v) -> {
+			if (save(pl, v)) toast(pl);
+			nl.libreria.core.Start.domain(pl, nl.libreria.core.Domain.YOU);
+		}).show(p);
+	}
+
+	/** Stores what was filled in; true when something changed. */
+	private static boolean save(ServerPlayer pl, nl.libreria.core.dialog.Values v) {
+		int level;
+		try {
+			level = Math.max(1, Math.min(3, Integer.parseInt(v.text("intensity", Integer.toString(GlintMod.INTENSITY.get(pl))))));
+		} catch (NumberFormatException e) {
+			level = GlintMod.INTENSITY.get(pl);
+		}
+		boolean first = v.bool("first", GlintMod.AURA_FIRST.get(pl)), third = v.bool("third", GlintMod.AURA_THIRD.get(pl)),
+				others = v.bool("others", GlintMod.AURA.get(pl));
+		boolean changed = level != GlintMod.INTENSITY.get(pl) || first != GlintMod.AURA_FIRST.get(pl) || third != GlintMod.AURA_THIRD.get(pl)
+				|| others != GlintMod.AURA.get(pl);
+		GlintMod.INTENSITY.set(pl, level);
+		GlintMod.AURA_FIRST.set(pl, first);
+		GlintMod.AURA_THIRD.set(pl, third);
+		GlintMod.AURA.set(pl, others);
+		return changed;
+	}
+
+	private static void toast(ServerPlayer pl) {
+		Ui.sound(pl, SoundEvents.AMETHYST_BLOCK_CHIME, 0.8f, 1.2f);
+		Toast.show(pl, new ItemStack(Items.BLAZE_POWDER), Toast.GOOD, Ui.text("Effects saved", ChatFormatting.WHITE),
+				Ui.text(GlintMod.INTENSITY.display(pl) + " · " + where(pl), ChatFormatting.GRAY));
 	}
 
 	/** "first and third person · others", for the toast. */

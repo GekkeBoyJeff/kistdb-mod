@@ -241,6 +241,6 @@ public final class Leaderboards {
 		w.button("Remove the nearest", "Within 8 blocks", pl -> {
 			if (Ui.isOp(pl)) removeNearest(pl);
 		});
-		w.done().show(p);
+		w.cancel().show(p);
 	}
 }

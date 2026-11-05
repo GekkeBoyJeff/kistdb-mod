@@ -146,7 +146,8 @@ public final class WaypointsMod implements ModInitializer {
 		ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
 			if (!alive) onRespawn(newPlayer);
 		});
-		Services.addDeathAction(p -> deathPoint(p) == null ? null
+		// Only when you can actually be shown the way (not when you died in another dimension)
+		Services.addDeathAction(p -> deathPoint(p) == null || !deathPoint(p).dim.equals(dimOf(p.level())) ? null
 				: new Services.DeathAction("Show the way back", "A beam to where you died", WaypointsMod::goDeath));
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> onJoin(handler.player));
 		CommandRegistrationCallback.EVENT.register((dispatcher, context, selection) -> {
