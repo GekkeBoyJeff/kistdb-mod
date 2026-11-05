@@ -79,7 +79,7 @@ public final class StartWindow extends CanvasWindow {
 	/** A one-row card with its label centred. */
 	private static void small(Canvas c, int col, int row, int w, String label) {
 		c.card(col, row, w, 1, NEUTRAL);
-		int inner = 18 * w - 2 * Canvas.CARD_MARGIN - 2 * PAD;
+		int inner = 18 * w - 2 * Canvas.CARD_MARGIN - 8;
 		c.centred(Canvas.fit(label, inner), Canvas.cellX(col) + 9 * w, Canvas.cellY(row) + 5, TEXT);
 	}
 

@@ -631,6 +631,38 @@ def tooltip_style():
               open(os.path.join(d, 'panel_frame.png.mcmeta'), 'w'))
 
 
+def switches():
+    """Item models for a window's switches: a pill with its knob right (on, green) or left (off, dark)."""
+    base = os.path.join(OUT, 'assets', NS)
+    for sub in ('textures/item/gui', 'models/item/gui', 'items/gui'):
+        os.makedirs(os.path.join(base, sub), exist_ok=True)
+    for name, on in (('switch_on', True), ('switch_off', False)):
+        img = Image.new('RGBA', (16, 16), (0, 0, 0, 0))
+        track = (76, 170, 72) if on else (46, 36, 28)
+        rim = (40, 96, 38) if on else (18, 11, 7)
+        for y in range(4, 12):
+            for x in range(1, 15):
+                r = 4
+                # rounded ends
+                cx = 5 if x < 5 else 10 if x > 10 else x
+                if (x - cx) ** 2 + (y - 7.5) ** 2 > 16.5:
+                    continue
+                edge = (x - cx) ** 2 + (y - 7.5) ** 2 > 10 or y in (4, 11)
+                img.putpixel((x, y), (rim if edge else track) + (255,))
+        kx = 10 if on else 5
+        for y in range(4, 12):
+            for x in range(kx - 3, kx + 4):
+                d = (x - kx) ** 2 + (y - 7.5) ** 2
+                if d <= 10:
+                    c = (250, 244, 228) if d <= 5 else (200, 190, 170)
+                    img.putpixel((x, y), c + (255,))
+        img.save(os.path.join(base, f'textures/item/gui/{name}.png'))
+        json.dump({'parent': 'minecraft:item/generated', 'textures': {'layer0': f'{NS}:item/gui/{name}'}, 'gui_light': 'front'},
+                  open(os.path.join(base, f'models/item/gui/{name}.json'), 'w'))
+        json.dump({'model': {'type': 'minecraft:model', 'model': f'{NS}:item/gui/{name}'}},
+                  open(os.path.join(base, f'items/gui/{name}.json'), 'w'))
+
+
 def canvas_fonts():
     """libreria:y<N> (text and big emblems with their top at y N) and libreria:row<K> (cards)."""
     default = json.load(open(os.path.join(VANILLA, 'font/include/default.json')))['providers']
@@ -1464,6 +1496,7 @@ def main():
     big_icons()
     cards()
     tooltip_style()
+    switches()
     bitmap('window', [('win.panel', window_panel())], WIN_H, 13)
     # Its top is SEARCH_OY above the anvil's top; the title's baseline is 13 below that top
     bitmap('search_frame', [('frame.search', search_frame())], 166 + 2 * SEARCH_OY, 13 + SEARCH_OY)

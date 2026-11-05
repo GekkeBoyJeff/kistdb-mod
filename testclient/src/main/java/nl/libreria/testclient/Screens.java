@@ -359,6 +359,9 @@ public final class Screens implements FabricClientGameTest {
 			menu(ctx, server, player, "window_start", nl.libreria.core.Welcome::guide);
 			// Libreria's own start window (drawn by the pack), then with the mouse on the Items card
 			menu(ctx, server, player, "own_start", nl.libreria.core.StartWindow::open);
+			for (var d : nl.libreria.core.Domain.values()) {
+				menu(ctx, server, player, "own_domain_" + d.word, p -> nl.libreria.core.DomainWindow.open(p, d));
+			}
 			safe("own_start_hover", () -> {
 				server.runOnServer(s -> nl.libreria.core.StartWindow.open(player));
 				ctx.waitTicks(12);

@@ -1,0 +1,1 @@
+{"parent": "minecraft:item/generated", "textures": {"layer0": "libreria:item/gui/switch_on"}, "gui_light": "front"}

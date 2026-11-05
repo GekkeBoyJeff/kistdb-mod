@@ -51,6 +51,10 @@ public final class Start {
 
 	/** One domain page: its buttons, a card for Progress and You, and its settings. */
 	public static void domain(ServerPlayer p, Domain d) {
+		if (nl.libreria.core.gui.CanvasWindow.available(p)) {
+			DomainWindow.open(p, d);
+			return;
+		}
 		Window w = Window.of(d);
 		switch (d) {
 			case YOU -> w.item(head(p), youCard(p), 170);
