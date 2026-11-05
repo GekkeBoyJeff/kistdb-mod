@@ -471,7 +471,7 @@ public final class Places {
 	private static eu.pb4.sgui.api.elements.GuiElementBuilder summary(ServerPlayer p) {
 		Data d = STORE.get(p);
 		int biomesTotal = p.level().registryAccess().lookupOrThrow(Registries.BIOME).size();
-		var b = nl.libreria.core.gui.Menu.button(Items.FILLED_MAP, "Your journal", ChatFormatting.GOLD,
+		var b = nl.libreria.core.gui.Menu.button(Items.FILLED_MAP, "Summary", ChatFormatting.GOLD,
 				d.places.size() + (d.places.size() == 1 ? " place" : " places") + " found",
 				Discoveries.firstsOf(p.getUUID()) + " found before anyone else",
 				d.biomes.size() + " of " + biomesTotal + " biomes visited");

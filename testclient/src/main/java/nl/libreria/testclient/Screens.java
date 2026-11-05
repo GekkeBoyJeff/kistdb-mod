@@ -364,6 +364,7 @@ public final class Screens implements FabricClientGameTest {
 					nl.libreria.info.Places.remember(player, "screens|village", "Oakhaven", "Village", player.blockPosition().offset(120, 0, -40));
 					nl.libreria.info.Places.remember(player, "screens|temple", "Sunhollow", "Desert Temple", player.blockPosition().offset(-900, 0, 300));
 					nl.libreria.info.Places.debugFirst("screens|village", java.util.UUID.nameUUIDFromBytes("libreria-anna".getBytes()), "Anna");
+					nl.libreria.info.Places.debugFirst("screens|temple", player.getUUID(), player.getName().getString());
 				});
 				// A villager with its own name, three blocks ahead
 				run(server, "execute as @a at @s run summon minecraft:villager ^ ^ ^3");

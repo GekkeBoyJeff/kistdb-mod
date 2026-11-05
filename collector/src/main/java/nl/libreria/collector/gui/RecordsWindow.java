@@ -54,7 +54,7 @@ public final class RecordsWindow extends CanvasWindow {
 		int need = 0;
 		for (Records.Kind k : kinds) {
 			Records.Rec r = Records.get(k);
-			need = Math.max(need, Glyphs.width(Component.literal(k.label)) + 6 + Glyphs.width(Component.literal(r == null ? "–" : k.format(r.value))));
+			need = Math.max(need, Glyphs.width(Component.literal(k.label)) + 10 + Glyphs.width(Component.literal(r == null ? "–" : k.format(r.value))));
 		}
 		int valueRight = left + 6 + need, whoRight = left + width - 6, whoSpace = whoRight - valueRight - 8;
 		for (int i = 0; i < kinds.length && i < ROWS.length; i++) {
