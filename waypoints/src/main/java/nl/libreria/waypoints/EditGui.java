@@ -80,7 +80,7 @@ final class EditGui extends Menu {
 		// The current visibility, as a coloured "◀ value ▶" pane under its button
 		this.setSlot(slots[visIndex] + 9, visibilityPane());
 
-		back("Your waypoints", this::backToList);
+		back("Your places", this::backToList);
 		closeButton();
 		help("Change this waypoint here.",
 				"Who can see it: everyone, only you,",

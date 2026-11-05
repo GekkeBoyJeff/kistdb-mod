@@ -231,7 +231,7 @@ public final class AchievementsGui {
 				});
 				this.setSlot(i, b);
 			}
-			back("achievements", () -> AchievementsGui.open(p));
+			back("Achievements", () -> AchievementsGui.open(p));
 			pages(pg, pages, n -> new CategoryPage(p, c, n).open());
 			closeButton();
 			help("One icon per achievement, with its", "grades: mine 100 stone, then 1,000,", "then 10,000… Every grade is a title.", "",
