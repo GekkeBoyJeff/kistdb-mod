@@ -152,6 +152,10 @@ public final class GlintMod implements ModInitializer {
 		else Fx.set(p, kind);
 	}
 
+	public static @org.jetbrains.annotations.Nullable net.minecraft.core.BlockPos debugFxLight(ServerPlayer p) {
+		return Fx.lightOf(p);
+	}
+
 	public static String debugAura(ServerPlayer p) {
 		var gear = Aura.gear(p);
 		return "gear " + gear + " · sources " + Aura.compose(gear, f -> enabled(p, f), INTENSITY.get(p)) + " · sent " + java.util.Arrays.toString(Aura.SENT)

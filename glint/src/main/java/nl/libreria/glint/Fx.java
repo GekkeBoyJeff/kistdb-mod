@@ -61,7 +61,8 @@ final class Fx {
 		final ElementHolder holder = new ElementHolder();
 		final List<ItemDisplayElement> els = new ArrayList<>();
 		final List<P> ps = new ArrayList<>();
-		int age, life;
+		/** -1: made this tick (the client sees it first, the move comes a tick later). */
+		int age = -1, life;
 	}
 
 	private static final List<Burst> LIVE = new ArrayList<>();
@@ -147,6 +148,12 @@ final class Fx {
 		return out;
 	}
 
+	/** For the screenshots: where the light of this player is now (or null). */
+	static @Nullable BlockPos lightOf(ServerPlayer p) {
+		Wearer w = WEARERS.get(p.getUUID());
+		return w == null ? null : w.light;
+	}
+
 	static void tick(MinecraftServer server) {
 		for (Iterator<Map.Entry<UUID, Wearer>> it = WEARERS.entrySet().iterator(); it.hasNext();) {
 			var e = it.next();
@@ -162,6 +169,7 @@ final class Fx {
 			Burst b = it.next();
 			b.age++;
 			if (b.age == 1) {
+				// a tick after it appeared: where it goes, the client does the rest
 				for (int i = 0; i < b.els.size(); i++) {
 					ItemDisplayElement e = b.els.get(i);
 					P p = b.ps.get(i);
@@ -202,10 +210,10 @@ final class Fx {
 			case "fire" -> {
 				// Embers that rise off you and burn out, now and then a spark, and a warm haze around you
 				if (R.nextFloat() < 0.55f) {
-					Vec3 from = onBody(p, 0.05f, 0.95f, 0.33f);
+					Vec3 from = onBody(p, 0.05f, 0.95f, 0.42f);
 					int t = 16 + R.nextInt(14);
 					ps.add(new P("ember", pick(0xFFE9A8, 0xFFB64A, 0xFF8A2E, 0xFF5A1C), from,
-							from.add(rnd(-0.18f, 0.18f), rnd(0.6f, 1.15f), rnd(-0.18f, 0.18f)), rnd(0.13f, 0.22f), 0.0f, 0, 0, t));
+							from.add(rnd(-0.18f, 0.18f), rnd(0.6f, 1.15f), rnd(-0.18f, 0.18f)), rnd(0.2f, 0.32f), 0.02f, 0, 0, t));
 				}
 				if (tick % 3 == 0) {
 					Vec3 from = onBody(p, 0.2f, 0.9f, 0.36f);

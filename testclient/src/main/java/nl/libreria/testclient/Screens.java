@@ -99,6 +99,16 @@ public final class Screens implements FabricClientGameTest {
 					ctx.takeScreenshot("fx2_" + kit[0] + "_day");
 					run(server, "time set midnight");
 					ctx.waitTicks(20);
+					// Is the light there, as the client sees it?
+					net.minecraft.core.BlockPos lp = server.computeOnServer(s -> nl.libreria.glint.GlintMod.debugFxLight(player));
+					if (lp != null) {
+						String seen = ctx.computeOnClient(mc -> mc.level.getBlockState(lp) + " block light below: "
+								+ mc.level.getBrightness(net.minecraft.world.level.LightLayer.BLOCK, lp.below()) + ", 2 away: "
+								+ mc.level.getBrightness(net.minecraft.world.level.LightLayer.BLOCK, lp.below().east(2)));
+						LOG.info("FX-LIGHT {} at {}: {}", kit[0], lp, seen);
+					} else {
+						LOG.info("FX-LIGHT {}: none", kit[0]);
+					}
 					ctx.takeScreenshot("fx2_" + kit[0] + "_night");
 					camera(ctx, CameraType.THIRD_PERSON_BACK);
 					ctx.waitTicks(10);
