@@ -107,7 +107,7 @@ public final class Screens implements FabricClientGameTest {
 					for (int g = 1; g <= 4; g++) {
 						wearSet(server, st[1], g, "");
 						String spec = "set:" + st[0] + ":" + g;
-						server.runOnServer(x -> nl.libreria.glint.GlintMod.debugFx(player, spec));
+						server.runOnServer(sv -> nl.libreria.glint.GlintMod.debugFx(player, spec));
 						ctx.waitTicks(45);
 						ctx.takeScreenshot("fxset_" + st[0] + "_" + g);
 						if (g == 4) {
@@ -118,14 +118,14 @@ public final class Screens implements FabricClientGameTest {
 					for (String[] c : combos) {
 						wearSet(server, st[1], 4, c[1]);
 						String spec = "set:" + st[0] + ":4:" + c[1];
-						server.runOnServer(x -> nl.libreria.glint.GlintMod.debugFx(player, spec));
+						server.runOnServer(sv -> nl.libreria.glint.GlintMod.debugFx(player, spec));
 						ctx.waitTicks(45);
 						ctx.takeScreenshot("fxset_" + st[0] + "_4_" + c[0]);
 					}
 				}
 				// From behind, by day, and in first person (where nothing of it should be in view)
 				wearSet(server, "fire_protection", 4, "thorns,feather,frost,soul");
-				server.runOnServer(x -> nl.libreria.glint.GlintMod.debugFx(player, "set:fire:4"));
+				server.runOnServer(sv -> nl.libreria.glint.GlintMod.debugFx(player, "set:fire:4"));
 				camera(ctx, CameraType.THIRD_PERSON_BACK);
 				ctx.waitTicks(40);
 				ctx.takeScreenshot("fxset_fire_4_back");
@@ -139,12 +139,12 @@ public final class Screens implements FabricClientGameTest {
 				for (String[] st : new String[][]{{"fire", "fire_protection"}, {"protection", "protection"}}) {
 					wearSet(server, st[1], 4, "");
 					String spec = "set:" + st[0] + ":4";
-					server.runOnServer(x -> nl.libreria.glint.GlintMod.debugFx(player, spec));
+					server.runOnServer(sv -> nl.libreria.glint.GlintMod.debugFx(player, spec));
 					ctx.waitTicks(40);
 					ctx.takeScreenshot("fxset_" + st[0] + "_4_day");
 				}
-				server.runOnServer(x -> nl.libreria.glint.GlintMod.debugFx(player, "off"));
-				server.runOnServer(x -> nl.libreria.glint.GlintMod.AURA_THIRD.set(player, true));
+				server.runOnServer(sv -> nl.libreria.glint.GlintMod.debugFx(player, "off"));
+				server.runOnServer(sv -> nl.libreria.glint.GlintMod.AURA_THIRD.set(player, true));
 				run(server, "item replace entity @a armor.head with minecraft:air", "item replace entity @a armor.chest with minecraft:air",
 						"item replace entity @a armor.legs with minecraft:air", "item replace entity @a armor.feet with minecraft:air");
 				camera(ctx, CameraType.FIRST_PERSON);
