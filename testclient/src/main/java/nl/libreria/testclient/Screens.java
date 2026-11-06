@@ -161,6 +161,44 @@ public final class Screens implements FabricClientGameTest {
 				run(server, "clear @a");
 				ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.FULL));
 			});
+			// What the effects cost the server: each set at its top grade with a sword with an effect in hand, standing in
+			// view of six mannequins wearing auras too (so seven auras), then swinging; logged as LIBRERIA-FX-COST
+			safe("fx_cost", () -> {
+				run(server, "kill @e[type=minecraft:mannequin]", "clear @a");
+				for (int i = 0; i < 6; i++) {
+					int mx = x - 5 + i * 2;
+					run(server, "summon minecraft:mannequin " + mx + " " + y + " " + (z + 5) + " {Rotation:[180f,0f],hide_description:1b,immovable:1b}");
+				}
+				server.runOnServer(sv -> {
+					var box = new net.minecraft.world.phys.AABB(x - 7, y - 1, z + 3, x + 7, y + 3, z + 7);
+					for (var m : sv.overworld().getEntitiesOfClass(net.minecraft.world.entity.LivingEntity.class, box, e -> !(e instanceof ServerPlayer)))
+						nl.libreria.glint.GlintMod.debugBodyAura(m, "fire_4");
+				});
+				run(server, "item replace entity @a weapon.mainhand with " + sword("fire2_sharp5"));
+				camera(ctx, CameraType.THIRD_PERSON_BACK);
+				server.runOnServer(sv -> { nl.libreria.glint.GlintMod.costReset(); nl.libreria.glint.GlintMod.costReport("warm-up"); });
+				ctx.waitTicks(40);
+				server.runOnServer(sv -> nl.libreria.glint.GlintMod.costReset());
+				ctx.waitTicks(100);
+				server.runOnServer(sv -> nl.libreria.glint.GlintMod.costReport("six mannequin auras, a sword, no set"));
+				for (String set : new String[]{"fire:4", "protection:4", "blast:4", "projectile:4", "thorns:3", "mending:1", "binding:1", "vanishing:1"}) {
+					server.runOnServer(sv -> nl.libreria.glint.GlintMod.debugFx(player, "set:" + set));
+					ctx.waitTicks(40);
+					server.runOnServer(sv -> nl.libreria.glint.GlintMod.costReset());
+					ctx.waitTicks(100);
+					server.runOnServer(sv -> nl.libreria.glint.GlintMod.costReport("set " + set + " + six mannequin auras + sword"));
+				}
+				server.runOnServer(sv -> nl.libreria.glint.GlintMod.debugFx(player, "set:fire:4"));
+				server.runOnServer(sv -> nl.libreria.glint.GlintMod.costReset());
+				for (int k = 0; k < 10; k++) {
+					ctx.getInput().pressKey(o2 -> o2.keyAttack);
+					ctx.waitTicks(10);
+				}
+				server.runOnServer(sv -> nl.libreria.glint.GlintMod.costReport("set fire:4 + swinging the sword twice a second"));
+				server.runOnServer(sv -> nl.libreria.glint.GlintMod.debugFx(player, "off"));
+				run(server, "kill @e[type=minecraft:mannequin]", "clear @a");
+				camera(ctx, CameraType.FIRST_PERSON);
+			});
 			// Your own armour's particles in third person: a set (one orbit), and ordinary Protection armour
 			safe("armour_third", () -> {
 				run(server, "item replace entity @a armor.head with minecraft:diamond_helmet[enchantments={fire_protection:4}]",

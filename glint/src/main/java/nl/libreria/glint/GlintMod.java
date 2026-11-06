@@ -118,8 +118,11 @@ public final class GlintMod implements ModInitializer {
 
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
 			if (server.getTickCount() % Aura.RUN == 0) Aura.tick(server);
+			long t0 = System.nanoTime();
 			Fx.tick(server);
 			BodyAura.tick(server);
+			costNs += System.nanoTime() - t0;
+			costTicks++;
 		});
 
 		GlintTests.register();
@@ -155,6 +158,24 @@ public final class GlintMod implements ModInitializer {
 	}
 
 	/** Proof of concept: a set's aura on anything that looks like a player (a mannequin), "fire_4", or null to take it off. */
+	private static long costNs, costTicks;
+
+	/** Test only: start measuring what the effects cost the server. */
+	public static void costReset() {
+		costNs = costTicks = 0;
+		Fx.made = Fx.updates = 0;
+	}
+
+	/**
+	 * Test only: what the effects cost since costReset: server time per tick, sprites alive now, and the packets they
+	 * sent (a sprite's arrival counts two, each move one, per player who sees it), per second.
+	 */
+	public static void costReport(String what) {
+		double secs = Math.max(1, costTicks) / 20.0;
+		nl.libreria.core.Libreria.LOG.info("LIBRERIA-FX-COST {}: {} us per tick (of 50000), {} sprites alive, {} sprite packets/s, {} aura cards",
+				what, Math.round(costNs / 1000.0 / Math.max(1, costTicks)), Fx.alive(), Math.round((Fx.made * 2 + Fx.updates) / secs), BodyAura.cards());
+	}
+
 	public static void debugBodyAura(net.minecraft.world.entity.LivingEntity e, String id) {
 		BodyAura.wear(e, id);
 	}

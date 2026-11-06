@@ -71,6 +71,12 @@ final class BodyAura {
 		ON.computeIfAbsent(e.getUUID(), k -> new State()).id = id;
 	}
 
+	static int cards() {
+		int n = 0;
+		for (State s : ON.values()) n += s.views.size();
+		return n;
+	}
+
 	static void clear(UUID id) {
 		State s = ON.remove(id);
 		if (s != null) s.views.values().forEach(v -> v.holder.destroy());

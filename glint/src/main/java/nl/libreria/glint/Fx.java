@@ -86,6 +86,14 @@ final class Fx {
 	}
 
 	private static final List<Burst> LIVE = new ArrayList<>();
+	/** Test only (GlintMod.costReport): sprites sent (times the players who see them), and their moves sent. */
+	static long made, updates;
+
+	static int alive() {
+		int n = 0;
+		for (Burst b : LIVE) n += b.els.size();
+		return n;
+	}
 
 	static ItemStack sprite(String name, int rgb) {
 		ItemStack s = new ItemStack(Items.PAPER);
@@ -141,6 +149,7 @@ final class Fx {
 		}
 		new ManualAttachment(b.holder, level, () -> at);
 		for (ServerPlayer v : viewers) b.holder.startWatching(v);
+		made += (long) ps.size() * viewers.size();
 		LIVE.add(b);
 	}
 
@@ -252,6 +261,7 @@ final class Fx {
 				e.setScale(new Vector3f(s.scale()));
 				e.setLeftRotation(p.turn(s.rot()));
 				e.startInterpolation();
+				updates += b.holder.getWatchingPlayers().size();
 			}
 			b.holder.tick();
 			if (b.age > b.life) {
