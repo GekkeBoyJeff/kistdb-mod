@@ -482,13 +482,20 @@ final class Fx {
 			case "fire" -> {
 				int[] fire = soul ? new int[]{0x5FE6FF, 0x3FC6E8, 0x9FF4FF} : frost ? new int[]{0xBFE6FF, 0x8FD0FF, 0xFFFFFF}
 						: new int[]{0xFF9A3C, 0xFFB64A, 0xFF6A1F};
-				feetFlames(p, w, level, viewers, tick, "flames", 4 + g, 0.5, 0.26f + 0.04f * g, fire);
+				feetFlames(p, w, level, viewers, tick, "flames", 5 + g, 0.48, 0.36f + 0.05f * g, fire);
+				ground(p, w, level, viewers, tick, "shadow", fire[0], 1.6f + 0.1f * g, 400);
 				int[] embers = soul ? new int[]{0x9FF4FF, 0x5FE6FF} : new int[]{0xFFE9A8, 0xFFB64A, 0xFF8A2E};
-				int every = new int[]{0, 6, 4, 3, 2}[g];
+				int every = new int[]{0, 4, 3, 2, 2}[g];
 				if (every(tick, every)) {
-					ps.add(helix("ember", pick(embers), tick * 0.22, 0.55, 0.32, 0.15, h * 1.15, 0.8, 30, 0.17f, 0.03f));
-					if (g >= 2) ps.add(helix("ember", pick(embers), tick * 0.22 + Math.PI, 0.55, 0.32, 0.15, h * 1.15, 0.8, 30, 0.15f, 0.03f));
+					for (int k = 0; k < (g >= 2 ? 2 : 1); k++) {
+						double a0 = tick * 0.22 + k * Math.PI;
+						int c = pick(embers);
+						ps.add(helix("ember", c, a0, 0.56, 0.3, 0.12, h * 1.2, 0.8, 30, 0.26f, 0.05f));
+						ps.add(helix("ember", c, a0 - 0.22, 0.56, 0.3, 0.06, h * 1.12, 0.8, 30, 0.15f, 0.03f));
+					}
 				}
+				if (g >= 2 && every(tick, 5)) ps.add(helix("wisp", soul ? 0x5FE6FF : 0xFF9A3C, tick * 0.22 + 0.4, 0.5, 0.3, 0.2, h * 0.95, 0.6, 24,
+						0.34f, 0.06f));
 				if (g >= 3 && every(tick, 6)) {
 					Vec3 from = new Vec3(rnd(-0.12f, 0.12f), h * rnd(0.3f, 0.55f), rnd(-0.12f, 0.12f));
 					ps.add(line("haze", soul ? 0x3FC6E8 : 0xFF8A3C, from, from.add(0, 0.55, 0), 0.9f, 1.3f, 0, 0, 22));
@@ -496,25 +503,24 @@ final class Fx {
 				if (g >= 4 && every(tick, 4)) ps.add(pop("twinkle", soul ? 0xCFFAFF : 0xFFF1C2, onBody(p, 0.2f, 1.0f, 0.42f), rnd(0.22f, 0.3f), 6, 0.8f));
 			}
 			case "blast" -> {
-				if (every(tick, 5)) {
+				if (every(tick, 3)) {
 					double a = R.nextDouble() * Math.PI * 2;
 					Vec3 from = new Vec3(Math.cos(a) * 0.42, 0.08, Math.sin(a) * 0.42);
-					int smoke = feet != 0 ? feet : pick(0x6A6A74, 0x585862, 0x7A7A84);
-					ps.add(new P("smoke", smoke, 10, List.of(new S(from, 0.25f, 0), new S(from.add(Math.cos(a) * 0.18, 0.22, Math.sin(a) * 0.18), 0.6f, 0.6f),
-							new S(from.add(Math.cos(a) * 0.3, 0.38, Math.sin(a) * 0.3), 0.8f, 1.2f), new S(from.add(Math.cos(a) * 0.36, 0.5, Math.sin(a) * 0.36), 0.02f, 1.6f)), null));
+					int smoke = feet != 0 ? feet : pick(0xA4A4B0, 0x8C8C98, 0xB8B8C2);
+					ps.add(new P("smoke", smoke, 10, List.of(new S(from, 0.35f, 0), new S(from.add(Math.cos(a) * 0.2, 0.2, Math.sin(a) * 0.2), 0.8f, 0.6f),
+							new S(from.add(Math.cos(a) * 0.34, 0.34, Math.sin(a) * 0.34), 1.05f, 1.2f), new S(from.add(Math.cos(a) * 0.42, 0.44, Math.sin(a) * 0.42), 0.02f, 1.6f)), null));
 				}
 				if (g >= 2) shards(p, w, level, viewers, tick, "shards", g >= 4 ? 5 : g >= 3 ? 4 : 3, 0.78, 0.47, new int[]{0x8E8E9A, 0xA8A8B4, 0x74747E});
 				if (g >= 3 && every(tick, 7)) ps.add(pop("twinkle", 0xFFA040, onBody(p, 0.35f, 0.6f, 0.78f), rnd(0.2f, 0.28f), 6, 0.6f));
 				if (g >= 4) ground(p, w, level, viewers, tick, "crater", feet != 0 ? feet : 0x52525C, 2.3f, 260);
 			}
 			case "projectile" -> {
-				int[] wind = {0xD8F5E6, 0xA8E6C8, 0xF2FFF8};
-				double[] heights = g >= 3 ? new double[]{0.25, 0.55, 0.85} : new double[]{0.35, 0.7};
-				if (every(tick, g >= 3 ? 3 : 4)) {
-					double y = heights[(tick / 3) % heights.length] * h;
-					ps.add(helix("streak", pick(wind), tick * 0.5, 0.7, 0.72, y, y + 0.12, 0.55, 15, 0.42f, 0.2f));
-				}
-				if (g >= 2 && every(tick, 14)) ps.add(helix("feather", pick(0xE8F7EE, 0xC8EBD6), tick * 0.5, 0.62, 0.68, 0.3, h * 0.95, 1.1, 42, 0.2f, 0.18f));
+				int wind = feet != 0 ? feet : 0xD8F5E6;
+				spinRing(p, w, level, viewers, tick, "gust1", wind, 1.8f, 0.3, 8, 34, "thinarc");
+				if (g >= 2) spinRing(p, w, level, viewers, tick, "gust2", 0xF2FFF8, 1.65f, 0.62, -12, -28, "thinarc");
+				if (g >= 3) spinRing(p, w, level, viewers, tick, "gust3", 0xA8E6C8, 1.5f, 0.88, 6, 40, "thinarc");
+				if (g >= 2 && every(tick, 10)) ps.add(helix("feather", pick(0xE8F7EE, 0xC8EBD6, 0xB6E3A8), tick * 0.5, 0.62, 0.7, 0.25, h * 1.0, 1.2, 39,
+						0.28f, 0.24f));
 				if (g >= 4) ground(p, w, level, viewers, tick, "windring", feet != 0 ? feet : 0xD8F5E6, 2.0f, 90);
 			}
 			default -> {
@@ -528,8 +534,8 @@ final class Fx {
 		if (w.extras.contains("feather") && every(tick, 12)) {
 			double a = R.nextDouble() * Math.PI * 2;
 			Vec3 from = new Vec3(Math.cos(a) * 0.5, h * 0.55, Math.sin(a) * 0.5);
-			ps.add(new P("feather", pick(0xFFFFFF, 0xEDEDED), 12, List.of(new S(from, 0.18f, 0.3f), new S(from.add(0.15, -0.3, 0.05), 0.2f, -0.4f),
-					new S(from.add(-0.05, -0.62, 0.12), 0.2f, 0.4f), new S(from.add(0.1, -0.92, 0.0), 0.02f, -0.2f)), null));
+			ps.add(new P("feather", pick(0xFFFFFF, 0xEDEDED), 12, List.of(new S(from, 0.24f, 0.3f), new S(from.add(0.15, -0.3, 0.05), 0.27f, -0.4f),
+					new S(from.add(-0.05, -0.62, 0.12), 0.27f, 0.4f), new S(from.add(0.1, -0.92, 0.0), 0.02f, -0.2f)), null));
 		}
 		if (frost && every(tick, 6)) {
 			Vec3 from = new Vec3(rnd(-0.55f, 0.55f), h * rnd(0.5f, 1.0f), rnd(-0.55f, 0.55f));
@@ -558,21 +564,27 @@ final class Fx {
 	/** A thin ring of light round you, tilted, turning slowly about the up axis (a gyroscope's ring). */
 	private static void spinRing(ServerPlayer p, Wearer w, ServerLevel level, List<ServerPlayer> viewers, int tick, String key, int rgb, float size,
 			double height, float tiltDeg, int period) {
+		spinRing(p, w, level, viewers, tick, key, rgb, size, height, tiltDeg, period, "thinring");
+	}
+
+	private static void spinRing(ServerPlayer p, Wearer w, ServerLevel level, List<ServerPlayer> viewers, int tick, String key, int rgb, float size,
+			double height, float tiltDeg, int period, String sprite) {
 		Ring r = w.rings.get(key);
 		if (r == null) {
 			r = new Ring();
-			ItemDisplayElement e = element("thinring", rgb, true);
+			ItemDisplayElement e = element(sprite, rgb, true);
 			e.setScale(new Vector3f(size));
 			e.setOffset(new Vec3(0, p.getBbHeight() * height, 0));
-			e.setInterpolationDuration(5);
+			e.setInterpolationDuration(Math.abs(period) < 60 ? 3 : 5);
 			e.setLeftRotation(ringTurn(tick, tiltDeg, period));
 			r.holder.addElement(e);
 			r.els.add(e);
 			show(p, w, level, viewers, key, r);
 		}
-		if (tick % 5 == 0) {
+		int step = Math.abs(period) < 60 ? 3 : 5;
+		if (tick % step == 0) {
 			ItemDisplayElement e = r.els.getFirst();
-			e.setLeftRotation(ringTurn(tick + 5, tiltDeg, period));
+			e.setLeftRotation(ringTurn(tick + step, tiltDeg, period));
 			e.startInterpolation();
 		}
 		r.holder.tick();
