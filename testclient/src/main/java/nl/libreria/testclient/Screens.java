@@ -302,6 +302,12 @@ public final class Screens implements FabricClientGameTest {
 				ctx.getInput().setCursorPos(2, 2);
 				ctx.getInput().pressKey(o2 -> o2.keyInventory);
 				ctx.waitTicks(5);
+				// Writing on what's in your hand (what sneak + right-click on an anvil opens)
+				server.runOnServer(sv -> nl.libreria.info.InfoMod.debugDescribe(player));
+				ctx.waitTicks(15);
+				ctx.takeScreenshot("describe_window");
+				server.runOnServer(sv -> nl.libreria.core.dialog.Dialogs.close(player));
+				ctx.waitTicks(5);
 			});
 
 			// Items of every rarity in the inventory and hotbar

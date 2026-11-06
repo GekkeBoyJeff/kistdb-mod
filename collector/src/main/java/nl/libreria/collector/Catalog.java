@@ -785,7 +785,7 @@ public final class Catalog {
 		Services.Stories st = Services.stories().orElse(null);
 		if (st == null || st.titles().isEmpty()) return;
 		ladder(c, "verhaal.delen", Items.WRITABLE_BOOK, "Find a part of a story|Find %,d parts of stories", new Counter((p, d) -> st.pieces(p)), 1,
-				r(U, R, E), 1, "Once Upon a Time", 10, "Page Turner", 50, "Bookworm");
+				r(U, R, E), 1, "Once Upon a Time", 10, "Page Turner", 50, "Archivist of the Lost");
 		int total = st.titles().size();
 		for (var e : st.titles().entrySet()) {
 			String story = e.getKey();

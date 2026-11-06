@@ -99,6 +99,11 @@ public final class InfoMod implements ModInitializer {
 		inv.setItem(4, pick);
 	}
 
+	/** For the screenshots: the window to write on what's in your hand. */
+	public static void debugDescribe(ServerPlayer p) {
+		Describe.open(p);
+	}
+
 	/** For the screenshots: the enchantment details on or off. */
 	public static void setDetails(ServerPlayer p, boolean on) {
 		Details.ON.set(p, on);
