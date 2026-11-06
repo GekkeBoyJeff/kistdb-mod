@@ -294,40 +294,61 @@ FAMILIES = {
 }
 
 
+# layers we draw on (the other layers of an asset, such as a baby's or a horse's, are kept as vanilla has them)
+DRAWN = ['humanoid', 'humanoid_leggings', 'wings']
+# the elytra only takes these (Unbreaking, Mending and the curses are all it can have)
+ELYTRA = ['sturdy', 'mending', 'curse']
+
+
+def families_of(mat):
+    return {f: fn for f, fn in FAMILIES.items() if mat != 'elytra' or f in ELYTRA}
+
+
 def main():
+    global STRIPS, FRONTS
     written = 0
-    for layer in ['humanoid', 'humanoid_leggings']:
-        for mat in MATERIALS:
+    keep = (STRIPS, FRONTS)
+    for layer in DRAWN:
+        for mat in MATERIALS + ['elytra']:
             src = os.path.join(VANILLA, 'textures/entity/equipment', layer, mat + '.png')
             if not os.path.exists(src):
                 continue
             m = mask_of(src)
-            for fam, fn in FAMILIES.items():
+            w, h = Image.open(src).size
+            if layer == 'wings':
+                # the wings aren't laid out like a body: the whole of their texture is one strip
+                ys = [y for y in range(len(m)) if any(m[y])]
+                xs = [x for x in range(len(m[0])) if any(m[y][x] for y in range(len(m)))]
+                STRIPS = {'wing': (min(xs), max(xs) + 1, min(ys), max(ys) + 1)}
+                FRONTS = dict(STRIPS)
+            else:
+                STRIPS, FRONTS = keep
+            for fam, fn in families_of(mat).items():
                 for tier in TIERS:
                     pix = fn(m, tier, f'{fam}|{mat}|{layer}')
-                    img = Image.new('RGBA', (64, 32), (0, 0, 0, 0))
+                    img = Image.new('RGBA', (w, h), (0, 0, 0, 0))
                     for (x, y), c in pix.items():
-                        if 0 <= x < 64 and 0 <= y < 32:
+                        if 0 <= x < w and 0 <= y < h:
                             img.putpixel((x, y), c)
                     out = os.path.join(OUT, 'assets', NS, 'textures/entity/equipment', layer, 'fx', f'{mat}_{fam}_{tier}.png')
                     os.makedirs(os.path.dirname(out), exist_ok=True)
                     img.save(out)
                     written += 1
-    # equipment assets: the vanilla layers, then ours on top
-    for mat in MATERIALS:
+    STRIPS, FRONTS = keep
+    # equipment assets: every vanilla layer, ours on top of the ones we draw on
+    for mat in MATERIALS + ['elytra']:
         base = json.load(open(os.path.join(VANILLA, 'equipment', mat + '.json')))
-        for fam in FAMILIES:
+        for fam in families_of(mat):
             for tier in TIERS:
                 layers = {}
-                for kind in ['humanoid', 'humanoid_leggings']:
-                    if kind in base['layers']:
-                        layers[kind] = base['layers'][kind] + [{'texture': f'{NS}:fx/{mat}_{fam}_{tier}'}]
+                for kind, ls in base['layers'].items():
+                    layers[kind] = ls + ([{'texture': f'{NS}:fx/{mat}_{fam}_{tier}'}] if kind in DRAWN else [])
                 asset = {'layers': layers}
                 if 'trim_overrides' in base:
                     asset['trim_overrides'] = base['trim_overrides']
                 out = os.path.join(OUT, 'assets', NS, 'equipment', f'fx_{mat}_{fam}_{tier}.json')
                 os.makedirs(os.path.dirname(out), exist_ok=True)
-                json.dump(asset, open(out, 'w'), indent=1)
+                json.dump(asset, open(out, 'w'), separators=(',', ':'))
     print('armour effects:', written, 'textures')
 
 

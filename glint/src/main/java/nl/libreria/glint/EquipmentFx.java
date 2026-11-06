@@ -52,7 +52,9 @@ public final class EquipmentFx {
 			{"unbreaking", "sturdy"}};
 	/** The armour materials the pack has layers for (vanilla equipment assets). */
 	private static final Set<String> MATERIALS = Set.of("leather", "chainmail", "copper", "iron", "gold", "diamond", "netherite",
-			"turtle_scute");
+			"turtle_scute", "elytra");
+	/** The only effects the pack has for an elytra (all it can have: Unbreaking, Mending, the curses). */
+	private static final Set<String> ELYTRA = Set.of("sturdy", "mending", "curse");
 	/** The trim patterns the pack has seams for (scripts/glint/trims_fx.py). */
 	private static final Set<String> PATTERNS = Set.of("bolt", "coast", "dune", "eye", "flow", "host", "raiser", "rib", "sentry",
 			"shaper", "silence", "snout", "spire", "tide", "vex", "ward", "wayfinder", "wild");
@@ -197,8 +199,9 @@ public final class EquipmentFx {
 		if (ench == null || ench.isEmpty()) return null;
 		String family = null;
 		int tier = 0;
+		boolean elytra = key.getPath().equals("elytra");
 		for (String[] f : ORDER) {
-			if (prefs.off().contains(f[1])) continue;
+			if (prefs.off().contains(f[1]) || (elytra && !ELYTRA.contains(f[1]))) continue;
 			int level = levelOf(ench, f[0]);
 			if (level <= 0) continue;
 			family = f[1];
@@ -207,7 +210,7 @@ public final class EquipmentFx {
 		}
 		if (family == null) return null;
 		ArmorTrim trim = stack.get(DataComponents.TRIM);
-		if (trim != null) {
+		if (trim != null && !elytra) {
 			String pattern = trim.pattern().unwrapKey().map(k -> k.identifier().getPath()).orElse("");
 			if (PATTERNS.contains(pattern)) return "libreria:fxtrim_" + key.getPath() + "_" + family + "_" + pattern;
 		}

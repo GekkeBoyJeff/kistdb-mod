@@ -1,1 +1,1 @@
-{"layers":{"humanoid":[{"texture":"minecraft:turtle_scute"},{"texture":"libreria:fxtrim/fireguard_host"}]}}
+{"layers":{"humanoid":[{"texture":"minecraft:turtle_scute"},{"texture":"libreria:fxtrim/fireguard_host"}],"humanoid_baby":[{"texture":"minecraft:turtle_scute"}]}}

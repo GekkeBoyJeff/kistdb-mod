@@ -1,1 +1,1 @@
-{"layers":{"humanoid":[{"texture":"minecraft:turtle_scute"},{"texture":"libreria:fxtrim/mending_tide"}]}}
+{"layers":{"humanoid":[{"texture":"minecraft:turtle_scute"},{"texture":"libreria:fxtrim/mending_tide"}],"humanoid_baby":[{"texture":"minecraft:turtle_scute"}]}}

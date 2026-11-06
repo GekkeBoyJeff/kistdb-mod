@@ -1,1 +1,1 @@
-{"layers":{"humanoid":[{"texture":"minecraft:chainmail"},{"texture":"libreria:fxtrim/frost_dune"}],"humanoid_leggings":[{"texture":"minecraft:chainmail"},{"texture":"libreria:fxtrim/frost_dune"}]}}
+{"layers":{"humanoid":[{"texture":"minecraft:chainmail"},{"texture":"libreria:fxtrim/frost_dune"}],"humanoid_baby":[{"texture":"minecraft:chainmail"}],"humanoid_leggings":[{"texture":"minecraft:chainmail"},{"texture":"libreria:fxtrim/frost_dune"}]}}

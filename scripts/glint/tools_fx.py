@@ -177,17 +177,19 @@ def paint(kind, img, ref, e):
     # the quiet ones first, so anything else paints over them: Unbreaking a steel sheen along the edge, Mending two
     # green glints of experience, Curse of Vanishing a violet vein
     if 'unbreak' in e:
-        edge = sorted(r['edge'], key=lambda p: -r['dist'].get(p, 0))
+        # (a rod has no head: its reel and line take it)
+        edge = sorted(r['edge'], key=lambda p: -r['dist'].get(p, 0)) or r['reel'] + r['string']
         for i, p in enumerate(take(edge, frac('unbreak'), 0.15, 0.5)):
             if i % 2 == 0:
                 recolour(p, STEEL, 1)
                 glow[p] = 'flow'
     if 'mend' in e:
-        for p in r['grip'][:1] + near_first(r, 'core')[1:2]:
+        for p in r['grip'][:1] + (near_first(r, 'core')[1:2] if r['head'] else r['end'][:1]):
             px[p] = MEND + (255,)
             glow[p] = 'twinkle'
     if 'vanish' in e:
-        for p in [p for p in far_first(r) if 2 <= rk.get(img.getpixel(p)[:3], 0) <= 4][:4]:
+        mids = [p for p in far_first(r) if 2 <= rk.get(img.getpixel(p)[:3], 0) <= 4][:4] if r['head'] else r['grip'][2:8:2]
+        for p in mids:
             px[p] = VIOLET + (255,)
             glow[p] = 'flow'
     if 'sharp' in e or 'piercing' in e:
@@ -365,7 +367,7 @@ def paint_sword(img, e):
         lv = min(3, e['unbreak'])
         for p in blade_px:
             s, c = blade(*p)
-            if c == 13 and s % 2 == 0 and s >= 13 - 3 * lv:
+            if c == 13 and s % 4 == 1 and s >= 13 - 4 * lv:
                 recolour(p, STEEL, 1)
                 glow[p] = 'flow'
     if 'mend' in e:
@@ -873,6 +875,38 @@ def strip(frames):
     return out
 
 
+def split(over):
+    """An overlay as (its plain pixels, its glowing ones): either None when empty."""
+    lit = Image.new('RGBA', over.size, (0, 0, 0, 0))
+    glows = Image.new('RGBA', over.size, (0, 0, 0, 0))
+    w, h = over.size
+    for y in range(h):
+        for x in range(w):
+            p = over.getpixel((x, y))
+            if p[3] == 255:
+                lit.putpixel((x, y), p)
+            elif p[3]:
+                glows.putpixel((x, y), p)
+    return (lit if lit.getbbox() else None), (glows if glows.getbbox() else None)
+
+
+def refs(models):
+    """One model, or several drawn together."""
+    if len(models) == 1:
+        return model_ref(models[0])
+    return {'type': 'minecraft:composite', 'models': [model_ref(m) for m in models]}
+
+
+def glow_plane(texture, display):
+    """The glowing pixels of a texture part on the item's front and back (the same planes as the item's own faces,
+    drawn after it): lit by themselves, also where a shader pack draws the items instead of our item shader."""
+    face = lambda uv: {'uv': uv, 'texture': '#a', 'tintindex': 0}
+    return {'textures': {'a': texture, 'particle': texture},
+            'elements': [{'from': [0, 0, 7.5], 'to': [16, 16, 8.5], 'shade': False, 'light_emission': 15,
+                          'faces': {'south': face([0, 0, 16, 16]), 'north': face([16, 0, 0, 16])}}],
+            'display': display}
+
+
 def plane(texture, display):
     lo, hi = A.LO, A.HI
     face = lambda uv: {'uv': uv, 'texture': '#a'}
@@ -920,13 +954,22 @@ class Kind:
                     if over is None:
                         continue
                     rel = f'fx/{self.name}/{tag}/{sprite}/{key}{lv}' + (f'_{label}' if label else '')
-                    t = self.w.tex(rel, over)
-                    variants[(label, lv)] = self.w.model(rel, {'parent': parent, 'textures': {'layer0': t}}, FAMILY[key])
+                    # two parts: what's only painted (a layer like the item's own, lit like it), and what glows (a
+                    # plane that lights itself, so it glows with shaders too, where our item shader isn't used)
+                    lit, glows = split(over)
+                    parts = []
+                    if lit is not None:
+                        t = self.w.tex(rel, lit)
+                        parts.append(self.w.model(rel, {'parent': parent, 'textures': {'layer0': t}}, FAMILY[key]))
+                    if glows is not None:
+                        t = self.w.tex(rel + '_glow', glows)
+                        parts.append(self.w.model(rel + '_glow', glow_plane(t, self.display_of(sprite)), FAMILY[key]))
+                    variants[(label, lv)] = parts
             if not variants:
                 continue
 
             def for_label(label):
-                return by_level(key, level_steps(key), lambda lv: model_ref(variants[(label, lv)]) if (label, lv) in variants else EMPTY)
+                return by_level(key, level_steps(key), lambda lv: refs(variants[(label, lv)]) if (label, lv) in variants else EMPTY)
 
             node = for_label(None) if (None, 1) in variants or any(k[0] is None for k in variants) else EMPTY
             for label, keys in reversed(ctx):

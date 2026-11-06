@@ -64,6 +64,8 @@ public final class GlintMod implements ModInitializer {
 			"Particles of the enchanted item in", "your hand, as you look around.");
 	public static final Setting.Toggle AURA_THIRD = MODULE.toggle("particles_third", "Third person: your armour", true, Items.DIAMOND_CHESTPLATE,
 			"Your armour set and particles, only", "visible in third person (F5): they", "never fill your own view.");
+	public static final Setting.Toggle SHADER_SAFE = MODULE.toggle("shader_safe", "Own set behind you (shaders)", true, Items.SPYGLASS,
+			"With shaders (Iris, OptiFine) your own", "set stays behind you and on the", "ground, never in your first-person view.");
 	public static final Setting.Toggle AURA = MODULE.toggle("particles", "On other players", true, Items.BLAZE_POWDER,
 			"Glowing armour, armour sets and", "particles on other players.");
 

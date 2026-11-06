@@ -1,12 +1,1 @@
-{
- "layers": {
-  "humanoid": [
-   {
-    "texture": "minecraft:turtle_scute"
-   },
-   {
-    "texture": "libreria:fx/turtle_scute_sculk_2"
-   }
-  ]
- }
-}
+{"layers":{"humanoid":[{"texture":"minecraft:turtle_scute"},{"texture":"libreria:fx/turtle_scute_sculk_2"}],"humanoid_baby":[{"texture":"minecraft:turtle_scute"}]}}

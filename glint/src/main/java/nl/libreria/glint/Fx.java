@@ -161,6 +161,8 @@ final class Fx {
 	private static final class Ring {
 		final ElementHolder holder = new ElementHolder();
 		final List<ItemDisplayElement> els = new ArrayList<>();
+		/** On the ground under you (a circle, a pool of glow): fine to see in first person, also with shaders. */
+		boolean ground;
 	}
 
 	private static final class Wearer {
@@ -413,7 +415,7 @@ final class Fx {
 			case "vanish" -> vanish(p, w, level, viewers, tick, ps);
 			case "set" -> {
 				viewers = setViewers(p, w);
-				if (tick % 10 == 0) syncWatchers(w, viewers);
+				if (tick % 10 == 0) syncWatchers(p, w, viewers);
 				far = true;
 				// the material pulls the colours its way: gold warmer and brighter, netherite dark and red, copper
 				// towards verdigris, leather earthy; iron, chainmail and diamond keep the set's own colours
@@ -459,14 +461,46 @@ final class Fx {
 	}
 
 	/** The things that stay on a wearer (rings, flames at the feet…) are seen by exactly the players who see the set now. */
-	private static void syncWatchers(Wearer w, List<ServerPlayer> viewers) {
+	private static void syncWatchers(ServerPlayer p, Wearer w, List<ServerPlayer> viewers) {
 		for (Ring r : w.rings.values()) {
-			java.util.Set<ServerPlayer> want = new java.util.HashSet<>(viewers);
+			java.util.Set<ServerPlayer> want = new java.util.HashSet<>();
+			for (ServerPlayer v : viewers) if (sees(p, v, r)) want.add(v);
 			for (var c : new ArrayList<>(r.holder.getWatchingPlayers())) {
 				if (!want.remove(c.player)) r.holder.stopWatching(c);
 			}
 			for (ServerPlayer v : want) r.holder.startWatching(v);
 		}
+	}
+
+	/**
+	 * Does this viewer see this ring? Everyone who sees the set; you yourself with "own set behind you" on only the
+	 * rings on the ground: a shader pack doesn't use our shader, which fades the rest out near your camera.
+	 */
+	private static boolean sees(ServerPlayer wearer, ServerPlayer v, Ring r) {
+		return v != wearer || r.ground || !GlintMod.SHADER_SAFE.get(v);
+	}
+
+	/**
+	 * Your own sprites with "own set behind you" on: each one moved back along where you look until the whole of its
+	 * path is at least 0.4 blocks behind your eyes. A first-person camera can't see them there, a third-person one does.
+	 */
+	private static List<P> behindYou(ServerPlayer p, Vec3 at, List<P> ps) {
+		Vec3 eye = p.getEyePosition();
+		Vec3 look = p.getLookAngle();
+		List<P> out = new ArrayList<>(ps.size());
+		for (P q : ps) {
+			double ahead = Double.NEGATIVE_INFINITY;
+			for (S st : q.states()) ahead = Math.max(ahead, at.add(st.pos()).subtract(eye).dot(look));
+			if (ahead <= -0.4) {
+				out.add(q);
+				continue;
+			}
+			Vec3 back = look.scale(-(ahead + 0.4));
+			List<S> moved = new ArrayList<>(q.states().size());
+			for (S st : q.states()) moved.add(new S(st.pos().add(back), st.scale(), st.rot()));
+			out.add(new P(q.sprite(), q.rgb(), q.step(), moved, q.base()));
+		}
+		return out;
 	}
 
 	/**
@@ -495,7 +529,15 @@ final class Fx {
 			float f = g.getKey() / 20f;
 			List<P> mine = new ArrayList<>();
 			for (int i = 0; i < u.length; i++) if (u[i] < f) mine.add(ps.get(i));
-			if (!mine.isEmpty()) emit(level, wearer.position(), g.getValue(), mine);
+			if (mine.isEmpty()) continue;
+			// your own copy behind you, with "own set behind you" on
+			boolean self = g.getValue().contains(wearer) && GlintMod.SHADER_SAFE.get(wearer);
+			List<ServerPlayer> rest = new ArrayList<>(g.getValue());
+			if (self) {
+				rest.remove(wearer);
+				emit(level, wearer.position(), List.of(wearer), behindYou(wearer, wearer.position(), mine));
+			}
+			emit(level, wearer.position(), rest, mine);
 		}
 	}
 
@@ -1218,7 +1260,7 @@ final class Fx {
 	/** Shows a ring that's ready (its sprites added) to the players nearby, following the wearer. */
 	private static Ring show(ServerPlayer p, Wearer w, ServerLevel level, List<ServerPlayer> viewers, String key, Ring r) {
 		new ManualAttachment(r.holder, level, p::position);
-		for (ServerPlayer v : viewers) r.holder.startWatching(v);
+		for (ServerPlayer v : viewers) if (sees(p, v, r)) r.holder.startWatching(v);
 		w.rings.put(key, r);
 		return r;
 	}
@@ -1277,6 +1319,7 @@ final class Fx {
 			pool.setOffset(new Vec3(0, 0.03, 0));
 			pool.setLeftRotation(new Quaternionf().rotateX(-Mth.HALF_PI));
 			r.holder.addElement(pool);
+			r.ground = true;
 			show(p, w, level, viewers, key, r);
 		}
 		if (tick % 10 == 0) {

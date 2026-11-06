@@ -58,8 +58,8 @@ def main():
             for kind in KINDS:
                 layers = {}
                 for lk, ls in base['layers'].items():
-                    if lk in ('humanoid', 'humanoid_leggings'):
-                        layers[lk] = ls + [{'texture': f'libreria:fxtrim/{kind}_{pat}'}]
+                    # every vanilla layer (a baby's, a horse's…), our seam on the body's
+                    layers[lk] = ls + ([{'texture': f'libreria:fxtrim/{kind}_{pat}'}] if lk in ('humanoid', 'humanoid_leggings') else [])
                 asset = {'layers': layers}
                 if 'trim_overrides' in base:
                     asset['trim_overrides'] = base['trim_overrides']

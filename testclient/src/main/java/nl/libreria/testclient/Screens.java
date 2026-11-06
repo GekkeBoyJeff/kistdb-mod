@@ -164,6 +164,13 @@ public final class Screens implements FabricClientGameTest {
 				run(server, "time set noon");
 				ctx.waitTicks(10);
 				ctx.takeScreenshot("fxarmour_row2_day");
+				// elytras from behind: Mending, Unbreaking, a curse
+				run(server, "time set midnight", "tp @e[type=minecraft:mannequin] ~ -100 ~", "kill @e[type=minecraft:mannequin]");
+				String[] wings = {"mending:1", "unbreaking:3", "binding_curse:1", "mending:1,unbreaking:3"};
+				for (int i = 0; i < wings.length; i++)
+					run(server, "summon minecraft:mannequin " + (x - 3 + i * 2) + " " + y + " " + (z + 5) + " {Rotation:[0f,0f],hide_description:1b,immovable:1b,equipment:{chest:{id:\"minecraft:elytra\",components:{\"minecraft:enchantments\":{" + wings[i] + "}}}}}");
+				ctx.waitTicks(25);
+				ctx.takeScreenshot("fxarmour_elytra");
 				run(server, "time set midnight", "kill @e[type=minecraft:mannequin]");
 				ctx.getInput().lookAt(0, 0);
 				ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.FULL));

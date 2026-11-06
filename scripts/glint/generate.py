@@ -117,7 +117,11 @@ CATEGORIES = {
     'fishing_rod': ['sea'],
     'shears': ['haste'],
     'flint_and_steel': [],
+    # only Unbreaking, Mending and the curses: the quiet families
+    'elytra': [], 'brush': [], 'carrot_on_a_stick': [], 'warped_fungus_on_a_stick': [], 'compass': [],
 }
+# items without a model of their own name: the model whose shape their effect follows
+MASK_MODEL = {'compass': 'compass_16'}
 # Items die in de hand een ander model hebben: effect alleen in inventory, op de grond en in lijsten
 GUI_ONLY = ('spear', 'trident')
 
@@ -925,7 +929,7 @@ def main():
             written.add(fname)
             count_items += 1
             continue
-        model_path = os.path.join(models_dir, item + '.json')
+        model_path = os.path.join(models_dir, MASK_MODEL.get(item, item) + '.json')
         if not os.path.exists(model_path):
             continue
         model = json.load(open(model_path))

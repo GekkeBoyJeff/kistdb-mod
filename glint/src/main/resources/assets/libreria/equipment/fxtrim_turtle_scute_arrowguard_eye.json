@@ -1,1 +1,1 @@
-{"layers":{"humanoid":[{"texture":"minecraft:turtle_scute"},{"texture":"libreria:fxtrim/arrowguard_eye"}]}}
+{"layers":{"humanoid":[{"texture":"minecraft:turtle_scute"},{"texture":"libreria:fxtrim/arrowguard_eye"}],"humanoid_baby":[{"texture":"minecraft:turtle_scute"}]}}

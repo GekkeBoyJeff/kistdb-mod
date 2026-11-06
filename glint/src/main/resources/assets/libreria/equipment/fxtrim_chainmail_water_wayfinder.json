@@ -1,1 +1,1 @@
-{"layers":{"humanoid":[{"texture":"minecraft:chainmail"},{"texture":"libreria:fxtrim/water_wayfinder"}],"humanoid_leggings":[{"texture":"minecraft:chainmail"},{"texture":"libreria:fxtrim/water_wayfinder"}]}}
+{"layers":{"humanoid":[{"texture":"minecraft:chainmail"},{"texture":"libreria:fxtrim/water_wayfinder"}],"humanoid_baby":[{"texture":"minecraft:chainmail"}],"humanoid_leggings":[{"texture":"minecraft:chainmail"},{"texture":"libreria:fxtrim/water_wayfinder"}]}}
