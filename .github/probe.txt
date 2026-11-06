@@ -1,1 +1,5 @@
 net.minecraft.world.level.block.LightBlock
+net.fabricmc.fabric.api.client.gametest.v1.world.TestWorldBuilder
+net.fabricmc.fabric.api.client.gametest.v1.context.TestDedicatedServerContext
+net.fabricmc.fabric.api.client.gametest.v1.context.TestServerConnection
+net.fabricmc.fabric.api.client.gametest.v1.context.TestSingleplayerContext

@@ -35,6 +35,17 @@ public final class Screens implements FabricClientGameTest {
 			TestServerContext server = sp.getServer();
 			sp.getConnection().waitForChunksRender();
 			ServerPlayer player = server.computeOnServer(s -> sp.getConnection().getServerPlayer());
+			scene(ctx, server, player);
+		}
+		LOG.info("LIBRERIA-SCREENSHOTS DONE");
+	}
+
+	/**
+	 * The whole walk through Libreria: the scene, then every menu, card and effect. Also run against a real dedicated
+	 * server by {@link NetworkTest}, where every packet really goes over the network (in singleplayer they don't).
+	 */
+	static void scene(ClientGameTestContext ctx, TestServerContext server, ServerPlayer player) {
+		{
 			BlockPos o = server.computeOnServer(s -> player.blockPosition());
 			int x = o.getX(), y = o.getY(), z = o.getZ();
 
@@ -736,7 +747,6 @@ public final class Screens implements FabricClientGameTest {
 						e.action());
 			}
 		}
-		LOG.info("LIBRERIA-SCREENSHOTS DONE");
 	}
 
 	private static String f(String fmt, Object... args) {
@@ -753,12 +763,18 @@ public final class Screens implements FabricClientGameTest {
 		}
 	}
 
+	/** Set by {@link NetworkTest}: after every step, check the client is still connected. */
+	static ClientGameTestContext network;
+	static String lostAfter;
+
 	private static void safe(String what, Runnable r) {
+		if (lostAfter != null) return;
 		try {
 			r.run();
 		} catch (Throwable t) {
 			LOG.error("Screenshot step '{}' failed", what, t);
 		}
+		if (network != null) NetworkTest.check(network, what);
 	}
 
 	private static void look(ClientGameTestContext ctx, String name, BlockPos at) {
