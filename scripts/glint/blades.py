@@ -13,9 +13,9 @@ ROOT = os.path.join(os.path.dirname(__file__), '../../glint/src/main/resources/a
 REF = '/home/claude/ref/assets/assets/minecraft/textures/item/diamond_sword.png'
 KINDS = {
     # name: (colour of the edge, alpha code, also the inside of the blade, faintly)
-    'fire': ((255, 136, 40), 252, (255, 190, 90)),
+    'fire': ((255, 136, 40), 252, None),
     'sharp': ((226, 238, 255), 251, None),
-    'smite': ((255, 214, 96), 253, (255, 236, 160)),
+    'smite': ((255, 214, 96), 253, None),
 }
 
 
