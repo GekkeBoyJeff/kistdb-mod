@@ -35,7 +35,7 @@ final class GlintTests {
 			for (String e : new String[] {"fire_aspect", "unbreaking", "feather_falling", "loyalty", "riptide", "mending"}) {
 				SelfTests.check(GlintMod.BY_ENCHANT.containsKey(e), e + " has an effect");
 			}
-			SelfTests.check(GlintMod.OFF_PACKS.containsKey("fire") && GlintMod.OFF_PACKS.containsKey("books"),
+			SelfTests.check(GlintMod.OFF_PACKS.containsKey("fire") && GlintMod.OFF_PACKS.containsKey("books") && GlintMod.OFF_PACKS.containsKey("glass"),
 					"off-packs ready: " + GlintMod.OFF_PACKS.keySet());
 		});
 		SelfTests.register("glint.toggle-and-particles", level -> {

@@ -173,8 +173,23 @@ final class Advancements {
 		CollectorMod.Data d = CollectorMod.STORE.get(p);
 		for (Achievement a : Catalog.all()) {
 			if (d.earned.containsKey(a.id())) complete(p, a);
-			else if (perItem(a)) items(p, a, d);
+			else {
+				undo(p, a);
+				if (perItem(a)) items(p, a, d);
+			}
 		}
+	}
+
+	/** An achievement that was taken away again (a fix-up): no longer done in the vanilla screen either. */
+	static void undo(ServerPlayer p, Achievement a) {
+		AdvancementHolder h = BY_ID.get(a.id());
+		if (h == null) return;
+		PlayerAdvancements adv = p.getAdvancements();
+		AdvancementProgress progress = adv.getOrStartProgress(h);
+		if (!progress.isDone()) return;
+		List<String> done = new ArrayList<>();
+		progress.getCompletedCriteria().forEach(done::add);
+		for (String c : done) adv.revoke(h, c);
 	}
 
 	/** Marks an achievement as done (shows the vanilla toast if it wasn't yet). */

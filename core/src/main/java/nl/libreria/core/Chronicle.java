@@ -227,7 +227,12 @@ public final class Chronicle {
 		return out;
 	}
 
-	/** Takes moments out again (for self-tests that wrote some). */
+	/** Every moment, oldest first (a copy). */
+	public static List<Entry> all() {
+		return new ArrayList<>(data().entries);
+	}
+
+	/** Takes moments out again (for self-tests that wrote some, or a fix-up of moments that shouldn't be there). */
 	public static void forget(java.util.function.Predicate<Entry> which) {
 		if (data().entries.removeIf(which)) STORE.markDirty();
 	}

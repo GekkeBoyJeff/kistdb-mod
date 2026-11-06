@@ -52,11 +52,13 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class GlintMod implements ModInitializer {
 	public static final Module MODULE = Module.register("glint", "Glint", Items.ENCHANTED_BOOK,
-			"Enchant effects on your tools, weapons", "and armour, armour sets, rarity frames", "and book covers. No install.").in(nl.libreria.core.Domain.YOU, "Effects");
+			"Enchant effects on your tools, weapons", "and armour, armour sets, rarity frames,", "book covers, seamless glass. No install.").in(nl.libreria.core.Domain.YOU, "Effects");
 	public static final Setting.Toggle FRAMES = MODULE.toggle("frames", "Rarity frames", true, Items.ITEM_FRAME,
 			"A light border around uncommon, rare", "and epic items in your inventory;", "rare and epic ones sparkle.");
 	public static final Setting.Toggle BOOKS = MODULE.toggle("books", "Custom book textures", true, Items.BOOK,
 			"Every enchanted book gets its own cover", "with a symbol for its enchantment.");
+	public static final Setting.Toggle GLASS = MODULE.toggle("glass", "Seamless glass", true, Items.GLASS,
+			"Glass next to glass is one window,", "without lines between the blocks.", "OptiFine, Continuity: a frame round it.");
 	public static final Setting.Choice INTENSITY = MODULE.choice("intensity", "Particle intensity", Items.AMETHYST_SHARD, 1,
 			new int[]{1, 2, 3}, new String[]{"Subtle", "Normal", "Rich"},
 			"The most particles you see. Within it,", "higher enchantment levels give more.");
@@ -85,7 +87,7 @@ public final class GlintMod implements ModInitializer {
 		if (d.off == null) d.off = new HashSet<>();
 	});
 
-	/** Gehoste "uit"-pakketjes: familie (of "books") → hash. */
+	/** Gehoste "uit"-pakketjes: familie (of "books", "frames", "glass") → hash. */
 	static final Map<String, String> OFF_PACKS = new LinkedHashMap<>();
 	static boolean assetsAdded;
 
@@ -117,6 +119,7 @@ public final class GlintMod implements ModInitializer {
 		});
 		BOOKS.onChange(p -> setOffPack(p, "books", !BOOKS.get(p)));
 		FRAMES.onChange(p -> setOffPack(p, "frames", !FRAMES.get(p)));
+		GLASS.onChange(p -> setOffPack(p, "glass", !GLASS.get(p)));
 
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
 			if (server.getTickCount() % Aura.RUN == 0) Aura.tick(server);
@@ -215,6 +218,7 @@ public final class GlintMod implements ModInitializer {
 		List<String> packs = new ArrayList<>(FAMILIES.keySet());
 		packs.add("books");
 		packs.add("frames");
+		packs.add("glass");
 		try {
 			Files.createDirectories(dir);
 			for (String pack : packs) {
@@ -249,6 +253,7 @@ public final class GlintMod implements ModInitializer {
 		for (String fam : FAMILIES.keySet()) if (d.off.contains(fam) && OFF_PACKS.containsKey(fam)) out.add(fam);
 		if (!BOOKS.get(player) && OFF_PACKS.containsKey("books")) out.add("books");
 		if (!FRAMES.get(player) && OFF_PACKS.containsKey("frames")) out.add("frames");
+		if (!GLASS.get(player) && OFF_PACKS.containsKey("glass")) out.add("glass");
 		return out;
 	}
 

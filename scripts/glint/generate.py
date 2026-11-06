@@ -4,6 +4,7 @@ Generates the assets of the Libreria Glint module (animated enchantment effects 
 custom "skill book" texture per enchantment). Only the SHAPE of vanilla items is used (as a mask); no vanilla pixels
 are copied. Everything runs through conditions in item definitions (minecraft:component + enchantments), so the
 server never has to modify items: the client picks the effect itself.
+Seamless glass (and connected glass for OptiFine and Continuity) comes from glass.py, run at the end.
 
 Usage: python3 generate.py <vanilla assets/minecraft dir> <output: glint/src/main/resources>
 
@@ -27,6 +28,7 @@ import zlib
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import tools_fx  # noqa: E402
+import glass  # noqa: E402
 
 from PIL import Image
 
@@ -996,7 +998,8 @@ def main():
         if fname in written or not fname.endswith('.json'):
             continue
         definition = json.load(open(os.path.join(items_dir, fname)))
-        definition['model'] = with_frame(definition['model'], fname[:-5], rarity)
+        # glass items keep their vanilla look; the placed blocks become seamless (glass.py)
+        definition['model'] = with_frame(glass.swap_items(definition['model']), fname[:-5], rarity)
         with open(os.path.join(assets, 'minecraft/items', fname), 'w') as f:
             json.dump(definition, f, separators=(',', ':'))
 
@@ -1025,7 +1028,8 @@ def main():
     write_json(os.path.join(OUT, 'glint/families.json'),
                {f: {'group': g, 'name': n, 'enchantments': e, 'items': len(overlay_models[f]),
                     'ids': sorted(k for k, v in ENCHANT_FAMILY.items() if v == f)} for f, (g, n, e) in FAMILIES.items()})
-    print(f'{count_items} items, {sum(len(v) for v in overlay_models.values())} effect textures, {len(BOOKS)} books')
+    glasses, glass_models = glass.build(VANILLA, OUT, PACK_FORMAT)
+    print(f'{count_items} items, {sum(len(v) for v in overlay_models.values())} effect textures, {len(BOOKS)} books, ' f'{glasses} glasses ({glass_models} block models)')
 
 
 if __name__ == '__main__':

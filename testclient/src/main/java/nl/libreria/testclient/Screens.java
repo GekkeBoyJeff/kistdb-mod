@@ -215,6 +215,30 @@ public final class Screens implements FabricClientGameTest {
 				run(server, "clear @a");
 				ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.FULL));
 			});
+			// Seamless glass: a wall of glass, stained glass, panes and tinted glass (with a stone block in the middle of
+			// the glass), then the same with the setting off (the vanilla look comes back)
+			safe("glass", () -> {
+				ctx.getInput().lookAt(0, 8);
+				ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.HIDDEN));
+				camera(ctx, CameraType.FIRST_PERSON);
+				run(server, "time set noon", "clear @a",
+						f("fill %d %d %d %d %d %d minecraft:glass", x - 6, y, z + 6, x - 3, y + 3, z + 6),
+						f("setblock %d %d %d minecraft:stone", x - 5, y + 2, z + 6),
+						f("fill %d %d %d %d %d %d minecraft:light_blue_stained_glass", x - 2, y, z + 6, x - 1, y + 3, z + 6),
+						f("fill %d %d %d %d %d %d minecraft:glass_pane", x, y, z + 6, x + 2, y + 3, z + 6),
+						f("fill %d %d %d %d %d %d minecraft:red_stained_glass_pane", x + 3, y, z + 6, x + 4, y + 3, z + 6),
+						f("fill %d %d %d %d %d %d minecraft:tinted_glass", x + 5, y, z + 6, x + 6, y + 3, z + 6));
+				ctx.waitTicks(30);
+				ctx.takeScreenshot("glass_seamless");
+				server.runOnServer(sv -> nl.libreria.glint.GlintMod.GLASS.set(player, false));
+				ctx.waitTicks(160);
+				ctx.takeScreenshot("glass_off");
+				server.runOnServer(sv -> nl.libreria.glint.GlintMod.GLASS.set(player, true));
+				ctx.waitTicks(60);
+				run(server, f("fill %d %d %d %d %d %d minecraft:air", x - 6, y, z + 6, x + 6, y + 3, z + 6));
+				ctx.getInput().lookAt(0, 0);
+				ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.FULL));
+			});
 			// Your own armour's particles in third person: a set (one orbit), and ordinary Protection armour
 			safe("armour_third", () -> {
 				run(server, "item replace entity @a armor.head with minecraft:diamond_helmet[enchantments={fire_protection:4}]",

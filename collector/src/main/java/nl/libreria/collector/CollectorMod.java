@@ -78,6 +78,8 @@ public final class CollectorMod implements ModInitializer {
 		/** Records you have ever held, and how many times you took one. */
 		public Set<String> recordsHeld = new HashSet<>();
 		public int recordsTaken;
+		/** Set by the one-time recount of farmed records ({@link Records#recount}): the count before, for a card at login. */
+		public int recountedFrom;
 		/** The trophy you wear before your title (a record id), "" for none. */
 		public String trophy = "";
 		/** Chat messages sent. */
@@ -183,6 +185,7 @@ public final class CollectorMod implements ModInitializer {
 		net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
 			ServerPlayer p = handler.player;
 			Trophies.migrate(p);
+			Records.toldOfRecount(p);
 			Secrets.WATCH.put(p.getUUID(), new Secrets.Watch());
 			day(p);
 			scanNow(p);

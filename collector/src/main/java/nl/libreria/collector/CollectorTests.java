@@ -269,6 +269,18 @@ final class CollectorTests {
 			SelfTests.check(Records.count(swap, anna, now) && !Records.count(swap, anna, now + 60 * min) && Records.count(swap, bram, now),
 					"taking a record counts once a day per player");
 			SelfTests.check(Records.count(swap, anna, now + 25 * 60 * min), "and again the next day");
+			// The one-time recount: a record passed back and forth 40 times in an hour counts once per player
+			java.util.List<nl.libreria.core.Chronicle.Entry> lines = new java.util.ArrayList<>();
+			long t0 = now - 100 * 60 * min;
+			for (int i = 0; i < 40; i++) lines.add(recordLine(t0 + i * 90_000L, i % 2 == 0 ? anna : bram, "farthest from the middle of the world, " + (2000 + i) + " m (was x, 1 m)"));
+			lines.add(recordLine(t0 + 30 * 60 * min, anna, "farthest from the middle of the world, 3 km (was Bram, 2 km)"));
+			nl.libreria.core.Chronicle.Entry fast = recordLine(t0, bram, "fastest, 40 m/s");
+			lines.add(fast);
+			java.util.Map<String, Long> last = new java.util.HashMap<>();
+			java.util.Map<java.util.UUID, Integer> takes = Records.recountTakes(lines, last);
+			SelfTests.check(takes.get(anna) == 2 && takes.get(bram) == 2, "recount: once a day per record: " + takes);
+			SelfTests.check(Records.kindOf(fast) == Records.Kind.SPEED && last.containsKey("speed|" + bram), "recount: which record a line is about");
+			SelfTests.check(Records.burstLines(lines).size() == 39, "of a run of 40 record lines one stays: " + Records.burstLines(lines).size());
 		});
 		SelfTests.register("collector.showcase", level -> {
 			if (Catalog.all().isEmpty()) Catalog.build();
@@ -298,5 +310,14 @@ final class CollectorTests {
 			SelfTests.check(mgr.tree().get(Advancements.idOf("verzamel.wol")) != null, "and it's in the advancement tree");
 			SelfTests.check(mgr.get(net.minecraft.resources.Identifier.fromNamespaceAndPath("libreria", "collector/verzamelen")) != null, "Collecting tab exists");
 		});
+	}
+
+	private static nl.libreria.core.Chronicle.Entry recordLine(long at, java.util.UUID who, String rest) {
+		nl.libreria.core.Chronicle.Entry e = new nl.libreria.core.Chronicle.Entry();
+		e.at = at;
+		e.who = who;
+		e.kind = nl.libreria.core.Chronicle.Kind.MILESTONE.name();
+		e.text = "set a new record: " + rest;
+		return e;
 	}
 }

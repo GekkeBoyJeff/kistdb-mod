@@ -107,6 +107,8 @@ public final class Records {
 
 	static final class Data {
 		public Map<String, Rec> records = new HashMap<>();
+		/** Which one-time fix-ups ran (1: the recount of records passed back and forth). */
+		public int fixed;
 	}
 
 	static final WorldStore<Data> STORE = WorldStore.create("libreria/records.json", Data.class, Data::new);
@@ -162,11 +164,122 @@ public final class Records {
 
 	/** Every ten seconds: announce the records whose new holder has waited long enough. */
 	static void tick(net.minecraft.server.MinecraftServer server) {
+		if (data().fixed < 1) recount(server);
 		long now = System.currentTimeMillis();
 		for (Kind k : Kind.values()) {
 			Rec r = data().records.get(k.id);
 			if (r != null && due(r, now)) announce(server, k, r, now);
 		}
+	}
+
+	// ---------------------------------------------------------------- the one-time recount
+
+	private static final String SET = "set a new record: ";
+
+	/** The record a chronicle line is about ("set a new record: farthest from the middle of the world, 14 km…"). */
+	static @Nullable Kind kindOf(Chronicle.Entry e) {
+		if (e.who == null || !Chronicle.Kind.MILESTONE.name().equals(e.kind) || e.text == null || !e.text.startsWith(SET)) return null;
+		for (Kind k : Kind.values()) if (e.text.startsWith(SET + k.about.toLowerCase(Locale.ROOT) + ",")) return k;
+		return null;
+	}
+
+	/**
+	 * How many takes count, per player, under today's rule (once a day per record), from the chronicle's lines; and
+	 * per record and player when the last one counted (in {@code last}, "kind|uuid" → ms).
+	 */
+	static Map<UUID, Integer> recountTakes(java.util.List<Chronicle.Entry> entries, Map<String, Long> last) {
+		java.util.List<Chronicle.Entry> takes = new java.util.ArrayList<>();
+		for (Chronicle.Entry e : entries) if (kindOf(e) != null) takes.add(e);
+		takes.sort(java.util.Comparator.comparingLong(e -> e.at));
+		Map<UUID, Integer> counts = new HashMap<>();
+		for (Chronicle.Entry e : takes) {
+			String key = kindOf(e).id + "|" + e.who;
+			Long before = last.get(key);
+			if (before != null && e.at - before < COUNT_EVERY) continue;
+			last.put(key, e.at);
+			counts.merge(e.who, 1, Integer::sum);
+		}
+		return counts;
+	}
+
+	/**
+	 * The chronicle lines of a record passed back and forth: of each run of lines less than {@link #ANNOUNCE_EVERY}
+	 * apart, all but the last one (the last says who ended up with it).
+	 */
+	static java.util.Set<Chronicle.Entry> burstLines(java.util.List<Chronicle.Entry> entries) {
+		java.util.Set<Chronicle.Entry> drop = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+		for (Kind k : Kind.values()) {
+			java.util.List<Chronicle.Entry> mine = new java.util.ArrayList<>();
+			for (Chronicle.Entry e : entries) if (kindOf(e) == k) mine.add(e);
+			mine.sort(java.util.Comparator.comparingLong(e -> e.at));
+			for (int i = 0; i + 1 < mine.size(); i++) {
+				if (mine.get(i + 1).at - mine.get(i).at < ANNOUNCE_EVERY) drop.add(mine.get(i));
+			}
+		}
+		return drop;
+	}
+
+	/**
+	 * Once: before records were spaced out, two players passing one back and forth (in a tree, travelling together)
+	 * climbed the "Set a server record" ladder in minutes. Takes are counted again by today's rule (once a day per
+	 * record); grades that were bought that way go again, with their lines in the chronicle, and of a run of record
+	 * lines only the last stays. Nobody gets more than they had.
+	 */
+	static void recount(net.minecraft.server.MinecraftServer server) {
+		Data d = data();
+		d.fixed = 1;
+		STORE.markDirty();
+		try {
+			java.util.List<Chronicle.Entry> all = Chronicle.all();
+			Map<String, Long> last = new HashMap<>();
+			Map<UUID, Integer> counts = recountTakes(all, last);
+			for (Map.Entry<String, Long> e : last.entrySet()) {
+				String[] parts = e.getKey().split("\\|", 2);
+				Rec r = d.records.get(parts[0]);
+				if (r == null) continue;
+				if (r.counted == null) r.counted = new HashMap<>();
+				r.counted.merge(parts[1], e.getValue(), Math::max);
+			}
+			java.util.Set<Chronicle.Entry> drop = burstLines(all);
+			int lowered = 0;
+			for (Map.Entry<UUID, Integer> e : counts.entrySet()) {
+				UUID who = e.getKey();
+				int n = e.getValue();
+				CollectorMod.Data cd = CollectorMod.STORE.get(who);
+				if (cd.recordsTaken <= n) continue;
+				if (cd.recountedFrom == 0) cd.recountedFrom = cd.recordsTaken;
+				cd.recordsTaken = n;
+				for (Achievement a : Catalog.all()) {
+					if (!a.id().startsWith("records.") || a.target() <= n || cd.earned.remove(a.id()) == null) continue;
+					String quoted = "\"" + a.name() + "\"";
+					for (Chronicle.Entry c : all) {
+						if (who.equals(c.who) && Chronicle.Kind.ACHIEVEMENT.name().equals(c.kind) && c.text != null && c.text.contains(quoted)) drop.add(c);
+					}
+				}
+				CollectorMod.STORE.markDirty(who);
+				lowered++;
+				ServerPlayer p = server.getPlayerList().getPlayer(who);
+				if (p != null) {
+					Advancements.sync(p);
+					toldOfRecount(p);
+				}
+			}
+			if (!drop.isEmpty()) Chronicle.forget(drop::contains);
+			nl.libreria.core.Libreria.LOG.info("Records: recounted taking records by the once-a-day rule; {} players had more, {} chronicle lines of records passed back and forth went",
+					lowered, drop.size());
+		} catch (RuntimeException ex) {
+			nl.libreria.core.Libreria.LOG.warn("Records: the recount failed", ex);
+		}
+	}
+
+	/** At login, once after the recount: a card saying why the record ladder went down. */
+	static void toldOfRecount(ServerPlayer p) {
+		CollectorMod.Data cd = CollectorMod.STORE.get(p);
+		if (cd.recountedFrom <= 0) return;
+		nl.libreria.core.Notify.info(p, Items.GOLD_BLOCK, "Records recounted: " + cd.recountedFrom + " → " + cd.recordsTaken,
+				"Passing a record back and forth counts once a day now.");
+		cd.recountedFrom = 0;
+		CollectorMod.STORE.markDirty(p);
 	}
 
 	private static void announce(net.minecraft.server.MinecraftServer server, Kind k, Rec r, long now) {
