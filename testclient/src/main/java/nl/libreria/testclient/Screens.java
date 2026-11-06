@@ -78,44 +78,45 @@ public final class Screens implements FabricClientGameTest {
 				ctx.takeScreenshot("nameplate_front");
 				camera(ctx, CameraType.FIRST_PERSON);
 			});
-			// Proof of concept, round 2: curses, and other ways to show a slash
-			safe("fx_round2", () -> {
+			// Proof of concept, round 3: effects on and around the sword (a glowing edge on the blade itself, particles off
+			// the blade while you hold it, sparks along the tip's path when you swing)
+			safe("fx_round3", () -> {
 				ctx.getInput().lookAt(0, 0);
 				camera(ctx, CameraType.THIRD_PERSON_FRONT);
 				ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.HIDDEN));
-				run(server, "item replace entity @a armor.chest with minecraft:diamond_chestplate[enchantment_glint_override=true]",
-						"item replace entity @a armor.head with minecraft:diamond_helmet", "item replace entity @a armor.legs with minecraft:diamond_leggings",
-						"item replace entity @a armor.feet with minecraft:diamond_boots");
-				for (String curse : new String[]{"curse", "vanish"}) {
-					server.runOnServer(s -> nl.libreria.glint.GlintMod.debugFx(player, curse));
-					run(server, "time set noon");
-					ctx.waitTicks(40);
-					ctx.takeScreenshot("fxc_" + curse + "_day");
-					run(server, "time set midnight");
-					ctx.waitTicks(10);
-					ctx.takeScreenshot("fxc_" + curse + "_night");
-					for (int f = 0; f < 6; f++) {
-						ctx.waitTicks(3);
-						ctx.takeScreenshot("fxc_" + curse + "_anim_" + f);
+				run(server, "time set midnight");
+				String[][] swords = {{"fire", "2"}, {"sharp", "5"}, {"smite", "5"}};
+				for (String[] sw : swords) {
+					run(server, "item replace entity @a weapon.mainhand with minecraft:diamond_sword[item_model=\"libreria:fx/sword_" + sw[0]
+							+ "\",enchantment_glint_override=false]");
+					String hold = "blade_" + sw[0] + ":" + sw[1];
+					server.runOnServer(s -> nl.libreria.glint.GlintMod.debugFx(player, hold));
+					ctx.waitTicks(30);
+					for (int f = 0; f < 3; f++) {
+						ctx.takeScreenshot("fxb_" + sw[0] + "_hold_" + f);
+						ctx.waitTicks(4);
+					}
+					// a swing: the client swings the arm, the server draws the sparks
+					String swing = "hit:swing_" + sw[0] + ":" + sw[1];
+					ctx.getInput().pressKey(o2 -> o2.keyAttack);
+					server.runOnServer(s -> nl.libreria.glint.GlintMod.debugFx(player, swing));
+					for (int f = 1; f <= 6; f++) {
+						ctx.waitTicks(1);
+						ctx.takeScreenshot("fxb_" + sw[0] + "_swing_" + f);
 					}
 					server.runOnServer(s -> nl.libreria.glint.GlintMod.debugFx(player, "off"));
-					ctx.waitTicks(3);
+					ctx.waitTicks(10);
 				}
-				run(server, "item replace entity @a armor.head with minecraft:air", "item replace entity @a armor.chest with minecraft:air",
-						"item replace entity @a armor.legs with minecraft:air", "item replace entity @a armor.feet with minecraft:air",
-						"item replace entity @a weapon.mainhand with minecraft:diamond_sword");
+				// close up, from the side: the edge itself
+				run(server, "item replace entity @a weapon.mainhand with minecraft:diamond_sword[item_model=\"libreria:fx/sword_fire\"]");
+				camera(ctx, CameraType.FIRST_PERSON);
 				ctx.waitTicks(10);
-				for (String spec : new String[]{"trail:3", "trail:10", "impact:3", "streaks:3"}) {
-					server.runOnServer(s -> nl.libreria.glint.GlintMod.debugFx(player, "hit:" + spec));
-					for (int f = 1; f <= 8; f++) {
-						ctx.waitTicks(1);
-						ctx.takeScreenshot("fxs_" + spec.replace(':', '_') + "_" + f);
-					}
-					ctx.waitTicks(20);
-				}
+				ctx.takeScreenshot("fxb_fire_first_person");
+				run(server, "item replace entity @a weapon.mainhand with minecraft:diamond_sword[item_model=\"libreria:fx/sword_sharp\"]");
+				ctx.waitTicks(6);
+				ctx.takeScreenshot("fxb_sharp_first_person");
 				run(server, "time set noon", "item replace entity @a weapon.mainhand with minecraft:air");
 				ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.FULL));
-				camera(ctx, CameraType.FIRST_PERSON);
 			});
 			// Your own armour's particles in third person: a set (one orbit), and ordinary Protection armour
 			safe("armour_third", () -> {

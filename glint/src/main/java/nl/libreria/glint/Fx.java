@@ -158,6 +158,8 @@ final class Fx {
 
 	private static int lightFor(String kind, int g) {
 		return switch (kind) {
+			case "blade_fire" -> 6 + g * 2;
+			case "blade_smite" -> 4 + g;
 			case "ember" -> new int[]{0, 0, 7, 10, 13}[g];
 			case "soul" -> new int[]{0, 0, 5, 8, 11}[g];
 			case "aegis" -> new int[]{0, 0, 0, 6, 9}[g];
@@ -255,6 +257,7 @@ final class Fx {
 			case "thorns" -> thorns(p, w, level, viewers, tick, g, ps);
 			case "tide" -> tide(p, w, level, viewers, tick, g, ps);
 			case "curse" -> curse(p, w, level, viewers, tick, ps);
+			case "blade_fire", "blade_sharp", "blade_smite" -> blade(p, w, tick, g, ps);
 			case "vanish" -> vanish(p, w, level, viewers, tick, ps);
 			default -> {
 			}
@@ -436,6 +439,65 @@ final class Fx {
 		}
 	}
 
+	// ---------------------------------------------------------------- a sword in your hand
+
+	/** Where the sword is in your right hand, for a spot along the blade (0 the hilt, 1 the tip), relative to you. */
+	static Vec3 blade(ServerPlayer p, double t) {
+		float yaw = p.yBodyRot * Mth.DEG_TO_RAD;
+		Vec3 look = new Vec3(-Mth.sin(yaw), 0, Mth.cos(yaw));
+		Vec3 right = new Vec3(-Mth.cos(yaw), 0, -Mth.sin(yaw));
+		Vec3 hand = right.scale(0.38).add(0, 0.68, 0).add(look.scale(0.08));
+		Vec3 dir = look.scale(0.72).add(0, 0.55, 0).normalize();
+		return hand.add(dir.scale(0.15 + t * 0.7));
+	}
+
+	/**
+	 * Around the blade while you hold it. Fire: embers come off the blade and now and then a little flame licks up it,
+	 * with a warm light at your hand. Sharpness: now and then a glint runs from the hilt to the tip. Smite: golden motes
+	 * rise off the blade, a soft light.
+	 */
+	private static void blade(ServerPlayer p, Wearer w, int tick, int g, List<P> ps) {
+		switch (w.kind) {
+			case "blade_fire" -> {
+				if (every(tick, g >= 2 ? 2 : 4)) {
+					Vec3 at = blade(p, rnd(0.1f, 1.0f));
+					ps.add(line("ember", pick(0xFFE9A8, 0xFFB64A, 0xFF7A2A), at, at.add(rnd(-0.08f, 0.08f), rnd(0.3f, 0.55f), rnd(-0.08f, 0.08f)),
+							rnd(0.22f, 0.32f), 0.02f, 0, 0, 12 + R.nextInt(8)));
+				}
+				if (every(tick, g >= 2 ? 5 : 9)) {
+					Vec3 at = blade(p, rnd(0.2f, 0.9f));
+					ps.add(new P("flame", pick(0xFF9A3C, 0xFFB64A), 4, List.of(new S(at, 0.05f, 0), new S(at.add(0, 0.08, 0), rnd(0.22f, 0.3f), 0),
+							new S(at.add(0, 0.2, 0), 0.04f, 0)), null));
+				}
+				if (every(tick, 6)) ps.add(pop("haze", 0xFF8A2E, blade(p, 0.5), 0.6f, 12, 0));
+			}
+			case "blade_sharp" -> {
+				// a glint that runs along the edge: sparkles that light up one after the other, hilt to tip
+				int every = g >= 5 ? 24 : g >= 3 ? 36 : 50;
+				if (tick % every == 0) {
+					for (int k = 0; k < 5; k++) {
+						Vec3 at = blade(p, 0.2 + k * 0.2);
+						List<S> st = new ArrayList<>();
+						for (int q = 0; q < k; q++) st.add(new S(at, 0.01f, 0));
+						st.add(new S(at, 0.32f + g * 0.02f, 0.4f));
+						st.add(new S(at, 0.01f, 0.8f));
+						ps.add(new P("twinkle", 0xF2F7FF, 1, st, null));
+					}
+				}
+			}
+			case "blade_smite" -> {
+				if (every(tick, 4)) {
+					Vec3 at = blade(p, rnd(0.1f, 1.0f));
+					ps.add(line("mote", pick(0xFFE08A, 0xFFF2C2), at, at.add(rnd(-0.1f, 0.1f), rnd(0.35f, 0.6f), rnd(-0.1f, 0.1f)), rnd(0.25f, 0.35f),
+							0.02f, 0, 0, 20));
+				}
+				if (every(tick, 12)) ps.add(pop("twinkle", 0xFFF2C2, blade(p, 1.0), 0.4f, 8, 0.6f));
+			}
+			default -> {
+			}
+		}
+	}
+
 	// ---------------------------------------------------------------- things that stay on a wearer
 
 	/** Shows a ring that's ready (its sprites added) to the players nearby, following the wearer. */
@@ -574,6 +636,36 @@ final class Fx {
 					sparks(ps, 12, 0xE6F0FF, side, 1.2);
 					flash(level, at, viewers, 10, 4);
 				}
+			}
+			case "swing_fire", "swing_sharp", "swing_smite" -> {
+				// The blade's tip, through the swing: from up at your right, down across your front. Sparks light up along
+				// that path one after the other (the blade drawing them), and where it lands, a flash
+				int c = kind.equals("swing_fire") ? 0xFFB24A : kind.equals("swing_smite") ? 0xFFE08A : 0xE6EEFF;
+				String spark = kind.equals("swing_fire") ? "ember" : "twinkle";
+				Vec3 shoulder = side.scale(-0.36).add(0, 1.38, 0);
+				Vec3 base = p.position().subtract(at);
+				int n = 7;
+				for (int k = 0; k < n; k++) {
+					double s0 = k / (double) (n - 1);
+					double a = Math.toRadians(65 - s0 * 110);
+					Vec3 tip = shoulder.add(look.scale(Math.cos(a) * 1.05)).add(0, Math.sin(a) * 0.9, 0).add(side.scale(-0.35 + s0 * 0.6));
+					Vec3 pos = base.add(tip);
+					List<S> st = new ArrayList<>();
+					for (int q = 0; q < k / 2; q++) st.add(new S(pos, 0.01f, 0));
+					st.add(new S(pos, spark.equals("ember") ? 0.32f : 0.3f, 0.3f));
+					st.add(new S(pos.add(look.scale(0.08)).add(0, -0.04, 0), 0.16f, 0.6f));
+					st.add(new S(pos, 0.01f, 0.9f));
+					ps.add(new P(spark, k % 2 == 0 ? 0xFFFFFF : c, 1, st, null));
+				}
+				if (g >= 2) {
+					ps.add(pop("twinkle", 0xFFFFFF, Vec3.ZERO, 0.55f + g * 0.05f, 4, 0.4f));
+					for (int k = 0; k < 3 + g * 2; k++) {
+						Vec3 d = side.scale(rnd(-0.5f, 0.5f)).add(look.scale(rnd(0.0f, 0.3f))).add(0, rnd(-0.2f, 0.4f), 0);
+						ps.add(line(spark, pick(c, 0xFFFFFF), Vec3.ZERO, d, rnd(0.18f, 0.26f), 0.01f, 0, 0, 5 + R.nextInt(4)));
+					}
+				}
+				if (kind.equals("swing_fire")) flash(level, at, viewers, 8 + g * 2, 4);
+				if (kind.equals("swing_smite") && g >= 5) pillar(level, at.add(0, -1.0, 0), viewers);
 			}
 			case "trail_old" -> {
 				// A blade's trail: a thin crescent that sweeps through, with two fainter ones a tick behind it
