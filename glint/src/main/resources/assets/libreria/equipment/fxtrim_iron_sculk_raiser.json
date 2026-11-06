@@ -1,0 +1,1 @@
+{"layers":{"humanoid":[{"texture":"minecraft:iron"},{"texture":"libreria:fxtrim/sculk_raiser"}],"humanoid_leggings":[{"texture":"minecraft:iron"},{"texture":"libreria:fxtrim/sculk_raiser"}]},"trim_overrides":[{"palette":"minecraft:trim/iron_darker","when":{"material":"minecraft:iron"}}]}

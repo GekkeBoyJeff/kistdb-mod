@@ -1,0 +1,1 @@
+{"layers":{"humanoid":[{"texture":"minecraft:netherite"},{"texture":"libreria:fxtrim/sculk_wild"}],"humanoid_leggings":[{"texture":"minecraft:netherite"},{"texture":"libreria:fxtrim/sculk_wild"}]},"trim_overrides":[{"palette":"minecraft:trim/netherite_darker","when":{"material":"minecraft:netherite"}}]}

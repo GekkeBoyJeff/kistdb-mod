@@ -1,0 +1,1 @@
+{"layers":{"humanoid":[{"texture":"minecraft:copper"},{"texture":"libreria:fxtrim/feather_vex"}],"humanoid_leggings":[{"texture":"minecraft:copper"},{"texture":"libreria:fxtrim/feather_vex"}]},"trim_overrides":[{"palette":"minecraft:trim/copper_darker","when":{"material":"minecraft:copper"}}]}

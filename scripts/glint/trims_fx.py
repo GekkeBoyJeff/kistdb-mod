@@ -1,27 +1,44 @@
-"""Proof of concept: an armour set's light following the lines of its trim. The trim itself stays exactly as vanilla
-draws it (pattern and material); our layer is a seam of light right round the trim's lines, its pixels carrying a code
-for the core shader (flicker for the ember mantle, a glint flowing along for the ward).
+"""A trimmed armour piece's light follows the lines of its trim. The trim itself stays exactly as vanilla draws it
+(pattern and material); our layer is a seam of light right round the trim's lines, its pixels carrying a code for the
+core shader, in the colour of the piece's effect (embers for Fire Protection, a flowing glint for Protection…).
 
-Per set kind and trim pattern an equipment asset: the vanilla diamond layers, then ours.
+Per material, effect family and trim pattern an equipment asset: the vanilla layers of that material, then ours. The
+server picks it per piece for whoever looks (EquipmentFx); an untrimmed piece gets its glow (armor_fx.py) instead.
 
-    python3 scripts/glint/trims_fx.py [vanilla 26.3 dir]
+    python3 scripts/glint/trims_fx.py [vanilla 26.3 assets/minecraft dir]
 """
 import json
 import os
+import shutil
 import sys
 
 from PIL import Image
 
 VAN = sys.argv[1] if len(sys.argv) > 1 else '/home/claude/ref/vanilla26/assets/minecraft'
 OUT = os.path.join(os.path.dirname(__file__), '../../glint/src/main/resources/assets/libreria')
-KINDS = {'fire': ((196, 84, 26), 252), 'protection': ((100, 116, 206), 251)}
+MATERIALS = ['leather', 'chainmail', 'copper', 'iron', 'gold', 'diamond', 'netherite', 'turtle_scute']
+FLICKER, PULSE, FLOW, TWINKLE = 252, 253, 251, 250
+# family -> (colour, code): the same families as the armour glows
+KINDS = {
+    'fireguard': ((196, 84, 26), FLICKER), 'protection': ((100, 116, 206), FLOW), 'blast': ((176, 112, 70), FLICKER),
+    'arrowguard': ((150, 214, 192), FLOW), 'thorns': ((178, 40, 56), PULSE), 'frost': ((170, 222, 255), TWINKLE),
+    'soul': ((60, 180, 232), FLICKER), 'water': ((70, 150, 250), FLOW), 'sculk': ((40, 190, 200), FLOW),
+    'feather': ((226, 232, 246), PULSE), 'mending': ((140, 220, 84), PULSE), 'curse': ((140, 84, 214), FLOW),
+}
 
 
 def main():
     patterns = sorted(f[:-4] for f in os.listdir(f'{VAN}/textures/trims/entity/humanoid') if f.endswith('.png'))
+    shutil.rmtree(f'{OUT}/textures/entity/equipment/humanoid/fxtrim', ignore_errors=True)
+    shutil.rmtree(f'{OUT}/textures/entity/equipment/humanoid_leggings/fxtrim', ignore_errors=True)
+    for f in os.listdir(f'{OUT}/equipment') if os.path.isdir(f'{OUT}/equipment') else []:
+        if f.startswith('fxtrim_'):
+            os.remove(f'{OUT}/equipment/{f}')
     for layer in ('humanoid', 'humanoid_leggings'):
         os.makedirs(f'{OUT}/textures/entity/equipment/{layer}/fxtrim', exist_ok=True)
     os.makedirs(f'{OUT}/equipment', exist_ok=True)
+    bases = {m: json.load(open(f'{VAN}/equipment/{m}.json')) for m in MATERIALS}
+    count = 0
     for pat in patterns:
         for layer in ('humanoid', 'humanoid_leggings'):
             trim = Image.open(f'{VAN}/textures/trims/entity/{layer}/{pat}.png').convert('RGBA')
@@ -35,13 +52,20 @@ def main():
                 img = Image.new('RGBA', (w, h), (0, 0, 0, 0))
                 for p in seam:
                     img.putpixel(p, rgb + (code,))
-                img.save(f'{OUT}/textures/entity/equipment/{layer}/fxtrim/{kind}_{pat}.png')
-        for kind in KINDS:
-            json.dump({'layers': {
-                'humanoid': [{'texture': 'minecraft:diamond'}, {'texture': f'libreria:fxtrim/{kind}_{pat}'}],
-                'humanoid_leggings': [{'texture': 'minecraft:diamond'}, {'texture': f'libreria:fxtrim/{kind}_{pat}'}]}},
-                open(f'{OUT}/equipment/fxtrim_{kind}_{pat}.json', 'w'), indent=1)
-    print(len(patterns), 'patterns:', ' '.join(patterns))
+                img.save(f'{OUT}/textures/entity/equipment/{layer}/fxtrim/{kind}_{pat}.png', optimize=True)
+        for mat, base in bases.items():
+            for kind in KINDS:
+                layers = {}
+                for lk, ls in base['layers'].items():
+                    if lk in ('humanoid', 'humanoid_leggings'):
+                        layers[lk] = ls + [{'texture': f'libreria:fxtrim/{kind}_{pat}'}]
+                asset = {'layers': layers}
+                if 'trim_overrides' in base:
+                    asset['trim_overrides'] = base['trim_overrides']
+                with open(f'{OUT}/equipment/fxtrim_{mat}_{kind}_{pat}.json', 'w') as f:
+                    json.dump(asset, f, separators=(',', ':'))
+                count += 1
+    print(len(patterns), 'patterns,', count, 'assets:', ' '.join(patterns))
 
 
 if __name__ == '__main__':

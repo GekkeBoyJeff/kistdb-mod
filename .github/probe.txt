@@ -1,1 +1,4 @@
-+net.minecraft.client.Options
+!net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket
+net.minecraft.world.item.equipment.Equippable
+net.minecraft.world.item.equipment.trim.ArmorTrim
+net.fabricmc.fabric.api.networking.v1.context.PacketContext

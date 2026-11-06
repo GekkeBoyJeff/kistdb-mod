@@ -1,0 +1,28 @@
+{
+ "layers": {
+  "humanoid": [
+   {
+    "texture": "minecraft:diamond"
+   },
+   {
+    "texture": "libreria:fx/diamond_mending_1"
+   }
+  ],
+  "humanoid_leggings": [
+   {
+    "texture": "minecraft:diamond"
+   },
+   {
+    "texture": "libreria:fx/diamond_mending_1"
+   }
+  ]
+ },
+ "trim_overrides": [
+  {
+   "palette": "minecraft:trim/diamond_darker",
+   "when": {
+    "material": "minecraft:diamond"
+   }
+  }
+ ]
+}

@@ -119,6 +119,44 @@ public final class Screens implements FabricClientGameTest {
 				ctx.getInput().lookAt(0, 0);
 				ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.FULL));
 			});
+			// Effects, round 17: worn armour seen by someone else: every material with its enchantment's glow, and trimmed
+			// pieces with a seam of light round the trim in the colour of their enchantment
+			safe("fx_round17", () -> {
+				ctx.getInput().lookAt(0, 12);
+				ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.HIDDEN));
+				camera(ctx, CameraType.FIRST_PERSON);
+				run(server, "time set midnight", "clear @a", "kill @e[type=minecraft:mannequin]");
+				server.runOnServer(sv -> LOG.info("LIBRERIA-ARMOURFX pack {} others {}", nl.libreria.core.Pack.has(player), nl.libreria.glint.GlintMod.AURA.get(player)));
+				// material, enchantment, trim pattern (or none)
+				String[][][] rows = {
+						{{"diamond", "fire_protection:4", ""}, {"iron", "protection:4", ""}, {"golden", "blast_protection:4", ""}, {"netherite", "projectile_protection:4", ""}, {"leather", "thorns:3", ""}},
+						{{"chainmail", "protection:2", ""}, {"copper", "mending:1", ""}, {"diamond", "feather_falling:4", ""}, {"iron", "binding_curse:1", ""}, {"golden", "fire_protection:1", ""}},
+						{{"diamond", "fire_protection:4", "coast"}, {"netherite", "protection:4", "ward"}, {"iron", "blast_protection:3", "sentry"}, {"golden", "projectile_protection:4", "wild"}, {"diamond", "thorns:3", "rib"}}};
+				String[] slots = {"head", "chest", "legs", "feet"};
+				String[] pieces = {"helmet", "chestplate", "leggings", "boots"};
+				for (int r = 0; r < rows.length; r++) {
+					run(server, "kill @e[type=minecraft:mannequin]");
+					for (int i = 0; i < rows[r].length; i++) {
+						String[] m = rows[r][i];
+						StringBuilder eq = new StringBuilder();
+						for (int k = 0; k < 4; k++) {
+							String mat = m[0].equals("golden") ? "golden" : m[0];
+							String trim = m[2].isEmpty() ? "" : ",\"minecraft:trim\":{pattern:\"minecraft:" + m[2] + "\",material:\"minecraft:gold\"}";
+							eq.append(k == 0 ? "" : ",").append(slots[k]).append(":{id:\"minecraft:").append(mat).append("_").append(pieces[k])
+									.append("\",components:{\"minecraft:enchantments\":{").append(m[1]).append("}").append(trim).append("}}");
+						}
+						run(server, "summon minecraft:mannequin " + (x - 4 + i * 2) + " " + y + " " + (z + 5) + " {Rotation:[180f,0f],hide_description:1b,immovable:1b,equipment:{" + eq + "}}");
+					}
+					ctx.waitTicks(25);
+					ctx.takeScreenshot("fxarmour_row" + r);
+				}
+				run(server, "time set noon");
+				ctx.waitTicks(10);
+				ctx.takeScreenshot("fxarmour_row2_day");
+				run(server, "time set midnight", "kill @e[type=minecraft:mannequin]");
+				ctx.getInput().lookAt(0, 0);
+				ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.FULL));
+			});
 			// Your own armour's particles in third person: a set (one orbit), and ordinary Protection armour
 			safe("armour_third", () -> {
 				run(server, "item replace entity @a armor.head with minecraft:diamond_helmet[enchantments={fire_protection:4}]",

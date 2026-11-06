@@ -1,0 +1,1 @@
+{"layers":{"humanoid":[{"texture":"minecraft:diamond"},{"texture":"libreria:fxtrim/feather_flow"}],"humanoid_leggings":[{"texture":"minecraft:diamond"},{"texture":"libreria:fxtrim/feather_flow"}]},"trim_overrides":[{"palette":"minecraft:trim/diamond_darker","when":{"material":"minecraft:diamond"}}]}

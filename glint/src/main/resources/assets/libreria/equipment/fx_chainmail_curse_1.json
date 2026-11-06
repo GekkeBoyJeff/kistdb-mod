@@ -1,0 +1,20 @@
+{
+ "layers": {
+  "humanoid": [
+   {
+    "texture": "minecraft:chainmail"
+   },
+   {
+    "texture": "libreria:fx/chainmail_curse_1"
+   }
+  ],
+  "humanoid_leggings": [
+   {
+    "texture": "minecraft:chainmail"
+   },
+   {
+    "texture": "libreria:fx/chainmail_curse_1"
+   }
+  ]
+ }
+}

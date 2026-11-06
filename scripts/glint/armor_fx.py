@@ -15,14 +15,14 @@ import sys
 
 from PIL import Image
 
-VANILLA = sys.argv[1] if len(sys.argv) > 1 else '/home/claude/ref/assets/assets/minecraft'
+VANILLA = sys.argv[1] if len(sys.argv) > 1 else '/home/claude/ref/vanilla26/assets/minecraft'
 OUT = sys.argv[2] if len(sys.argv) > 2 else os.path.join(os.path.dirname(__file__), '../../glint/src/main/resources')
 NS = 'libreria'
 
 # Alpha codes (see entity.fsh): what the shader does with the pixel
 STEADY, PULSE, FLICKER, FLOW, TWINKLE = 254, 253, 252, 251, 250
 
-MATERIALS = ['leather', 'chainmail', 'copper', 'iron', 'gold', 'diamond', 'netherite']
+MATERIALS = ['leather', 'chainmail', 'copper', 'iron', 'gold', 'diamond', 'netherite', 'turtle_scute']
 TIERS = [1, 2, 3]
 
 # The vertical strips of the 64x32 armour texture (the four sides of a box, side by side), y going down.
@@ -193,15 +193,87 @@ def bubbles(m, tier, seed):
     return img
 
 
+def soot(m, tier, seed):
+    """Blast Protection: soot smudged along the rims, thin cracks glowing like embers in it, more per level."""
+    img = {}
+    r = rng(seed, tier)
+    dark, ember, hot = (54, 50, 52), (214, 100, 36), (255, 170, 70)
+    for name, x, top, bottom in columns(m):
+        for k in range(1 + (tier >= 2)):
+            y = bottom - k
+            if y >= top and m[y][x] and r.random() < 0.7 - 0.25 * k:
+                img[(x, y)] = dark + (255,)
+    for _ in range(3 * tier):
+        name = r.choice(list(STRIPS))
+        x0, x1, y0, y1 = STRIPS[name]
+        x, y = r.randrange(x0, x1), r.randrange(y0, y1)
+        for i in range(r.randrange(2, 5)):
+            if x0 <= x < x1 and y0 <= y < y1 and m[y][x]:
+                img[(x, y)] = (hot if i == 0 else ember) + (FLICKER,)
+            x += r.choice([-1, 0, 1])
+            y -= 1
+    return img
+
+
+def gusts(m, tier, seed):
+    """Projectile Protection: streaks of wind running across the armour (a glint flowing along them)."""
+    img = {}
+    r = rng(seed, tier)
+    pale, soft = (226, 248, 240), (170, 224, 206)
+    for _ in range(3 + 3 * tier):
+        name = r.choice(list(STRIPS))
+        x0, x1, y0, y1 = STRIPS[name]
+        x, y = r.randrange(x0, x1), r.randrange(y0, y1)
+        for i in range(r.randrange(3, 6)):
+            xx, yy = x + i, y + (i // 2) * r.choice([0, 1])
+            if x0 <= xx < x1 and y0 <= yy < y1 and m[yy][xx]:
+                img[(xx, yy)] = (pale if i == 0 else soft) + (FLOW,)
+    return img
+
+
+def feathers(m, tier, seed):
+    """Feather Falling: small soft feathers, glowing gently."""
+    img = {}
+    r = rng(seed, tier)
+    white, grey = (244, 246, 252), (196, 204, 222)
+    for _ in range(2 + 2 * tier):
+        name = r.choice(list(STRIPS))
+        x0, x1, y0, y1 = STRIPS[name]
+        x, y = r.randrange(x0 + 1, x1 - 1), r.randrange(y0, y1 - 2)
+        for i, (dx, dy) in enumerate(((0, 0), (0, 1), (-1, 1), (1, 1), (0, 2))):
+            xx, yy = x + dx, y + dy
+            if x0 <= xx < x1 and y0 <= yy < y1 and m[yy][xx]:
+                img[(xx, yy)] = (white if i < 2 else grey) + (PULSE,)
+    return img
+
+
+def renewal(m, tier, seed):
+    """Mending: green-gold glints of experience scattered over it, a line of light round the rim."""
+    img = {}
+    r = rng(seed, tier)
+    for name, x, top, bottom in columns(m):
+        if r.random() < 0.06 + 0.04 * tier:
+            y = r.randrange(top, bottom + 1)
+            if m[y][x]:
+                img[(x, y)] = ((220, 255, 120) if r.random() < 0.5 else (150, 230, 80)) + (TWINKLE,)
+        if tier >= 2 and m[bottom][x] and (x, bottom) not in img:
+            img[(x, bottom)] = (130, 210, 70) + (FLOW,)
+    return img
+
+
 FAMILIES = {
     'fireguard': lambda m, t, s: flames(m, t, [(0, (210, 60, 15)), (0.5, (255, 140, 30)), (1, (255, 225, 110))], FLICKER, s),
-    'fire': lambda m, t, s: flames(m, t, [(0, (200, 40, 10)), (0.6, (255, 120, 20)), (1, (255, 210, 80))], FLICKER, s),
     'soul': lambda m, t, s: flames(m, t, [(0, (20, 70, 200)), (0.5, (50, 170, 255)), (1, (190, 250, 255))], FLICKER, s),
     'frost': frost,
     'protection': lambda m, t, s: runes(m, t, (110, 225, 255), s),
     'sculk': lambda m, t, s: veins(m, t, (10, 90, 110), (60, 235, 235), s),
     'thorns': thorns,
     'water': bubbles,
+    'blast': soot,
+    'arrowguard': gusts,
+    'feather': feathers,
+    'mending': renewal,
+    'curse': lambda m, t, s: veins(m, t, (60, 24, 96), (176, 110, 255), s),
 }
 
 

@@ -3,16 +3,23 @@
 	"id": "libreria_glint",
 	"version": "${version}",
 	"name": "Libreria Glint",
-	"description": "Animated enchantment effects on weapons, tools and armor, custom textures for each enchanted book, and particles around players with enchanted gear. The server builds and sends the resource pack itself. Server-side; requires Libreria Core.",
-	"authors": ["Jeffrey"],
+	"description": "Enchantment effects on weapons, tools and armour (texture parts and auras per enchantment and level, glows on worn armour, seams of light round trims), armour set effects, custom textures for each enchanted book, and particles around players with enchanted gear. The server builds and sends the resource pack itself. Server-side; requires Libreria Core.",
+	"authors": [
+		"Jeffrey"
+	],
 	"license": "MIT",
 	"environment": "*",
 	"entrypoints": {
-		"main": ["nl.libreria.glint.GlintMod"]
+		"main": [
+			"nl.libreria.glint.GlintMod"
+		]
 	},
 	"depends": {
 		"minecraft": "~26.3",
 		"fabric-api": "*",
 		"libreria": ">=${core_version}"
-	}
+	},
+	"mixins": [
+		"libreria_glint.mixins.json"
+	]
 }

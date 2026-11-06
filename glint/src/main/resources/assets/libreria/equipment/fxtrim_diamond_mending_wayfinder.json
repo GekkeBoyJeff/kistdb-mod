@@ -1,0 +1,1 @@
+{"layers":{"humanoid":[{"texture":"minecraft:diamond"},{"texture":"libreria:fxtrim/mending_wayfinder"}],"humanoid_leggings":[{"texture":"minecraft:diamond"},{"texture":"libreria:fxtrim/mending_wayfinder"}]},"trim_overrides":[{"palette":"minecraft:trim/diamond_darker","when":{"material":"minecraft:diamond"}}]}

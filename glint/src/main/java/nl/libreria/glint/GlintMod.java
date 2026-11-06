@@ -124,6 +124,7 @@ public final class GlintMod implements ModInitializer {
 			costTicks++;
 		});
 
+		EquipmentFx.init();
 		GlintTests.register();
 	}
 

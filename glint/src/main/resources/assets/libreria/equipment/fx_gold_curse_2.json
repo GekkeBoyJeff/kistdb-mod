@@ -1,0 +1,28 @@
+{
+ "layers": {
+  "humanoid": [
+   {
+    "texture": "minecraft:gold"
+   },
+   {
+    "texture": "libreria:fx/gold_curse_2"
+   }
+  ],
+  "humanoid_leggings": [
+   {
+    "texture": "minecraft:gold"
+   },
+   {
+    "texture": "libreria:fx/gold_curse_2"
+   }
+  ]
+ },
+ "trim_overrides": [
+  {
+   "palette": "minecraft:trim/gold_darker",
+   "when": {
+    "material": "minecraft:gold"
+   }
+  }
+ ]
+}

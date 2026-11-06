@@ -1,0 +1,1 @@
+{"layers":{"humanoid":[{"texture":"minecraft:netherite"},{"texture":"libreria:fxtrim/feather_silence"}],"humanoid_leggings":[{"texture":"minecraft:netherite"},{"texture":"libreria:fxtrim/feather_silence"}]},"trim_overrides":[{"palette":"minecraft:trim/netherite_darker","when":{"material":"minecraft:netherite"}}]}

@@ -1,0 +1,12 @@
+{
+ "layers": {
+  "humanoid": [
+   {
+    "texture": "minecraft:turtle_scute"
+   },
+   {
+    "texture": "libreria:fx/turtle_scute_frost_2"
+   }
+  ]
+ }
+}

@@ -1,0 +1,1 @@
+{"layers":{"humanoid":[{"texture":"minecraft:gold"},{"texture":"libreria:fxtrim/water_rib"}],"humanoid_leggings":[{"texture":"minecraft:gold"},{"texture":"libreria:fxtrim/water_rib"}]},"trim_overrides":[{"palette":"minecraft:trim/gold_darker","when":{"material":"minecraft:gold"}}]}

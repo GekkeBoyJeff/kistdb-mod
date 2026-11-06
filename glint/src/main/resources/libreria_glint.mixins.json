@@ -1,0 +1,11 @@
+{
+	"required": true,
+	"package": "nl.libreria.glint.mixin",
+	"compatibilityLevel": "JAVA_25",
+	"mixins": [
+		"SetEquipmentPacketMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}
