@@ -213,12 +213,12 @@ final class Fx {
 					Vec3 from = onBody(p, 0.05f, 0.95f, 0.42f);
 					int t = 16 + R.nextInt(14);
 					ps.add(new P("ember", pick(0xFFE9A8, 0xFFB64A, 0xFF8A2E, 0xFF5A1C), from,
-							from.add(rnd(-0.18f, 0.18f), rnd(0.6f, 1.15f), rnd(-0.18f, 0.18f)), rnd(0.2f, 0.32f), 0.02f, 0, 0, t));
+							from.add(rnd(-0.18f, 0.18f), rnd(0.6f, 1.15f), rnd(-0.18f, 0.18f)), rnd(0.45f, 0.7f), 0.04f, 0, 0, t));
 				}
 				if (tick % 3 == 0) {
 					Vec3 from = onBody(p, 0.2f, 0.9f, 0.36f);
 					ps.add(new P("spark", 0xFFF1C2, from, from.add(rnd(-0.25f, 0.25f), rnd(0.15f, 0.45f), rnd(-0.25f, 0.25f)),
-							rnd(0.16f, 0.24f), 0.0f, 0, rnd(-1.2f, 1.2f), 8 + R.nextInt(5)));
+							rnd(0.35f, 0.5f), 0.0f, 0, rnd(-1.2f, 1.2f), 8 + R.nextInt(5)));
 				}
 				if (tick % 5 == 0) {
 					Vec3 from = new Vec3(rnd(-0.15f, 0.15f), p.getBbHeight() * rnd(0.25f, 0.6f), rnd(-0.15f, 0.15f));
@@ -231,11 +231,11 @@ final class Fx {
 					Vec3 from = new Vec3(rnd(-0.6f, 0.6f), p.getBbHeight() * rnd(0.85f, 1.25f), rnd(-0.6f, 0.6f));
 					float spin = rnd(-2.2f, 2.2f);
 					ps.add(new P("flake", pick(0xF2FAFF, 0xBFE6FF, 0x8FD0FF), from,
-							from.add(rnd(-0.2f, 0.2f), -rnd(0.9f, 1.4f), rnd(-0.2f, 0.2f)), rnd(0.14f, 0.2f), 0.07f, 0, spin, 30 + R.nextInt(10)));
+							from.add(rnd(-0.2f, 0.2f), -rnd(0.9f, 1.4f), rnd(-0.2f, 0.2f)), rnd(0.28f, 0.38f), 0.12f, 0, spin, 30 + R.nextInt(10)));
 				}
 				if (tick % 4 == 1) {
 					Vec3 from = onBody(p, 0.1f, 0.95f, 0.34f);
-					ps.add(new P("spark", 0xCFEFFF, from, from, 0.02f, 0.22f, 0, 0.8f, 6));
+					ps.add(new P("spark", 0xCFEFFF, from, from, 0.04f, 0.4f, 0, 0.8f, 6));
 				}
 			}
 			case "soul" -> {
@@ -244,7 +244,7 @@ final class Fx {
 					double a = R.nextDouble() * Math.PI * 2;
 					Vec3 from = new Vec3(Math.cos(a) * 0.5, 0.05, Math.sin(a) * 0.5);
 					Vec3 to = new Vec3(Math.cos(a + 1.1) * 0.22, p.getBbHeight() * rnd(0.7f, 1.0f), Math.sin(a + 1.1) * 0.22);
-					ps.add(new P("wisp", pick(0x8FF8FF, 0x4FDDF5, 0xB6F2FF), from, to, rnd(0.2f, 0.28f), 0.04f, 0, 0, 24 + R.nextInt(8)));
+					ps.add(new P("wisp", pick(0x8FF8FF, 0x4FDDF5, 0xB6F2FF), from, to, rnd(0.42f, 0.56f), 0.06f, 0, 0, 24 + R.nextInt(8)));
 				}
 				if (tick % 6 == 0) {
 					Vec3 from = new Vec3(0, 0.3, 0);
@@ -273,7 +273,7 @@ final class Fx {
 				e.setBillboardMode(Display.BillboardConstraints.CENTER);
 				e.setBrightness(new Brightness(15, 15));
 				e.setViewRange(0.6f);
-				e.setScale(new Vector3f(0.24f));
+				e.setScale(new Vector3f(0.42f));
 				e.setTeleportDuration(3);
 				e.setOffset(ringSpot(p, i, tick));
 				w.ring.addElement(e);
@@ -289,7 +289,7 @@ final class Fx {
 		if (tick % 7 == 0) {
 			int i = R.nextInt(4);
 			Vec3 from = ringSpot(p, i, tick);
-			emit(level, p.position(), viewers, List.of(new P("spark", 0xD6DEFF, from, from.add(0, 0.25, 0), 0.18f, 0.0f, 0, 1.0f, 10)));
+			emit(level, p.position(), viewers, List.of(new P("spark", 0xD6DEFF, from, from.add(0, 0.25, 0), 0.35f, 0.0f, 0, 1.0f, 10)));
 		}
 	}
 
@@ -303,10 +303,10 @@ final class Fx {
 		if (w.slash == 0) {
 			float yaw = p.getYRot() * Mth.DEG_TO_RAD;
 			Vec3 look = new Vec3(-Mth.sin(yaw), 0, Mth.cos(yaw));
-			Vec3 at = p.getEyePosition().add(look.scale(1.1)).add(0, -0.35, 0);
+			Vec3 at = p.getEyePosition().add(look.scale(1.3)).add(0, -0.55, 0);
 			Quaternionf rot = new Quaternionf().rotateY(-yaw + Mth.PI).rotateZ(0.5f);
-			emit(level, at, viewers, List.of(new P("arc", 0xFFB24A, Vec3.ZERO, Vec3.ZERO, 0.5f, 1.7f, 0, -0.9f, 5, rot),
-					new P("arc", 0xFFF0C8, Vec3.ZERO, Vec3.ZERO, 0.35f, 1.4f, 0, -0.9f, 4, rot)));
+			emit(level, at, viewers, List.of(new P("arc", 0xFFB24A, Vec3.ZERO, Vec3.ZERO, 0.9f, 2.3f, 0, -0.9f, 5, rot),
+					new P("arc", 0xFFF0C8, Vec3.ZERO, Vec3.ZERO, 0.7f, 1.9f, 0, -0.9f, 4, rot)));
 			List<P> embers = new ArrayList<>();
 			for (int k = 0; k < 10; k++) {
 				double t = (k / 9.0 - 0.5) * 2.2;
@@ -315,7 +315,7 @@ final class Fx {
 				Vec3 side = new Vec3(Mth.cos(yaw), 0, Mth.sin(yaw));
 				Vec3 f = side.scale(from.x).add(0, from.y, 0);
 				embers.add(new P("ember", pick(0xFFE9A8, 0xFFB64A, 0xFF7A2A), f, f.add(dir.scale(rnd(0.4f, 0.9f))).add(0, rnd(0.1f, 0.5f), 0),
-						rnd(0.12f, 0.2f), 0.0f, 0, 0, 10 + R.nextInt(8)));
+						rnd(0.35f, 0.5f), 0.0f, 0, 0, 10 + R.nextInt(8)));
 			}
 			emit(level, at, viewers, embers);
 		}
