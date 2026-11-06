@@ -70,7 +70,7 @@ final class InfoTests {
 			net.minecraft.world.phys.Vec3 eye = new net.minecraft.world.phys.Vec3(0, 1.62, 0), dir = new net.minecraft.world.phys.Vec3(0, 0, 1);
 			SelfTests.check(!Look.fits(eye, dir, new net.minecraft.world.phys.Vec3(0, 3.4, 1.1)), "a step away, above the head is off screen");
 			SelfTests.check(Look.fits(eye, dir, new net.minecraft.world.phys.Vec3(0, 3.4, 6)), "a few steps back it fits");
-			var cow = net.minecraft.world.entity.EntityType.COW.create(level, net.minecraft.world.entity.EntitySpawnReason.COMMAND);
+			var cow = net.minecraft.world.entity.EntityTypes.COW.create(level, net.minecraft.world.entity.EntitySpawnReason.COMMAND);
 			if (cow != null) {
 				cow.setPos(0, 0, 1.5);
 				net.minecraft.world.phys.Vec3 at = Look.beside(eye, cow);
