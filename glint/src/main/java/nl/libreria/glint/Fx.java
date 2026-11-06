@@ -171,6 +171,7 @@ final class Fx {
 	static void set(ServerPlayer p, String spec) {
 		Wearer w = WEARERS.remove(p.getUUID());
 		if (w != null) clear(p, w);
+		BodyAura.clear(p.getUUID());
 		if (spec.equals("off")) return;
 		String[] parts = spec.split(":");
 		w = new Wearer();
@@ -497,7 +498,7 @@ final class Fx {
 		// except the ones on the side facing them, so they frame you instead of covering you
 		List<P> frame = new ArrayList<>();
 		double h = p.getBbHeight();
-		bodyAura(p, w, level, viewers, auraId(w, g));
+		BodyAura.wear(p, auraId(w, g));
 		int feet = soul ? 0x5FE6FF : frost ? 0xBFE6FF : 0;
 		switch (w.set) {
 			case "protection" -> {
@@ -736,33 +737,6 @@ final class Fx {
 		else if (g == 4 && w.set.equals("fire") && w.extras.contains("soul")) id += "_soul";
 		else if (g == 4 && w.set.equals("fire") && w.extras.contains("frost")) id += "_frost";
 		return id;
-	}
-
-	/**
-	 * The set's aura: an animated card through the middle of you that turns to face whoever looks (billboard round the
-	 * up axis). Your body hides it where it's in front, so the aura shows round you, not over you; far-only, so it
-	 * fades out near the camera and never fills your screen in first person. Scaled so a skin pixel of the card is one
-	 * of yours: 32 x 48 skin pixels, the feet 4 up from the bottom.
-	 */
-	private static void bodyAura(ServerPlayer p, Wearer w, ServerLevel level, List<ServerPlayer> viewers, String id) {
-		Ring r = w.rings.get("body");
-		if (r == null) {
-			r = new Ring();
-			ItemStack st = new ItemStack(Items.PAPER);
-			st.set(DataComponents.ITEM_MODEL, Identifier.fromNamespaceAndPath("libreria", "fx/body/" + id));
-			ItemDisplayElement e = new ItemDisplayElement(st);
-			e.setItemDisplayContext(ItemDisplayContext.FIXED);
-			e.setBillboardMode(Display.BillboardConstraints.VERTICAL);
-			e.setBrightness(new Brightness(15, 15));
-			e.setViewRange(1.0f);
-			e.setScale(new Vector3f(1.875f));
-			e.setOffset(new Vec3(0, 0.70, 0));
-			e.setTeleportDuration(2);
-			r.holder.addElement(e);
-			r.els.add(e);
-			show(p, w, level, viewers, "body", r);
-		}
-		r.holder.tick();
 	}
 
 	/** A particle that goes round and up you along a helix (one motion: a stream of these looks like a spiral). */

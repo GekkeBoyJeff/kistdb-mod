@@ -78,71 +78,87 @@ public final class Screens implements FabricClientGameTest {
 				ctx.takeScreenshot("nameplate_front");
 				camera(ctx, CameraType.FIRST_PERSON);
 			});
-			// Proof of concept, round 12: armour sets in the style of the weapon auras: an animated aura shaped round your
-			// outline (a card turning to face whoever looks), a few particles left as touches; moving, per grade, per
-			// material, with what the boots add, from behind, by day and in first person
-			safe("fx_round12", () -> {
+			// Proof of concept, round 13: the set auras made to fit from every angle. Mannequins in five angles (front,
+			// three-quarter, side, three-quarter back, back) and crouching, seen by this player; and the player walking,
+			// running, sneaking and swinging, from behind and the front
+			safe("fx_round13", () -> {
 				ctx.getInput().lookAt(0, 0);
 				ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.HIDDEN));
 				server.runOnServer(sv -> nl.libreria.glint.GlintMod.AURA_THIRD.set(player, false));
-				run(server, "time set midnight", "clear @a");
-				camera(ctx, CameraType.THIRD_PERSON_FRONT);
-				String[][] kinds = {{"protection", "4", "protection:4"}, {"fire", "4", "fire_protection:4"}, {"blast", "4", "blast_protection:4"},
-						{"projectile", "4", "projectile_protection:4"}, {"thorns", "3", "thorns:3"}, {"mending", "1", "mending:1"},
-						{"binding", "1", "binding_curse:1"}, {"vanishing", "1", "vanishing_curse:1"}};
-				for (String[] k : kinds) {
-					wearMaterial(server, "diamond", k[2]);
-					String spec = "set:" + k[0] + ":" + k[1];
-					server.runOnServer(sv -> nl.libreria.glint.GlintMod.debugFx(player, spec));
-					ctx.waitTicks(30);
-					for (int f = 0; f < 8; f++) {
-						ctx.takeScreenshot("fxbody_" + k[0] + "_" + f);
-						ctx.waitTicks(3);
-					}
+				run(server, "time set midnight", "clear @a", "kill @e[type=minecraft:mannequin]");
+				camera(ctx, CameraType.FIRST_PERSON);
+				int[] yaws = {180, 135, 90, 45, 0};
+				for (int i = 0; i < yaws.length; i++) {
+					int mx = x - 4 + i * 2;
+					run(server, "summon minecraft:mannequin " + mx + " " + y + " " + (z + 5) + " {Rotation:[" + yaws[i] + "f,0f],hide_description:1b,immovable:1b}");
+					for (String[] sl : new String[][]{{"head", "helmet"}, {"chest", "chestplate"}, {"legs", "leggings"}, {"feet", "boots"}})
+						run(server, "item replace entity @e[type=minecraft:mannequin,limit=1,sort=nearest,x=" + mx + ",y=" + y + ",z=" + (z + 5) + "] armor." + sl[0]
+								+ " with minecraft:diamond_" + sl[1]);
 				}
-				for (String[] k : new String[][]{{"fire", "fire_protection"}, {"protection", "protection"}, {"blast", "blast_protection"},
-						{"projectile", "projectile_protection"}}) {
-					for (int g = 1; g <= 3; g++) {
-						wearMaterial(server, "diamond", k[1] + ":" + g);
-						String spec = "set:" + k[0] + ":" + g;
-						server.runOnServer(sv -> nl.libreria.glint.GlintMod.debugFx(player, spec));
-						ctx.waitTicks(25);
-						ctx.takeScreenshot("fxbody_" + k[0] + "_g" + g);
-					}
+				ctx.getInput().lookAt(0, 12);
+				for (String id : new String[]{"fire_4", "protection_4", "blast_4", "thorns_3", "binding_1"}) {
+					server.runOnServer(sv -> {
+						var box = new net.minecraft.world.phys.AABB(x - 6, y - 1, z + 3, x + 6, y + 3, z + 7);
+						for (var m : sv.overworld().getEntitiesOfClass(net.minecraft.world.entity.LivingEntity.class, box, e -> !(e instanceof ServerPlayer)))
+							nl.libreria.glint.GlintMod.debugBodyAura(m, id);
+					});
+					ctx.waitTicks(20);
+					ctx.takeScreenshot("fxangle_" + id);
 				}
-				String[][] variants = {{"fire", "golden", "fire_protection:4", ""}, {"fire", "netherite", "fire_protection:4", ""},
-						{"protection", "golden", "protection:4", ""}, {"protection", "netherite", "protection:4", ""},
-						{"fire", "diamond", "fire_protection:4", "frost"}, {"fire", "diamond", "fire_protection:4", "soul"}};
-				for (String[] v : variants) {
-					wearMaterial(server, v[1], v[2]);
-					String spec = "set:" + v[0] + ":4:" + v[3] + ":" + v[1];
-					server.runOnServer(sv -> nl.libreria.glint.GlintMod.debugFx(player, spec));
-					ctx.waitTicks(25);
-					ctx.takeScreenshot("fxbody_v_" + v[0] + "_" + v[1] + "_" + (v[3].isEmpty() ? "x" : v[3]));
-				}
+				// crouching mannequins (the pose of a sneaking player)
+				run(server, "execute as @e[type=minecraft:mannequin] run data merge entity @s {pose:\"crouching\"}");
+				server.runOnServer(sv -> {
+					var box = new net.minecraft.world.phys.AABB(x - 6, y - 1, z + 3, x + 6, y + 3, z + 7);
+					for (var m : sv.overworld().getEntitiesOfClass(net.minecraft.world.entity.LivingEntity.class, box, e -> !(e instanceof ServerPlayer)))
+						nl.libreria.glint.GlintMod.debugBodyAura(m, "fire_4");
+				});
+				ctx.waitTicks(20);
+				ctx.takeScreenshot("fxangle_crouch");
+				run(server, "kill @e[type=minecraft:mannequin]");
+				ctx.getInput().lookAt(0, 0);
+				// the player: walking and running from behind, walking towards the camera, sneaking, swinging
 				wearMaterial(server, "diamond", "fire_protection:4");
 				server.runOnServer(sv -> nl.libreria.glint.GlintMod.debugFx(player, "set:fire:4"));
 				camera(ctx, CameraType.THIRD_PERSON_BACK);
-				ctx.waitTicks(25);
-				ctx.takeScreenshot("fxbody_fire_back");
+				ctx.waitTicks(20);
+				ctx.getInput().holdKey(o2 -> o2.keyUp);
+				ctx.waitTicks(8);
+				for (int f = 0; f < 3; f++) {
+					ctx.takeScreenshot("fxmove_walk_back_" + f);
+					ctx.waitTicks(3);
+				}
+				ctx.getInput().holdKey(o2 -> o2.keySprint);
+				ctx.waitTicks(8);
+				ctx.takeScreenshot("fxmove_run_back");
+				ctx.getInput().releaseKey(o2 -> o2.keySprint);
+				ctx.getInput().releaseKey(o2 -> o2.keyUp);
+				ctx.waitTicks(10);
+				camera(ctx, CameraType.THIRD_PERSON_FRONT);
+				ctx.getInput().holdKey(o2 -> o2.keyDown);
+				ctx.waitTicks(8);
+				ctx.takeScreenshot("fxmove_walk_front");
+				ctx.getInput().releaseKey(o2 -> o2.keyDown);
+				ctx.waitTicks(10);
+				ctx.getInput().holdKey(o2 -> o2.keyShift);
+				ctx.waitTicks(10);
+				ctx.takeScreenshot("fxmove_sneak_front");
+				camera(ctx, CameraType.THIRD_PERSON_BACK);
+				ctx.waitTicks(10);
+				ctx.takeScreenshot("fxmove_sneak_back");
+				ctx.getInput().releaseKey(o2 -> o2.keyShift);
+				camera(ctx, CameraType.THIRD_PERSON_FRONT);
+				ctx.waitTicks(10);
+				ctx.getInput().pressKey(o2 -> o2.keyAttack);
+				ctx.waitTicks(2);
+				ctx.takeScreenshot("fxmove_swing");
 				camera(ctx, CameraType.FIRST_PERSON);
 				ctx.getInput().lookAt(0, 40);
-				ctx.waitTicks(25);
-				ctx.takeScreenshot("fxbody_fire_first");
+				ctx.waitTicks(10);
+				ctx.takeScreenshot("fxmove_first");
 				ctx.getInput().lookAt(0, 0);
-				run(server, "time set noon");
-				camera(ctx, CameraType.THIRD_PERSON_FRONT);
-				for (String[] k : new String[][]{{"fire", "fire_protection:4"}, {"protection", "protection:4"}}) {
-					wearMaterial(server, "diamond", k[1]);
-					String spec = "set:" + k[0] + ":4";
-					server.runOnServer(sv -> nl.libreria.glint.GlintMod.debugFx(player, spec));
-					ctx.waitTicks(25);
-					ctx.takeScreenshot("fxbody_" + k[0] + "_day");
-				}
 				server.runOnServer(sv -> nl.libreria.glint.GlintMod.debugFx(player, "off"));
 				server.runOnServer(sv -> nl.libreria.glint.GlintMod.AURA_THIRD.set(player, true));
 				run(server, "clear @a");
-				camera(ctx, CameraType.FIRST_PERSON);
 				ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.FULL));
 			});
 			// Your own armour's particles in third person: a set (one orbit), and ordinary Protection armour

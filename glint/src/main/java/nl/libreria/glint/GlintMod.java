@@ -119,6 +119,7 @@ public final class GlintMod implements ModInitializer {
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
 			if (server.getTickCount() % Aura.RUN == 0) Aura.tick(server);
 			Fx.tick(server);
+			BodyAura.tick(server);
 		});
 
 		GlintTests.register();
@@ -151,6 +152,11 @@ public final class GlintMod implements ModInitializer {
 		if (spec.startsWith("hit:")) Fx.hit(p, spec.substring(4));
 		else if (spec.startsWith("smite_style:")) Fx.smiteStyle = spec.substring("smite_style:".length());
 		else Fx.set(p, spec);
+	}
+
+	/** Proof of concept: a set's aura on anything that looks like a player (a mannequin), "fire_4", or null to take it off. */
+	public static void debugBodyAura(net.minecraft.world.entity.LivingEntity e, String id) {
+		BodyAura.wear(e, id);
 	}
 
 	public static @org.jetbrains.annotations.Nullable net.minecraft.core.BlockPos debugFxLight(ServerPlayer p) {

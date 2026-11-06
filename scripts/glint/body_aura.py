@@ -26,15 +26,39 @@ X0, X1, Y0, Y1 = -8, 24, -12, 36
 W, H = (X1 - X0) * RES, (Y1 - Y0) * RES
 
 
-def outline():
-    """The outline the aura grows from, front on: head, chest with arms, legs. A pixel inside the armour's own edge, so
-    the brightest part of the aura stays hidden behind you and what shows is the flame (or light) round you, not a
-    rim; that also closes the gap when your arms swing in."""
-    boxes = [(4, 0, 12, 8), (1, 8, 15, 20), (4, 20, 12, 32)]
-    return [(x, y) for (a, b, c, d) in boxes for y in range(b, d) for x in range(a, c)]
+# The worn outline per view (skin pixels, armour standing a little proud), as boxes: head, chest with arms, legs.
+VIEWS = {
+    'front': [(3, -1, 13, 9), (-1, 7, 17, 21), (3, 20, 13, 33)],
+    'quarter': [(1, -1, 15, 9), (0, 7, 16, 21), (3, 20, 13, 33)],
+    'side': [(3, -1, 13, 9), (5, 7, 11, 21), (5, 20, 11, 33)],
+    'crouch_front': [(3, 3, 13, 13), (-1, 10, 17, 23), (3, 21, 13, 33)],
+    'crouch_side': [(6, 3, 16, 13), (4, 10, 13, 23), (4, 21, 11, 33)],
+    'crouch_side_m': [(0, 3, 10, 13), (3, 10, 12, 23), (5, 21, 12, 33)],
+}
+INSET = 2
 
 
-SIL = outline()
+def boxes_px(boxes, inset=0):
+    out = set()
+    for a, b, c, d in boxes:
+        a, b, c, d = a + inset, b + inset, c - inset, d - inset
+        if c <= a:
+            a, c = (a + c) // 2, (a + c) // 2 + 1
+        if d <= b:
+            b, d = (b + d) // 2, (b + d) // 2 + 1
+        out |= {(x, y) for y in range(b, d) for x in range(a, c)}
+    return sorted(out)
+
+
+VIEW = 'front'
+SIL = boxes_px(VIEWS[VIEW])
+CORE = boxes_px(VIEWS[VIEW], INSET)
+
+
+def set_view(view):
+    """Everything after this is drawn for that view: the outline, and the core the aura fills from."""
+    global VIEW, SIL, CORE, SOLID
+    VIEW, SIL, CORE, SOLID = view, boxes_px(VIEWS[view]), boxes_px(VIEWS[view], INSET), None
 
 
 def grid():
@@ -66,11 +90,17 @@ SOLID = None
 
 
 def tongues(src, reach, *, up, down, seed, sx, sy, speed, base, cut, power, stops, sway=0.0, warp=0.35, sideways=0.0):
-    """Like the weapons' aura: reach following scrolling noise, so the width changes per piece and over time."""
+    """Like the weapons' aura: reach following scrolling noise, so the width changes per piece and over time. It grows
+    from the core of the body (src: the outline's pixels it starts at, moved in to the core), so it is filled all the
+    way in: your body hides the middle, and wherever your body isn't (an arm swinging in, turned a little) it reaches
+    right up to you, never a gap or a rim. Inside the outline it is held at a mid colour, so what shows there is glow,
+    not a white edge."""
     global SOLID
     if SOLID is None:
         SOLID = inside(SIL)
-    d = distance(src, up=up, down=down)
+    core = set(CORE)
+    srcs = [p for p in core if any(abs(p[0] - q[0]) + abs(p[1] - q[1]) <= INSET + 1 for q in src)] or list(core)
+    d = distance(srcs, up=up, down=down)
     u, v = grid()
     nz, nz2 = Noise(seed, w=96), Noise(seed + 1, w=96)
     frames = []
@@ -79,11 +109,12 @@ def tongues(src, reach, *, up, down, seed, sx, sy, speed, base, cut, power, stop
         w = warp * nz2(u * 0.3, v * 0.3 + s * 0.5)
         n = nz.fbm(u * sx + w + sway * math.sin(f / N * 6.283) + sideways * s, v * sy + s * (1 - abs(sideways)))
         t = np.clip((n - cut) / (1 - cut), 0, 1) ** power
-        rr = reach * (base + (1.6 - base) * t)
+        # always at least out to the outline (INSET from the core), then the reach on top of that
+        rr = INSET + reach * (base + (1.6 - base) * t)
         i = 1 - d / np.maximum(rr, 1e-3)
+        i = np.where(SOLID, np.minimum(i, 0.5), i)
         a = ramp(np.clip(i, 0, 1), stops)
         a[~(d < rr)] = 0
-        a[SOLID] = 0
         frames.append(a)
     return frames
 
@@ -128,9 +159,10 @@ def edge_of(pixels):
     return [p for p in pixels if any((p[0] + dx, p[1] + dy) not in s for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)))]
 
 
-def body(kind, g, material='diamond', feet=None):
+def body(kind, g, material='diamond', feet=None, view='front'):
     """One aura: kind (fire, protection, blast, projectile, thorns, mending, binding, vanishing), grade, the armour's
-    material (a tint), and what the boots do at the feet (frost, soul)."""
+    material (a tint), what the boots do at the feet (frost, soul), and the view (front, quarter, side, crouching)."""
+    set_view(view)
     edge = edge_of(SIL)
     rng = np.random.default_rng(3)
     if kind == 'fire':
@@ -164,7 +196,9 @@ def body(kind, g, material='diamond', feet=None):
         if g >= 3:
             glyphs = [[(0, 0), (1, 0), (2, 0), (1, 1), (1, 2)], [(0, 0), (0, 1), (0, 2), (1, 1), (2, 0), (2, 2)],
                       [(1, 0), (0, 1), (2, 1), (1, 2)], [(0, 0), (2, 0), (1, 1), (0, 2), (2, 2)]]
-            spots = [(-4.5 if k % 2 else 18.5, 28 - k * 3) for k in range(2 * g)]
+            left = min(p[0] for p in SIL) - 3.5
+            right = max(p[0] for p in SIL) + 2.5
+            spots = [(left if k % 2 else right, 28 - k * 3) for k in range(2 * g)]
             for f, a in enumerate(frames):
                 for k, (x0, y0) in enumerate(spots):
                     ph = (f / N + k * 0.29) % 1
@@ -274,5 +308,6 @@ def name_of(kind, g, material, feet):
 
 if __name__ == '__main__':
     for k, g, m, f in WANT:
-        write(name_of(k, g, m, f), body(k, g, m, f))
-    print(len(WANT), 'body auras')
+        for view in VIEWS:
+            write(name_of(k, g, m, f) + '__' + view, body(k, g, m, f, view))
+    print(len(WANT), 'body auras x', len(VIEWS), 'views')
