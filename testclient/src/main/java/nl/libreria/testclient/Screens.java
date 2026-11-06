@@ -94,8 +94,8 @@ public final class Screens implements FabricClientGameTest {
 				run(server, "time set midnight");
 				ctx.getInput().lookAt(0, 0);
 				camera(ctx, CameraType.THIRD_PERSON_FRONT);
-				// No HUD in these: just the world
-				ctx.runOnClient(mc -> mc.options.hideGui = true);
+				// No chat in these: just the world
+				ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.HIDDEN));
 				for (String[] kit : kits) {
 					int max = Integer.parseInt(kit[3]);
 					for (int g = 1; g <= max; g++) {
@@ -135,7 +135,7 @@ public final class Screens implements FabricClientGameTest {
 					}
 				}
 				run(server, "time set noon", "item replace entity @a weapon.mainhand with minecraft:air");
-				ctx.runOnClient(mc -> mc.options.hideGui = false);
+				ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.FULL));
 				camera(ctx, CameraType.FIRST_PERSON);
 			});
 			// Your own armour's particles in third person: a set (one orbit), and ordinary Protection armour
