@@ -475,7 +475,7 @@ final class Fx {
 		Vec3 right = new Vec3(-Mth.cos(yaw), 0, -Mth.sin(yaw));
 		Vec3 up = right.cross(fwd).normalize();
 		Vec3 eye = new Vec3(0, p.getEyeHeight(), 0);
-		return eye.add(fwd.scale(0.62 + 0.3 * t)).add(right.scale(0.44 - 0.26 * t)).add(up.scale(-0.44 + 0.4 * t));
+		return eye.add(fwd.scale(0.72 + 0.2 * t)).add(right.scale(0.74 - 0.1 * t)).add(up.scale(-0.5 + 0.8 * t));
 	}
 
 	private static void blade(ServerPlayer p, Wearer w, int tick, int g, List<P> out, java.util.function.DoubleFunction<Vec3> at, float k) {
@@ -728,7 +728,7 @@ final class Fx {
 					Vec3 tip = shoulder.add(look.scale(Math.cos(a) * 1.05)).add(0, Math.sin(a) * 0.9, 0).add(side.scale(-0.35 + s0 * 0.6));
 					float sz = 0.2f + f * 0.16f;
 					arc.add(new P(spark, k % 2 == 0 ? 0xFFFFFF : c, 1, sweepStates(base.add(tip), look, k, n, sz), null));
-					Vec3 fp = eye.add(fwd.scale(0.85)).add(rightV.scale(0.42 - 0.72 * s0)).add(upV.scale(0.26 - 0.56 * s0));
+					Vec3 fp = eye.add(fwd.scale(0.85)).add(rightV.scale(0.7 - 0.62 * s0)).add(upV.scale(0.3 - 0.6 * s0));
 					arcFp.add(new P(spark, k % 2 == 0 ? 0xFFFFFF : c, 1, sweepStates(fp, fwd.scale(0.4), k, n, sz * 0.5f), null));
 				}
 				List<ServerPlayer> others = new ArrayList<>(viewers);
@@ -887,7 +887,7 @@ final class Fx {
 	}
 
 	/** Which way Smite lands (proof of concept: to compare). */
-	static String smiteStyle = "beam";
+	static String smiteStyle = "sunburst";
 
 	/**
 	 * Where Smite lands. "beam": a ring on the ground and, at V, a shaft of light. "halo": a soft ring of light round

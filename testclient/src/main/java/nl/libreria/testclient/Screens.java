@@ -84,7 +84,7 @@ public final class Screens implements FabricClientGameTest {
 				ctx.getInput().lookAt(0, 0);
 				ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.HIDDEN));
 				run(server, "time set midnight");
-				server.runOnServer(s -> nl.libreria.glint.GlintMod.debugFx(player, "smite_style:glow"));
+				server.runOnServer(s -> nl.libreria.glint.GlintMod.debugFx(player, "smite_style:sunburst"));
 				String[][] swords = {{"sharp", "3"}, {"sharp", "5"}, {"fire", "2"}, {"smite", "5"}, {"bane", "5"}};
 				for (String[] sw : swords) {
 					run(server, "item replace entity @a weapon.mainhand with minecraft:diamond_sword[item_model=\"libreria:fx/sword_" + sw[0] + "_" + sw[1] + "\"]");
