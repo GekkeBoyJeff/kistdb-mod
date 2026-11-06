@@ -27,8 +27,10 @@ W, H = (X1 - X0) * RES, (Y1 - Y0) * RES
 
 
 def outline():
-    """The worn outline, front on: helmet, chest with arms, leggings, boots (armour stands a little proud)."""
-    boxes = [(3, -1, 13, 9), (-1, 7, 17, 21), (3, 20, 13, 33)]
+    """The outline the aura grows from, front on: head, chest with arms, legs. A pixel inside the armour's own edge, so
+    the brightest part of the aura stays hidden behind you and what shows is the flame (or light) round you, not a
+    rim; that also closes the gap when your arms swing in."""
+    boxes = [(4, 0, 12, 8), (1, 8, 15, 20), (4, 20, 12, 32)]
     return [(x, y) for (a, b, c, d) in boxes for y in range(b, d) for x in range(a, c)]
 
 
