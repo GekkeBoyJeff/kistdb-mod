@@ -509,6 +509,26 @@ public final class Screens implements FabricClientGameTest {
 				ctx.takeScreenshot("trophy_nameplate");
 				camera(ctx, CameraType.FIRST_PERSON);
 			});
+			// Picking a grade: four of the mining ladder earned, wearing the second
+			safe("grades", () -> {
+				server.runOnServer(s -> {
+					var cd = nl.libreria.collector.CollectorMod.STORE.get(player);
+					long at = System.currentTimeMillis();
+					for (String id : new String[] {"mijn.1000", "mijn.10000", "mijn.50000", "mijn.200000"}) cd.earned.putIfAbsent(id, at);
+					nl.libreria.collector.CollectorMod.setTitle(player, "mijn.10000");
+					var first = nl.libreria.collector.Catalog.get("mijn.1000");
+					if (first != null) nl.libreria.collector.gui.GradesWindow.open(player, nl.libreria.collector.Catalog.ladder(first), "Mining", q -> {
+					});
+				});
+				ctx.waitTicks(12);
+				double scale = ctx.computeOnClient(mc -> (double) mc.getWindow().getGuiScale());
+				int w = ctx.computeOnClient(mc -> mc.getWindow().getGuiScaledWidth());
+				int h = ctx.computeOnClient(mc -> mc.getWindow().getGuiScaledHeight());
+				ctx.getInput().setCursorPos(((w - 176) / 2 + 100) * scale, ((h - 222) / 2 + 18 + 18 * 3 + 8) * scale);
+				ctx.waitTicks(4);
+				ctx.takeScreenshot("grades_window");
+				close(ctx, server, player);
+			});
 			// Looking at someone up close: where the card about them is now
 			safe("look_close", () -> {
 				run(server, f("tp @a %d %d %d 0 0", x, y, z), "kill @e[type=minecraft:villager]",
