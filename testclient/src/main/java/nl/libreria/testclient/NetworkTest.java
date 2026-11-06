@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory;
  */
 public final class NetworkTest implements FabricClientGameTest {
 	private static final Logger LOG = LoggerFactory.getLogger("Libreria network test");
-	private static boolean acceptPack;
+	private static boolean acceptPack, accepting;
 
 	@Override
 	public void runTest(ClientGameTestContext ctx) {
@@ -50,8 +50,10 @@ public final class NetworkTest implements FabricClientGameTest {
 	 * Like a player would: "Yes" to the server's resource pack (Polymer's), so the client downloads and applies it.
 	 * Without this the client waits on that question and never gets into the world.
 	 */
-	private static void acceptServerPack() {
+	static void acceptServerPack() {
 		acceptPack = true;
+		if (accepting) return;
+		accepting = true;
 		ScreenEvents.AFTER_INIT.register((mc, screen, w, h) -> {
 			if (!acceptPack || !(screen instanceof ConfirmScreen) || !screen.getClass().getName().contains("Pack")) return;
 			mc.execute(() -> {
@@ -70,6 +72,11 @@ public final class NetworkTest implements FabricClientGameTest {
 				}
 			});
 		});
+	}
+
+	/** No more "Yes" to resource packs (after {@link Screens}' glass round in singleplayer). */
+	static void stopAccepting() {
+		acceptPack = false;
 	}
 
 	/** Called after every step: is the client still connected? */

@@ -2,7 +2,7 @@
 
 Everyone: glass, tinted glass, the 16 stained glasses and their panes get a texture without a frame, so a wall of glass
 reads as one window instead of a grid. The colour and see-through-ness come from vanilla (its most common inner and
-border colours); the pixels are our own: a flat fill and a few soft glints. Only the placed blocks change (the block
+border colours); the pixels are our own: a flat fill and a few soft glints, in three looks a block picks at random. Only the placed blocks change (the block
 models point at the new textures): the items in your inventory and the break particles keep the vanilla look.
 
 With OptiFine or Continuity (Iris users usually have Continuity): real connected textures in OptiFine's format
@@ -11,7 +11,9 @@ textures, so with the setting off (the off-pack puts the vanilla block models ba
 
 Called from generate.py (which wipes glint/off first); writes:
   assets/minecraft/textures/block/libreria_<glass>.png
+  assets/minecraft/blockstates/<glass>.json                             (three looks, at random per block)
   assets/minecraft/models/block/<glass>.json, <glass>_pane_*.json        (the placed blocks)
+  assets/libreria/models/block/glass/                                    (the other looks, panes' templates)
   assets/libreria/models/block/glass_item/<glass>.json                  (vanilla look for the item)
   assets/minecraft/optifine/ctm/libreria/<glass>/                        (47 tiles + properties)
   glint/off/glass.zip                                                    (the vanilla block models)
@@ -28,8 +30,16 @@ COLOURS = ['white', 'orange', 'magenta', 'light_blue', 'yellow', 'lime', 'pink',
            'blue', 'brown', 'green', 'red', 'black']
 GLASSES = ['glass', 'tinted_glass'] + [f'{c}_stained_glass' for c in COLOURS]
 PANE_PARTS = ['noside', 'noside_alt', 'post', 'side', 'side_alt']
-# Two soft glints top left, one bottom right: k 0 is the bright one, k 1 the soft one
-GLINT = [((3, 3), 0), ((4, 2), 0), ((2, 4), 1), ((5, 1), 1), ((11, 13), 0), ((12, 12), 1), ((10, 14), 1)]
+# The glints, k 0 the bright pixels, k 1 the soft ones, all leaning the same way. Each placed block picks one of the
+# looks at random (the block state's weighted variants), so a wall doesn't repeat one pattern like rain:
+#   a: two short glints, top left and bottom right    b: one longer glint across the middle    c: none
+GLINTS = {
+    'a': [((3, 3), 0), ((4, 2), 0), ((2, 4), 1), ((5, 1), 1), ((11, 13), 0), ((12, 12), 1), ((10, 14), 1)],
+    'b': [((6, 10), 1), ((7, 9), 0), ((8, 8), 0), ((9, 7), 0), ((10, 6), 1)],
+    'c': [],
+}
+WEIGHTS = {'a': 3, 'b': 3, 'c': 4}
+GLINT = GLINTS['a']
 
 # Continuity's table (the same as OptiFine's template): connection bits -> tile. Bits, as seen on the face:
 #   128 64  32
@@ -57,8 +67,8 @@ SPRITE_INDEX_MAP = [
 LEFT, DOWN_LEFT, DOWN, DOWN_RIGHT, RIGHT, UP_RIGHT, UP, UP_LEFT = 1, 2, 4, 8, 16, 32, 64, 128
 
 
-def tex(name):
-    return f'libreria_{name}'
+def tex(name, look='a'):
+    return f'libreria_{name}' + ('' if look == 'a' else '_' + look)
 
 
 class Palette:
@@ -84,9 +94,9 @@ class Palette:
             self.glints = [hi, self.inner[:3] + ((self.inner[3] + hi[3]) // 2,)]
 
 
-def seamless(p):
+def seamless(p, look='a'):
     out = Image.new('RGBA', (16, 16), p.inner)
-    for (x, y), k in GLINT:
+    for (x, y), k in GLINTS[look]:
         out.putpixel((x, y), p.glints[k])
     return out
 
@@ -141,14 +151,43 @@ def sprite(s):
     return {'force_translucent': True, 'sprite': s}
 
 
+def cube(g, look):
+    return {'parent': 'minecraft:block/cube_all',
+            'textures': {'all': sprite(f'minecraft:block/{tex(g, look)}'), 'particle': f'minecraft:block/{g}'}}
+
+
+def look_model(g, look):
+    return f'minecraft:block/{g}' if look == 'a' else f'libreria:block/glass/{g}_{look}'
+
+
+def pane_templates(vanilla):
+    """Vanilla's pane templates, with the top and bottom of the post and arms culled against the same pane above or
+    below (the game skips those faces between two panes of one kind): no thin line at every block in a seamless wall
+    of panes."""
+    out = {}
+    for part in ('post', 'side', 'side_alt'):
+        t = json.load(open(os.path.join(vanilla, f'models/block/template_glass_pane_{part}.json')))
+        for el in t['elements']:
+            for d in ('up', 'down'):
+                if d in el['faces']:
+                    el['faces'][d]['cullface'] = d
+        out[f'assets/libreria/models/block/glass/template_glass_pane_{part}.json'] = t
+    return out
+
+
 def block_models(vanilla):
-    """Our placed-block models (path -> json) and the vanilla ones they replace (for the off-pack)."""
-    ours, theirs = {}, {}
+    """Our block states and models (path -> json), and the vanilla ones they replace (for the off-pack)."""
+    ours, theirs = dict(pane_templates(vanilla)), {}
     for g in GLASSES:
         path = f'assets/minecraft/models/block/{g}.json'
         theirs[path] = json.load(open(os.path.join(vanilla, f'models/block/{g}.json')))
-        ours[path] = {'parent': 'minecraft:block/cube_all',
-                      'textures': {'all': sprite(f'minecraft:block/{tex(g)}'), 'particle': f'minecraft:block/{g}'}}
+        ours[path] = cube(g, 'a')
+        for look in GLINTS:
+            if look != 'a':
+                ours[f'assets/libreria/models/block/glass/{g}_{look}.json'] = cube(g, look)
+        state = f'assets/minecraft/blockstates/{g}.json'
+        theirs[state] = {'variants': {'': {'model': f'minecraft:block/{g}'}}}
+        ours[state] = {'variants': {'': [{'model': look_model(g, look), 'weight': w} for look, w in WEIGHTS.items()]}}
         if g == 'tinted_glass':
             continue
         for part in PANE_PARTS:
@@ -158,6 +197,8 @@ def block_models(vanilla):
             mine = json.loads(json.dumps(van))
             mine['textures']['pane'] = sprite(f'minecraft:block/{tex(g)}')
             mine['textures']['particle'] = f'minecraft:block/{g}'
+            if part in ('post', 'side', 'side_alt'):
+                mine['parent'] = f'libreria:block/glass/template_glass_pane_{part}'
             ours[path] = mine
     return ours, theirs
 
@@ -178,7 +219,8 @@ def swap_items(node):
 
 
 def ctm_properties(glass, block, pane):
-    lines = ['method=ctm', f'matchTiles={tex(glass)}', f'matchBlocks={block}', 'tiles=0-46']
+    names = tex(glass) if pane else ' '.join(tex(glass, look) for look in GLINTS)
+    lines = ['method=ctm', f'matchTiles={names}', f'matchBlocks={block}', 'tiles=0-46']
     if pane:
         lines.append('faces=sides')
     lines.append('connect=block')
@@ -187,7 +229,7 @@ def ctm_properties(glass, block, pane):
 
 def build(vanilla, out, pack_format):
     assets = os.path.join(out, 'assets')
-    for sub in ('minecraft/optifine/ctm/libreria', 'libreria/models/block/glass_item'):
+    for sub in ('minecraft/optifine/ctm/libreria', 'libreria/models/block/glass_item', 'libreria/models/block/glass'):
         shutil.rmtree(os.path.join(assets, sub), ignore_errors=True)
     tex_dir = os.path.join(assets, 'minecraft/textures/block')
     if os.path.isdir(tex_dir):
@@ -198,10 +240,11 @@ def build(vanilla, out, pack_format):
 
     for g in GLASSES:
         p = Palette(vanilla, g)
-        seamless(p).save(os.path.join(tex_dir, tex(g) + '.png'), optimize=True)
-        mcmeta = os.path.join(vanilla, f'textures/block/{g}.png.mcmeta')
-        if os.path.exists(mcmeta):
-            shutil.copyfile(mcmeta, os.path.join(tex_dir, tex(g) + '.png.mcmeta'))
+        for look in GLINTS:
+            seamless(p, look).save(os.path.join(tex_dir, tex(g, look) + '.png'), optimize=True)
+            mcmeta = os.path.join(vanilla, f'textures/block/{g}.png.mcmeta')
+            if os.path.exists(mcmeta):
+                shutil.copyfile(mcmeta, os.path.join(tex_dir, tex(g, look) + '.png.mcmeta'))
         d = os.path.join(assets, 'minecraft/optifine/ctm/libreria', g)
         os.makedirs(d, exist_ok=True)
         for i, img in enumerate(tiles(p)):

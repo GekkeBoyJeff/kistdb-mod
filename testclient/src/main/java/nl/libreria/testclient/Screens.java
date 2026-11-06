@@ -230,11 +230,19 @@ public final class Screens implements FabricClientGameTest {
 						f("fill %d %d %d %d %d %d minecraft:tinted_glass", x + 5, y, z + 6, x + 6, y + 3, z + 6));
 				ctx.waitTicks(30);
 				ctx.takeScreenshot("glass_seamless");
+				ctx.getInput().lookAt(-25, 20);
+				ctx.waitTicks(5);
+				ctx.takeScreenshot("glass_seamless_angle");
+				ctx.getInput().lookAt(0, 8);
+				// switching it off sends the off-pack: "Yes" to it, like a player (the network walk already says yes)
+				boolean here = network == null;
+				if (here) NetworkTest.acceptServerPack();
 				server.runOnServer(sv -> nl.libreria.glint.GlintMod.GLASS.set(player, false));
-				ctx.waitTicks(160);
+				ctx.waitTicks(200);
 				ctx.takeScreenshot("glass_off");
 				server.runOnServer(sv -> nl.libreria.glint.GlintMod.GLASS.set(player, true));
-				ctx.waitTicks(60);
+				ctx.waitTicks(100);
+				if (here) NetworkTest.stopAccepting();
 				run(server, f("fill %d %d %d %d %d %d minecraft:air", x - 6, y, z + 6, x + 6, y + 3, z + 6));
 				ctx.getInput().lookAt(0, 0);
 				ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.FULL));
