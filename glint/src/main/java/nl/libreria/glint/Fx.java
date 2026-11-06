@@ -592,7 +592,7 @@ final class Fx {
 
 	private static void pillar(ServerLevel level, Vec3 at, List<ServerPlayer> viewers) {
 		ElementHolder h = new ElementHolder();
-		BlockDisplayElement e = new BlockDisplayElement(Blocks.YELLOW_STAINED_GLASS.defaultBlockState());
+		BlockDisplayElement e = new BlockDisplayElement(nl.libreria.core.Ui.block("yellow_stained_glass"));
 		e.setBrightness(new Brightness(15, 15));
 		e.setViewRange(0.8f);
 		e.setScale(new Vector3f(0.05f, 0.2f, 0.05f));
