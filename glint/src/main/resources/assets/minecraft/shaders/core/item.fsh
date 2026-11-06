@@ -79,7 +79,9 @@ vec4 calculateFinalColor(vec4 color, bool lit, bool glint) {
 
 void main() {
     vec4 color = texture(Sampler0, texCoord0);
-    int libreriaCode = int(color.a * 255.0 + 0.5);
+    // Libreria: read the mark from the texel itself (level 0, unfiltered): a blended or mipmapped sample mixes alphas
+    // and would lose it, so a particle would fade out in one pixel and not the next
+    int libreriaCode = int(texelFetch(Sampler0, ivec2(texCoord0 * vec2(textureSize(Sampler0, 0))), 0).a * 255.0 + 0.5);
     bool libreriaFx = libreriaCode >= 249 && libreriaCode <= 254;
     // Libreria, two more marks in the alpha (both see-through, so never a vanilla item's solid pixel):
     // 1 (mod 16): a sword's aura. Lit by itself (no lightmap, no shading), and no enchantment glint: the aura is the effect.
