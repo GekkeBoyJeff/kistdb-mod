@@ -2,6 +2,7 @@ package nl.libreria.glint;
 
 import eu.pb4.polymer.virtualentity.api.ElementHolder;
 import eu.pb4.polymer.virtualentity.api.attachment.ManualAttachment;
+import eu.pb4.polymer.virtualentity.api.elements.BlockDisplayElement;
 import eu.pb4.polymer.virtualentity.api.elements.ItemDisplayElement;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,27 +35,46 @@ import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 /**
- * Proof of concept: particles and light of our own, server-side.
+ * Proof of concept: particles and light of our own, server-side, per effect and per grade.
  *
  * <p>Particles: soft glowing sprites from the pack (white, coloured per particle) on item displays. The client moves
- * them (teleport interpolation), shrinks and turns them (transformation interpolation) by itself: one packet to
- * start, one to set where it goes, one to remove it. They always face you and are lit by themselves.
+ * them (teleport interpolation), shrinks and turns them (transformation interpolation) by itself: a packet to start,
+ * one per step, one to remove it. They face you and are lit by themselves.
  *
- * <p>Light: a light block that only the players nearby are told about, where the wearer's head is. The client's own
- * lighting does the rest, so the ground and walls around you really light up. The world itself is never changed.
+ * <p>Light: a light block that only the players nearby are told about. The client's own lighting does the rest, so the
+ * ground and walls around you really light up. The world itself is never changed.
+ *
+ * <p>Each effect has its own motif, and the grade decides how much of it there is: grade I a hint, the highest grade a
+ * signature of its own (a rune circle under you, flames round your ankles, snow falling around you, a pillar of light).
  */
 final class Fx {
 	private static final RandomSource R = RandomSource.create();
 
-	/** One particle: a sprite and colour, from a spot (relative to the burst) to another, growing or shrinking, turning. */
-	record P(String sprite, int rgb, Vec3 from, Vec3 to, float s0, float s1, float r0, float r1, int ticks, @Nullable Quaternionf base) {
-		P(String sprite, int rgb, Vec3 from, Vec3 to, float s0, float s1, float r0, float r1, int ticks) {
-			this(sprite, rgb, from, to, s0, s1, r0, r1, ticks, null);
-		}
+	// ---------------------------------------------------------------- particles
 
+	/** A state of a particle: where (relative to its burst), how big, turned how far. */
+	record S(Vec3 pos, float scale, float rot) {
+	}
+
+	/** A particle: a sprite and colour going through states, {@code step} ticks apart. */
+	record P(String sprite, int rgb, int step, List<S> states, @Nullable Quaternionf base) {
 		Quaternionf turn(float r) {
 			return (base == null ? new Quaternionf() : new Quaternionf(base)).rotateZ(r);
 		}
+
+		int life() {
+			return step * (states.size() - 1);
+		}
+	}
+
+	static P line(String sprite, int rgb, Vec3 from, Vec3 to, float s0, float s1, float r0, float r1, int ticks) {
+		return new P(sprite, rgb, ticks, List.of(new S(from, s0, r0), new S(to, s1, r1)), null);
+	}
+
+	/** Appears, flares up and goes out where it is (a sparkle). */
+	static P pop(String sprite, int rgb, Vec3 at, float peak, int ticks, float spin) {
+		int h = Math.max(1, ticks / 2);
+		return new P(sprite, rgb, h, List.of(new S(at, 0.01f, 0), new S(at, peak, spin * 0.5f), new S(at, 0.01f, spin)), null);
 	}
 
 	private static final class Burst {
@@ -74,70 +94,83 @@ final class Fx {
 		return s;
 	}
 
-	/** Shows a few particles around a spot to everyone who can see it. */
+	private static ItemDisplayElement element(String sprite, int rgb, boolean fixed) {
+		ItemDisplayElement e = new ItemDisplayElement(sprite(sprite, rgb));
+		e.setItemDisplayContext(ItemDisplayContext.FIXED);
+		e.setBillboardMode(fixed ? Display.BillboardConstraints.FIXED : Display.BillboardConstraints.CENTER);
+		e.setBrightness(new Brightness(15, 15));
+		e.setViewRange(0.6f);
+		return e;
+	}
+
+	/** Shows particles around a spot to everyone who can see it. */
 	static void emit(ServerLevel level, Vec3 at, List<ServerPlayer> viewers, List<P> ps) {
 		if (ps.isEmpty() || viewers.isEmpty()) return;
 		Burst b = new Burst();
 		for (P p : ps) {
-			ItemDisplayElement e = new ItemDisplayElement(sprite(p.sprite(), p.rgb()));
-			e.setItemDisplayContext(ItemDisplayContext.FIXED);
-			e.setBillboardMode(p.base() == null ? Display.BillboardConstraints.CENTER : Display.BillboardConstraints.FIXED);
-			e.setBrightness(new Brightness(15, 15));
-			e.setViewRange(0.6f);
-			e.setOffset(p.from());
-			e.setScale(new Vector3f(p.s0()));
-			e.setLeftRotation(p.turn(p.r0()));
-			e.setTeleportDuration(Math.min(59, p.ticks()));
-			e.setInterpolationDuration(p.ticks());
+			S s0 = p.states().getFirst();
+			ItemDisplayElement e = element(p.sprite(), p.rgb(), p.base() != null);
+			e.setOffset(s0.pos());
+			e.setScale(new Vector3f(s0.scale()));
+			e.setLeftRotation(p.turn(s0.rot()));
+			e.setTeleportDuration(Math.min(59, p.step()));
+			e.setInterpolationDuration(p.step());
 			b.holder.addElement(e);
 			b.els.add(e);
 			b.ps.add(p);
-			b.life = Math.max(b.life, p.ticks() + 2);
+			b.life = Math.max(b.life, p.life() + 2);
 		}
 		new ManualAttachment(b.holder, level, () -> at);
 		for (ServerPlayer v : viewers) b.holder.startWatching(v);
 		LIVE.add(b);
 	}
 
-	// ---------------------------------------------------------------- what someone wears (for the proof of concept)
+	// ---------------------------------------------------------------- what someone wears or swings
 
-	/** Per player: which look, and where their light is. */
+	/** Things that stay on a wearer: a ring of sprites around them, a circle on the ground, flames at the feet. */
+	private static final class Ring {
+		final ElementHolder holder = new ElementHolder();
+		final List<ItemDisplayElement> els = new ArrayList<>();
+	}
+
 	private static final class Wearer {
 		String kind;
+		int grade;
 		@Nullable BlockPos light;
 		int lightLevel;
-		@Nullable ElementHolder ring;
-		final List<ItemDisplayElement> runes = new ArrayList<>();
-		int slash = -1;
+		final Map<String, Ring> rings = new HashMap<>();
 	}
 
 	private static final Map<UUID, Wearer> WEARERS = new HashMap<>();
 
-	static void set(ServerPlayer p, String kind) {
+	/** "aegis:3", "ember:4", … or "off". */
+	static void set(ServerPlayer p, String spec) {
 		Wearer w = WEARERS.remove(p.getUUID());
 		if (w != null) clear(p, w);
-		if (kind.equals("off")) return;
+		if (spec.equals("off")) return;
+		String[] parts = spec.split(":");
 		w = new Wearer();
-		w.kind = kind;
-		w.lightLevel = switch (kind) {
-			case "fire" -> 13;
-			case "soul" -> 10;
-			case "frost" -> 7;
-			case "runes" -> 8;
-			default -> 0;
-		};
+		w.kind = parts[0];
+		w.grade = parts.length > 1 ? Integer.parseInt(parts[1]) : 1;
+		w.lightLevel = lightFor(w.kind, w.grade);
 		WEARERS.put(p.getUUID(), w);
 	}
 
-	/** A fiery slash in front of the player (what a Fire Aspect sword could do on a hit). */
-	static void slash(ServerPlayer p) {
-		Wearer w = WEARERS.get(p.getUUID());
-		if (w != null) w.slash = 0;
+	private static int lightFor(String kind, int g) {
+		return switch (kind) {
+			case "ember" -> new int[]{0, 0, 7, 10, 13}[g];
+			case "soul" -> new int[]{0, 0, 5, 8, 11}[g];
+			case "aegis" -> new int[]{0, 0, 0, 6, 9}[g];
+			case "frost" -> new int[]{0, 0, 0, 4, 7}[g];
+			case "tide" -> new int[]{0, 0, 0, 6, 6}[g];
+			default -> 0;
+		};
 	}
 
 	private static void clear(ServerPlayer p, Wearer w) {
 		if (w.light != null) restoreLight(p, w.light);
-		if (w.ring != null) w.ring.destroy();
+		w.rings.values().forEach(r -> r.holder.destroy());
+		w.rings.clear();
 	}
 
 	static List<ServerPlayer> viewers(ServerPlayer p) {
@@ -159,7 +192,7 @@ final class Fx {
 			var e = it.next();
 			ServerPlayer p = server.getPlayerList().getPlayer(e.getKey());
 			if (p == null) {
-				if (e.getValue().ring != null) e.getValue().ring.destroy();
+				e.getValue().rings.values().forEach(r -> r.holder.destroy());
 				it.remove();
 				continue;
 			}
@@ -168,16 +201,17 @@ final class Fx {
 		for (Iterator<Burst> it = LIVE.iterator(); it.hasNext();) {
 			Burst b = it.next();
 			b.age++;
-			if (b.age == 1) {
-				// a tick after it appeared: where it goes, the client does the rest
-				for (int i = 0; i < b.els.size(); i++) {
-					ItemDisplayElement e = b.els.get(i);
-					P p = b.ps.get(i);
-					e.setOffset(p.to());
-					e.setScale(new Vector3f(p.s1()));
-					e.setLeftRotation(p.turn(p.r1()));
-					e.startInterpolation();
-				}
+			for (int i = 0; i < b.els.size(); i++) {
+				P p = b.ps.get(i);
+				if (b.age < 1 || b.age % p.step() != 0) continue;
+				int k = b.age / p.step();
+				if (k >= p.states().size()) continue;
+				S s = p.states().get(k);
+				ItemDisplayElement e = b.els.get(i);
+				e.setOffset(s.pos());
+				e.setScale(new Vector3f(s.scale()));
+				e.setLeftRotation(p.turn(s.rot()));
+				e.startInterpolation();
 			}
 			b.holder.tick();
 			if (b.age > b.life) {
@@ -185,6 +219,8 @@ final class Fx {
 				it.remove();
 			}
 		}
+		tickFlashes(server);
+		tickPillars();
 	}
 
 	private static int pick(int... colours) {
@@ -193,6 +229,10 @@ final class Fx {
 
 	private static float rnd(float a, float b) {
 		return a + R.nextFloat() * (b - a);
+	}
+
+	private static boolean every(int tick, int n) {
+		return n > 0 && tick % n == 0;
 	}
 
 	/** A spot on the body: around the middle, at a height (0 feet, 1 head). */
@@ -204,123 +244,387 @@ final class Fx {
 	private static void wear(ServerPlayer p, Wearer w, int tick) {
 		ServerLevel level = (ServerLevel) p.level();
 		List<ServerPlayer> viewers = viewers(p);
-		Vec3 at = p.position();
 		List<P> ps = new ArrayList<>();
+		int g = w.grade;
 		switch (w.kind) {
-			case "fire" -> {
-				// Embers that rise off you and burn out, now and then a spark, and a warm haze around you
-				if (R.nextFloat() < 0.55f) {
-					Vec3 from = onBody(p, 0.05f, 0.95f, 0.42f);
-					int t = 16 + R.nextInt(14);
-					ps.add(new P("ember", pick(0xFFE9A8, 0xFFB64A, 0xFF8A2E, 0xFF5A1C), from,
-							from.add(rnd(-0.18f, 0.18f), rnd(0.6f, 1.15f), rnd(-0.18f, 0.18f)), rnd(0.45f, 0.7f), 0.04f, 0, 0, t));
-				}
-				if (tick % 3 == 0) {
-					Vec3 from = onBody(p, 0.2f, 0.9f, 0.36f);
-					ps.add(new P("spark", 0xFFF1C2, from, from.add(rnd(-0.25f, 0.25f), rnd(0.15f, 0.45f), rnd(-0.25f, 0.25f)),
-							rnd(0.35f, 0.5f), 0.0f, 0, rnd(-1.2f, 1.2f), 8 + R.nextInt(5)));
-				}
-				if (tick % 5 == 0) {
-					Vec3 from = new Vec3(rnd(-0.15f, 0.15f), p.getBbHeight() * rnd(0.25f, 0.6f), rnd(-0.15f, 0.15f));
-					ps.add(new P("haze", pick(0xFF9A3C, 0xFF7A2A), from, from.add(0, 0.5, 0), 1.1f, 1.5f, 0, 0, 22));
-				}
-			}
-			case "frost" -> {
-				// Snowflakes that drift down and turn, cold glints on you
-				if (tick % 2 == 0) {
-					Vec3 from = new Vec3(rnd(-0.6f, 0.6f), p.getBbHeight() * rnd(0.85f, 1.25f), rnd(-0.6f, 0.6f));
-					float spin = rnd(-2.2f, 2.2f);
-					ps.add(new P("flake", pick(0xF2FAFF, 0xBFE6FF, 0x8FD0FF), from,
-							from.add(rnd(-0.2f, 0.2f), -rnd(0.9f, 1.4f), rnd(-0.2f, 0.2f)), rnd(0.28f, 0.38f), 0.12f, 0, spin, 30 + R.nextInt(10)));
-				}
-				if (tick % 4 == 1) {
-					Vec3 from = onBody(p, 0.1f, 0.95f, 0.34f);
-					ps.add(new P("spark", 0xCFEFFF, from, from, 0.04f, 0.4f, 0, 0.8f, 6));
-				}
-			}
-			case "soul" -> {
-				// Wisps that rise from your feet and fade, a pale blue haze
-				if (tick % 2 == 0) {
-					double a = R.nextDouble() * Math.PI * 2;
-					Vec3 from = new Vec3(Math.cos(a) * 0.5, 0.05, Math.sin(a) * 0.5);
-					Vec3 to = new Vec3(Math.cos(a + 1.1) * 0.22, p.getBbHeight() * rnd(0.7f, 1.0f), Math.sin(a + 1.1) * 0.22);
-					ps.add(new P("wisp", pick(0x8FF8FF, 0x4FDDF5, 0xB6F2FF), from, to, rnd(0.42f, 0.56f), 0.06f, 0, 0, 24 + R.nextInt(8)));
-				}
-				if (tick % 6 == 0) {
-					Vec3 from = new Vec3(0, 0.3, 0);
-					ps.add(new P("haze", 0x3FCFEA, from, from.add(0, 0.7, 0), 1.0f, 1.4f, 0, 0, 26));
-				}
-			}
-			case "runes" -> runes(p, w, level, viewers, tick);
+			case "aegis" -> aegis(p, w, level, viewers, tick, g, ps);
+			case "ember" -> ember(p, w, level, viewers, tick, g, ps);
+			case "frost" -> frost(p, w, level, viewers, tick, g, ps);
+			case "soul" -> soul(p, w, level, viewers, tick, g, ps);
+			case "feather" -> feather(p, w, level, viewers, tick, g, ps);
+			case "thorns" -> thorns(p, w, level, viewers, tick, g, ps);
+			case "tide" -> tide(p, w, level, viewers, tick, g, ps);
 			default -> {
 			}
 		}
-		if (w.slash >= 0) {
-			slashTick(p, w, level, viewers);
-		}
-		if (!ps.isEmpty()) emit(level, at, viewers, ps);
+		if (!ps.isEmpty()) emit(level, p.position(), viewers, ps);
 		light(p, w, viewers, tick);
 	}
 
-	/** Four runes that circle around your middle, each with a soft glow behind it. */
-	private static void runes(ServerPlayer p, Wearer w, ServerLevel level, List<ServerPlayer> viewers, int tick) {
-		if (w.ring == null) {
-			w.ring = new ElementHolder();
-			String[] names = {"rune_a", "rune_b", "rune_c", "rune_d"};
-			for (int i = 0; i < 4; i++) {
-				ItemDisplayElement e = new ItemDisplayElement(sprite(names[i], i % 2 == 0 ? 0x9FB4FF : 0xC2A6FF));
-				e.setItemDisplayContext(ItemDisplayContext.FIXED);
-				e.setBillboardMode(Display.BillboardConstraints.CENTER);
-				e.setBrightness(new Brightness(15, 15));
-				e.setViewRange(0.6f);
-				e.setScale(new Vector3f(0.42f));
-				e.setTeleportDuration(3);
-				e.setOffset(ringSpot(p, i, tick));
-				w.ring.addElement(e);
-				w.runes.add(e);
+	// ---------------------------------------------------------------- armour, per motif
+
+	/**
+	 * Protection, "Aegis": arcane blue and violet. I: now and then a sparkle on you. II: more, and motes that drift up.
+	 * III: two runes circle your middle, a little light. IV: four runes, a turning rune circle under your feet, light.
+	 */
+	private static void aegis(ServerPlayer p, Wearer w, ServerLevel level, List<ServerPlayer> viewers, int tick, int g, List<P> ps) {
+		int[] twinkle = {0, 14, 8, 6, 4};
+		if (every(tick, twinkle[g])) ps.add(pop("twinkle", pick(0xDCE6FF, 0xB9C8FF, 0xD9C6FF), onBody(p, 0.1f, 0.95f, 0.36f),
+				rnd(0.4f, 0.6f) + g * 0.05f, 8, rnd(-0.6f, 0.6f)));
+		if (g >= 2 && every(tick, g >= 4 ? 3 : 5)) {
+			Vec3 from = onBody(p, 0.0f, 0.6f, rnd(0.35f, 0.6f));
+			ps.add(line("mote", pick(0x9FB4FF, 0xC2A6FF), from, from.add(0, rnd(0.8f, 1.3f), 0), rnd(0.35f, 0.5f), 0.02f, 0, 0, 28));
+		}
+		if (g >= 3) orbit(p, w, level, viewers, tick, "runes", g >= 4 ? 4 : 2, 0.8, 0.52, g >= 4 ? 0.46f : 0.38f, 80,
+				new String[]{"rune_a", "rune_b", "rune_c", "rune_d"}, new int[]{0x9FB4FF, 0xC2A6FF});
+		if (g >= 4) ground(p, w, level, viewers, tick, "circle", 0xA9B8FF, 2.2f, 160);
+	}
+
+	/**
+	 * Fire Protection, "Ember". I: a single ember now and then. II: steady embers and sparks, a warm light. III: more,
+	 * bigger, with heat haze. IV: flames lick round your feet, embers all the time, a bright light.
+	 */
+	private static void ember(ServerPlayer p, Wearer w, ServerLevel level, List<ServerPlayer> viewers, int tick, int g, List<P> ps) {
+		int[] ember = {0, 9, 4, 2, 1};
+		if (every(tick, ember[g])) {
+			Vec3 from = onBody(p, 0.05f, 0.95f, 0.42f);
+			ps.add(line("ember", pick(0xFFE9A8, 0xFFB64A, 0xFF8A2E, 0xFF5A1C), from,
+					from.add(rnd(-0.18f, 0.18f), rnd(0.6f, 1.15f) + g * 0.1f, rnd(-0.18f, 0.18f)), rnd(0.35f, 0.5f) + g * 0.06f, 0.04f, 0, 0,
+					16 + R.nextInt(14)));
+		}
+		if (g >= 2 && every(tick, g >= 4 ? 2 : 4)) ps.add(pop("twinkle", 0xFFF1C2, onBody(p, 0.2f, 0.9f, 0.4f), rnd(0.35f, 0.5f), 6, 0.8f));
+		if (g >= 3 && every(tick, 5)) {
+			Vec3 from = new Vec3(rnd(-0.15f, 0.15f), p.getBbHeight() * rnd(0.25f, 0.6f), rnd(-0.15f, 0.15f));
+			ps.add(line("haze", pick(0xFF9A3C, 0xFF7A2A), from, from.add(0, 0.5, 0), 1.2f, 1.6f, 0, 0, 22));
+		}
+		if (g >= 4) flames(p, w, level, viewers, tick, "flames", 7, 0.55, new int[]{0xFF9A3C, 0xFFB64A, 0xFF6A1F});
+	}
+
+	/**
+	 * Frost. I: a cold glint at your feet. II: snowflakes that drift and turn. III: more, a cold mist round your feet.
+	 * IV: snow falls around you and a ring of ice turns at your feet.
+	 */
+	private static void frost(ServerPlayer p, Wearer w, ServerLevel level, List<ServerPlayer> viewers, int tick, int g, List<P> ps) {
+		if (every(tick, g >= 3 ? 4 : 9)) ps.add(pop("twinkle", 0xCFEFFF, onBody(p, 0.0f, g >= 2 ? 0.9f : 0.25f, 0.38f), rnd(0.35f, 0.5f), 8, 0.8f));
+		int[] flakes = {0, 0, 5, 3, 2};
+		if (every(tick, flakes[g])) {
+			Vec3 from = new Vec3(rnd(-0.6f, 0.6f), p.getBbHeight() * rnd(0.85f, 1.25f), rnd(-0.6f, 0.6f));
+			ps.add(line("flake", pick(0xF2FAFF, 0xBFE6FF, 0x8FD0FF), from, from.add(rnd(-0.2f, 0.2f), -rnd(0.9f, 1.4f), rnd(-0.2f, 0.2f)),
+					rnd(0.28f, 0.38f), 0.12f, 0, rnd(-2.2f, 2.2f), 30 + R.nextInt(10)));
+		}
+		if (g >= 3 && every(tick, 6)) {
+			Vec3 from = new Vec3(rnd(-0.4f, 0.4f), 0.1, rnd(-0.4f, 0.4f));
+			ps.add(line("haze", 0xBFE6FF, from, from.add(rnd(-0.3f, 0.3f), 0.15, rnd(-0.3f, 0.3f)), 0.9f, 1.4f, 0, 0, 30));
+		}
+		if (g >= 4) {
+			// snow from above, in a wider circle
+			if (every(tick, 1)) {
+				double a = R.nextDouble() * Math.PI * 2, r = rnd(0.5f, 1.6f);
+				Vec3 from = new Vec3(Math.cos(a) * r, p.getBbHeight() + rnd(0.6f, 1.2f), Math.sin(a) * r);
+				ps.add(line("flake", pick(0xFFFFFF, 0xDDF3FF), from, from.add(rnd(-0.3f, 0.3f), -from.y + 0.05, rnd(-0.3f, 0.3f)),
+						rnd(0.16f, 0.24f), 0.1f, 0, rnd(-2.5f, 2.5f), 40));
 			}
-			new ManualAttachment(w.ring, level, p::position);
-			for (ServerPlayer v : viewers) w.ring.startWatching(v);
+			ground(p, w, level, viewers, tick, "icering", 0xCFEFFF, 1.6f, 240);
+		}
+	}
+
+	/**
+	 * Soul Speed, "Soul". I: a wisp now and then from your feet. II: steady wisps, a pale light. III: they spiral up, with
+	 * a blue haze. IV: blue soul flames at your feet and a brighter light.
+	 */
+	private static void soul(ServerPlayer p, Wearer w, ServerLevel level, List<ServerPlayer> viewers, int tick, int g, List<P> ps) {
+		int[] wisp = {0, 10, 4, 2, 2};
+		if (every(tick, wisp[g])) {
+			double a = R.nextDouble() * Math.PI * 2;
+			Vec3 from = new Vec3(Math.cos(a) * 0.5, 0.05, Math.sin(a) * 0.5);
+			double up = p.getBbHeight() * (g >= 3 ? rnd(0.8f, 1.1f) : rnd(0.4f, 0.7f));
+			double turn = g >= 3 ? 1.6 : 0.6;
+			Vec3 mid = new Vec3(Math.cos(a + turn / 2) * 0.42, up / 2, Math.sin(a + turn / 2) * 0.42);
+			Vec3 to = new Vec3(Math.cos(a + turn) * 0.24, up, Math.sin(a + turn) * 0.24);
+			ps.add(new P("wisp", pick(0x8FF8FF, 0x4FDDF5, 0xB6F2FF), 13, List.of(new S(from, rnd(0.45f, 0.6f), 0), new S(mid, 0.4f, 0),
+					new S(to, 0.05f, 0)), null));
+		}
+		if (g >= 3 && every(tick, 6)) ps.add(line("haze", 0x3FCFEA, new Vec3(0, 0.3, 0), new Vec3(0, 1.0, 0), 1.1f, 1.5f, 0, 0, 26));
+		if (g >= 4) flames(p, w, level, viewers, tick, "soulflames", 6, 0.5, new int[]{0x4FDDF5, 0x8FF8FF, 0x2FB5E0});
+	}
+
+	/**
+	 * Feather Falling, "Feather". I: a feather drifts off now and then. II: more, with soft wind motes. III: feathers
+	 * circle your ankles. IV: more feathers circling, and a gust ring at your feet now and then.
+	 */
+	private static void feather(ServerPlayer p, Wearer w, ServerLevel level, List<ServerPlayer> viewers, int tick, int g, List<P> ps) {
+		int[] f = {0, 14, 8, 6, 4};
+		if (every(tick, f[g])) {
+			Vec3 from = onBody(p, 0.0f, 0.3f, 0.38f);
+			ps.add(new P("feather", pick(0xFFFFFF, 0xF2EEE6), 15, List.of(new S(from, 0.34f, 0), new S(from.add(rnd(-0.4f, 0.4f), 0.35, rnd(-0.4f,
+					0.4f)), 0.36f, 0.9f), new S(from.add(rnd(-0.6f, 0.6f), -0.05, rnd(-0.6f, 0.6f)), 0.05f, -0.4f)), null));
+		}
+		if (g >= 2 && every(tick, 5)) {
+			Vec3 from = onBody(p, 0.0f, 0.4f, 0.5f);
+			ps.add(line("mote", 0xF6F4EE, from, from.add(rnd(-0.5f, 0.5f), 0.3, rnd(-0.5f, 0.5f)), 0.25f, 0.0f, 0, 0, 18));
+		}
+		if (g >= 3) orbit(p, w, level, viewers, tick, "feathers", g >= 4 ? 5 : 3, 0.6, 0.12, 0.36f, 60, new String[]{"feather"},
+				new int[]{0xFFFFFF, 0xF2EEE6});
+		if (g >= 4 && every(tick, 30)) {
+			Quaternionf flat = new Quaternionf().rotateX(-Mth.HALF_PI);
+			ps.add(new P("ring", 0xF6F4EE, 10, List.of(new S(new Vec3(0, 0.05, 0), 0.4f, 0), new S(new Vec3(0, 0.05, 0), 2.4f, 0.3f)), flat));
+		}
+	}
+
+	/**
+	 * Thorns. I: a thorn pricks out of you now and then. II: more, dark red. III: thorns circle your knees, and a red
+	 * spark now and then.
+	 */
+	private static void thorns(ServerPlayer p, Wearer w, ServerLevel level, List<ServerPlayer> viewers, int tick, int g, List<P> ps) {
+		int[] t = {0, 12, 6, 4, 4};
+		if (every(tick, t[g])) ps.add(pop("thorn", pick(0xB3263A, 0x8C1C2E, 0x5E8C3A), onBody(p, 0.1f, 0.9f, 0.4f), rnd(0.4f, 0.55f), 10,
+				rnd(-0.8f, 0.8f)));
+		if (g >= 2 && every(tick, 7)) ps.add(pop("twinkle", 0xFF6A6A, onBody(p, 0.1f, 0.9f, 0.4f), 0.35f, 6, 0.5f));
+		if (g >= 3) orbit(p, w, level, viewers, tick, "thorns", 6, 0.62, 0.28, 0.42f, 100, new String[]{"thorn"},
+				new int[]{0xB3263A, 0x5E8C3A});
+	}
+
+	/** Respiration and Depth Strider, "Tide". I: a bubble rises now and then. II: more. III: a ring of bubbles and light. */
+	private static void tide(ServerPlayer p, Wearer w, ServerLevel level, List<ServerPlayer> viewers, int tick, int g, List<P> ps) {
+		int[] b = {0, 10, 5, 2, 2};
+		if (every(tick, b[g])) {
+			Vec3 from = onBody(p, 0.0f, 0.9f, 0.42f);
+			ps.add(new P("bubble", pick(0xBFF3FF, 0x8FE3FF, 0xE6FBFF), 12, List.of(new S(from, rnd(0.2f, 0.32f), 0),
+					new S(from.add(rnd(-0.15f, 0.15f), 0.5, rnd(-0.15f, 0.15f)), 0.3f, 0), new S(from.add(rnd(-0.25f, 0.25f), 1.0, rnd(-0.25f, 0.25f)),
+							0.02f, 0)), null));
+		}
+		if (g >= 3) orbit(p, w, level, viewers, tick, "bubbles", 8, 0.7, 0.45, 0.22f, 70, new String[]{"bubble"}, new int[]{0xBFF3FF});
+	}
+
+	// ---------------------------------------------------------------- things that stay on a wearer
+
+	/** Shows a ring that's ready (its sprites added) to the players nearby, following the wearer. */
+	private static Ring show(ServerPlayer p, Wearer w, ServerLevel level, List<ServerPlayer> viewers, String key, Ring r) {
+		new ManualAttachment(r.holder, level, p::position);
+		for (ServerPlayer v : viewers) r.holder.startWatching(v);
+		w.rings.put(key, r);
+		return r;
+	}
+
+	/** Sprites circling round you at a height (0 feet, 1 head). */
+	private static void orbit(ServerPlayer p, Wearer w, ServerLevel level, List<ServerPlayer> viewers, int tick, String key, int n,
+			double radius, double height, float scale, int period, String[] sprites, int[] colours) {
+		Ring r = w.rings.get(key);
+		if (r == null) {
+			r = new Ring();
+			for (int i = 0; i < n; i++) {
+				ItemDisplayElement e = element(sprites[i % sprites.length], colours[i % colours.length], false);
+				e.setScale(new Vector3f(scale));
+				e.setTeleportDuration(3);
+				e.setOffset(orbitSpot(p, i, n, tick, radius, height, period));
+				r.holder.addElement(e);
+				r.els.add(e);
+			}
+			show(p, w, level, viewers, key, r);
 		}
 		if (tick % 3 == 0) {
-			for (int i = 0; i < w.runes.size(); i++) w.runes.get(i).setOffset(ringSpot(p, i, tick + 3));
+			for (int i = 0; i < r.els.size(); i++) r.els.get(i).setOffset(orbitSpot(p, i, n, tick + 3, radius, height, period));
 		}
-		w.ring.tick();
-		if (tick % 7 == 0) {
-			int i = R.nextInt(4);
-			Vec3 from = ringSpot(p, i, tick);
-			emit(level, p.position(), viewers, List.of(new P("spark", 0xD6DEFF, from, from.add(0, 0.25, 0), 0.35f, 0.0f, 0, 1.0f, 10)));
-		}
+		r.holder.tick();
 	}
 
-	private static Vec3 ringSpot(ServerPlayer p, int i, int tick) {
-		double a = tick * (Math.PI * 2 / 80) + i * Math.PI / 2;
-		return new Vec3(Math.cos(a) * 0.78, p.getBbHeight() * 0.52 + Math.sin(a * 2) * 0.05, Math.sin(a) * 0.78);
+	private static Vec3 orbitSpot(ServerPlayer p, int i, int n, int tick, double radius, double height, int period) {
+		double a = tick * (Math.PI * 2 / period) + i * Math.PI * 2 / n;
+		return new Vec3(Math.cos(a) * radius, p.getBbHeight() * height + Math.sin(a * 2) * 0.05, Math.sin(a) * radius);
 	}
 
-	/** The slash: an arc that sweeps and widens in front of you, with embers flung off its edge. */
-	private static void slashTick(ServerPlayer p, Wearer w, ServerLevel level, List<ServerPlayer> viewers) {
-		if (w.slash == 0) {
-			float yaw = p.getYRot() * Mth.DEG_TO_RAD;
-			Vec3 look = new Vec3(-Mth.sin(yaw), 0, Mth.cos(yaw));
-			Vec3 at = p.getEyePosition().add(look.scale(1.3)).add(0, -0.55, 0);
-			Quaternionf rot = new Quaternionf().rotateY(-yaw + Mth.PI).rotateZ(0.5f);
-			emit(level, at, viewers, List.of(new P("arc", 0xFFB24A, Vec3.ZERO, Vec3.ZERO, 0.9f, 2.3f, 0, -0.9f, 5, rot),
-					new P("arc", 0xFFF0C8, Vec3.ZERO, Vec3.ZERO, 0.7f, 1.9f, 0, -0.9f, 4, rot)));
-			List<P> embers = new ArrayList<>();
-			for (int k = 0; k < 10; k++) {
-				double t = (k / 9.0 - 0.5) * 2.2;
-				Vec3 from = new Vec3(Math.cos(t) * 0.8, Math.sin(t) * 0.3, 0);
-				Vec3 dir = new Vec3(-Mth.sin(yaw), 0, Mth.cos(yaw));
-				Vec3 side = new Vec3(Mth.cos(yaw), 0, Mth.sin(yaw));
-				Vec3 f = side.scale(from.x).add(0, from.y, 0);
-				embers.add(new P("ember", pick(0xFFE9A8, 0xFFB64A, 0xFF7A2A), f, f.add(dir.scale(rnd(0.4f, 0.9f))).add(0, rnd(0.1f, 0.5f), 0),
-						rnd(0.35f, 0.5f), 0.0f, 0, 0, 10 + R.nextInt(8)));
+	/** A circle flat on the ground under you, slowly turning. */
+	private static void ground(ServerPlayer p, Wearer w, ServerLevel level, List<ServerPlayer> viewers, int tick, String key, int rgb, float size,
+			int period) {
+		Ring r = w.rings.get(key);
+		if (r == null) {
+			r = new Ring();
+			ItemDisplayElement e = element(key.equals("icering") ? "ring" : "circle", rgb, true);
+			e.setScale(new Vector3f(size));
+			e.setOffset(new Vec3(0, 0.03, 0));
+			e.setInterpolationDuration(10);
+			e.setLeftRotation(new Quaternionf().rotateX(-Mth.HALF_PI));
+			r.holder.addElement(e);
+			r.els.add(e);
+			show(p, w, level, viewers, key, r);
+		}
+		if (tick % 10 == 0) {
+			float a = (float) (tick * (Math.PI * 2 / period));
+			ItemDisplayElement e = r.els.getFirst();
+			e.setLeftRotation(new Quaternionf().rotateX(-Mth.HALF_PI).rotateZ(a + (float) (Math.PI * 2 / period * 10)));
+			e.startInterpolation();
+		}
+		r.holder.tick();
+	}
+
+	/** Flame tongues (an animated sprite) round your feet, each flickering in size. */
+	private static void flames(ServerPlayer p, Wearer w, ServerLevel level, List<ServerPlayer> viewers, int tick, String key, int n, double radius,
+			int[] colours) {
+		Ring r = w.rings.get(key);
+		if (r == null) {
+			r = new Ring();
+			for (int i = 0; i < n; i++) {
+				ItemDisplayElement e = element("flame", colours[i % colours.length], false);
+				double a = i * Math.PI * 2 / n;
+				e.setOffset(new Vec3(Math.cos(a) * radius, 0.22, Math.sin(a) * radius));
+				e.setScale(new Vector3f(0.5f));
+				e.setInterpolationDuration(4);
+				r.holder.addElement(e);
+				r.els.add(e);
 			}
-			emit(level, at, viewers, embers);
+			show(p, w, level, viewers, key, r);
 		}
-		w.slash++;
-		if (w.slash > 12) w.slash = -1;
+		if (tick % 4 == 0) {
+			for (ItemDisplayElement e : r.els) {
+				float s = rnd(0.38f, 0.62f);
+				e.setScale(new Vector3f(s * 0.85f, s, s));
+				e.setTranslation(new Vector3f(0, (s - 0.5f) * 0.4f, 0));
+				e.startInterpolation();
+			}
+		}
+		r.holder.tick();
+	}
+
+	// ---------------------------------------------------------------- weapons: on a hit
+
+	/** "sharpness:3", "fire_aspect:2", "smite:5", "knockback:2", "looting:3": a hit on something in front of you. */
+	static void hit(ServerPlayer p, String spec) {
+		String[] parts = spec.split(":");
+		String kind = parts[0];
+		int g = parts.length > 1 ? Integer.parseInt(parts[1]) : 1;
+		ServerLevel level = (ServerLevel) p.level();
+		List<ServerPlayer> viewers = viewers(p);
+		float yaw = p.getYRot() * Mth.DEG_TO_RAD;
+		Vec3 look = new Vec3(-Mth.sin(yaw), 0, Mth.cos(yaw));
+		Vec3 side = new Vec3(Mth.cos(yaw), 0, Mth.sin(yaw));
+		Vec3 at = p.position().add(look.scale(1.4)).add(0, 1.0, 0);
+		Quaternionf facing = new Quaternionf().rotateY(-yaw + Mth.PI);
+		List<P> ps = new ArrayList<>();
+		switch (kind) {
+			case "sharpness" -> {
+				// A steel slash: bigger and brighter per grade; III+ a second arc; V a spark burst and a flash
+				float size = 1.2f + g * 0.25f;
+				Quaternionf rot = new Quaternionf(facing).rotateZ(0.55f);
+				ps.add(new P("arc", 0xDDE9FF, 5, List.of(new S(Vec3.ZERO, size * 0.4f, 0), new S(Vec3.ZERO, size, -0.9f)), rot));
+				ps.add(new P("arc", 0xFFFFFF, 4, List.of(new S(Vec3.ZERO, size * 0.3f, 0), new S(Vec3.ZERO, size * 0.8f, -0.9f)), rot));
+				if (g >= 3) {
+					Quaternionf rot2 = new Quaternionf(facing).rotateZ(-0.7f);
+					ps.add(new P("arc", 0xBFD4FF, 5, List.of(new S(Vec3.ZERO, size * 0.3f, 0), new S(Vec3.ZERO, size * 0.85f, 0.9f)), rot2));
+				}
+				for (int k = 0; k < g * 2; k++) ps.add(pop("twinkle", 0xF2F7FF, new Vec3(rnd(-0.6f, 0.6f), rnd(-0.4f, 0.4f), rnd(-0.6f, 0.6f)),
+						rnd(0.4f, 0.6f), 6 + R.nextInt(4), 0.8f));
+				if (g >= 5) {
+					sparks(ps, 12, 0xE6F0FF, side, 1.2);
+					flash(level, at, viewers, 10, 4);
+				}
+			}
+			case "fire_aspect" -> {
+				float size = g >= 2 ? 2.4f : 1.8f;
+				Quaternionf rot = new Quaternionf(facing).rotateZ(0.5f);
+				ps.add(new P("arc", 0xFFB24A, 5, List.of(new S(Vec3.ZERO, size * 0.4f, 0), new S(Vec3.ZERO, size, -0.9f)), rot));
+				ps.add(new P("arc", 0xFFF0C8, 4, List.of(new S(Vec3.ZERO, size * 0.3f, 0), new S(Vec3.ZERO, size * 0.8f, -0.9f)), rot));
+				sparks(ps, g >= 2 ? 16 : 8, 0xFF9A3C, side, 1.0);
+				if (g >= 2) {
+					for (int k = 0; k < 6; k++) {
+						Vec3 f = new Vec3(rnd(-0.4f, 0.4f), rnd(-0.5f, 0.0f), rnd(-0.4f, 0.4f));
+						ps.add(line("flame", pick(0xFF9A3C, 0xFF6A1F), f, f.add(0, rnd(0.4f, 0.8f), 0), rnd(0.5f, 0.8f), 0.05f, 0, 0, 12));
+					}
+				}
+				flash(level, at, viewers, g >= 2 ? 13 : 9, 6);
+			}
+			case "smite" -> {
+				// Golden: a ring of light; III+ sparkles rising; V a pillar of light and a bright flash
+				Quaternionf flat = new Quaternionf().rotateX(-Mth.HALF_PI);
+				Vec3 foot = new Vec3(0, -0.95, 0);
+				ps.add(new P("ring", 0xFFE08A, 8, List.of(new S(foot, 0.3f, 0), new S(foot, 1.2f + g * 0.3f, 0.3f)), flat));
+				ps.add(new P("glow", 0xFFD25A, 5, List.of(new S(Vec3.ZERO, 0.4f, 0), new S(Vec3.ZERO, 1.2f + g * 0.15f, 0), new S(Vec3.ZERO, 0.05f, 0)),
+						null));
+				if (g >= 3) {
+					for (int k = 0; k < g * 3; k++) {
+						Vec3 f = new Vec3(rnd(-0.6f, 0.6f), rnd(-0.9f, 0.3f), rnd(-0.6f, 0.6f));
+						ps.add(line("twinkle", pick(0xFFF2C2, 0xFFE08A), f, f.add(0, rnd(0.6f, 1.2f), 0), rnd(0.35f, 0.5f), 0.02f, 0, 1.2f, 16));
+					}
+				}
+				if (g >= 5) pillar(level, at.add(0, -1.0, 0), viewers);
+				flash(level, at, viewers, g >= 5 ? 15 : 8 + g, g >= 5 ? 10 : 5);
+			}
+			case "knockback" -> {
+				// A shock wave that pushes out from the hit: one ring, two at II, and dust
+				for (int k = 0; k < g; k++) {
+					ps.add(new P("ring", 0xE8E2D6, 3 + k, List.of(new S(Vec3.ZERO, 0.3f, 0), new S(look.scale(0.4 + k * 0.3), 1.4f + k * 0.8f, 0),
+							new S(look.scale(0.6 + k * 0.4), 2.2f + k * 1.0f, 0)), facing));
+				}
+				for (int k = 0; k < 6 * g; k++) {
+					Vec3 d = look.scale(rnd(0.3f, 1.0f)).add(side.scale(rnd(-0.8f, 0.8f))).add(0, rnd(-0.3f, 0.4f), 0);
+					ps.add(line("mote", 0xD8D0C0, Vec3.ZERO, d, 0.3f, 0.0f, 0, 0, 10));
+				}
+			}
+			case "looting" -> {
+				// Coins and gold sparkles that burst out and fall
+				int n = new int[]{0, 5, 9, 14}[Math.min(3, g)];
+				for (int k = 0; k < n; k++) {
+					Vec3 out = new Vec3(rnd(-0.8f, 0.8f), rnd(0.4f, 1.0f), rnd(-0.8f, 0.8f));
+					Vec3 down = out.add(out.x * 0.4, -1.4, out.z * 0.4);
+					ps.add(new P("coin", pick(0xFFD24A, 0xFFE58A, 0xF2B530), 8, List.of(new S(Vec3.ZERO, 0.2f, 0), new S(out, 0.32f, 2.5f),
+							new S(down, 0.2f, 5.0f)), null));
+				}
+				for (int k = 0; k < n; k++) ps.add(pop("twinkle", 0xFFF2C2, new Vec3(rnd(-0.7f, 0.7f), rnd(-0.2f, 0.8f), rnd(-0.7f, 0.7f)), 0.45f, 8, 1f));
+			}
+			default -> {
+			}
+		}
+		emit(level, at, viewers, ps);
+	}
+
+	private static void sparks(List<P> ps, int n, int rgb, Vec3 side, double spread) {
+		for (int k = 0; k < n; k++) {
+			Vec3 d = side.scale(rnd(-1, 1) * spread).add(rnd(-0.3f, 0.3f), rnd(-0.2f, 0.7f), rnd(-0.3f, 0.3f));
+			ps.add(line("ember", pick(rgb, 0xFFF1C2), Vec3.ZERO, d, rnd(0.35f, 0.5f), 0.02f, 0, 0, 8 + R.nextInt(6)));
+		}
+	}
+
+	// ---------------------------------------------------------------- a pillar of light
+
+	private record Pillar(ElementHolder holder, BlockDisplayElement beam, int[] age) {
+	}
+
+	private static final List<Pillar> PILLARS = new ArrayList<>();
+
+	private static void pillar(ServerLevel level, Vec3 at, List<ServerPlayer> viewers) {
+		ElementHolder h = new ElementHolder();
+		BlockDisplayElement e = new BlockDisplayElement(Blocks.YELLOW_STAINED_GLASS.defaultBlockState());
+		e.setBrightness(new Brightness(15, 15));
+		e.setViewRange(0.8f);
+		e.setScale(new Vector3f(0.05f, 0.2f, 0.05f));
+		e.setTranslation(new Vector3f(-0.025f, 0, -0.025f));
+		e.setInterpolationDuration(4);
+		e.setDisplaySize(2, 8);
+		h.addElement(e);
+		new ManualAttachment(h, level, () -> at);
+		for (ServerPlayer v : viewers) h.startWatching(v);
+		PILLARS.add(new Pillar(h, e, new int[]{-1}));
+	}
+
+	private static void tickPillars() {
+		for (Iterator<Pillar> it = PILLARS.iterator(); it.hasNext();) {
+			Pillar p = it.next();
+			int a = ++p.age()[0];
+			if (a == 1) {
+				p.beam().setScale(new Vector3f(0.5f, 6f, 0.5f));
+				p.beam().setTranslation(new Vector3f(-0.25f, 0, -0.25f));
+				p.beam().startInterpolation();
+			} else if (a == 10) {
+				p.beam().setInterpolationDuration(8);
+				p.beam().setScale(new Vector3f(0.02f, 7f, 0.02f));
+				p.beam().setTranslation(new Vector3f(-0.01f, 0, -0.01f));
+				p.beam().startInterpolation();
+			}
+			p.holder().tick();
+			if (a > 20) {
+				p.holder().destroy();
+				it.remove();
+			}
+		}
 	}
 
 	// ---------------------------------------------------------------- light
@@ -329,23 +633,53 @@ final class Fx {
 		if (w.lightLevel <= 0) return;
 		ServerLevel level = (ServerLevel) p.level();
 		BlockPos at = BlockPos.containing(p.getX(), p.getY() + p.getBbHeight() * 0.6, p.getZ());
-		BlockState real = level.getBlockState(at);
-		boolean water = real.is(Blocks.WATER) && real.getFluidState().is(Fluids.WATER) && real.getFluidState().isSource();
-		boolean free = real.isAir() || water;
 		if (at.equals(w.light) && tick % 40 != 0) return;
 		if (w.light != null && !w.light.equals(at)) restoreLight(p, w.light);
-		if (!free) {
+		BlockState lit = lightState(level, at, w.lightLevel);
+		if (lit == null) {
 			w.light = null;
 			return;
 		}
-		BlockState lit = Blocks.LIGHT.defaultBlockState().setValue(LightBlock.LEVEL, w.lightLevel).setValue(LightBlock.WATERLOGGED, water);
 		ClientboundBlockUpdatePacket packet = new ClientboundBlockUpdatePacket(at, lit);
 		for (ServerPlayer v : viewers) v.connection.send(packet);
 		w.light = at;
 	}
 
+	/** A light block for this spot, if the spot is free (air, or still water). */
+	private static @Nullable BlockState lightState(ServerLevel level, BlockPos at, int lvl) {
+		BlockState real = level.getBlockState(at);
+		boolean water = real.is(Blocks.WATER) && real.getFluidState().is(Fluids.WATER) && real.getFluidState().isSource();
+		if (!real.isAir() && !water) return null;
+		return Blocks.LIGHT.defaultBlockState().setValue(LightBlock.LEVEL, lvl).setValue(LightBlock.WATERLOGGED, water);
+	}
+
 	private static void restoreLight(ServerPlayer p, BlockPos pos) {
 		ClientboundBlockUpdatePacket packet = new ClientboundBlockUpdatePacket(p.level(), pos);
 		for (ServerPlayer v : viewers(p)) v.connection.send(packet);
+	}
+
+	private record Flash(ServerLevel level, BlockPos pos, List<ServerPlayer> viewers, int[] left) {
+	}
+
+	private static final List<Flash> FLASHES = new ArrayList<>();
+
+	/** A short burst of light where something was hit. */
+	private static void flash(ServerLevel level, Vec3 at, List<ServerPlayer> viewers, int lvl, int ticks) {
+		BlockPos pos = BlockPos.containing(at);
+		BlockState lit = lightState(level, pos, lvl);
+		if (lit == null) return;
+		ClientboundBlockUpdatePacket packet = new ClientboundBlockUpdatePacket(pos, lit);
+		for (ServerPlayer v : viewers) v.connection.send(packet);
+		FLASHES.add(new Flash(level, pos, viewers, new int[]{ticks}));
+	}
+
+	private static void tickFlashes(MinecraftServer server) {
+		for (Iterator<Flash> it = FLASHES.iterator(); it.hasNext();) {
+			Flash f = it.next();
+			if (--f.left()[0] > 0) continue;
+			ClientboundBlockUpdatePacket packet = new ClientboundBlockUpdatePacket(f.level(), f.pos());
+			for (ServerPlayer v : f.viewers()) v.connection.send(packet);
+			it.remove();
+		}
 	}
 }

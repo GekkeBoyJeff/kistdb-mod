@@ -178,8 +178,163 @@ def ring():
     return img
 
 
+def twinkle():
+    """A sharp sparkle: long thin rays, a short diagonal pair, a hot middle and a soft glow."""
+    img = blank()
+    c = N / 2
+    for y in range(N):
+        for x in range(N):
+            dx, dy = x + 0.5 - c, y + 0.5 - c
+            ax, ay = abs(dx), abs(dy)
+            long_ = max(0, 1 - ax / 1.1) * max(0, 1 - ay / 15) ** 1.6 + max(0, 1 - ay / 1.1) * max(0, 1 - ax / 15) ** 1.6
+            u, v = abs(dx + dy) / 1.414, abs(dx - dy) / 1.414
+            diag = (max(0, 1 - u / 0.9) * max(0, 1 - v / 6) + max(0, 1 - v / 0.9) * max(0, 1 - u / 6)) * 0.7
+            core = max(0, 1 - math.hypot(dx, dy) / 3.2)
+            glow_ = max(0, 1 - math.hypot(dx, dy) / 10) ** 2 * 0.45
+            put(img, x, y, min(1, long_ + diag + core + glow_))
+    return img
+
+
+def coin():
+    """A gold coin, seen a little from the side, with a bright edge."""
+    img = blank()
+    c = N / 2
+    for y in range(N):
+        for x in range(N):
+            dx, dy = (x + 0.5 - c) / 9.0, (y + 0.5 - c) / 12.0
+            d = math.hypot(dx, dy)
+            if d < 1:
+                a = 1.0 if d > 0.78 or d < 0.4 else 0.82
+                put(img, x, y, a)
+    return img
+
+
+def bubble():
+    img = blank()
+    c = N / 2
+    for y in range(N):
+        for x in range(N):
+            d = math.hypot(x + 0.5 - c, y + 0.5 - c)
+            rim = max(0, 1 - abs(d - 11) / 1.8) ** 1.3
+            inside = 0.12 if d < 11 else 0
+            hl = max(0, 1 - math.hypot(x + 0.5 - (c - 5), y + 0.5 - (c - 5)) / 3.2)
+            put(img, x, y, max(rim, inside, hl))
+    return img
+
+
+def feather():
+    """A soft feather: a thin shaft and a vane that thins out to the tip."""
+    img = blank()
+    for t in range(0, 260):
+        k = t / 260.0
+        x = 7 + k * 18
+        y = 25 - k * 18 + math.sin(k * 3.0) * 1.5
+        put(img, int(x), int(y), 1.0)
+        w = 5.5 * math.sin(math.pi * min(1, k * 1.15)) if k > 0.12 else 0
+        for s in (-1, 1):
+            for u in range(1, int(w) + 1):
+                px, py = x + s * u * 0.7, y + s * u * 0.7
+                put(img, int(px), int(py), 0.75 * (1 - u / (w + 1)) + 0.15)
+    return img
+
+
+def thorn():
+    """A thorn: wide at the base, bending to a sharp tip, with a little glow."""
+    img = blank()
+    bx, by, tx, ty = 10.0, 28.0, 24.0, 4.0
+    L = math.hypot(tx - bx, ty - by)
+    ux, uy = (tx - bx) / L, (ty - by) / L
+    for y in range(N):
+        for x in range(N):
+            px, py = x + 0.5 - bx, y + 0.5 - by
+            t = (px * ux + py * uy) / L
+            if not 0 <= t <= 1:
+                continue
+            bend = math.sin(t * math.pi) * 3.0
+            perp = px * -uy + py * ux - bend
+            w = 5.0 * (1 - t) ** 1.2 + 0.35
+            put(img, x, y, max(0, 1 - abs(perp) / w) ** 0.7)
+    halo = blank()
+    soft_disc(halo, 15, 17, 14, power=2.4, peak=0.25)
+    return Image.alpha_composite(halo, img)
+
+
+def hexshield():
+    """A hexagon outline, like a shield flaring up where you're hit."""
+    img = blank()
+    c = N / 2
+    pts = [(c + 13 * math.cos(math.pi / 3 * i + math.pi / 6), c + 13 * math.sin(math.pi / 3 * i + math.pi / 6)) for i in range(6)]
+    for i in range(6):
+        line(img, pts[i], pts[(i + 1) % 6], 1.0, 1.0)
+    halo = blank()
+    for i in range(6):
+        line(halo, pts[i], pts[(i + 1) % 6], 0.3, 3.0)
+    fill = blank()
+    soft_disc(fill, c, c, 13, power=0.8, peak=0.18)
+    return Image.alpha_composite(Image.alpha_composite(fill, halo), img)
+
+
+def flame_frames():
+    """A flame tongue, 8 frames (a strip; the .mcmeta makes it flicker)."""
+    frames = []
+    rnd = random.Random(7)
+    seeds = [rnd.random() * 10 for _ in range(4)]
+    for f in range(8):
+        img = blank()
+        ph = f / 8 * math.pi * 2
+        for y in range(N):
+            for x in range(N):
+                h = (N - 1 - y) / (N - 1)  # 0 bottom .. 1 top
+                sway = math.sin(h * 4 + ph + seeds[0]) * 2.2 * h + math.sin(h * 9 + ph * 2 + seeds[1]) * 0.9 * h
+                cx = N / 2 + sway
+                width = 9.5 * (1 - h) ** 0.75 * (0.9 + 0.1 * math.sin(ph + h * 6)) + 0.3
+                d = abs(x + 0.5 - cx) / width
+                if d < 1 and h < 0.95:
+                    a = (1 - d) ** 0.9 * (1 - h) ** 0.35
+                    put(img, x, y, a)
+        frames.append(img)
+    return frames
+
+
+def circle():
+    """A rune circle for the ground: two rings, runes between them, ticks on the outside. 64 px."""
+    M = 64
+    img = Image.new('RGBA', (M, M), (0, 0, 0, 0))
+    c = M / 2
+
+    def p(x, y, a):
+        if 0 <= x < M and 0 <= y < M:
+            o = img.getpixel((x, y))[3]
+            v = max(o, int(round(min(1, a) * 255)))
+            if 248 < v < 255:
+                v = 255 if v >= 252 else 248
+            img.putpixel((x, y), (255, 255, 255, v))
+
+    for y in range(M):
+        for x in range(M):
+            d = math.hypot(x + 0.5 - c, y + 0.5 - c)
+            a = max(0, 1 - abs(d - 29) / 1.1) + max(0, 1 - abs(d - 22) / 0.9) * 0.9
+            a += max(0, 1 - abs(d - 25.5) / 6) ** 2 * 0.18
+            ang = math.atan2(y + 0.5 - c, x + 0.5 - c)
+            if 29.5 < d < 31.5 and abs(math.sin(ang * 12)) > 0.93:
+                a = max(a, 0.8)
+            p(x, y, a)
+    # little runes between the rings
+    for k in range(8):
+        a0 = k * math.pi / 4
+        rx, ry = c + math.cos(a0) * 25.5, c + math.sin(a0) * 25.5
+        for (x0, y0), (x1, y1) in RUNES['abcd'[k % 4]]:
+            sx0, sy0 = rx + (x0 - 16) * 0.2, ry + (y0 - 16) * 0.2
+            sx1, sy1 = rx + (x1 - 16) * 0.2, ry + (y1 - 16) * 0.2
+            for t in range(12):
+                u = t / 11
+                p(int(sx0 + (sx1 - sx0) * u), int(sy0 + (sy1 - sy0) * u), 1.0)
+    return img
+
+
 SPRITES = {
     'glow': glow, 'haze': haze, 'ember': ember, 'mote': mote, 'spark': spark, 'flake': flake, 'wisp': wisp, 'arc': arc, 'ring': ring,
+    'twinkle': twinkle, 'coin': coin, 'bubble': bubble, 'feather': feather, 'thorn': thorn, 'hex': hexshield,
     'rune_a': lambda: rune('a'), 'rune_b': lambda: rune('b'), 'rune_c': lambda: rune('c'), 'rune_d': lambda: rune('d'),
 }
 
@@ -209,6 +364,19 @@ def main():
                 if 248 < a < 255:
                     px[x, y] = (r, g, b, 255 if a >= 252 else 248)
         img.save(os.path.join(tex, name + '.png'))
+        json.dump(card_model(name), open(os.path.join(mod, name + '.json'), 'w'), indent=1)
+        json.dump({'model': {'type': 'minecraft:model', 'model': f'libreria:item/fx/p/{name}',
+                             'tints': [{'type': 'minecraft:custom_model_data', 'index': 0, 'default': 0xFFFFFF}]}},
+                  open(os.path.join(itm, name + '.json'), 'w'), indent=1)
+    # the flame (animated) and the ground circle (bigger)
+    fr = flame_frames()
+    strip = Image.new('RGBA', (N, N * len(fr)), (0, 0, 0, 0))
+    for k, f in enumerate(fr):
+        strip.paste(f, (0, k * N))
+    strip.save(os.path.join(tex, 'flame.png'))
+    json.dump({'animation': {'frametime': 2, 'interpolate': True}}, open(os.path.join(tex, 'flame.png.mcmeta'), 'w'))
+    circle().save(os.path.join(tex, 'circle.png'))
+    for name in ('flame', 'circle'):
         json.dump(card_model(name), open(os.path.join(mod, name + '.json'), 'w'), indent=1)
         json.dump({'model': {'type': 'minecraft:model', 'model': f'libreria:item/fx/p/{name}',
                              'tints': [{'type': 'minecraft:custom_model_data', 'index': 0, 'default': 0xFFFFFF}]}},

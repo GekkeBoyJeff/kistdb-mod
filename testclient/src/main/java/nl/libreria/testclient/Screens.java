@@ -78,62 +78,62 @@ public final class Screens implements FabricClientGameTest {
 				ctx.takeScreenshot("nameplate_front");
 				camera(ctx, CameraType.FIRST_PERSON);
 			});
-			// Proof of concept: our own particles (sprites on item displays, moved by the client) and real light (a light
-			// block only the players nearby are told about), on top of the armour layer from the core shader
-			safe("fx_poc", () -> {
+			// Proof of concept, per effect and per grade: our own particles (sprites on item displays, moved by the client),
+			// real light (a light block only the players nearby are told about), the armour layer from the core shader
+			safe("fx_grades", () -> {
+				// effect, material, armour layer family (empty: plain armour), highest grade
 				String[][] kits = {
-						{"fire", "diamond", "fireguard_3"},
-						{"frost", "diamond", "frost_3"},
-						{"soul", "netherite", "soul_3"},
-						{"runes", "netherite", "protection_3"}};
+						{"aegis", "netherite", "protection", "4"},
+						{"ember", "diamond", "fireguard", "4"},
+						{"frost", "diamond", "frost", "4"},
+						{"soul", "netherite", "soul", "4"},
+						{"feather", "iron", "", "4"},
+						{"thorns", "netherite", "thorns", "3"},
+						{"tide", "diamond", "water", "3"}};
 				String[] slots = {"head", "chest", "legs", "feet"}, items = {"helmet", "chestplate", "leggings", "boots"};
+				run(server, "time set midnight");
+				ctx.getInput().lookAt(0, 0);
+				camera(ctx, CameraType.THIRD_PERSON_FRONT);
 				for (String[] kit : kits) {
-					for (int i = 0; i < 4; i++) {
-						run(server, "item replace entity @a armor." + slots[i] + " with minecraft:" + kit[1] + "_" + items[i] + "[equippable={slot:\"" + slots[i]
-								+ "\",asset_id:\"libreria:fx_" + kit[1] + "_" + kit[2] + "\"}]");
-					}
-					server.runOnServer(s -> nl.libreria.glint.GlintMod.debugFx(player, kit[0]));
-					ctx.getInput().lookAt(0, 0);
-					camera(ctx, CameraType.THIRD_PERSON_FRONT);
-					ctx.waitTicks(35);
-					ctx.takeScreenshot("fx2_" + kit[0] + "_day");
-					run(server, "time set midnight");
-					ctx.waitTicks(20);
-					// Is the light there, as the client sees it?
-					net.minecraft.core.BlockPos lp = server.computeOnServer(s -> nl.libreria.glint.GlintMod.debugFxLight(player));
-					if (lp != null) {
-						String seen = ctx.computeOnClient(mc -> mc.level.getBlockState(lp) + " block light below: "
-								+ mc.level.getBrightness(net.minecraft.world.level.LightLayer.BLOCK, lp.below()) + ", 2 away: "
-								+ mc.level.getBrightness(net.minecraft.world.level.LightLayer.BLOCK, lp.below().east(2)));
-						LOG.info("FX-LIGHT {} at {}: {}", kit[0], lp, seen);
-					} else {
-						LOG.info("FX-LIGHT {}: none", kit[0]);
-					}
-					ctx.takeScreenshot("fx2_" + kit[0] + "_night");
-					camera(ctx, CameraType.THIRD_PERSON_BACK);
-					ctx.waitTicks(10);
-					ctx.takeScreenshot("fx2_" + kit[0] + "_night_back");
-					camera(ctx, CameraType.THIRD_PERSON_FRONT);
-					ctx.waitTicks(5);
-					for (int f = 0; f < 8; f++) {
-						ctx.waitTicks(2);
-						ctx.takeScreenshot("fx2_" + kit[0] + "_anim_" + f);
-					}
-					if (kit[0].equals("fire")) {
-						// A slash, as a Fire Aspect sword could do on a hit
-						server.runOnServer(s -> nl.libreria.glint.GlintMod.debugFx(player, "slash"));
-						for (int f = 0; f < 6; f++) {
-							ctx.waitTicks(1);
-							ctx.takeScreenshot("fx2_slash_" + f);
+					int max = Integer.parseInt(kit[3]);
+					for (int g = 1; g <= max; g++) {
+						int tier = Math.min(3, g);
+						for (int i = 0; i < 4; i++) {
+							String layer = kit[2].isEmpty() ? "" : "[equippable={slot:\"" + slots[i] + "\",asset_id:\"libreria:fx_" + kit[1] + "_" + kit[2] + "_" + tier + "\"}]";
+							run(server, "item replace entity @a armor." + slots[i] + " with minecraft:" + kit[1] + "_" + items[i] + layer);
 						}
+						String spec = kit[0] + ":" + g;
+						server.runOnServer(s -> nl.libreria.glint.GlintMod.debugFx(player, spec));
+						ctx.waitTicks(40);
+						ctx.takeScreenshot("fxg_" + kit[0] + "_" + g);
+						if (g == max) {
+							ctx.waitTicks(6);
+							ctx.takeScreenshot("fxg_" + kit[0] + "_" + g + "_b");
+						}
+						server.runOnServer(s -> nl.libreria.glint.GlintMod.debugFx(player, "off"));
+						ctx.waitTicks(2);
 					}
-					server.runOnServer(s -> nl.libreria.glint.GlintMod.debugFx(player, "off"));
-					run(server, "time set noon");
-					ctx.waitTicks(5);
 				}
-				camera(ctx, CameraType.FIRST_PERSON);
 				run(server, "item replace entity @a armor.head with minecraft:air", "item replace entity @a armor.chest with minecraft:air",
-						"item replace entity @a armor.legs with minecraft:air", "item replace entity @a armor.feet with minecraft:air");
+						"item replace entity @a armor.legs with minecraft:air", "item replace entity @a armor.feet with minecraft:air",
+						"item replace entity @a weapon.mainhand with minecraft:diamond_sword");
+				ctx.waitTicks(10);
+				// A hit, per weapon enchantment and grade: a few ticks after
+				String[][] hits = {{"sharpness", "1", "3", "5"}, {"fire_aspect", "1", "2"}, {"smite", "1", "3", "5"}, {"knockback", "1", "2"},
+						{"looting", "1", "2", "3"}};
+				for (String[] h : hits) {
+					for (int k = 1; k < h.length; k++) {
+						String spec = "hit:" + h[0] + ":" + h[k];
+						server.runOnServer(s -> nl.libreria.glint.GlintMod.debugFx(player, spec));
+						ctx.waitTicks(3);
+						ctx.takeScreenshot("fxh_" + h[0] + "_" + h[k]);
+						ctx.waitTicks(3);
+						ctx.takeScreenshot("fxh_" + h[0] + "_" + h[k] + "_b");
+						ctx.waitTicks(16);
+					}
+				}
+				run(server, "time set noon", "item replace entity @a weapon.mainhand with minecraft:air");
+				camera(ctx, CameraType.FIRST_PERSON);
 			});
 			// Your own armour's particles in third person: a set (one orbit), and ordinary Protection armour
 			safe("armour_third", () -> {

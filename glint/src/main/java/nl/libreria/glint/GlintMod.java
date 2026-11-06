@@ -146,10 +146,10 @@ public final class GlintMod implements ModInitializer {
 	}
 
 	/** For the screenshot test: what the particles of this player's gear are, and how many were sent so far. */
-	/** Proof of concept: our own particles and light (fire, frost, soul, runes, off), and a slash. */
-	public static void debugFx(ServerPlayer p, String kind) {
-		if (kind.equals("slash")) Fx.slash(p);
-		else Fx.set(p, kind);
+	/** Proof of concept: our own particles and light ("ember:3", "aegis:4" … "off"), or a hit ("hit:sharpness:5"). */
+	public static void debugFx(ServerPlayer p, String spec) {
+		if (spec.startsWith("hit:")) Fx.hit(p, spec.substring(4));
+		else Fx.set(p, spec);
 	}
 
 	public static @org.jetbrains.annotations.Nullable net.minecraft.core.BlockPos debugFxLight(ServerPlayer p) {

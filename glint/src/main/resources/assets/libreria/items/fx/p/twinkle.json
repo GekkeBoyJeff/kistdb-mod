@@ -1,0 +1,13 @@
+{
+ "model": {
+  "type": "minecraft:model",
+  "model": "libreria:item/fx/p/twinkle",
+  "tints": [
+   {
+    "type": "minecraft:custom_model_data",
+    "index": 0,
+    "default": 16777215
+   }
+  ]
+ }
+}
