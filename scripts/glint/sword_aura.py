@@ -133,8 +133,8 @@ def tongues(img, reach, *, up, down, seed, sx, sy, speed, base, cut, power, stop
     return frames
 
 
-FIRE = [(0.72, (255, 246, 200, 255)), (0.48, (255, 206, 80, 245)), (0.24, (250, 128, 32, 220)), (0.0, (196, 52, 22, 150))]
-FIRE_LOW = [(0.6, (255, 214, 96, 240)), (0.3, (248, 132, 36, 210)), (0.0, (190, 56, 24, 140))]
+FIRE = [(0.72, (255, 244, 190, 245)), (0.48, (255, 200, 60, 245)), (0.24, (250, 118, 24, 235)), (0.0, (200, 46, 16, 180))]
+FIRE_LOW = [(0.6, (255, 210, 80, 245)), (0.3, (248, 124, 28, 230)), (0.0, (196, 50, 18, 170))]
 
 
 def fire(img, level):
@@ -150,14 +150,14 @@ def fire(img, level):
                 ph = (f / N + k / 7) % 1
                 if ph < 0.85:
                     put(a, x0 + 0.6 * math.sin(ph * 6.28 + k), y0 - ph * 6,
-                        (255, 190, 70, 255) if ph < 0.5 else (230, 100, 30, 200))
+                        (255, 190, 70, 245) if ph < 0.5 else (230, 100, 30, 210))
     return frames
 
 
 def holy(img, level):
     """Smite: light that rises off the blade in thin wavering strands, slower and softer than fire; twinkles on top."""
     reach = {1: 0.0, 2: 0.8, 3: 1.2, 4: 1.55, 5: 1.9}[level]
-    stops = [(0.62, (255, 255, 244, 240)), (0.32, (255, 234, 150, 205)), (0.0, (255, 196, 84, 140))]
+    stops = [(0.62, (255, 252, 222, 245)), (0.32, (255, 222, 96, 235)), (0.0, (240, 172, 40, 175))]
     frames = tongues(img, reach, up=0.35, down=3.0, seed=21, sx=0.65, sy=0.3, speed=0.5, base=0.0, cut=0.42,
                      power=1.2, stops=stops, warp=0.2)
     if level >= 5:
@@ -165,14 +165,14 @@ def holy(img, level):
             for k, (x0, y0) in enumerate(((16.2, -1.4), (12.5, -0.8), (17.0, 3.0), (9.0, 2.6), (6.0, 5.4))):
                 ph = (f / N * 2 + k * 0.37) % 1
                 if ph < 0.4:
-                    star(a, x0, y0, 1 if ph < 0.1 or ph > 0.3 else 2, (255, 250, 220, 255))
+                    star(a, x0, y0, 1 if ph < 0.1 or ph > 0.3 else 2, (255, 248, 210, 245))
     return frames
 
 
 def venom(img, level):
     """Bane: green wisps curling off the blade, broken up, and drops that gather under the edge and fall."""
     reach = {1: 0.0, 2: 0.7, 3: 1.0, 4: 1.25, 5: 1.5}[level]
-    stops = [(0.6, (196, 255, 120, 230)), (0.3, (110, 206, 66, 190)), (0.0, (48, 120, 38, 130))]
+    stops = [(0.6, (200, 255, 110, 245)), (0.3, (104, 214, 52, 230)), (0.0, (44, 130, 30, 175))]
     frames = tongues(img, reach, up=0.5, down=1.6, seed=33, sx=0.45, sy=0.32, speed=0.5, base=0.0, cut=0.45,
                      power=1.0, stops=stops, sway=0.8, warp=0.6)
     drops = ((10.6, 7.2), (13.4, 4.4), (8.2, 9.4))[:{3: 1, 4: 2}.get(level, 3)] if level >= 3 else ()
@@ -180,25 +180,25 @@ def venom(img, level):
         for k, (x0, y0) in enumerate(drops):
             ph = (f / N + k * 0.41) % 1
             if ph < 0.45:  # gathering under the edge
-                put(a, x0, y0 + 0.1, (150, 232, 90, 230))
+                put(a, x0, y0 + 0.1, (150, 232, 90, 240))
             elif ph < 0.8:  # falling
                 t = (ph - 0.45) / 0.35
-                put(a, x0, y0 + 0.4 + t * t * 6, (170, 240, 100, 240))
-                put(a, x0, y0 - 0.1 + t * t * 6, (110, 200, 70, 180))
+                put(a, x0, y0 + 0.4 + t * t * 6, (170, 240, 100, 245))
+                put(a, x0, y0 - 0.1 + t * t * 6, (110, 200, 70, 200))
     return frames
 
 
 def edge(img, level):
     """Sharpness: fine cold spikes hugging the edge that flicker quickly, plus a gleam on the tip at the top grade."""
     reach = {1: 0.0, 2: 0.45, 3: 0.7, 4: 0.95, 5: 1.2}[level]
-    stops = [(0.6, (244, 252, 255, 235)), (0.3, (176, 222, 255, 190)), (0.0, (110, 160, 230, 120))]
+    stops = [(0.6, (246, 252, 255, 245)), (0.3, (160, 214, 255, 230)), (0.0, (90, 140, 236, 170))]
     frames = tongues(img, reach, up=0.8, down=1.0, seed=45, sx=1.1, sy=0.5, speed=2, base=0.0, cut=0.4,
                      power=1.3, stops=stops, warp=0.1)
     if level >= 5:
         for f, a in enumerate(frames):
             ph = f / N
             if ph < 0.25:
-                star(a, 15.6, 0.3, 1 if ph < 0.06 or ph > 0.19 else 2, (255, 255, 255, 255))
+                star(a, 15.6, 0.3, 1 if ph < 0.06 or ph > 0.19 else 2, (255, 255, 255, 245))
     return frames
 
 

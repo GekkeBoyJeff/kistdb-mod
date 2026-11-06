@@ -53,14 +53,16 @@ vec3 libreriaGlow(int code, vec3 rgb, vec2 uv) {
 }
 
 #ifndef OIT_ALPHA_ONLY
-vec4 calculateFinalColor(vec4 color, bool lit) {
+vec4 calculateFinalColor(vec4 color, bool lit, bool glint) {
     color.rgb = mix(overlayColor.rgb, color.rgb, overlayColor.a);
     if (lit) color *= lightMapColor;
 
     #ifdef GLINT
-    vec4 glintColor = GlintAlpha * texture(GlintSampler, texCoordGlint);// Glint color modulator?
-    // Matches BlendFuntion.GLINT
-    color.rgb += glintColor.rgb * glintColor.rgb;
+    if (glint) {
+        vec4 glintColor = GlintAlpha * texture(GlintSampler, texCoordGlint);// Glint color modulator?
+        // Matches BlendFuntion.GLINT
+        color.rgb += glintColor.rgb * glintColor.rgb;
+    }
     #endif
 
     #ifdef OIT_ACCUMULATE
@@ -78,6 +80,8 @@ void main() {
     vec4 color = texture(Sampler0, texCoord0);
     int libreriaCode = int(color.a * 255.0 + 0.5);
     bool libreriaFx = libreriaCode >= 249 && libreriaCode <= 254;
+    // Libreria: a sword's aura (see-through pixels, never fully opaque) gets no enchantment glint: the aura is the effect
+    bool libreriaAura = !libreriaFx && libreriaCode > 0 && libreriaCode <= 246;
     if (libreriaFx) color.a = 1.0;
     #ifdef ALPHA_CUTOUT
     if (color.a < ALPHA_CUTOUT) {
@@ -94,12 +98,12 @@ void main() {
     }
 
     #ifdef GLINT
-    color.a = max(color.a, GlintAlpha);
+    if (!libreriaAura) color.a = max(color.a, GlintAlpha);
     #endif
 
     #ifdef OIT_ALPHA_ONLY
     executeAlphaOnlyPhase(gl_FragCoord.z, color.a);
     #else
-    fragColor = calculateFinalColor(color, !libreriaFx);
+    fragColor = calculateFinalColor(color, !libreriaFx, !libreriaAura);
     #endif
 }

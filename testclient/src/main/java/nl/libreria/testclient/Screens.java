@@ -79,7 +79,8 @@ public final class Screens implements FabricClientGameTest {
 				camera(ctx, CameraType.FIRST_PERSON);
 			});
 			// Proof of concept, round 7: a sword's effect as a texture part (in the sword) plus an aura (an animated plane
-			// behind it whose width changes per piece), no server particles, so only the model is judged
+			// behind it whose width changes per piece), no server particles, so only the model is judged; with the glint, by
+			// night and by day
 			safe("fx_round7", () -> {
 				ctx.getInput().lookAt(0, 0);
 				ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.HIDDEN));
@@ -88,13 +89,19 @@ public final class Screens implements FabricClientGameTest {
 						{"bane", "3"}, {"bane", "5"}};
 				for (String[] sw : swords) {
 					String id = sw[0] + "_" + sw[1];
-					run(server, "item replace entity @a weapon.mainhand with minecraft:diamond_sword[item_model=\"libreria:fx/sword_" + id + "\"]");
+					run(server, "item replace entity @a weapon.mainhand with minecraft:diamond_sword[item_model=\"libreria:fx/sword_" + id + "\",enchantment_glint_override=true]");
 					camera(ctx, CameraType.FIRST_PERSON);
 					ctx.waitTicks(30);
 					for (int f = 0; f < 6; f++) {
 						ctx.takeScreenshot("fxa_" + id + "_hold_" + f);
 						ctx.waitTicks(3);
 					}
+					ctx.getInput().pressKey(o2 -> o2.keyAttack);
+					for (int f = 1; f <= 5; f++) {
+						ctx.waitTicks(1);
+						ctx.takeScreenshot("fxa_" + id + "_swing_" + f);
+					}
+					ctx.waitTicks(10);
 					camera(ctx, CameraType.THIRD_PERSON_FRONT);
 					ctx.waitTicks(12);
 					ctx.takeScreenshot("fxa_" + id + "_third_0");
