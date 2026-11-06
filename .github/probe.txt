@@ -1,1 +1,1 @@
-!net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
+net.minecraft.world.level.block.LightBlock

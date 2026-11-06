@@ -17,13 +17,13 @@ import nl.libreria.core.dialog.Window;
 import nl.libreria.core.gui.TopCard;
 
 /**
- * Tips at the moment they're useful, once: the first time you open a chest you learn that middle-click sorts it; the
+ * Tips at the moment they're useful, once: the first time you open a chest you learn that a double-click on an empty slot sorts it; the
  * first time you're on the land map, that the mouse turns it. A card at the top in the colour of its domain, never chat.
  * Every tip can be read back under Help → Tips, so nothing is lost by missing one.
  *
  * <pre>{@code
  * static final Tips.Tip SORT = Tips.register("chest_sort", Domain.ITEMS, Items.CHEST, "Sorting a chest",
- *         "Middle-click an empty slot to sort it.", "Shift-click the ⇅ button for this chest's options.");
+ *         "Double-click an empty slot to sort it.", "Shift-click the ⇅ button for this chest's options.");
  * ...
  * Tips.once(player, SORT);
  * }</pre>

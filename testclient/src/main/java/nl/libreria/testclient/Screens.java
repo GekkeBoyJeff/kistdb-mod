@@ -143,7 +143,7 @@ public final class Screens implements FabricClientGameTest {
 				int w = ctx.computeOnClient(mc -> mc.getWindow().getGuiScaledWidth());
 				int h = ctx.computeOnClient(mc -> mc.getWindow().getGuiScaledHeight());
 				int left = (w - 176) / 2, top = (h - 166) / 2;
-				// The buttons on the window's left edge (a click outside the window): left deposits, middle sorts
+				// The buttons on the window's left edge (a click outside the window): left deposits
 				ctx.getInput().setCursorPos((left - 14) * scale, (top + 61) * scale);
 				ctx.waitTicks(3);
 				ctx.getInput().pressKey(o2 -> o2.keyAttack);
@@ -151,9 +151,11 @@ public final class Screens implements FabricClientGameTest {
 				ctx.getInput().setCursorPos(2, 2);
 				ctx.waitTicks(2);
 				ctx.takeScreenshot("inventory_deposit");
-				ctx.getInput().setCursorPos((left - 14) * scale, (top + 61) * scale);
+				// Sorting: a double-click on an empty slot (the bottom row of the inventory)
+				ctx.getInput().setCursorPos((left + 16) * scale, (top + 128) * scale);
 				ctx.waitTicks(3);
-				ctx.getInput().pressKey(o2 -> o2.keyPickItem);
+				ctx.getInput().pressKey(o2 -> o2.keyAttack);
+				ctx.getInput().pressKey(o2 -> o2.keyAttack);
 				ctx.waitTicks(10);
 				ctx.getInput().setCursorPos(2, 2);
 				ctx.waitTicks(2);

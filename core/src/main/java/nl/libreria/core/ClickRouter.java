@@ -9,7 +9,7 @@ import net.minecraft.world.inventory.ContainerInput;
 
 /** Verdeelt klikken in containerschermen: eerst de Libreria-knop, dan de klik-haken van modules. */
 public final class ClickRouter {
-	/** Een module die klikken wil afvangen (bv. ChestsMod: middelklik = sorteren). */
+	/** Een module die klikken wil afvangen (bv. ChestsMod: dubbelklik op een leeg slot = sorteren). */
 	public interface Hook {
 		/** @return true als de klik is afgehandeld (vanilla negeert hem dan). */
 		boolean onClick(ServerPlayer player, AbstractContainerMenu menu, int slot, ContainerInput input, int button);
@@ -32,16 +32,12 @@ public final class ClickRouter {
 		ContainerInput input = packet.containerInput();
 		int button = packet.buttonNum();
 
-		// The buttons beside the inventory window: a click outside it with an empty hand (middle-click comes as a clone)
-		if (menu == player.inventoryMenu && slot == -999 && menu.getCarried().isEmpty() && Hub.edgeActive(player)) {
-			if (input == ContainerInput.THROW) {
-				Hub.edgeClick(player, button == 1 ? 1 : 0);
-				return true;
-			}
-			if (input == ContainerInput.CLONE && !player.hasInfiniteMaterials()) {
-				Hub.edgeClick(player, 2);
-				return true;
-			}
+		// The buttons beside the inventory window: a click outside it with an empty hand (left or right; a middle-click
+		// the game only sends in creative)
+		if (menu == player.inventoryMenu && slot == -999 && input == ContainerInput.THROW && menu.getCarried().isEmpty()
+				&& Hub.edgeActive(player)) {
+			Hub.edgeClick(player, button);
+			return true;
 		}
 
 		for (Hook h : HOOKS) {
