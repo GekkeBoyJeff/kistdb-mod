@@ -515,7 +515,10 @@ def main():
         img.save(os.path.join(tex, 'far_' + name + '.png'))
         meta = os.path.join(tex, name + '.png.mcmeta')
         if os.path.exists(meta):
-            open(os.path.join(tex, 'far_' + name + '.png.mcmeta'), 'w').write(open(meta).read())
+            # not interpolated: blending two frames would mix the alphas, and the mark with them
+            m = json.load(open(meta))
+            m['animation']['interpolate'] = False
+            json.dump(m, open(os.path.join(tex, 'far_' + name + '.png.mcmeta'), 'w'))
         m = card_model(name)
         m['textures'] = {'s': f'libreria:item/fx/p/far_{name}', 'particle': f'libreria:item/fx/p/far_{name}'}
         json.dump(m, open(os.path.join(mod, 'far_' + name + '.json'), 'w'), indent=1)
