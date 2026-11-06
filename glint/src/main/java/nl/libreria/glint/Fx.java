@@ -471,57 +471,89 @@ final class Fx {
 		int feet = soul ? 0x5FE6FF : frost ? 0xBFE6FF : 0;
 		switch (w.set) {
 			case "protection" -> {
-				int main = 0x9FB4FF, accent = 0xC2A6FF;
-				ground(p, w, level, viewers, tick, "circle", feet != 0 ? feet : main, 1.5f + 0.15f * g, 200);
-				if (g >= 2) spinRing(p, w, level, viewers, tick, "ward1", feet != 0 ? feet : main, 1.75f, 0.5, 16, 110);
+				// Ward: a rune circle, thin rings of light turning round you like a gyroscope, light rising along them,
+				// runes circling between the rings from III, the shield shimmering on you at IV
+				int main = feet != 0 ? feet : 0x9FB4FF, accent = 0xC2A6FF;
+				ground(p, w, level, viewers, tick, "circle", main, 1.45f + 0.15f * g, 200);
+				if (g >= 2) spinRing(p, w, level, viewers, tick, "ward1", main, 1.75f, 0.5, 16, 110);
 				if (g >= 3) spinRing(p, w, level, viewers, tick, "ward2", accent, 1.95f, 0.56, -26, -150);
-				if (every(tick, g >= 3 ? 3 : 6)) ps.add(helix("mote", pick(main, accent, 0xE6ECFF), tick * 0.31, 0.55, 0.42, 0.1, h * 1.05,
-						0.45, 36, 0.13f, 0.02f));
-				if (g >= 4 && every(tick, 9)) ps.add(pop("hex", pick(main, accent), onBody(p, 0.3f, 0.85f, 0.34f), rnd(0.28f, 0.38f), 10, 0));
+				if (g >= 3) orbit(p, w, level, viewers, tick, "wardrunes", g >= 4 ? 4 : 2, 0.62, 0.76, 0.2f, 90,
+						new String[]{"rune_a", "rune_b", "rune_c", "rune_d"}, new int[]{main, accent});
+				if (every(tick, new int[]{0, 7, 5, 3, 2}[g])) ps.add(helix("mote", pick(main, accent, 0xE6ECFF), tick * 0.31, 0.6, 0.4, 0.08, h * 1.1,
+						0.5, 36, 0.14f, 0.02f));
+				if (g >= 4 && every(tick, 8)) ps.add(pop("hex", pick(main, accent), onBody(p, 0.3f, 0.85f, 0.36f), rnd(0.3f, 0.4f), 10, 0));
 			}
 			case "fire" -> {
+				// Ember mantle: a ring of fire on a glow at your feet, flames licking up your legs, embers spiralling up
+				// round you with a tail (one stream, two from III), heat rising, and at IV flames on your shoulders
 				int[] fire = soul ? new int[]{0x5FE6FF, 0x3FC6E8, 0x9FF4FF} : frost ? new int[]{0xBFE6FF, 0x8FD0FF, 0xFFFFFF}
 						: new int[]{0xFF9A3C, 0xFFB64A, 0xFF6A1F};
-				feetFlames(p, w, level, viewers, tick, "flames", 5 + g, 0.48, 0.36f + 0.05f * g, fire);
-				ground(p, w, level, viewers, tick, "shadow", fire[0], 1.6f + 0.1f * g, 400);
-				int[] embers = soul ? new int[]{0x9FF4FF, 0x5FE6FF} : new int[]{0xFFE9A8, 0xFFB64A, 0xFF8A2E};
-				int every = new int[]{0, 4, 3, 2, 2}[g];
-				if (every(tick, every)) {
-					for (int k = 0; k < (g >= 2 ? 2 : 1); k++) {
+				int[] embers = soul ? new int[]{0x9FF4FF, 0x5FE6FF} : frost ? new int[]{0xFFFFFF, 0xBFE6FF}
+						: new int[]{0xFFE9A8, 0xFFB64A, 0xFF8A2E};
+				feetFlames(p, w, level, viewers, tick, "flames", 6 + g, 0.46, 0.3f + 0.05f * g, fire);
+				ground(p, w, level, viewers, tick, "pool", fire[0], 1.25f + 0.15f * g, 400);
+				if (g >= 2 && every(tick, g >= 4 ? 2 : 3)) ps.add(helix("flame", pick(fire), tick * 0.22 + R.nextDouble() * Math.PI * 2, 0.44, 0.3,
+						0.05, h * (g >= 3 ? 0.62 : 0.42), 0.35, 15, 0.3f + 0.04f * g, 0.08f));
+				if (every(tick, new int[]{0, 5, 3, 2, 2}[g])) {
+					for (int k = 0; k < (g >= 3 ? 2 : 1); k++) {
 						double a0 = tick * 0.22 + k * Math.PI;
 						int c = pick(embers);
-						ps.add(helix("ember", c, a0, 0.56, 0.3, 0.12, h * 1.2, 0.8, 30, 0.26f, 0.05f));
-						ps.add(helix("ember", c, a0 - 0.22, 0.56, 0.3, 0.06, h * 1.12, 0.8, 30, 0.15f, 0.03f));
+						ps.add(helix("ember", c, a0, 0.56, 0.3, 0.12, h * 1.25, 0.8, 30, 0.32f, 0.06f));
+						ps.add(helix("ember", c, a0 - 0.2, 0.56, 0.3, 0.06, h * 1.15, 0.8, 30, 0.2f, 0.04f));
+						ps.add(helix("ember", c, a0 - 0.4, 0.56, 0.3, 0.0, h * 1.05, 0.8, 30, 0.12f, 0.02f));
 					}
 				}
-				if (g >= 2 && every(tick, 5)) ps.add(helix("wisp", soul ? 0x5FE6FF : 0xFF9A3C, tick * 0.22 + 0.4, 0.5, 0.3, 0.2, h * 0.95, 0.6, 24,
-						0.34f, 0.06f));
 				if (g >= 3 && every(tick, 6)) {
 					Vec3 from = new Vec3(rnd(-0.12f, 0.12f), h * rnd(0.3f, 0.55f), rnd(-0.12f, 0.12f));
-					ps.add(line("haze", soul ? 0x3FC6E8 : 0xFF8A3C, from, from.add(0, 0.55, 0), 0.9f, 1.3f, 0, 0, 22));
+					ps.add(line("haze", fire[0], from, from.add(0, 0.55, 0), 0.8f, 1.2f, 0, 0, 22));
 				}
-				if (g >= 4 && every(tick, 4)) ps.add(pop("twinkle", soul ? 0xCFFAFF : 0xFFF1C2, onBody(p, 0.2f, 1.0f, 0.42f), rnd(0.22f, 0.3f), 6, 0.8f));
+				if (g >= 4) shoulderFlames(p, w, level, viewers, tick, "shoulders", fire);
+				if (g >= 4 && every(tick, 4)) ps.add(pop("twinkle", soul ? 0xCFFAFF : frost ? 0xFFFFFF : 0xFFF1C2, onBody(p, 0.2f, 1.0f, 0.42f),
+						rnd(0.22f, 0.3f), 6, 0.8f));
 			}
 			case "blast" -> {
-				if (every(tick, 3)) {
+				// Bulwark: heavy smoke curling at your feet, shards of stone circling and tumbling round your middle from II,
+				// from III a thump now and then (a ring of dust running out over the ground) and sparks, at IV a dark ring
+				int dust = feet != 0 ? feet : 0xB8B8C4;
+				if (every(tick, g >= 3 ? 2 : 3)) {
 					double a = R.nextDouble() * Math.PI * 2;
 					Vec3 from = new Vec3(Math.cos(a) * 0.42, 0.08, Math.sin(a) * 0.42);
 					int smoke = feet != 0 ? feet : pick(0xA4A4B0, 0x8C8C98, 0xB8B8C2);
 					ps.add(new P("smoke", smoke, 10, List.of(new S(from, 0.35f, 0), new S(from.add(Math.cos(a) * 0.2, 0.2, Math.sin(a) * 0.2), 0.8f, 0.6f),
 							new S(from.add(Math.cos(a) * 0.34, 0.34, Math.sin(a) * 0.34), 1.05f, 1.2f), new S(from.add(Math.cos(a) * 0.42, 0.44, Math.sin(a) * 0.42), 0.02f, 1.6f)), null));
 				}
-				if (g >= 2) shards(p, w, level, viewers, tick, "shards", g >= 4 ? 5 : g >= 3 ? 4 : 3, 0.78, 0.47, new int[]{0x8E8E9A, 0xA8A8B4, 0x74747E});
-				if (g >= 3 && every(tick, 7)) ps.add(pop("twinkle", 0xFFA040, onBody(p, 0.35f, 0.6f, 0.78f), rnd(0.2f, 0.28f), 6, 0.6f));
+				if (g >= 2) shards(p, w, level, viewers, tick, "shards", g >= 4 ? 6 : g >= 3 ? 4 : 3, 0.78, 0.47, new int[]{0x8E8E9A, 0xA8A8B4, 0x74747E});
+				if (g >= 3 && every(tick, g >= 4 ? 30 : 45)) {
+					Quaternionf flat = new Quaternionf().rotateX(-Mth.HALF_PI);
+					Vec3 at = new Vec3(0, 0.06, 0);
+					ps.add(new P("thinring", dust, 2, List.of(new S(at, 0.4f, 0), new S(at, 1.3f, 0), new S(at, 2.1f, 0), new S(at, 2.7f, 0),
+							new S(at, 3.1f, 0)), flat));
+					for (int k = 0; k < 8; k++) {
+						double a = k * Math.PI / 4 + rnd(-0.2f, 0.2f);
+						Vec3 from = new Vec3(Math.cos(a) * 0.4, 0.1, Math.sin(a) * 0.4);
+						ps.add(line("smoke", pick(0xA4A4B0, 0xB8B8C2), from, from.add(Math.cos(a) * 0.9, 0.15, Math.sin(a) * 0.9), 0.4f, 0.02f, 0, 1f, 16));
+					}
+				}
+				if (g >= 3 && every(tick, 6)) ps.add(pop("twinkle", 0xFFA040, onBody(p, 0.35f, 0.6f, 0.78f), rnd(0.2f, 0.28f), 6, 0.6f));
 				if (g >= 4) ground(p, w, level, viewers, tick, "crater", feet != 0 ? feet : 0x52525C, 2.3f, 260);
 			}
 			case "projectile" -> {
+				// Windward: arcs of wind sweeping round you (more heights per grade), leaves caught in it from II, dust
+				// swirling off your feet from III, at IV speed lines flying past and a ring of wind on the ground
 				int wind = feet != 0 ? feet : 0xD8F5E6;
 				spinRing(p, w, level, viewers, tick, "gust1", wind, 1.8f, 0.3, 8, 34, "thinarc");
 				if (g >= 2) spinRing(p, w, level, viewers, tick, "gust2", 0xF2FFF8, 1.65f, 0.62, -12, -28, "thinarc");
 				if (g >= 3) spinRing(p, w, level, viewers, tick, "gust3", 0xA8E6C8, 1.5f, 0.88, 6, 40, "thinarc");
-				if (g >= 2 && every(tick, 10)) ps.add(helix("feather", pick(0xE8F7EE, 0xC8EBD6, 0xB6E3A8), tick * 0.5, 0.62, 0.7, 0.25, h * 1.0, 1.2, 39,
-						0.28f, 0.24f));
-				if (g >= 4) ground(p, w, level, viewers, tick, "windring", feet != 0 ? feet : 0xD8F5E6, 2.0f, 90);
+				if (g >= 2 && every(tick, g >= 4 ? 6 : 9)) ps.add(helix("feather", pick(0xE8F7EE, 0xC8EBD6, 0xB6E3A8), tick * 0.5, 0.62, 0.7, 0.25,
+						h * 1.0, 1.2, 39, 0.28f, 0.24f));
+				if (g >= 3 && every(tick, 3)) ps.add(helix("mote", pick(0xE8F2EC, 0xCFE3D8), tick * 0.6, 0.35, 0.8, 0.05, 0.45, 0.6, 15, 0.13f, 0.02f));
+				if (g >= 4 && every(tick, 7)) {
+					double a = R.nextDouble() * Math.PI * 2, y = h * rnd(0.2f, 0.9f);
+					Vec3 from = new Vec3(Math.cos(a) * 0.8, y, Math.sin(a) * 0.8);
+					Vec3 to = new Vec3(Math.cos(a + 1.3) * 0.8, y + 0.05, Math.sin(a + 1.3) * 0.8);
+					ps.add(line("streak", 0xF2FFF8, from, to, 0.55f, 0.3f, 0, 0, 6));
+				}
+				if (g >= 4) ground(p, w, level, viewers, tick, "windring", wind, 2.0f, 90);
 			}
 			default -> {
 			}
@@ -621,6 +653,42 @@ final class Fx {
 			}
 		}
 		r.holder.tick();
+	}
+
+	/** Two small flames on your shoulders, following the way your body faces (the top of the ember mantle). */
+	private static void shoulderFlames(ServerPlayer p, Wearer w, ServerLevel level, List<ServerPlayer> viewers, int tick, String key, int[] colours) {
+		Ring r = w.rings.get(key);
+		if (r == null) {
+			r = new Ring();
+			for (int i = 0; i < 2; i++) {
+				ItemDisplayElement e = element("flame", colours[i % colours.length], false);
+				e.setScale(new Vector3f(0.34f));
+				e.setTeleportDuration(2);
+				e.setInterpolationDuration(3);
+				e.setOffset(shoulder(p, i == 0 ? 1 : -1));
+				r.holder.addElement(e);
+				r.els.add(e);
+			}
+			show(p, w, level, viewers, key, r);
+		}
+		for (int i = 0; i < r.els.size(); i++) {
+			ItemDisplayElement e = r.els.get(i);
+			e.setOffset(shoulder(p, i == 0 ? 1 : -1));
+			if (tick % 3 == 0) {
+				float sc = rnd(0.28f, 0.42f);
+				e.setScale(new Vector3f(sc * 0.85f, sc, sc));
+				e.setTranslation(new Vector3f(0, sc * 0.35f, 0));
+				e.startInterpolation();
+			}
+		}
+		r.holder.tick();
+	}
+
+	private static Vec3 shoulder(ServerPlayer p, int side) {
+		float yaw = p.yBodyRot * Mth.DEG_TO_RAD;
+		Vec3 right = new Vec3(-Mth.cos(yaw), 0, -Mth.sin(yaw));
+		Vec3 back = new Vec3(Mth.sin(yaw), 0, -Mth.cos(yaw));
+		return right.scale(0.3 * side).add(back.scale(0.05)).add(0, p.getBbHeight() * 0.77, 0);
 	}
 
 	/** Shards of stone circling your middle, bobbing and tumbling. */
@@ -851,7 +919,7 @@ final class Fx {
 		Ring r = w.rings.get(key);
 		if (r == null) {
 			r = new Ring();
-			ItemDisplayElement e = element(key.equals("icering") ? "ring" : key.equals("shadow") ? "haze"
+			ItemDisplayElement e = element(key.equals("icering") ? "ring" : key.equals("shadow") ? "haze" : key.equals("pool") ? "glow"
 					: key.equals("crater") || key.equals("windring") ? "thinring" : "circle", rgb, true);
 			e.setScale(new Vector3f(size));
 			e.setOffset(new Vec3(0, 0.04, 0));

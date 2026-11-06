@@ -1,0 +1,7 @@
+{
+ "parent": "minecraft:item/handheld",
+ "textures": {
+  "layer0": "minecraft:item/diamond_sword",
+  "layer1": "libreria:item/fx/blade/fire2_sharp5"
+ }
+}

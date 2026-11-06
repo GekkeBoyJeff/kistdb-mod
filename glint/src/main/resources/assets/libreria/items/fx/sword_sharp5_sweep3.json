@@ -1,0 +1,28 @@
+{
+ "model": {
+  "type": "minecraft:select",
+  "property": "minecraft:display_context",
+  "cases": [
+   {
+    "when": "gui",
+    "model": {
+     "type": "minecraft:model",
+     "model": "libreria:item/fx/sword_sharp5_sweep3"
+    }
+   }
+  ],
+  "fallback": {
+   "type": "minecraft:composite",
+   "models": [
+    {
+     "type": "minecraft:model",
+     "model": "libreria:item/fx/sword_sharp5_sweep3"
+    },
+    {
+     "type": "minecraft:model",
+     "model": "libreria:item/fx/aura_sharp5_sweep3"
+    }
+   ]
+  }
+ }
+}

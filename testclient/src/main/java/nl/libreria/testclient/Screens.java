@@ -78,43 +78,56 @@ public final class Screens implements FabricClientGameTest {
 				ctx.takeScreenshot("nameplate_front");
 				camera(ctx, CameraType.FIRST_PERSON);
 			});
-			// Proof of concept, round 8: armour sets, one effect for the whole set (far-only: seen in third person and by
-			// others, not in first person), per grade and with what the pieces add; and the sword aura lit by itself
-			safe("fx_round8", () -> {
+			// Proof of concept, round 9: swords with texture parts that grow per level and combine, no enchantment glint (the
+			// effect replaces it); and the four armour sets reworked (moving: eight frames each), from the front, from
+			// behind, by day and with what the pieces add
+			safe("fx_round9", () -> {
 				ctx.getInput().lookAt(0, 0);
 				ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.HIDDEN));
-				server.runOnServer(s -> nl.libreria.glint.GlintMod.AURA_THIRD.set(player, false));
+				server.runOnServer(sv -> nl.libreria.glint.GlintMod.AURA_THIRD.set(player, false));
 				run(server, "time set midnight");
 				camera(ctx, CameraType.FIRST_PERSON);
-				for (String id : new String[]{"fire_2", "smite_5"}) {
-					run(server, "item replace entity @a weapon.mainhand with minecraft:diamond_sword[item_model=\"libreria:fx/sword_" + id + "\",enchantment_glint_override=true]");
-					ctx.waitTicks(20);
-					ctx.takeScreenshot("fxs_" + id + "_night");
+				String[] swords = {"sharp5", "fire2", "smite5", "bane5", "loot3", "knock2", "sweep3", "fire2_sharp5", "fire2_smite5", "bane5_fire2",
+						"fire2_knock2_loot3_sharp5_sweep3"};
+				for (String id : swords) {
+					run(server, "item replace entity @a weapon.mainhand with " + sword(id));
+					ctx.waitTicks(16);
+					ctx.takeScreenshot("fxw_" + id + "_0");
+					ctx.waitTicks(4);
+					ctx.takeScreenshot("fxw_" + id + "_1");
 				}
+				String[] bar = {"sharp5", "fire2", "smite5", "bane5", "loot3", "knock2", "sweep3", "fire2_smite5", "fire2_knock2_loot3_sharp5_sweep3"};
+				for (int i = 0; i < bar.length; i++) run(server, "item replace entity @a hotbar." + i + " with " + sword(bar[i]));
+				ctx.waitTicks(10);
+				ctx.takeScreenshot("fxw_hotbar");
 				run(server, "time set noon");
-				for (String id : new String[]{"fire_2", "smite_5"}) {
-					run(server, "item replace entity @a weapon.mainhand with minecraft:diamond_sword[item_model=\"libreria:fx/sword_" + id + "\",enchantment_glint_override=true]");
-					ctx.waitTicks(20);
-					ctx.takeScreenshot("fxs_" + id + "_day");
+				for (String id : new String[]{"fire2_sharp5", "fire2_knock2_loot3_sharp5_sweep3"}) {
+					run(server, "item replace entity @a weapon.mainhand with " + sword(id));
+					ctx.waitTicks(16);
+					ctx.takeScreenshot("fxw_" + id + "_day");
 				}
-				run(server, "item replace entity @a weapon.mainhand with minecraft:air", "time set midnight");
+				run(server, "clear @a", "time set midnight");
 				String[][] sets = {{"protection", "protection"}, {"fire", "fire_protection"}, {"blast", "blast_protection"},
 						{"projectile", "projectile_protection"}};
 				String[][] combos = {{"thorns", "thorns"}, {"feather", "feather"}, {"frost", "frost"}, {"soul", "soul"},
 						{"all", "thorns,feather,frost,soul"}};
-				camera(ctx, CameraType.THIRD_PERSON_FRONT);
 				for (String[] st : sets) {
+					camera(ctx, CameraType.THIRD_PERSON_FRONT);
 					for (int g = 1; g <= 4; g++) {
 						wearSet(server, st[1], g, "");
 						String spec = "set:" + st[0] + ":" + g;
 						server.runOnServer(sv -> nl.libreria.glint.GlintMod.debugFx(player, spec));
 						ctx.waitTicks(45);
 						ctx.takeScreenshot("fxset_" + st[0] + "_" + g);
-						if (g == 4) {
-							ctx.waitTicks(5);
-							ctx.takeScreenshot("fxset_" + st[0] + "_4b");
-						}
 					}
+					for (int f = 0; f < 8; f++) {
+						ctx.waitTicks(3);
+						ctx.takeScreenshot("fxset_" + st[0] + "_move_" + f);
+					}
+					camera(ctx, CameraType.THIRD_PERSON_BACK);
+					ctx.waitTicks(20);
+					ctx.takeScreenshot("fxset_" + st[0] + "_back");
+					camera(ctx, CameraType.THIRD_PERSON_FRONT);
 					for (String[] c : combos) {
 						wearSet(server, st[1], 4, c[1]);
 						String spec = "set:" + st[0] + ":4:" + c[1];
@@ -123,25 +136,22 @@ public final class Screens implements FabricClientGameTest {
 						ctx.takeScreenshot("fxset_" + st[0] + "_4_" + c[0]);
 					}
 				}
-				// From behind, by day, and in first person (where nothing of it should be in view)
-				wearSet(server, "fire_protection", 4, "thorns,feather,frost,soul");
+				// In first person (nothing of it in view), then by day
+				wearSet(server, "fire_protection", 4, "");
 				server.runOnServer(sv -> nl.libreria.glint.GlintMod.debugFx(player, "set:fire:4"));
-				camera(ctx, CameraType.THIRD_PERSON_BACK);
-				ctx.waitTicks(40);
-				ctx.takeScreenshot("fxset_fire_4_back");
 				camera(ctx, CameraType.FIRST_PERSON);
 				ctx.getInput().lookAt(0, 40);
 				ctx.waitTicks(30);
-				ctx.takeScreenshot("fxset_fire_4_first");
+				ctx.takeScreenshot("fxset_fire_first");
 				ctx.getInput().lookAt(0, 0);
 				run(server, "time set noon");
 				camera(ctx, CameraType.THIRD_PERSON_FRONT);
-				for (String[] st : new String[][]{{"fire", "fire_protection"}, {"protection", "protection"}}) {
+				for (String[] st : sets) {
 					wearSet(server, st[1], 4, "");
 					String spec = "set:" + st[0] + ":4";
 					server.runOnServer(sv -> nl.libreria.glint.GlintMod.debugFx(player, spec));
 					ctx.waitTicks(40);
-					ctx.takeScreenshot("fxset_" + st[0] + "_4_day");
+					ctx.takeScreenshot("fxset_" + st[0] + "_day");
 				}
 				server.runOnServer(sv -> nl.libreria.glint.GlintMod.debugFx(player, "off"));
 				server.runOnServer(sv -> nl.libreria.glint.GlintMod.AURA_THIRD.set(player, true));
@@ -802,6 +812,11 @@ public final class Screens implements FabricClientGameTest {
 				LOG.warn("Could not clear toasts: {}", e.toString());
 			}
 		});
+	}
+
+	/** A diamond sword with one of the effect models, without the enchantment glint (the effect takes its place). */
+	private static String sword(String id) {
+		return "minecraft:diamond_sword[item_model=\"libreria:fx/sword_" + id + "\",enchantment_glint_override=false]";
 	}
 
 	/** Four diamond pieces with the same protection at a level; extras: thorns (chest), feather/frost/soul (boots). */
