@@ -254,6 +254,8 @@ final class Fx {
 			case "feather" -> feather(p, w, level, viewers, tick, g, ps);
 			case "thorns" -> thorns(p, w, level, viewers, tick, g, ps);
 			case "tide" -> tide(p, w, level, viewers, tick, g, ps);
+			case "curse" -> curse(p, w, level, viewers, tick, ps);
+			case "vanish" -> vanish(p, w, level, viewers, tick, ps);
 			default -> {
 			}
 		}
@@ -397,6 +399,38 @@ final class Fx {
 		if (g >= 3) orbit(p, w, level, viewers, tick, "bubbles", 8, 0.7, 0.45, 0.22f, 70, new String[]{"bubble"}, new int[]{0xBFF3FF});
 	}
 
+	/**
+	 * Curse of Binding: something holds on to you. Dark violet smoke seeps off you, chain links flicker up and fade, a
+	 * violet glint now and then, and a pool of shadow under your feet. No light: a curse takes it away.
+	 */
+	private static void curse(ServerPlayer p, Wearer w, ServerLevel level, List<ServerPlayer> viewers, int tick, List<P> ps) {
+		if (every(tick, 3)) {
+			Vec3 from = onBody(p, 0.1f, 0.8f, 0.3f);
+			ps.add(line("smoke", pick(0x2B1A3D, 0x3A2150, 0x24142F), from, from.add(rnd(-0.2f, 0.2f), rnd(0.4f, 0.7f), rnd(-0.2f, 0.2f)),
+					rnd(0.55f, 0.75f), 1.1f, 0, rnd(-0.5f, 0.5f), 30));
+		}
+		if (every(tick, 9)) ps.add(pop("chain", pick(0x9A7BD6, 0x7D5CB8), onBody(p, 0.3f, 0.8f, 0.36f), rnd(0.45f, 0.55f), 12, rnd(-0.6f, 0.6f)));
+		if (every(tick, 6)) ps.add(pop("twinkle", 0xC79BFF, onBody(p, 0.1f, 0.9f, 0.38f), rnd(0.3f, 0.42f), 8, 0.8f));
+		ground(p, w, level, viewers, tick, "shadow", 0x1A0F24, 1.8f, 400);
+	}
+
+	/**
+	 * Curse of Vanishing: you're fading at the edges. Pale motes come off you and wink out, now and then a glint that
+	 * shrinks to nothing.
+	 */
+	private static void vanish(ServerPlayer p, Wearer w, ServerLevel level, List<ServerPlayer> viewers, int tick, List<P> ps) {
+		if (every(tick, 2)) {
+			Vec3 from = onBody(p, 0.05f, 0.95f, 0.4f);
+			ps.add(line("mote", pick(0xE9DDFF, 0xC9B6F2, 0xFFFFFF), from, from.add(rnd(-0.35f, 0.35f), rnd(0.1f, 0.5f), rnd(-0.35f, 0.35f)),
+					rnd(0.3f, 0.45f), 0.0f, 0, 0, 14 + R.nextInt(8)));
+		}
+		if (every(tick, 7)) ps.add(pop("twinkle", 0xF1E8FF, onBody(p, 0.1f, 0.9f, 0.4f), 0.4f, 10, 1.2f));
+		if (every(tick, 5)) {
+			Vec3 from = onBody(p, 0.2f, 0.8f, 0.2f);
+			ps.add(line("haze", 0x9C86D8, from, from.add(0, 0.3, 0), 0.9f, 0.1f, 0, 0, 16));
+		}
+	}
+
 	// ---------------------------------------------------------------- things that stay on a wearer
 
 	/** Shows a ring that's ready (its sprites added) to the players nearby, following the wearer. */
@@ -447,7 +481,7 @@ final class Fx {
 		Ring r = w.rings.get(key);
 		if (r == null) {
 			r = new Ring();
-			ItemDisplayElement e = element(key.equals("icering") ? "ring" : "circle", rgb, true);
+			ItemDisplayElement e = element(key.equals("icering") ? "ring" : key.equals("shadow") ? "haze" : "circle", rgb, true);
 			e.setScale(new Vector3f(size));
 			e.setOffset(new Vec3(0, 0.04, 0));
 			e.setInterpolationDuration(10);
@@ -535,6 +569,49 @@ final class Fx {
 					sparks(ps, 12, 0xE6F0FF, side, 1.2);
 					flash(level, at, viewers, 10, 4);
 				}
+			}
+			case "trail" -> {
+				// A blade's trail: a thin crescent that sweeps through, with two fainter ones a tick behind it
+				int c = g >= 9 ? 0xFFB24A : 0xE6EEFF;
+				float sz = 0.8f + Math.min(g, 5) * 0.06f;
+				Vec3 mid = look.scale(-0.3).add(0, -0.15, 0);
+				Quaternionf rot = new Quaternionf(facing).rotateX(0.35f);
+				for (int k = 0; k < 3; k++) {
+					List<S> st = new ArrayList<>();
+					for (int t = 0; t < k; t++) st.add(new S(mid, 0.01f, 1.3f));
+					float peak = sz * (1 - k * 0.12f);
+					st.add(new S(mid, peak, 1.3f));
+					st.add(new S(mid, peak, 0.2f));
+					st.add(new S(mid, peak * 0.9f, -0.9f));
+					st.add(new S(mid, 0.01f, -1.3f));
+					ps.add(new P("thinarc", k == 0 ? 0xFFFFFF : c, 1, st, rot));
+				}
+				for (int k = 0; k < g; k++) ps.add(pop("twinkle", 0xF2F7FF, side.scale(rnd(-0.5f, 0.5f)).add(look.scale(-0.2)).add(0, rnd(-0.3f, 0.2f), 0),
+						rnd(0.25f, 0.4f), 4, 0.6f));
+			}
+			case "impact" -> {
+				// No arc: where the blade lands, a sharp flash, a small ring and sparks
+				int c = g >= 9 ? 0xFFB24A : 0xE6EEFF;
+				int lvl = g >= 9 ? g - 8 : g;
+				ps.add(pop("twinkle", 0xFFFFFF, Vec3.ZERO, 0.7f + lvl * 0.06f, 4, 0.4f));
+				ps.add(new P("ring", c, 2, List.of(new S(Vec3.ZERO, 0.15f, 0), new S(Vec3.ZERO, 0.6f + lvl * 0.05f, 0.2f), new S(Vec3.ZERO, 0.75f, 0.3f)),
+						facing));
+				for (int k = 0; k < 4 + lvl * 2; k++) {
+					Vec3 d = side.scale(rnd(-0.7f, 0.7f)).add(look.scale(rnd(0.0f, 0.4f))).add(0, rnd(-0.3f, 0.5f), 0);
+					ps.add(line("ember", pick(c, 0xFFFFFF), Vec3.ZERO, d, rnd(0.2f, 0.3f), 0.01f, 0, 0, 5 + R.nextInt(4)));
+				}
+			}
+			case "streaks" -> {
+				// Speed lines through the hit, the way the blade went, and a glint where it lands
+				int c = g >= 9 ? 0xFFB24A : 0xE6EEFF;
+				int lvl = g >= 9 ? g - 8 : g;
+				for (int k = 0; k < 2 + lvl; k++) {
+					Vec3 off = new Vec3(0, rnd(-0.35f, 0.35f), 0).add(look.scale(rnd(-0.2f, 0.2f)));
+					Quaternionf rot = new Quaternionf(facing).rotateZ(0.35f + rnd(-0.08f, 0.08f));
+					ps.add(new P("streak", k == 0 ? 0xFFFFFF : c, 2, List.of(new S(off.add(side.scale(0.55)), 0.2f, 0),
+							new S(off, 0.7f + lvl * 0.04f, 0), new S(off.add(side.scale(-0.55)), 0.15f, 0)), rot));
+				}
+				ps.add(pop("twinkle", 0xFFFFFF, Vec3.ZERO, 0.55f, 4, 0.5f));
 			}
 			case "fire_aspect" -> {
 				float size = g >= 2 ? 2.4f : 1.8f;

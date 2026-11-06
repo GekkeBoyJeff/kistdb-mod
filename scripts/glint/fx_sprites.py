@@ -332,8 +332,63 @@ def circle():
     return img
 
 
+def thinarc():
+    """A thin crescent: a fine bright edge that fades towards both ends (a blade's trail)."""
+    img = blank()
+    c = N / 2
+    for y in range(N):
+        for x in range(N):
+            dx, dy = x + 0.5 - c, y + 0.5 - c
+            if dy > 3:
+                continue
+            ang = math.atan2(dy, dx)
+            along = 1 - abs(ang + math.pi / 2) / (math.pi / 1.7)
+            if along <= 0:
+                continue
+            d = abs(math.hypot(dx, dy) - 13)
+            put(img, x, y, max(0, 1 - d / (0.8 + 1.4 * along)) ** 1.6 * along ** 0.8)
+    return img
+
+
+def streak():
+    """A speed line: thin, bright in the middle, soft at both ends."""
+    img = blank()
+    c = N / 2
+    for y in range(N):
+        for x in range(N):
+            dx, dy = abs(x + 0.5 - c), abs(y + 0.5 - c)
+            put(img, x, y, max(0, 1 - dy / 1.3) * max(0, 1 - dx / 15.5) ** 1.2)
+    return img
+
+
+def chain():
+    """Two chain links, slanted."""
+    img = blank()
+    for cx, cy in ((12, 12), (20, 20)):
+        for y in range(N):
+            for x in range(N):
+                u, v = x + 0.5 - cx, y + 0.5 - cy
+                a, b = (u + v) / 1.414, (u - v) / 1.414
+                d = math.hypot(a / 7.0, b / 4.2)
+                put(img, x, y, max(0, 1 - abs(d - 1) / 0.22) ** 1.2)
+    halo = blank()
+    soft_disc(halo, 16, 16, 15, power=2.4, peak=0.22)
+    return Image.alpha_composite(halo, img)
+
+
+def smoke():
+    """A soft, lumpy puff of smoke."""
+    img = blank()
+    rnd = random.Random(3)
+    blobs = [(16 + rnd.uniform(-5, 5), 16 + rnd.uniform(-5, 5), rnd.uniform(6, 10)) for _ in range(5)]
+    for cx, cy, r in blobs:
+        soft_disc(img, cx, cy, r, power=1.6, peak=0.38)
+    return img
+
+
 SPRITES = {
     'glow': glow, 'haze': haze, 'ember': ember, 'mote': mote, 'spark': spark, 'flake': flake, 'wisp': wisp, 'arc': arc, 'ring': ring,
+    'thinarc': thinarc, 'streak': streak, 'chain': chain, 'smoke': smoke,
     'twinkle': twinkle, 'coin': coin, 'bubble': bubble, 'feather': feather, 'thorn': thorn, 'hex': hexshield,
     'rune_a': lambda: rune('a'), 'rune_b': lambda: rune('b'), 'rune_c': lambda: rune('c'), 'rune_d': lambda: rune('d'),
 }

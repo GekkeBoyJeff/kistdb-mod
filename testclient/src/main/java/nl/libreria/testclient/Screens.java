@@ -78,61 +78,40 @@ public final class Screens implements FabricClientGameTest {
 				ctx.takeScreenshot("nameplate_front");
 				camera(ctx, CameraType.FIRST_PERSON);
 			});
-			// Proof of concept, per effect and per grade: our own particles (sprites on item displays, moved by the client),
-			// real light (a light block only the players nearby are told about), the armour layer from the core shader
-			safe("fx_grades", () -> {
-				// effect, material, armour layer family (empty: plain armour), highest grade
-				String[][] kits = {
-						{"aegis", "netherite", "protection", "4"},
-						{"ember", "diamond", "fireguard", "4"},
-						{"frost", "diamond", "frost", "4"},
-						{"soul", "netherite", "soul", "4"},
-						{"feather", "iron", "", "4"},
-						{"thorns", "netherite", "thorns", "3"},
-						{"tide", "diamond", "water", "3"}};
-				String[] slots = {"head", "chest", "legs", "feet"}, items = {"helmet", "chestplate", "leggings", "boots"};
-				run(server, "time set midnight");
+			// Proof of concept, round 2: curses, and other ways to show a slash
+			safe("fx_round2", () -> {
 				ctx.getInput().lookAt(0, 0);
 				camera(ctx, CameraType.THIRD_PERSON_FRONT);
-				// No chat in these: just the world
 				ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.HIDDEN));
-				for (String[] kit : kits) {
-					int max = Integer.parseInt(kit[3]);
-					for (int g = 1; g <= max; g++) {
-						int tier = Math.min(3, g);
-						for (int i = 0; i < 4; i++) {
-							String layer = kit[2].isEmpty() ? "" : "[equippable={slot:\"" + slots[i] + "\",asset_id:\"libreria:fx_" + kit[1] + "_" + kit[2] + "_" + tier + "\"}]";
-							run(server, "item replace entity @a armor." + slots[i] + " with minecraft:" + kit[1] + "_" + items[i] + layer);
-						}
-						String spec = kit[0] + ":" + g;
-						server.runOnServer(s -> nl.libreria.glint.GlintMod.debugFx(player, spec));
-						ctx.waitTicks(40);
-						ctx.takeScreenshot("fxg_" + kit[0] + "_" + g);
-						if (g == max) {
-							ctx.waitTicks(6);
-							ctx.takeScreenshot("fxg_" + kit[0] + "_" + g + "_b");
-						}
-						server.runOnServer(s -> nl.libreria.glint.GlintMod.debugFx(player, "off"));
-						ctx.waitTicks(2);
+				run(server, "item replace entity @a armor.chest with minecraft:diamond_chestplate[enchantments={binding_curse:1}]",
+						"item replace entity @a armor.head with minecraft:diamond_helmet", "item replace entity @a armor.legs with minecraft:diamond_leggings",
+						"item replace entity @a armor.feet with minecraft:diamond_boots");
+				for (String curse : new String[]{"curse", "vanish"}) {
+					server.runOnServer(s -> nl.libreria.glint.GlintMod.debugFx(player, curse));
+					run(server, "time set noon");
+					ctx.waitTicks(40);
+					ctx.takeScreenshot("fxc_" + curse + "_day");
+					run(server, "time set midnight");
+					ctx.waitTicks(10);
+					ctx.takeScreenshot("fxc_" + curse + "_night");
+					for (int f = 0; f < 6; f++) {
+						ctx.waitTicks(3);
+						ctx.takeScreenshot("fxc_" + curse + "_anim_" + f);
 					}
+					server.runOnServer(s -> nl.libreria.glint.GlintMod.debugFx(player, "off"));
+					ctx.waitTicks(3);
 				}
 				run(server, "item replace entity @a armor.head with minecraft:air", "item replace entity @a armor.chest with minecraft:air",
 						"item replace entity @a armor.legs with minecraft:air", "item replace entity @a armor.feet with minecraft:air",
 						"item replace entity @a weapon.mainhand with minecraft:diamond_sword");
 				ctx.waitTicks(10);
-				// A hit, per weapon enchantment and grade: a few ticks after
-				String[][] hits = {{"sharpness", "1", "3", "5"}, {"fire_aspect", "1", "2"}, {"smite", "1", "3", "5"}, {"knockback", "1", "2"},
-						{"looting", "1", "2", "3"}};
-				for (String[] h : hits) {
-					for (int k = 1; k < h.length; k++) {
-						String spec = "hit:" + h[0] + ":" + h[k];
-						server.runOnServer(s -> nl.libreria.glint.GlintMod.debugFx(player, spec));
-						ctx.waitTicks(3);
-						ctx.takeScreenshot("fxh_" + h[0] + "_" + h[k]);
-						ctx.waitTicks(3);
-						ctx.takeScreenshot("fxh_" + h[0] + "_" + h[k] + "_b");
-						ctx.waitTicks(16);
+				for (String spec : new String[]{"sharpness:3", "trail:3", "impact:3", "streaks:3", "impact:10", "trail:10"}) {
+					server.runOnServer(s -> nl.libreria.glint.GlintMod.debugFx(player, "hit:" + spec));
+					for (int f = 1; f <= 5; f++) {
+						ctx.waitTicks(1);
+						ctx.takeScreenshot("fxs_" + spec.replace(':', '_') + "_" + f);
 					}
+					ctx.waitTicks(20);
 				}
 				run(server, "time set noon", "item replace entity @a weapon.mainhand with minecraft:air");
 				ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.FULL));
