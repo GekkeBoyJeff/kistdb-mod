@@ -1,62 +1,74 @@
-"""Proof of concept: a glowing edge on the sword itself. An extra layer over the diamond sword whose edge pixels carry a
-code in their alpha, so the core shader lights and animates them (flickering fire, a glint that runs along the edge,
-a slow golden pulse).
+"""Proof of concept: a sword's effect in two parts. A texture part painted into the sword (core line, guard, gems; its
+glowing pixels carry a code in their alpha for the core shader), and an aura: an animated plane behind the sword,
+larger than the item so flames can rise past the tip, whose width changes per piece and over time.
+
+In the inventory only the texture part shows; in a hand, on the ground and in a frame the aura is added.
 
     python3 scripts/glint/blades.py
 """
 import json
 import os
+import sys
 
 from PIL import Image
 
+sys.path.insert(0, os.path.dirname(__file__))
+import sword_aura as aura  # noqa: E402
+
 ROOT = os.path.join(os.path.dirname(__file__), '../../glint/src/main/resources/assets/libreria')
-REF = '/home/claude/ref/assets/assets/minecraft/textures/item/diamond_sword.png'
-KINDS = {
-    # name: (colour, highest grade)
-    'sharp': ((226, 238, 255), 5),
-    'fire': ((255, 136, 40), 2),
-    'smite': ((255, 238, 178), 5),
-    'bane': ((126, 232, 92), 5),
-}
+KINDS = {'sharp': ('edge', 5), 'fire': ('fire', 2), 'smite': ('holy', 5), 'bane': ('venom', 5)}
+CODE = {'flicker': 252, 'pulse': 253, 'flow': 251, 'steady': 254}
+HAND = json.load(open('/home/claude/ref/assets/assets/minecraft/models/item/handheld.json'))['display']
+GEN = json.load(open('/home/claude/ref/assets/assets/minecraft/models/item/generated.json'))['display']
+
+
+def plane_model(texture):
+    lo, hi = aura.LO, aura.HI
+    face = lambda uv: {'uv': uv, 'texture': '#a'}
+    return {'textures': {'a': texture, 'particle': texture},
+            'elements': [{'from': [lo, 16 - hi, 8], 'to': [hi, 16 - lo, 8], 'shade': False, 'light_emission': 15,
+                          'faces': {'south': face([0, 0, 16, 16]), 'north': face([16, 0, 0, 16])}}],
+            'display': {**GEN, **HAND}}
 
 
 def main():
-    """Not the blade itself: a thin line of light just outside its edge, so the sword stays the sword. Per grade more of
-    the edge (from the tip down), then it pulses, then it flows; at the top a second, twinkling line outside that."""
-    sword = Image.open(REF).convert('RGBA')
-    opaque = lambda x, y: 0 <= x < 16 and 0 <= y < 16 and sword.getpixel((x, y))[3] > 0
-    blade = lambda x, y: opaque(x, y) and x + y >= 13 and y <= 10
-    near = lambda x, y, test: any(test(x + dx, y + dy) for dx in (-1, 0, 1) for dy in (-1, 0, 1) if dx or dy)
-    free = lambda x, y: 0 <= x < 16 and 0 <= y < 16 and not opaque(x, y)
-    ring1 = [(x, y) for y in range(16) for x in range(16) if free(x, y) and near(x, y, blade)]
-    ring1_set = set(ring1)
-    ring2 = [(x, y) for y in range(16) for x in range(16) if free(x, y) and (x, y) not in ring1_set
-             and near(x, y, lambda a, b: (a, b) in ring1_set) and x + y >= 12]
-    ring1.sort(key=lambda p: p[0] - p[1])  # hilt first, tip last
     tex = os.path.join(ROOT, 'textures/item/fx/blade')
+    atex = os.path.join(ROOT, 'textures/item/fx/aura')
     mod = os.path.join(ROOT, 'models/item/fx')
     itm = os.path.join(ROOT, 'items/fx')
-    for d in (tex, mod, itm):
+    for d in (tex, atex, mod, itm):
         os.makedirs(d, exist_ok=True)
-    for name, (col, top) in KINDS.items():
+    base = aura.sword()
+    for name, (kind, top) in KINDS.items():
         for g in range(1, top + 1):
-            step = g if top == 5 else (3 if g == 1 else 5)
-            frac = [0, 0.4, 0.6, 0.85, 1.0, 1.0][step]
-            code = [0, 254, 253, 251, 251, 251][step]
-            bright = [0, 0.75, 0.85, 1.0, 1.0, 1.0][step]
-            c = tuple(min(255, int(v * bright)) for v in col)
-            out = Image.new('RGBA', (16, 16), (0, 0, 0, 0))
-            for x, y in ring1[int(len(ring1) * (1 - frac)):]:
-                out.putpixel((x, y), c + (code,))
-            if step >= 5:
-                for x, y in ring2:
-                    out.putpixel((x, y), tuple(int(v * 0.85) for v in col) + (250,))
-            out.save(os.path.join(tex, f'{name}_{g}.png'))
+            painted, glow = aura.paint(base, kind, g)
+            over = Image.new('RGBA', (16, 16), (0, 0, 0, 0))
+            for y in range(16):
+                for x in range(16):
+                    p, q = painted.getpixel((x, y)), base.getpixel((x, y))
+                    if p != q or (x, y) in glow:
+                        over.putpixel((x, y), p[:3] + (CODE[glow[(x, y)]] if (x, y) in glow else 255,))
+            over.save(os.path.join(tex, f'{name}_{g}.png'))
+            sword = f'libreria:item/fx/sword_{name}_{g}'
             json.dump({'parent': 'minecraft:item/handheld', 'textures': {'layer0': 'minecraft:item/diamond_sword',
                                                                         'layer1': f'libreria:item/fx/blade/{name}_{g}'}},
                       open(os.path.join(mod, f'sword_{name}_{g}.json'), 'w'), indent=1)
-            json.dump({'model': {'type': 'minecraft:model', 'model': f'libreria:item/fx/sword_{name}_{g}'}},
-                      open(os.path.join(itm, f'sword_{name}_{g}.json'), 'w'), indent=1)
+            frames = aura.AURAS[kind](base, g)
+            model = {'type': 'minecraft:model', 'model': sword}
+            if any(f[..., 3].any() for f in frames):
+                strip = Image.new('RGBA', (aura.SIZE, aura.SIZE * len(frames)), (0, 0, 0, 0))
+                for k, f in enumerate(frames):
+                    strip.paste(Image.fromarray(f, 'RGBA'), (0, k * aura.SIZE))
+                strip.save(os.path.join(atex, f'{name}_{g}.png'))
+                json.dump({'animation': {'frametime': 1, 'interpolate': False}},
+                          open(os.path.join(atex, f'{name}_{g}.png.mcmeta'), 'w'))
+                json.dump(plane_model(f'libreria:item/fx/aura/{name}_{g}'),
+                          open(os.path.join(mod, f'aura_{name}_{g}.json'), 'w'), indent=1)
+                model = {'type': 'minecraft:select', 'property': 'minecraft:display_context',
+                         'cases': [{'when': 'gui', 'model': model}],
+                         'fallback': {'type': 'minecraft:composite', 'models': [
+                             model, {'type': 'minecraft:model', 'model': f'libreria:item/fx/aura_{name}_{g}'}]}}
+            json.dump({'model': model}, open(os.path.join(itm, f'sword_{name}_{g}.json'), 'w'), indent=1)
     print('blades', ', '.join(KINDS))
 
 
