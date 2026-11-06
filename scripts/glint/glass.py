@@ -11,7 +11,7 @@ textures, so with the setting off (the off-pack puts the vanilla block models ba
 
 Called from generate.py (which wipes glint/off first); writes:
   assets/minecraft/textures/block/libreria_<glass>.png
-  assets/minecraft/blockstates/<glass>.json                             (three looks, at random per block)
+  assets/minecraft/blockstates/<glass>.json, <glass>_pane.json          (three looks, at random per block)
   assets/minecraft/models/block/<glass>.json, <glass>_pane_*.json        (the placed blocks)
   assets/libreria/models/block/glass/                                    (the other looks, panes' templates)
   assets/libreria/models/block/glass_item/<glass>.json                  (vanilla look for the item)
@@ -30,6 +30,10 @@ COLOURS = ['white', 'orange', 'magenta', 'light_blue', 'yellow', 'lime', 'pink',
            'blue', 'brown', 'green', 'red', 'black']
 GLASSES = ['glass', 'tinted_glass'] + [f'{c}_stained_glass' for c in COLOURS]
 PANE_PARTS = ['noside', 'noside_alt', 'post', 'side', 'side_alt']
+# Vanilla's pane block state (the same for every pane): which part, turned how, when
+PANE_STATE = [('post', 0, None), ('side', 0, ('north', 'true')), ('side', 90, ('east', 'true')),
+              ('side_alt', 0, ('south', 'true')), ('side_alt', 90, ('west', 'true')), ('noside', 0, ('north', 'false')),
+              ('noside_alt', 0, ('east', 'false')), ('noside_alt', 90, ('south', 'false')), ('noside', 270, ('west', 'false'))]
 # The glints, k 0 the bright pixels, k 1 the soft ones, all leaning the same way. Each placed block picks one of the
 # looks at random (the block state's weighted variants), so a wall doesn't repeat one pattern like rain:
 #   a: two short glints, top left and bottom right    b: one longer glint across the middle    c: none
@@ -156,8 +160,25 @@ def cube(g, look):
             'textures': {'all': sprite(f'minecraft:block/{tex(g, look)}'), 'particle': f'minecraft:block/{g}'}}
 
 
-def look_model(g, look):
-    return f'minecraft:block/{g}' if look == 'a' else f'libreria:block/glass/{g}_{look}'
+def look_model(name, look):
+    return f'minecraft:block/{name}' if look == 'a' else f'libreria:block/glass/{name}_{look}'
+
+
+def pane_state(g, looks):
+    """A pane's block state. With several looks every part gets the same weighted list: the game picks each part of a
+    block with the same random seed, so all parts of one pane show the same look."""
+    out = []
+    for part, y, when in PANE_STATE:
+        def apply(look):
+            a = {'model': look_model(f'{g}_pane_{part}', look)}
+            if y:
+                a['y'] = y
+            return a
+        entry = {'apply': [dict(apply(look), weight=w) for look, w in WEIGHTS.items()] if looks else apply('a')}
+        if when:
+            entry['when'] = {when[0]: when[1]}
+        out.append(entry)
+    return {'multipart': out}
 
 
 def pane_templates(vanilla):
@@ -190,16 +211,20 @@ def block_models(vanilla):
         ours[state] = {'variants': {'': [{'model': look_model(g, look), 'weight': w} for look, w in WEIGHTS.items()]}}
         if g == 'tinted_glass':
             continue
+        state = f'assets/minecraft/blockstates/{g}_pane.json'
+        theirs[state] = pane_state(g, False)
+        ours[state] = pane_state(g, True)
         for part in PANE_PARTS:
             path = f'assets/minecraft/models/block/{g}_pane_{part}.json'
             van = json.load(open(os.path.join(vanilla, f'models/block/{g}_pane_{part}.json')))
             theirs[path] = van
-            mine = json.loads(json.dumps(van))
-            mine['textures']['pane'] = sprite(f'minecraft:block/{tex(g)}')
-            mine['textures']['particle'] = f'minecraft:block/{g}'
-            if part in ('post', 'side', 'side_alt'):
-                mine['parent'] = f'libreria:block/glass/template_glass_pane_{part}'
-            ours[path] = mine
+            for look in GLINTS:
+                mine = json.loads(json.dumps(van))
+                mine['textures']['pane'] = sprite(f'minecraft:block/{tex(g, look)}')
+                mine['textures']['particle'] = f'minecraft:block/{g}'
+                if part in ('post', 'side', 'side_alt'):
+                    mine['parent'] = f'libreria:block/glass/template_glass_pane_{part}'
+                ours[path if look == 'a' else f'assets/libreria/models/block/glass/{g}_pane_{part}_{look}.json'] = mine
     return ours, theirs
 
 
@@ -219,7 +244,8 @@ def swap_items(node):
 
 
 def ctm_properties(glass, block, pane):
-    names = tex(glass) if pane else ' '.join(tex(glass, look) for look in GLINTS)
+    # every look of this glass: the tiles replace them all
+    names = ' '.join(tex(glass, look) for look in GLINTS)
     lines = ['method=ctm', f'matchTiles={names}', f'matchBlocks={block}', 'tiles=0-46']
     if pane:
         lines.append('faces=sides')

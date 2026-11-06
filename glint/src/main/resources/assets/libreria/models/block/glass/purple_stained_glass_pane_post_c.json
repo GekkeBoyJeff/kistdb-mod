@@ -1,0 +1,1 @@
+{"parent":"libreria:block/glass/template_glass_pane_post","textures":{"edge":{"force_translucent":true,"sprite":"minecraft:block/purple_stained_glass_pane_top"},"pane":{"force_translucent":true,"sprite":"minecraft:block/libreria_purple_stained_glass_c"},"particle":"minecraft:block/purple_stained_glass"}}
