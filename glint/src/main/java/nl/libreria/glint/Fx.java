@@ -406,11 +406,16 @@ final class Fx {
 	private static void curse(ServerPlayer p, Wearer w, ServerLevel level, List<ServerPlayer> viewers, int tick, List<P> ps) {
 		if (every(tick, 3)) {
 			Vec3 from = onBody(p, 0.1f, 0.8f, 0.3f);
-			ps.add(line("smoke", pick(0x2B1A3D, 0x3A2150, 0x24142F), from, from.add(rnd(-0.2f, 0.2f), rnd(0.4f, 0.7f), rnd(-0.2f, 0.2f)),
+			ps.add(line("smoke", pick(0x4A2A6B, 0x3A2150, 0x5B3384), from, from.add(rnd(-0.2f, 0.2f), rnd(0.4f, 0.7f), rnd(-0.2f, 0.2f)),
 					rnd(0.55f, 0.75f), 1.1f, 0, rnd(-0.5f, 0.5f), 30));
 		}
-		if (every(tick, 9)) ps.add(pop("chain", pick(0x9A7BD6, 0x7D5CB8), onBody(p, 0.3f, 0.8f, 0.36f), rnd(0.45f, 0.55f), 12, rnd(-0.6f, 0.6f)));
-		if (every(tick, 6)) ps.add(pop("twinkle", 0xC79BFF, onBody(p, 0.1f, 0.9f, 0.38f), rnd(0.3f, 0.42f), 8, 0.8f));
+		if (every(tick, 5)) {
+			// a chain flickers up with a violet glow behind it
+			Vec3 at = onBody(p, 0.3f, 0.8f, 0.4f);
+			ps.add(pop("haze", 0x7A44C2, at, 0.9f, 14, 0));
+			ps.add(pop("chain", pick(0xC4A2FF, 0xA77DF0), at, rnd(0.6f, 0.75f), 14, rnd(-0.6f, 0.6f)));
+		}
+		if (every(tick, 4)) ps.add(pop("twinkle", 0xD6B4FF, onBody(p, 0.1f, 0.9f, 0.4f), rnd(0.35f, 0.5f), 8, 0.8f));
 		ground(p, w, level, viewers, tick, "shadow", 0x1A0F24, 1.8f, 400);
 	}
 
@@ -419,10 +424,10 @@ final class Fx {
 	 * shrinks to nothing.
 	 */
 	private static void vanish(ServerPlayer p, Wearer w, ServerLevel level, List<ServerPlayer> viewers, int tick, List<P> ps) {
-		if (every(tick, 2)) {
-			Vec3 from = onBody(p, 0.05f, 0.95f, 0.4f);
+		if (every(tick, 1)) {
+			Vec3 from = onBody(p, 0.05f, 0.95f, 0.42f);
 			ps.add(line("mote", pick(0xE9DDFF, 0xC9B6F2, 0xFFFFFF), from, from.add(rnd(-0.35f, 0.35f), rnd(0.1f, 0.5f), rnd(-0.35f, 0.35f)),
-					rnd(0.3f, 0.45f), 0.0f, 0, 0, 14 + R.nextInt(8)));
+					rnd(0.45f, 0.6f), 0.0f, 0, 0, 14 + R.nextInt(8)));
 		}
 		if (every(tick, 7)) ps.add(pop("twinkle", 0xF1E8FF, onBody(p, 0.1f, 0.9f, 0.4f), 0.4f, 10, 1.2f));
 		if (every(tick, 5)) {
@@ -570,7 +575,7 @@ final class Fx {
 					flash(level, at, viewers, 10, 4);
 				}
 			}
-			case "trail" -> {
+			case "trail_old" -> {
 				// A blade's trail: a thin crescent that sweeps through, with two fainter ones a tick behind it
 				int c = g >= 9 ? 0xFFB24A : 0xE6EEFF;
 				float sz = 0.8f + Math.min(g, 5) * 0.06f;
@@ -588,6 +593,19 @@ final class Fx {
 				}
 				for (int k = 0; k < g; k++) ps.add(pop("twinkle", 0xF2F7FF, side.scale(rnd(-0.5f, 0.5f)).add(look.scale(-0.2)).add(0, rnd(-0.3f, 0.2f), 0),
 						rnd(0.25f, 0.4f), 4, 0.6f));
+			}
+			case "trail" -> {
+				// A blade's trail: a thin crescent that sweeps through over a few ticks, a fainter one just behind it
+				int c = g >= 9 ? 0xFFB24A : 0xE6EEFF;
+				float sz = 0.9f + Math.min(g, 5) * 0.05f;
+				Vec3 mid = look.scale(-0.3).add(0, -0.15, 0);
+				Quaternionf rot = new Quaternionf(facing).rotateX(0.35f);
+				ps.add(new P("thinarc", 0xFFFFFF, 2, List.of(new S(mid, sz * 0.7f, 1.4f), new S(mid, sz, 0.5f), new S(mid, sz, -0.4f),
+						new S(mid, 0.02f, -1.2f)), rot));
+				ps.add(new P("thinarc", c, 2, List.of(new S(mid, 0.02f, 1.6f), new S(mid, sz * 0.9f, 1.0f), new S(mid, sz * 0.85f, 0.1f),
+						new S(mid, 0.02f, -0.8f)), rot));
+				for (int k = 0; k < g; k++) ps.add(pop("twinkle", 0xF2F7FF, side.scale(rnd(-0.5f, 0.5f)).add(look.scale(-0.2)).add(0, rnd(-0.3f, 0.2f), 0),
+						rnd(0.25f, 0.4f), 6, 0.6f));
 			}
 			case "impact" -> {
 				// No arc: where the blade lands, a sharp flash, a small ring and sparks

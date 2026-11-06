@@ -105,9 +105,9 @@ public final class Screens implements FabricClientGameTest {
 						"item replace entity @a armor.legs with minecraft:air", "item replace entity @a armor.feet with minecraft:air",
 						"item replace entity @a weapon.mainhand with minecraft:diamond_sword");
 				ctx.waitTicks(10);
-				for (String spec : new String[]{"sharpness:3", "trail:3", "impact:3", "streaks:3", "impact:10", "trail:10"}) {
+				for (String spec : new String[]{"trail:3", "trail:10", "impact:3", "streaks:3"}) {
 					server.runOnServer(s -> nl.libreria.glint.GlintMod.debugFx(player, "hit:" + spec));
-					for (int f = 1; f <= 5; f++) {
+					for (int f = 1; f <= 8; f++) {
 						ctx.waitTicks(1);
 						ctx.takeScreenshot("fxs_" + spec.replace(':', '_') + "_" + f);
 					}
