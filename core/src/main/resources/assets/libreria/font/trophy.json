@@ -1,0 +1,85 @@
+{
+ "providers": [
+  {
+   "type": "bitmap",
+   "file": "libreria:item/trophy/fall.png",
+   "height": 9,
+   "ascent": 8,
+   "chars": [
+    "\ue000"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "libreria:item/trophy/flight.png",
+   "height": 9,
+   "ascent": 8,
+   "chars": [
+    "\ue001"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "libreria:item/trophy/speed.png",
+   "height": 9,
+   "ascent": 8,
+   "chars": [
+    "\ue002"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "libreria:item/trophy/distance.png",
+   "height": 9,
+   "ascent": 8,
+   "chars": [
+    "\ue003"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "libreria:item/trophy/alive.png",
+   "height": 9,
+   "ascent": 8,
+   "chars": [
+    "\ue004"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "libreria:item/trophy/session.png",
+   "height": 9,
+   "ascent": 8,
+   "chars": [
+    "\ue005"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "libreria:item/trophy/hit.png",
+   "height": 9,
+   "ascent": 8,
+   "chars": [
+    "\ue006"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "libreria:item/trophy/levels.png",
+   "height": 9,
+   "ascent": 8,
+   "chars": [
+    "\ue007"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "libreria:item/trophy/depth.png",
+   "height": 9,
+   "ascent": 8,
+   "chars": [
+    "\ue008"
+   ]
+  }
+ ]
+}

@@ -78,6 +78,8 @@ public final class CollectorMod implements ModInitializer {
 		/** Records you have ever held, and how many times you took one. */
 		public Set<String> recordsHeld = new HashSet<>();
 		public int recordsTaken;
+		/** The trophy you wear before your title (a record id), "" for none. */
+		public String trophy = "";
 		/** Chat messages sent. */
 		public long chats;
 		/** Days you played, the last one (yyyy-MM-dd), and days in a row (now and best). */
@@ -96,6 +98,7 @@ public final class CollectorMod implements ModInitializer {
 		if (d.showcase == null) d.showcase = new ArrayList<>();
 		if (d.recordsHeld == null) d.recordsHeld = new HashSet<>();
 		if (d.lastDay == null) d.lastDay = "";
+		if (d.trophy == null) d.trophy = "";
 	});
 
 	@Override
@@ -154,8 +157,8 @@ public final class CollectorMod implements ModInitializer {
 
 			@Override
 			public @Nullable Component titleOf(java.util.UUID player) {
-				Achievement a = titleAchievement(STORE.get(player));
-				return a == null ? null : Component.literal("✦ " + a.name() + " ✦").withStyle(a.rarity().color);
+				Data d = STORE.get(player);
+				return withTrophy(player, d, titleAchievement(d));
 			}
 
 			@Override
@@ -179,6 +182,7 @@ public final class CollectorMod implements ModInitializer {
 		});
 		net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
 			ServerPlayer p = handler.player;
+			Trophies.migrate(p);
 			Secrets.WATCH.put(p.getUUID(), new Secrets.Watch());
 			day(p);
 			scanNow(p);
@@ -542,9 +546,19 @@ public final class CollectorMod implements ModInitializer {
 
 	public static @Nullable Component title(ServerPlayer p) {
 		if (!SHOW_TITLE.get(p)) return null;
-		Achievement a = titleAchievement(STORE.get(p));
-		if (a == null) return null;
-		return Component.literal("✦ " + a.name() + " ✦").withStyle(a.rarity().color);
+		Data d = STORE.get(p);
+		return withTrophy(p.getUUID(), d, titleAchievement(d));
+	}
+
+	/** The title line: the trophy you wear (if any), then "✦ title ✦" in the colour of its rarity. */
+	static @Nullable Component withTrophy(java.util.UUID who, Data d, @Nullable Achievement a) {
+		Records.Kind trophy = Trophies.worn(who, d);
+		if (a == null && trophy == null) return null;
+		MutableComponent out = Component.empty();
+		if (trophy != null) out.append(Trophies.glyph(trophy));
+		if (trophy != null && a != null) out.append(Component.literal(" "));
+		if (a != null) out.append(Component.literal("✦ " + a.name() + " ✦").withStyle(a.rarity().color));
+		return out;
 	}
 
 	/** Sets the title: an achievement id, "" for automatic (rarest) or "-" for none. */

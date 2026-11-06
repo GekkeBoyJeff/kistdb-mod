@@ -22,31 +22,32 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * The server's records: the longest fall anyone survived, the longest flight, the fastest, the farthest out… Who holds
- * each, since when, and who held it before. A new holder is a moment in the chronicle; holding one ever is an
- * achievement (a title).
+ * each, since when, and who held it before. A new holder is a moment in the chronicle. A record that's a real feat is a
+ * trophy too (see {@link Trophies}): its holder can wear it before their title.
  */
 public final class Records {
 	public enum Kind {
-		FALL("fall", "Fall", "Longest fall survived", "fell", Items.FEATHER, 23, false, "Thrill Seeker"),
-		FLIGHT("flight", "Flight", "Longest elytra flight", "flew", Items.ELYTRA, 1000, false, "Ace of the Skies"),
-		SPEED("speed", "Speed", "Fastest", "moved at", Items.SUGAR, 30, false, "Speedster"),
-		DISTANCE("distance", "Range", "Farthest from the middle of the world", "went", Items.COMPASS, 2000, false, "Far Out"),
-		ALIVE("alive", "Alive", "Longest time without dying", "stayed alive for", Items.TOTEM_OF_UNDYING, 5, false, "Death-Defying"),
-		SESSION("session", "Session", "Longest time online in one go", "played", Items.CLOCK, 3, false, "Marathon Gamer"),
-		HIT("hit", "Hit", "Hardest hit", "hit for", Items.NETHERITE_SWORD, 10, false, "Heavyweight"),
-		LEVELS("levels", "Levels", "Most levels at once", "reached level", Items.EXPERIENCE_BOTTLE, 30, false, "Know-It-Most"),
-		DEPTH("depth", "Depth", "Deepest point reached", "went down to", Items.RECOVERY_COMPASS, -50, true, "Deep Thinker");
+		FALL("fall", "Fall", "Longest fall survived", "fell", Items.FEATHER, 23, false, 150),
+		FLIGHT("flight", "Flight", "Longest elytra flight", "flew", Items.ELYTRA, 1000, false, 10000),
+		SPEED("speed", "Speed", "Fastest", "moved at", Items.SUGAR, 30, false, 80),
+		DISTANCE("distance", "Range", "Farthest from the middle of the world", "went", Items.COMPASS, 2000, false, 25000),
+		ALIVE("alive", "Alive", "Longest time without dying", "stayed alive for", Items.TOTEM_OF_UNDYING, 5, false, 48),
+		// Not a feat: being online long, or going down to the bottom (anyone gets there)
+		SESSION("session", "Session", "Longest time online in one go", "played", Items.CLOCK, 3, false, Double.NaN),
+		HIT("hit", "Hit", "Hardest hit", "hit for", Items.NETHERITE_SWORD, 10, false, 50),
+		LEVELS("levels", "Levels", "Most levels at once", "reached level", Items.EXPERIENCE_BOTTLE, 30, false, 100),
+		DEPTH("depth", "Depth", "Deepest point reached", "went down to", Items.RECOVERY_COMPASS, -50, true, Double.NaN);
 
 		public final String id, label, about, verb;
 		public final Item icon;
 		/** The least that counts as a record (the most, for depth). */
 		final double least;
 		/** Lower is better (depth). */
-		final boolean lower;
-		/** The title for having held it. */
-		public final String title;
+		public final boolean lower;
+		/** From what value the record is a trophy (NaN: never). */
+		public final double trophy;
 
-		Kind(String id, String label, String about, String verb, Item icon, double least, boolean lower, String title) {
+		Kind(String id, String label, String about, String verb, Item icon, double least, boolean lower, double trophy) {
 			this.id = id;
 			this.label = label;
 			this.about = about;
@@ -54,7 +55,11 @@ public final class Records {
 			this.icon = icon;
 			this.least = least;
 			this.lower = lower;
-			this.title = title;
+			this.trophy = trophy;
+		}
+
+		public boolean hasTrophy() {
+			return !Double.isNaN(this.trophy);
 		}
 
 		boolean counts(double v) {
@@ -146,7 +151,8 @@ public final class Records {
 			String was = r == null ? "" : " (was " + r.name + ", " + k.format(r.value) + ")";
 			Chronicle.write(p, Chronicle.Kind.MILESTONE, "set a new record: " + k.about.toLowerCase(Locale.ROOT) + ", " + k.format(v) + was,
 					r != null);
-			card(p, "New record!", k.about + " · " + k.format(v), k);
+			card(p, "New record!", k.about + " · " + k.format(v), k, Trophies.isFeat(k, v));
+			// whoever had it loses the trophy (their plate shows it the next time it updates)
 			if (r != null) {
 				Component line = Say.line(Domain.PROGRESS).append(Nameplate.displayName(p).copy().withStyle(ChatFormatting.WHITE))
 						.append(Ui.text(" took the record ", ChatFormatting.GRAY)).append(Ui.text(k.about.toLowerCase(Locale.ROOT), ChatFormatting.GOLD))
@@ -160,23 +166,21 @@ public final class Records {
 			long last = TOLD.getOrDefault(key, 0L);
 			if (n.at - last > 10 * 60 * 1000L) {
 				TOLD.put(key, n.at);
-				card(p, "Your record, better", k.about + " · " + k.format(v), k);
+				card(p, "Your record, better", k.about + " · " + k.format(v), k, Trophies.isFeat(k, v) && !Trophies.isFeat(k, r.value));
 			}
 		}
 	}
 
-	private static void card(ServerPlayer p, String title, String sub, Kind k) {
-		TopCard.whenFree(p, "record", new TopCard.Card(new ItemStack(k.icon), Domain.PROGRESS.rgb, Ui.text(title, Domain.PROGRESS.rgb),
-				Ui.text(sub, ChatFormatting.GRAY), java.util.List.of()), 120, 60 * 20);
+	private static void card(ServerPlayer p, String title, String sub, Kind k, boolean trophy) {
+		java.util.List<TopCard.Row> rows = trophy ? java.util.List.of(TopCard.Row.text("star", "Trophy",
+				Component.empty().append(Trophies.glyph(k)).append(Ui.text(" yours: wear it in Records", ChatFormatting.WHITE)))) : java.util.List.of();
+		TopCard.whenFree(p, "record", new TopCard.Card(trophy ? Trophies.item(k) : new ItemStack(k.icon), Domain.PROGRESS.rgb,
+				Ui.text(title, Domain.PROGRESS.rgb), Ui.text(sub, ChatFormatting.GRAY), rows), 120, 60 * 20);
 	}
 
-	/** One achievement per record (for having held it) and a ladder for taking records. */
+	/** A ladder for taking records (holding one is a trophy, not a title). */
 	static void build() {
 		Category c = Category.SAMEN;
-		for (Kind k : Kind.values()) {
-			Catalog.add(new Achievement("record." + k.id, c, k.title, "Hold the record: " + k.about.toLowerCase(Locale.ROOT), k.icon, Rarity.EPIC,
-					Catalog.goal(1, (p, d) -> d.recordsHeld.contains(k.id) ? 1 : 0), null));
-		}
 		Catalog.Counter taken = new Catalog.Counter((p, d) -> d.recordsTaken);
 		Catalog.ladder(c, "records", Items.GOLD_BLOCK, "Set a server record|Set a server record %,d times", taken, 1,
 				Catalog.r(Rarity.RARE, Rarity.EPIC, Rarity.LEGENDARY), 1, "Record Breaker", 5, "Hall of Famer", 20, "Living Legend");

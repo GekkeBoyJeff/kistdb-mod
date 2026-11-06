@@ -19,8 +19,9 @@ import nl.libreria.core.gui.CanvasWindow;
 import nl.libreria.core.gui.Glyphs;
 
 /**
- * The server's records as a list: what, how much, who. Your own records in gold. The tooltip says since when and
- * whose it was before.
+ * The server's records as a list: what, how much, who. Your own records in gold. The tooltip says since when, whose it
+ * was before, and whether it's a trophy. A trophy that's yours shows its gold emblem as the icon; click it to wear it
+ * before your title.
  */
 public final class RecordsWindow extends CanvasWindow {
 	private static final int TEXT = 0xFFFFFF, OTHER = 0x6E7480;
@@ -88,12 +89,32 @@ public final class RecordsWindow extends CanvasWindow {
 				if (r.before != null) lore.add(Ui.text("Before: " + r.beforeName + ", " + k.format(r.beforeValue), ChatFormatting.DARK_GRAY));
 			}
 			lore.add(Component.empty());
-			lore.add(Ui.text("Holding it ever earns the title " + k.title, ChatFormatting.GRAY));
+			boolean mine = nl.libreria.collector.Trophies.has(this.player.getUUID(), k);
+			boolean worn = mine && k == nl.libreria.collector.Trophies.worn(this.player.getUUID(),
+					nl.libreria.collector.CollectorMod.STORE.get(this.player));
+			java.util.function.Consumer<ServerPlayer> click = p -> {
+			};
+			if (!k.hasTrophy()) {
+				lore.add(Ui.text("No trophy for this record.", ChatFormatting.DARK_GRAY));
+			} else if (mine) {
+				lore.add(Component.empty().append(nl.libreria.collector.Trophies.glyph(k)).append(Ui.text(" A trophy: a feat on this server",
+						ChatFormatting.GOLD)));
+				lore.add(Ui.text("Yours while you hold the record.", ChatFormatting.GRAY));
+				lore.add(Component.empty());
+				lore.add(Ui.text(worn ? "▸ Click: take it off" : "▸ Click: wear it before your title", ChatFormatting.YELLOW));
+				click = p -> {
+					nl.libreria.collector.Trophies.toggle(p, k);
+					this.refresh();
+				};
+			} else if (r != null && nl.libreria.collector.Trophies.isFeat(k, r.value)) {
+				lore.add(Ui.text(r.name + " has its trophy.", ChatFormatting.GRAY));
+				lore.add(Ui.text("Beat the record and it's yours.", ChatFormatting.DARK_GRAY));
+			} else {
+				lore.add(Ui.text("A trophy from " + nl.libreria.collector.Trophies.bar(k) + ".", ChatFormatting.GRAY));
+			}
 			Component name = Ui.text(k.about, Domain.PROGRESS.rgb).withStyle(ChatFormatting.BOLD);
-			area(1, ROWS[i], 8, 1, name, lore, p -> {
-			});
-			icon(0, ROWS[i], new ItemStack(k.icon), name, lore, p -> {
-			});
+			area(1, ROWS[i], 8, 1, name, lore, click);
+			icon(0, ROWS[i], mine ? nl.libreria.collector.Trophies.item(k) : new ItemStack(k.icon), name, lore, click);
 		}
 		area(0, 9, 9, 1, Ui.text("Back", ChatFormatting.WHITE).withStyle(ChatFormatting.BOLD), List.of(Ui.text("To Progress.", ChatFormatting.GRAY)),
 				p -> Start.domain(p, Domain.PROGRESS));

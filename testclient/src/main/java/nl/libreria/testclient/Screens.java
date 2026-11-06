@@ -473,7 +473,7 @@ public final class Screens implements FabricClientGameTest {
 				nl.libreria.collector.Records.debugSet(nl.libreria.collector.Records.Kind.LEVELS, player.getUUID(), me, 112, null, 0);
 				nl.libreria.collector.Records.debugSet(nl.libreria.collector.Records.Kind.DEPTH, bram, "Bram", -64, null, 0);
 				var cd = nl.libreria.collector.CollectorMod.STORE.get(player);
-				for (String id : new String[] {"items.drakenei", "record.fall", "geheim.cactus", "baas.draak", "tijd.1"}) {
+				for (String id : new String[] {"items.drakenei", "geheim.cactus", "baas.draak", "tijd.1"}) {
 					if (nl.libreria.collector.Catalog.get(id) != null) cd.earned.putIfAbsent(id, now);
 				}
 				cd.secrets.add("cactus");
@@ -489,6 +489,26 @@ public final class Screens implements FabricClientGameTest {
 			menu(ctx, server, player, "own_showcase", p -> nl.libreria.collector.gui.ShowcaseWindow.open(p, 1, q -> {
 			}));
 			menu(ctx, server, player, "own_records", nl.libreria.collector.gui.RecordsWindow::open);
+			// A trophy: Range (31 km) is a feat and it's ours. Its emblem in Records, the tooltip, and on the name tag
+			safe("trophy", () -> {
+				server.runOnServer(s -> nl.libreria.collector.gui.RecordsWindow.open(player));
+				ctx.waitTicks(10);
+				double scale = ctx.computeOnClient(mc -> (double) mc.getWindow().getGuiScale());
+				int w = ctx.computeOnClient(mc -> mc.getWindow().getGuiScaledWidth());
+				int h = ctx.computeOnClient(mc -> mc.getWindow().getGuiScaledHeight());
+				ctx.getInput().setCursorPos(((w - 176) / 2 + 16) * scale, ((h - 222) / 2 + 18 + 18 * 3 + 8) * scale);
+				ctx.waitTicks(4);
+				ctx.takeScreenshot("trophy_records_hover");
+				ctx.getInput().pressKey(o2 -> o2.keyAttack);
+				ctx.waitTicks(6);
+				ctx.takeScreenshot("trophy_worn_card");
+				close(ctx, server, player);
+				ctx.getInput().lookAt(0, 0);
+				camera(ctx, CameraType.THIRD_PERSON_FRONT);
+				ctx.waitTicks(30);
+				ctx.takeScreenshot("trophy_nameplate");
+				camera(ctx, CameraType.FIRST_PERSON);
+			});
 			menu(ctx, server, player, "own_secrets", p -> nl.libreria.collector.gui.AchievementsGui.openCategory(p,
 					nl.libreria.collector.Achievement.Category.GEHEIM));
 			menu(ctx, server, player, "own_goal", nl.libreria.collector.gui.GoalWindow::open);
