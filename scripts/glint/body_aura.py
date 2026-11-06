@@ -246,7 +246,8 @@ def write(name, frames):
         f[..., 3] = np.where(a > 0, np.clip(16 * np.round((a - 2) / 16) + 2, 18, 242), 0).astype(np.uint8)
         strip.paste(Image.fromarray(f, 'RGBA'), (0, k * H))
     strip.save(os.path.join(tex, name + '.png'))
-    json.dump({'animation': {'frametime': 1, 'interpolate': False}}, open(os.path.join(tex, name + '.png.mcmeta'), 'w'))
+    # frames are 64 x 96, not square: say so, or the game cuts the strip into 64 x 64 frames
+    json.dump({'animation': {'frametime': 1, 'interpolate': False, 'width': W, 'height': H}}, open(os.path.join(tex, name + '.png.mcmeta'), 'w'))
     t = f'libreria:item/fx/body/{name}'
     face = lambda uv: {'uv': uv, 'texture': '#a'}
     # 16 x 24 model units; the display scales it to the card's size (see Fx.bodyAura)
