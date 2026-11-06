@@ -692,12 +692,13 @@ final class Fx {
 								0.3, 14, 0.38f + 0.04f * g, 0.1f));
 					}
 				}
-				int streams = new int[]{0, 1, 1, 2, 3}[g];
-				if (every(tick, new int[]{0, 5, 3, 2, 2}[g])) {
+				// (streams, how often and their tails are what a Fire set costs: kept to what still reads as streams)
+				int streams = new int[]{0, 1, 1, 2, 2}[g];
+				if (every(tick, new int[]{0, 5, 4, 3, 3}[g])) {
 					for (int k = 0; k < streams; k++) {
 						double a0 = tick * 0.22 + k * Math.PI * 2 / streams;
 						int c = pick(embers);
-						for (int t = 0; t < 4; t++) {
+						for (int t = 0; t < 3; t++) {
 							ps.add(helix("ember", c, a0 - t * 0.18, 0.58, 0.3, 0.12 - t * 0.05, h * (1.3 - t * 0.07), 0.8, 30,
 									new float[]{0.36f, 0.24f, 0.16f, 0.1f}[t], 0.03f));
 						}
@@ -769,8 +770,8 @@ final class Fx {
 						Vec3 fall = new Vec3((peak.x + land.x) / 2, peak.y * 0.7 + land.y * 0.3, (peak.z + land.z) / 2);
 						float spin = rnd(-1.6f, 1.6f);
 						int c = pick(0x2F5A22, 0x9C2236, 0x4E7A2E, 0x7A1E2A);
-						ps.add(new P("thorn", c, 4, List.of(new S(from, 0.16f, 0), new S(peak, 0.3f, spin), new S(fall, 0.3f, spin * 2),
-								new S(land, 0.27f, spin * 3), new S(land, 0.02f, spin * 3)), null));
+						ps.add(new P("thorn", c, 4, List.of(new S(from, 0.2f, 0), new S(peak, 0.38f, spin), new S(fall, 0.36f, spin * 2),
+								new S(land, 0.3f, spin * 3), new S(land, 0.02f, spin * 3)), null));
 						if (k == 0) ps.add(pop("twinkle", pick(0xFF4A5A, 0xE02A40), from, 0.26f, 6, 0.5f));
 					}
 				}
