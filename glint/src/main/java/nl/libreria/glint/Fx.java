@@ -159,7 +159,7 @@ final class Fx {
 	private static int lightFor(String kind, int g) {
 		return switch (kind) {
 			case "blade_fire" -> 6 + g * 2;
-			case "blade_smite" -> 4 + g;
+			case "blade_smite" -> g >= 3 ? 4 + g : 0;
 			case "ember" -> new int[]{0, 0, 7, 10, 13}[g];
 			case "soul" -> new int[]{0, 0, 5, 8, 11}[g];
 			case "aegis" -> new int[]{0, 0, 0, 6, 9}[g];
@@ -223,6 +223,7 @@ final class Fx {
 		}
 		tickFlashes(server);
 		tickPillars();
+		tickShafts();
 	}
 
 	private static int pick(int... colours) {
@@ -257,7 +258,7 @@ final class Fx {
 			case "thorns" -> thorns(p, w, level, viewers, tick, g, ps);
 			case "tide" -> tide(p, w, level, viewers, tick, g, ps);
 			case "curse" -> curse(p, w, level, viewers, tick, ps);
-			case "blade_fire", "blade_sharp", "blade_smite" -> blade(p, w, tick, g, ps);
+			case "blade_fire", "blade_sharp", "blade_smite", "blade_bane" -> blade(p, w, tick, g, ps);
 			case "vanish" -> vanish(p, w, level, viewers, tick, ps);
 			default -> {
 			}
@@ -486,12 +487,43 @@ final class Fx {
 				}
 			}
 			case "blade_smite" -> {
-				if (every(tick, 4)) {
-					Vec3 at = blade(p, rnd(0.1f, 1.0f));
-					ps.add(line("mote", pick(0xFFE08A, 0xFFF2C2), at, at.add(rnd(-0.1f, 0.1f), rnd(0.35f, 0.6f), rnd(-0.1f, 0.1f)), rnd(0.25f, 0.35f),
-							0.02f, 0, 0, 20));
+				// Radiance: a soft white-gold light. A slow twinkle at the tip; pale motes that drift up; at III a glow
+				// round the blade; at V little lights that run up and down it
+				if (every(tick, g >= 3 ? 14 : 30)) ps.add(pop("twinkle", 0xFFF6DA, blade(p, 1.0), 0.32f + g * 0.03f, 10, 0.5f));
+				if (g >= 2 && every(tick, g >= 4 ? 4 : 8)) {
+					Vec3 at = blade(p, rnd(0.2f, 1.0f));
+					ps.add(line("mote", pick(0xFFF2C8, 0xFFFFFF, 0xFFE6A0), at, at.add(rnd(-0.06f, 0.06f), rnd(0.25f, 0.45f), rnd(-0.06f, 0.06f)),
+							rnd(0.2f, 0.28f), 0.02f, 0, 0, 22));
 				}
-				if (every(tick, 12)) ps.add(pop("twinkle", 0xFFF2C2, blade(p, 1.0), 0.4f, 8, 0.6f));
+				if (g >= 3 && every(tick, 10)) ps.add(pop("haze", 0xFFE6A0, blade(p, 0.6), 0.55f + g * 0.05f, 16, 0));
+				if (g >= 5 && every(tick, 16)) {
+					for (int k = 0; k < 4; k++) {
+						Vec3 at = blade(p, 0.25 + k * 0.25);
+						List<S> st = new ArrayList<>();
+						for (int q = 0; q < k * 2; q++) st.add(new S(at, 0.01f, 0));
+						st.add(new S(at, 0.26f, 0.3f));
+						st.add(new S(at, 0.01f, 0.6f));
+						ps.add(new P("twinkle", 0xFFFBEA, 1, st, null));
+					}
+				}
+			}
+			case "blade_bane" -> {
+				// Venom: green drops that run off the blade and fall; more per grade, then bubbles and a green mist
+				int[] drip = {0, 30, 16, 10, 6, 4};
+				if (every(tick, drip[Math.min(5, g)])) {
+					Vec3 at = blade(p, rnd(0.3f, 0.9f));
+					ps.add(new P("mote", pick(0x7EE85C, 0x5BCB3E, 0xA6F27E), 6, List.of(new S(at, 0.16f, 0), new S(at.add(0, -0.12, 0), 0.22f, 0),
+							new S(at.add(0, -0.55, 0), 0.12f, 0), new S(at.add(0, -0.7, 0), 0.01f, 0)), null));
+				}
+				if (g >= 3 && every(tick, 12)) ps.add(pop("haze", 0x4FB83A, blade(p, 0.6), 0.6f, 16, 0));
+				if (g >= 4 && every(tick, 8)) {
+					Vec3 at = blade(p, rnd(0.3f, 1.0f));
+					ps.add(line("bubble", 0xA6F27E, at, at.add(0, rnd(0.2f, 0.35f), 0), 0.16f, 0.02f, 0, 0, 14));
+				}
+				if (g >= 5 && every(tick, 8)) {
+					Vec3 at = blade(p, rnd(0.3f, 0.9f));
+					ps.add(line("smoke", 0x3E8C2C, at, at.add(rnd(-0.1f, 0.1f), 0.2, rnd(-0.1f, 0.1f)), 0.3f, 0.6f, 0, 0.4f, 24));
+				}
 			}
 			default -> {
 			}
@@ -637,35 +669,71 @@ final class Fx {
 					flash(level, at, viewers, 10, 4);
 				}
 			}
-			case "swing_fire", "swing_sharp", "swing_smite" -> {
+			case "swing_fire", "swing_sharp", "swing_smite", "swing_bane" -> {
 				// The blade's tip, through the swing: from up at your right, down across your front. Sparks light up along
-				// that path one after the other (the blade drawing them), and where it lands, a flash
-				int c = kind.equals("swing_fire") ? 0xFFB24A : kind.equals("swing_smite") ? 0xFFE08A : 0xE6EEFF;
-				String spark = kind.equals("swing_fire") ? "ember" : "twinkle";
+				// that path one after the other (the blade drawing them); more and bigger per grade, and from III a flash
+				// where it lands
+				int c = switch (kind) {
+					case "swing_fire" -> 0xFFB24A;
+					case "swing_smite" -> 0xFFF0C0;
+					case "swing_bane" -> 0x7EE85C;
+					default -> 0xE6EEFF;
+				};
+				String spark = kind.equals("swing_fire") ? "ember" : kind.equals("swing_bane") ? "mote" : "twinkle";
+				int top = kind.equals("swing_fire") ? 2 : 5;
+				float f = g / (float) top;
 				Vec3 shoulder = side.scale(-0.36).add(0, 1.38, 0);
 				Vec3 base = p.position().subtract(at);
-				int n = 7;
+				int n = 4 + Math.round(f * 6);
 				for (int k = 0; k < n; k++) {
 					double s0 = k / (double) (n - 1);
 					double a = Math.toRadians(65 - s0 * 110);
 					Vec3 tip = shoulder.add(look.scale(Math.cos(a) * 1.05)).add(0, Math.sin(a) * 0.9, 0).add(side.scale(-0.35 + s0 * 0.6));
 					Vec3 pos = base.add(tip);
 					List<S> st = new ArrayList<>();
-					for (int q = 0; q < k / 2; q++) st.add(new S(pos, 0.01f, 0));
-					st.add(new S(pos, spark.equals("ember") ? 0.32f : 0.3f, 0.3f));
-					st.add(new S(pos.add(look.scale(0.08)).add(0, -0.04, 0), 0.16f, 0.6f));
+					for (int q = 0; q < k * 6 / n; q++) st.add(new S(pos, 0.01f, 0));
+					float sz = 0.2f + f * 0.16f;
+					st.add(new S(pos, sz, 0.3f));
+					st.add(new S(pos.add(look.scale(0.08)).add(0, -0.04, 0), sz * 0.55f, 0.6f));
 					st.add(new S(pos, 0.01f, 0.9f));
 					ps.add(new P(spark, k % 2 == 0 ? 0xFFFFFF : c, 1, st, null));
 				}
-				if (g >= 2) {
-					ps.add(pop("twinkle", 0xFFFFFF, Vec3.ZERO, 0.55f + g * 0.05f, 4, 0.4f));
-					for (int k = 0; k < 3 + g * 2; k++) {
+				if (f >= 0.5f) {
+					ps.add(pop("twinkle", 0xFFFFFF, Vec3.ZERO, 0.45f + f * 0.25f, 4, 0.4f));
+					for (int k = 0; k < 2 + Math.round(f * 8); k++) {
 						Vec3 d = side.scale(rnd(-0.5f, 0.5f)).add(look.scale(rnd(0.0f, 0.3f))).add(0, rnd(-0.2f, 0.4f), 0);
 						ps.add(line(spark, pick(c, 0xFFFFFF), Vec3.ZERO, d, rnd(0.18f, 0.26f), 0.01f, 0, 0, 5 + R.nextInt(4)));
 					}
 				}
-				if (kind.equals("swing_fire")) flash(level, at, viewers, 8 + g * 2, 4);
-				if (kind.equals("swing_smite") && g >= 5) pillar(level, at.add(0, -1.0, 0), viewers);
+				switch (kind) {
+					case "swing_fire" -> flash(level, at, viewers, 8 + g * 2, 4);
+					case "swing_smite" -> {
+						if (g >= 3) {
+							Quaternionf flat = new Quaternionf().rotateX(-Mth.HALF_PI);
+							Vec3 foot = new Vec3(0, -0.95, 0);
+							ps.add(new P("ring", 0xFFF0C0, 6, List.of(new S(foot, 0.3f, 0), new S(foot, 1.0f + g * 0.25f, 0.3f), new S(foot, 1.3f + g * 0.3f, 0.4f)),
+									flat));
+							ps.add(new P("haze", 0xFFE6A0, 8, List.of(new S(foot, 0.4f, 0), new S(foot, 2.0f, 0), new S(foot, 0.1f, 0)), flat));
+						}
+						if (g >= 5) shaft(level, at.add(0, -1.0, 0), viewers, 0xFFF0C8);
+						if (g >= 3) flash(level, at, viewers, 6 + g, 6);
+					}
+					case "swing_bane" -> {
+						// green drops splash off the target
+						for (int k = 0; k < 2 + g * 2; k++) {
+							Vec3 out = new Vec3(rnd(-0.6f, 0.6f), rnd(0.1f, 0.6f), rnd(-0.6f, 0.6f));
+							ps.add(new P("mote", pick(0x7EE85C, 0xA6F27E, 0x4FB83A), 4, List.of(new S(Vec3.ZERO, 0.12f, 0), new S(out, 0.24f, 0),
+									new S(out.add(out.x * 0.3, -0.9, out.z * 0.3), 0.08f, 0)), null));
+						}
+						if (g >= 5) {
+							Quaternionf flat = new Quaternionf().rotateX(-Mth.HALF_PI);
+							Vec3 foot = new Vec3(0, -0.95, 0);
+							ps.add(new P("smoke", 0x3E8C2C, 10, List.of(new S(foot, 0.5f, 0), new S(foot, 2.6f, 0.6f), new S(foot, 2.8f, 1.0f)), flat));
+						}
+					}
+					default -> {
+					}
+				}
 			}
 			case "trail_old" -> {
 				// A blade's trail: a thin crescent that sweeps through, with two fainter ones a tick behind it
@@ -827,6 +895,46 @@ final class Fx {
 			p.holder().tick();
 			if (a > 20) {
 				p.holder().destroy();
+				it.remove();
+			}
+		}
+	}
+
+	/** A soft shaft of light from above (Smite at its highest): a tall glowing sprite that turns to face you. */
+	private static void shaft(ServerLevel level, Vec3 at, List<ServerPlayer> viewers, int rgb) {
+		ElementHolder h = new ElementHolder();
+		ItemDisplayElement e = element("beam", rgb, false);
+		e.setBillboardMode(Display.BillboardConstraints.VERTICAL);
+		e.setScale(new Vector3f(0.2f, 6f, 1f));
+		e.setTranslation(new Vector3f(0, 3f, 0));
+		e.setInterpolationDuration(4);
+		e.setDisplaySize(2, 8);
+		h.addElement(e);
+		new ManualAttachment(h, level, () -> at);
+		for (ServerPlayer v : viewers) h.startWatching(v);
+		SHAFTS.add(new Shaft(h, e, new int[]{-1}));
+	}
+
+	private record Shaft(ElementHolder holder, ItemDisplayElement beam, int[] age) {
+	}
+
+	private static final List<Shaft> SHAFTS = new ArrayList<>();
+
+	private static void tickShafts() {
+		for (Iterator<Shaft> it = SHAFTS.iterator(); it.hasNext();) {
+			Shaft s = it.next();
+			int a = ++s.age()[0];
+			if (a == 1) {
+				s.beam().setScale(new Vector3f(1.6f, 7f, 1f));
+				s.beam().startInterpolation();
+			} else if (a == 9) {
+				s.beam().setInterpolationDuration(10);
+				s.beam().setScale(new Vector3f(0.05f, 7.5f, 1f));
+				s.beam().startInterpolation();
+			}
+			s.holder().tick();
+			if (a > 22) {
+				s.holder().destroy();
 				it.remove();
 			}
 		}

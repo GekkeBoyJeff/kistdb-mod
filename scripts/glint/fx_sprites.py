@@ -423,6 +423,26 @@ def main():
         json.dump({'model': {'type': 'minecraft:model', 'model': f'libreria:item/fx/p/{name}',
                              'tints': [{'type': 'minecraft:custom_model_data', 'index': 0, 'default': 0xFFFFFF}]}},
                   open(os.path.join(itm, name + '.json'), 'w'), indent=1)
+    # a shaft of light: soft at the sides, fading out at the top and the bottom (16 x 64)
+    beam = Image.new('RGBA', (16, 64), (0, 0, 0, 0))
+    for y in range(64):
+        for x in range(16):
+            side = max(0.0, 1 - abs(x + 0.5 - 8) / 8) ** 1.8
+            ends = min(1.0, y / 10, (63 - y) / 22)
+            a = int(round(min(1.0, side * max(0.0, ends)) * 230))
+            if 248 < a < 255:
+                a = 248
+            beam.putpixel((x, y), (255, 255, 255, a))
+    beam.save(os.path.join(tex, 'beam.png'))
+    json.dump({'textures': {'s': 'libreria:item/fx/p/beam', 'particle': 'libreria:item/fx/p/beam'},
+               'elements': [{'from': [4, 0, 8], 'to': [12, 16, 8], 'shade': False, 'light_emission': 15,
+                             'faces': {'north': {'uv': [0, 0, 16, 16], 'texture': '#s', 'tintindex': 0},
+                                       'south': {'uv': [0, 0, 16, 16], 'texture': '#s', 'tintindex': 0}}}],
+               'display': {'fixed': {'rotation': [0, 0, 0], 'translation': [0, 0, 0], 'scale': [1, 1, 1]}}},
+              open(os.path.join(mod, 'beam.json'), 'w'), indent=1)
+    json.dump({'model': {'type': 'minecraft:model', 'model': 'libreria:item/fx/p/beam',
+                         'tints': [{'type': 'minecraft:custom_model_data', 'index': 0, 'default': 0xFFFFFF}]}},
+              open(os.path.join(itm, 'beam.json'), 'w'), indent=1)
     # the flame (animated) and the ground circle (bigger)
     fr = flame_frames()
     strip = Image.new('RGBA', (N, N * len(fr)), (0, 0, 0, 0))

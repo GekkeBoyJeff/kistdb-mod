@@ -78,43 +78,38 @@ public final class Screens implements FabricClientGameTest {
 				ctx.takeScreenshot("nameplate_front");
 				camera(ctx, CameraType.FIRST_PERSON);
 			});
-			// Proof of concept, round 3: effects on and around the sword (a glowing edge on the blade itself, particles off
-			// the blade while you hold it, sparks along the tip's path when you swing)
-			safe("fx_round3", () -> {
+			// Proof of concept, round 4: swords per enchantment and grade (the edge glows more per grade, the effects grow)
+			safe("fx_round4", () -> {
 				ctx.getInput().lookAt(0, 0);
 				camera(ctx, CameraType.THIRD_PERSON_FRONT);
 				ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.HIDDEN));
 				run(server, "time set midnight");
-				String[][] swords = {{"fire", "2"}, {"sharp", "5"}, {"smite", "5"}};
+				String[][] swords = {{"sharp", "1", "3", "5"}, {"fire", "1", "2"}, {"smite", "1", "3", "5"}, {"bane", "1", "3", "5"}};
 				for (String[] sw : swords) {
-					run(server, "item replace entity @a weapon.mainhand with minecraft:diamond_sword[item_model=\"libreria:fx/sword_" + sw[0]
-							+ "\",enchantment_glint_override=false]");
-					String hold = "blade_" + sw[0] + ":" + sw[1];
-					server.runOnServer(s -> nl.libreria.glint.GlintMod.debugFx(player, hold));
-					ctx.waitTicks(30);
-					for (int f = 0; f < 3; f++) {
-						ctx.takeScreenshot("fxb_" + sw[0] + "_hold_" + f);
-						ctx.waitTicks(4);
+					for (int k = 1; k < sw.length; k++) {
+						String g = sw[k];
+						run(server, "item replace entity @a weapon.mainhand with minecraft:diamond_sword[item_model=\"libreria:fx/sword_" + sw[0] + "_" + g + "\"]");
+						String hold = "blade_" + sw[0] + ":" + g;
+						server.runOnServer(s -> nl.libreria.glint.GlintMod.debugFx(player, hold));
+						ctx.waitTicks(30);
+						ctx.takeScreenshot("fxw_" + sw[0] + "_" + g + "_hold");
+						String swing = "hit:swing_" + sw[0] + ":" + g;
+						ctx.getInput().pressKey(o2 -> o2.keyAttack);
+						server.runOnServer(s -> nl.libreria.glint.GlintMod.debugFx(player, swing));
+						for (int f = 1; f <= 5; f++) {
+							ctx.waitTicks(1);
+							ctx.takeScreenshot("fxw_" + sw[0] + "_" + g + "_swing_" + f);
+						}
+						server.runOnServer(s -> nl.libreria.glint.GlintMod.debugFx(player, "off"));
+						ctx.waitTicks(16);
 					}
-					// a swing: the client swings the arm, the server draws the sparks
-					String swing = "hit:swing_" + sw[0] + ":" + sw[1];
-					ctx.getInput().pressKey(o2 -> o2.keyAttack);
-					server.runOnServer(s -> nl.libreria.glint.GlintMod.debugFx(player, swing));
-					for (int f = 1; f <= 6; f++) {
-						ctx.waitTicks(1);
-						ctx.takeScreenshot("fxb_" + sw[0] + "_swing_" + f);
-					}
-					server.runOnServer(s -> nl.libreria.glint.GlintMod.debugFx(player, "off"));
-					ctx.waitTicks(10);
 				}
-				// close up, from the side: the edge itself
-				run(server, "item replace entity @a weapon.mainhand with minecraft:diamond_sword[item_model=\"libreria:fx/sword_fire\"]");
 				camera(ctx, CameraType.FIRST_PERSON);
-				ctx.waitTicks(10);
-				ctx.takeScreenshot("fxb_fire_first_person");
-				run(server, "item replace entity @a weapon.mainhand with minecraft:diamond_sword[item_model=\"libreria:fx/sword_sharp\"]");
-				ctx.waitTicks(6);
-				ctx.takeScreenshot("fxb_sharp_first_person");
+				for (String sw : new String[] {"sharp_5", "fire_2", "smite_5", "bane_5"}) {
+					run(server, "item replace entity @a weapon.mainhand with minecraft:diamond_sword[item_model=\"libreria:fx/sword_" + sw + "\"]");
+					ctx.waitTicks(8);
+					ctx.takeScreenshot("fxw_" + sw + "_first");
+				}
 				run(server, "time set noon", "item replace entity @a weapon.mainhand with minecraft:air");
 				ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.FULL));
 			});
