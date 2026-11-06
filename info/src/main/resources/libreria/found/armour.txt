@@ -1,0 +1,112 @@
+# Armour, shields and elytra. "armour" = helmet, chestplate, leggings, boots.
+armour|Fits like a glove. A glove made for someone with very strange arms.
+armour|Has a dent shaped like an arrow, and another like a different arrow.
+armour|Previously worn by a knight who described himself as "mostly brave".
+armour|It's seen more hits than a jukebox.
+armour|Smells strongly of the last person who wore it. Air it out. For a week.
+armour|Fitted for a zombie. The zombie had good taste.
+armour|Comes in one size: "probably".
+armour|It has saved a life. Not its owner's, sadly. The owner's dog's.
+armour|The inside is lined with tiny notes saying "breathe".
+armour|There's a name stitched inside. Someone's mum was very proud.
+armour|Clanks when you walk, so everyone knows you're coming. Including the creepers.
+armour|Was it polished, or did it just survive something shiny? Unclear.
+armour|Previous owner: a skeleton with surprising fashion sense.
+armour|Armour-ed and dangerous. Or at least armour-ed.
+armour|Taken off a drowned who refused to take it off for centuries.
+armour|The straps are fine. The buckles are fine. The bloodstains are mostly fine.
+armour|Rated to withstand three creepers. Tested with two. Results inconclusive.
+armour|It once stopped a sword, a bow and a very determined goat.
+armour|Has the faint outline of a hug from someone very sad.
+armour|Matches nothing. Fashion was never the point. Survival was.
+armour|There's a pebble stuck inside it. There's always a pebble.
+armour|Formerly part of a museum display titled "Mistakes Were Made".
+armour|The last person to wear this was so brave. And so lost.
+armour|Worn at a royal wedding. Worn at the royal divorce, too.
+armour|Keep it oiled, keep it polished, keep it away from the ex.
+armour|The wearer survived the war. The armour has nightmares.
+armour|Its previous owner wore it to bed. Every night. For safety. From his wife.
+armour|Engraved inside: "If you're reading this, you're too close."
+helmet|Keeps your head safe. Your thoughts are your own problem.
+helmet|Has a small hole where the feather used to be. The feather is in a better place.
+helmet|There's a dent on top shaped exactly like a falling anvil. It was an anvil.
+helmet|Worn by a guard who really should have looked up.
+helmet|It's a thinking cap. Not for thinking. For surviving long enough to think.
+helmet|Smells like hair and courage. Mostly hair.
+helmet|The visor is stuck in "suspicious squint".
+helmet|Protects the brain. Results may vary depending on brain.
+helmet|A skeleton wore this for a hundred years so it wouldn't burn in the sun. Respect.
+helmet|The inside is scratched with stick figures. They're all running.
+helmet|Head-ache not included.
+helmet|Its owner always said "I've got a good head on my shoulders". The helmet helped.
+helmet|Has a tiny dent where a chicken once hit it. Embarrassing.
+helmet|Its last owner loved the rain. You can tell from the rust.
+helmet|You can hear the sea in it. Not in a magic way. There's water in it.
+chestplate|Protects the heart. Doesn't help with heartbreak.
+chestplate|There's a lucky coin taped inside. It was lucky right up until it wasn't.
+chestplate|Engraved: "Ribs inside. Please knock."
+chestplate|Has a gap at the side that its last owner learned about the hard way.
+chestplate|It's chest-ionable how anyone fit into this.
+chestplate|Previous owner bulked up. The chestplate did not.
+chestplate|Stopped an arrow aimed at the heart. Didn't stop the next one aimed at the knee.
+chestplate|Made for someone with a heroic chest and a cowardly back. The back is less armoured.
+chestplate|Inside, a child's drawing of a knight. The knight is smiling. The knight did not make it.
+chestplate|Breathe in. Breathe in more. Now you can wear it.
+chestplate|Shiny enough to signal ships. Ships have been signalled. Ships have run aground.
+chestplate|It has the shape of someone very brave pressed into it. They wore it thin.
+chestplate|Still has a pillager's arrow stuck in the back. It's sentimental now.
+chestplate|Built to take a beating. Took several. Asking for a break.
+chestplate|Its last owner kept snacks inside it. The snacks are still there. Don't eat them.
+leggings|Pants of protection. Not elegant, but neither is losing a leg.
+leggings|Previously worn by someone who walked very far, very angrily.
+leggings|There's a hole near the knee. Nobody talks about the knee.
+leggings|Leg-endary? No. Leg-adequate.
+leggings|The pockets are full of gravel. Someone was planning something.
+leggings|Squeak when you crouch. The creepers will hear you. They'll laugh.
+leggings|Made for a tall person. Or a short person with dreams.
+leggings|The previous owner sneaked everywhere. The leggings are exhausted.
+leggings|Not technically trousers, technically trouble.
+leggings|It survived a goat ramming. It holds a grudge against goats.
+leggings|Lightly scorched at the ankles, from a famous escape through a lava pit.
+leggings|The knees are reinforced. Someone prayed a lot. Or crawled a lot. Or both.
+boots|Made for walking. Mostly away from things.
+boots|These boots have run from every major disaster of the last century.
+boots|There's still mud on them from a swamp that no longer exists.
+boots|They squelch. Even when they're dry.
+boots|Previously worn by a messenger who outran a ravager. Once.
+boots|Do not check the soles. You will find a story there you didn't want.
+boots|Boot-iful. That's the pun. Sorry.
+boots|Kicked down many doors. Some of them were open.
+boots|They've been to the edge of the world and back, and the edge was disappointing.
+boots|Smells like a whole adventure, mostly the feet part.
+boots|Its previous owner fell from a great height wearing these. The boots are fine.
+boots|There's a pressed flower in the left one. Romantic, or a foot thing.
+boots|Waterproof, fireproof, not foolproof.
+boots|They once walked across the whole Nether in one night. The owner did not remember.
+boots|A villager would pay three emeralds for these, and then wear them on his hands.
+shield|It's been hit more times than a training dummy, and it's prouder.
+shield|Has an arrow still stuck in it, kept as a souvenir.
+shield|Previous owner used it as a sled. Then a boat. Then a shield, once.
+shield|Shield-dom has it been this battered.
+shield|There's a creeper scorch on the front. The creeper is gone. The scorch stays.
+shield|Blocks arrows, swords, and conversations with your mother-in-law.
+shield|Its banner was taken off. Nobody wants to admit whose it was.
+shield|An axe hit it so hard once it's still a little shy.
+shield|Used as a table in a camp for three winters. It remembers every card game.
+shield|Has a tiny dent for every time its owner said "I've got this".
+shield|It has protected more people than the town guard, and been paid less.
+elytra|Previously owned by someone who believed they could fly. They were right, then they were wrong.
+elytra|The wings have a tear that's been stitched with fishing line. Brave.
+elytra|It came from the End, and it never stops talking about it.
+elytra|Do not flap. It's not that kind of wing.
+elytra|There's a phantom scratch on it. The phantom lost.
+elytra|Flies like a dream. Lands like a nightmare.
+elytra|Its last pilot loved the view. The ground loved the pilot. Briefly.
+elytra|Wing it. Literally.
+elytra|There are feathers caught in the hinge. Nobody knows whose.
+elytra|Comes with a small pilot's licence. Issued by a parrot.
+elytra|Previously taken off a frame in an End ship. The shulkers didn't protest.
+elytra|Lighter than air, heavier than regret.
+elytra|Its owner flew into a mountain once. The mountain had a very bad day too.
+elytra|Smells of chorus fruit and freedom.
+elytra|You'll never look at fireworks the same way again.

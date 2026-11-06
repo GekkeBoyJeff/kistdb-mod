@@ -190,6 +190,13 @@ public final class Window {
 		return this;
 	}
 
+	/** A text box of several lines. Read it with {@link Values#text}. */
+	public Window area(String key, Component label, String initial, int maxLength, int lines) {
+		this.inputs.add(new Input(key, new TextInput(FIELD, label, true, initial == null ? "" : initial, Math.max(1, maxLength),
+				Optional.of(new TextInput.MultilineOptions(Optional.of(Math.max(1, lines)), Optional.of(12 * Math.max(1, lines) + 8))))));
+		return this;
+	}
+
 	// ---------------------------------------------------------------- buttons
 
 	/** A button that calls back with everything filled in. The window closes when it's pressed. */

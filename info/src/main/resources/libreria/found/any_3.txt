@@ -1,0 +1,145 @@
+# Still more for anything: small stories, confessions and odd facts.
+*|This {item} was once traded for a horse. The horse came back for it.
+*|Its owner was so proud of it he slept with it under his pillow. He woke up with fewer ears.
+*|An old lady in the swamp village swears it's hers. Grandma Pell swears a lot.
+*|Used to belong to a man who sold "genuine dragon eggs". They were painted cobblestone.
+*|Comes from a long line of things that ended up in chests for a reason.
+*|The last person who polished it found their own reflection staring back a second too late.
+*|Somebody once tried to use it as currency. The bank accepted. The bank collapsed.
+*|It's officially the property of a village that voted to forget it existed.
+*|Smuggled across three borders inside a hollow pumpkin and one very patient cow.
+*|Previously owned by a mapmaker who drew dragons on every map. She was right about one.
+*|There's a little bit of cake stuck to it. Someone celebrated something. Someone regrets it.
+*|The guild of adventurers rejected this {item} for being "too much".
+*|Was in a cupboard for so long the cupboard started charging rent.
+*|The town crier announced its loss for nine days. On the tenth day, the town crier was lost.
+*|A thief stole this, felt bad, returned it, felt worse and stole it again.
+*|Was the prize at the Spring Fair. First place got this. Second place got a pie. Second place was happier.
+*|Its owner tried to teach it tricks. It learned one: disappearing.
+*|Got caught in a cobweb so long it started paying the spider.
+*|Fun fact: it has never once been used for what it was made for.
+*|Less fun fact: it's been used for everything else.
+*|Previously the centrepiece of a very boring museum. You've improved its life.
+*|A knight vowed to carry it to the end of the world. He got as far as the pub.
+*|Belonged to a guard who took his job very seriously, right up until the raid.
+*|There's a smell of old candle wax on it. Someone held a vigil. Someone didn't come back.
+*|Used to belong to a man who never said "goodbye". Just "see you". He was wrong.
+*|Its paint is chipped in the exact shape of a villager's nose.
+*|Shiny enough to blind a chicken. A chicken has been blinded. It's fine now.
+*|Previously the property of the Royal Treasury. The Royal Treasury is now three emeralds and a hole.
+*|A wandering bard wrote a song about this {item}. The song is twelve minutes long and has no chorus.
+*|Bought from a trader who insisted on being paid in "whatever you've got". You had a cookie.
+*|The previous owner insisted it be buried with him. The family did not listen.
+*|Once fell asleep in the sun and woke up as treasure.
+*|Previously owned by a cleric who used it to "bless" things very, very hard.
+*|An enchanter put a bit too much XP into this one. You can feel it sulking.
+*|Its last journey ended in a pit. The pit was not on the map. The pit is now on the map.
+*|Made for a giant, sold to a dwarf, stolen by a goat.
+*|You'd expect more from an item found in a chest. Then again, you'd expect more from most things.
+*|It's been someone's lucky charm, someone's weapon and someone's alibi.
+*|There's an old enchantment ward drawn on it in chalk. It's working, mostly.
+*|Lost in a card game. Won in a card game. Lost again. The cards are cursed too.
+*|It has the dignity of a very old cat and about the same patience.
+*|The person who made this left the instructions in the chest. The instructions say "don't".
+*|A smudge of lapis on it suggests a very dramatic enchanting session.
+*|Its owner talked to it every night. It never talked back. It listened, though.
+*|It was going to be a gift for someone special. Then the special someone met a creeper.
+*|It's had a hard life. Harder than diamonds. Diamonds had it easy.
+*|Signed by its maker with a tiny pickaxe and the word "sorry".
+*|Its owner said it was "the best thing that ever happened to him". He had a very sad life.
+*|Has the distinct air of something that has been dropped from a castle wall on purpose.
+*|It is perfectly safe, according to its previous owner, who is no longer available.
+*|Rescued from a dog's bed. The dog wants it back. The dog is very large.
+*|It's been in the family for generations. The family has been in the ground for generations.
+*|Previously owned by a merchant who sold everything twice.
+*|The Saltmarsh Twins sold this to you once already. They'll try again.
+*|Smells of honey, but the bees are not involved. They insist.
+*|The rust on it spells a word in an old language. The word is "Tuesday".
+*|Was lent to a friend, who lent it to a friend, who lent it to a zombie.
+*|Once survived a fall into a waterfall, a bear and a very strict librarian.
+*|Kept in a velvet box for years. The box has been haunted ever since.
+*|Has been mistaken for treasure by three pirates and for a snack by one goat.
+*|The previous owner wanted to be buried with it. Grandma Pell buried him with a turnip instead.
+*|You can tell it's quality by the number of people who wanted to kill for it.
+*|It was a trophy for a tournament nobody won.
+*|A prophecy mentions this {item}. The prophecy is mostly about breakfast.
+*|The last time it was used, a village held a parade. For its absence.
+*|Its owner left it here so he'd have an excuse to come back. He found a better excuse.
+*|Comes with the faint feeling that you've forgotten to turn off an oven somewhere.
+*|It has been there, done that, and been stolen while doing that.
+*|Previously used as a stirring spoon by a giant. You can tell from the soup.
+*|Bears the mark of the Hollowfield Guild. The Guild only has one member and he's lost.
+*|A child found it first, then her mother, then the authorities.
+*|This was once confiscated by a strict teacher and never returned.
+*|Its owner lost a bet, and then his {item}, and then his dignity. In that order.
+*|There's a dried leaf in a crack, from a tree the elders said must never be cut.
+*|Its owner had it blessed by a monk, cursed by a witch and appraised by a pawnbroker. The pawnbroker was the worst.
+*|It's got that new {item} smell. The smell is fear.
+*|Found tucked in a bed. Not under it. In it.
+*|Its last owner was a professional optimist. You can see where that got him.
+*|Used to belong to a street magician. It disappears when you're not looking.
+*|It's so old it remembers when creepers were just angry bushes.
+*|There's a small drawing of a sun scratched into it. The sun is frowning.
+*|Hidden in the chest under a fake bottom. Someone was very sneaky. Someone was not sneaky enough.
+*|You can tell its maker loved it. You can also tell its maker was very tired.
+*|There's a faint perfume on it: lavender, cinnamon and a hint of cover-up.
+*|Comes with one tiny string tied around it. Pull it and nothing happens. Still, don't pull it.
+*|It was the finest {item} in the province. The province was small. The {item} is fine.
+*|Was in a famous painting. You can't see it, it's behind a cow.
+*|A goat rammed its owner off a mountain. The goat kept the hat. You get this.
+*|Every time someone says its name, a cat sneezes somewhere.
+*|Previously owned by an honest man. Unusual for anything in a chest.
+*|Found in perfect condition. Suspiciously perfect. Like it was waiting.
+*|Do not lend this to Tobias Crumb. He'll lose it, then himself.
+*|It once got stuck in a fence for three years. Its finest work.
+*|There's a word carved near the edge in tiny letters: "eventually".
+*|Somebody tied a lock of hair to it. That's sentimental, or a curse. Possibly both.
+*|Its previous owners all lived long lives. Then they met it.
+*|Somebody tried to melt it down and the furnace gave up.
+*|It once spent a whole winter in a snowman's hand. The snowman was very proud.
+*|It's like it was meant for you. And for someone else, who will be here shortly.
+*|It's not a family heirloom. It's a family warning.
+*|Belonged to a woman who adventured in a ball gown. It has standards.
+*|Found in a chest labelled "misc". The "misc" chest is where legends go to wait.
+*|The previous owner hoped it would bring him glory. It brought him a cold and some bats.
+*|Has a crack you can only see in moonlight. In the crack you can see the moon.
+*|Once used to fight off a bear. The bear was a dog. The dog was very forgiving.
+*|Smells of an old campfire and a story that went on too long.
+*|Has been under an enchanting table so long it thinks it's a book.
+*|A villager tried to trade a bell for it. The villager was not right in the head.
+*|You could build a whole personality around this. Many have. They're gone now.
+*|The old keeper of the chest wrote "good riddance" on the lid.
+*|Its owner was so sure he'd come back for it that he paid for the chest in advance.
+*|Passed from hand to hand for so long it has lost track of whose hands are whose.
+*|Part of a matched pair. The other one is in a skeleton's ribs somewhere.
+*|Taken from a dragon's hoard. The dragon was very small and very upset.
+*|There's an old bus ticket stuck to it. You don't know what a bus is. Neither does the {item}.
+*|Someone wrote a love letter on it in charcoal. It's mostly smudged. The ending says "forever".
+*|It was the first thing its owner made. You can tell. Bless them.
+*|Bears the stamp of a forge that went out the same night a star fell.
+*|Previously used by a blind archer, a deaf bard and a very lost pigeon.
+*|Once borrowed by a priest who returned it with a slightly guilty expression.
+*|You can still read the price tag: "Not for sale. Not for you. Not ever." Ha.
+*|There's a fingernail stuck in it. There's always one fingernail. Life is like that.
+*|It was famous for about a week. Then a llama did something funnier.
+*|A fortune teller predicted you'd find this. She also predicted you'd die old and rich. One out of two isn't bad.
+*|Never been washed. Never will be. It's part of its charm and its smell.
+*|This {item} once rolled downhill for a full hour. It's not proud. It's dizzy.
+*|There's a lump in it that might be gold. It might be a tooth. Gold teeth exist.
+*|Was used as a pillow by a very brave or very tired adventurer.
+*|Left in the chest with the words "for whoever has a worse day than me". So, you.
+*|A kind blacksmith repaired it for free once. The blacksmith's shop burned down the next week. Coincidence.
+*|It glows on the anniversary of a battle nobody remembers.
+*|It has nine lives and has used about seven.
+*|Was once wanted for questioning. Answered nothing.
+*|It's slightly bent from that time someone sat on it in a minecart.
+*|You'll want to keep this one. Everyone else wanted to get rid of it.
+*|The writing on the side says "Back to the Ninth Village". The road there is gone.
+*|Its previous owner had a big heart. Very big. It was eventually the size of a pumpkin.
+*|There's a footprint on it. It's small, bare and walking away from you.
+*|Rumoured to have been made of a fallen star. The fallen star would like a word.
+*|There's a stamp on it: "INSPECTED BY 7". Number 7 has seen some things.
+*|Used once by an adventurer called Lucky Lars. Lars was not lucky. Lars was named ironically.
+*|A pack of wolves followed its last owner for weeks. They wanted this. Or him. Or snacks.
+*|It's been to every biome in the world and complains about every one.
+*|Its previous owner named it "Hope". Hope got lost in a cave. Here it is.

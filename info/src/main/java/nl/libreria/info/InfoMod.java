@@ -57,6 +57,53 @@ public final class InfoMod implements ModInitializer {
 		Weapons.count(p, held, "wither");
 	}
 
+	/**
+	 * For the screenshots: the hotbar full of found gear. A part of a story (named), a found mace and boots with their
+	 * texts, a book, and a pickaxe with its owner's own words.
+	 */
+	public static void debugFound(ServerPlayer p) {
+		var access = p.level().registryAccess();
+		var reg = access.lookupOrThrow(net.minecraft.core.registries.Registries.ENCHANTMENT);
+		java.util.function.Function<String, net.minecraft.core.Holder<net.minecraft.world.item.enchantment.Enchantment>> ench = id -> reg.getOrThrow(
+				net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.ENCHANTMENT,
+						net.minecraft.resources.Identifier.withDefaultNamespace(id)));
+		java.util.function.BiFunction<net.minecraft.world.item.Item, Object[], net.minecraft.world.item.ItemStack> make = (item, list) -> {
+			net.minecraft.world.item.ItemStack s = new net.minecraft.world.item.ItemStack(item);
+			net.minecraft.world.item.enchantment.EnchantmentHelper.updateEnchantments(s, m -> {
+				for (int i = 0; i + 1 < list.length; i += 2) m.set(ench.apply((String) list[i]), (Integer) list[i + 1]);
+			});
+			return s;
+		};
+		var sword = make.apply(Items.DIAMOND_SWORD, new Object[] {"sharpness", 5, "fire_aspect", 2, "looting", 3, "unbreaking", 3, "mending", 1});
+		Found.Text piece = Found.PIECES.stream().filter(t -> "lantern".equals(t.story()) && t.part() == 1).findFirst().orElse(null);
+		if (piece != null) Found.write(sword, piece, "in a shipwreck", 312, p.getName().getString(), access);
+		var mace = make.apply(Items.MACE, new Object[] {"density", 5, "breach", 4});
+		Found.Text sold = Found.LINES.stream().filter(t -> t.text().startsWith("Sold \"as is\"")).findFirst().orElse(null);
+		if (sold != null) Found.write(mace, sold, "Dropped by a pillager", 298, p.getName().getString(), access);
+		var boots = make.apply(Items.NETHERITE_BOOTS, new Object[] {"depth_strider", 3, "feather_falling", 4});
+		Found.Text stain = Found.LINES.stream().filter(t -> t.text().startsWith("Comes with a small stain")).findFirst().orElse(null);
+		if (stain != null) Found.write(boots, stain, "Fished up", 300, p.getName().getString(), access);
+		var book = new net.minecraft.world.item.ItemStack(Items.ENCHANTED_BOOK);
+		book.set(net.minecraft.core.component.DataComponents.STORED_ENCHANTMENTS, make.apply(Items.DIAMOND_SWORD,
+				new Object[] {"mending", 1, "unbreaking", 3}).get(net.minecraft.core.component.DataComponents.ENCHANTMENTS));
+		var pick = make.apply(Items.DIAMOND_PICKAXE, new Object[] {"efficiency", 5, "fortune", 3});
+		java.util.List<net.minecraft.network.chat.Component> own = new java.util.ArrayList<>();
+		for (String l : Lore.wrap("\"Found my first diamonds with this. Do not lend it to Tobias.\"", 40)) own.add(Lore.line(l, Describe.OWN, true));
+		own.add(Lore.line("  ~ " + p.getName().getString(), Describe.BY, false));
+		Lore.set(pick, Lore.OWN, own);
+		var inv = p.getInventory();
+		inv.setItem(0, sword);
+		inv.setItem(1, mace);
+		inv.setItem(2, boots);
+		inv.setItem(3, book);
+		inv.setItem(4, pick);
+	}
+
+	/** For the screenshots: the enchantment details on or off. */
+	public static void setDetails(ServerPlayer p, boolean on) {
+		Details.ON.set(p, on);
+	}
+
 	@Override
 	public void onInitialize() {
 		MODULE.hubEntry(Domain.PROGRESS, 20, Items.WRITABLE_BOOK, "Statistics", StatsGui::open,
@@ -95,6 +142,9 @@ public final class InfoMod implements ModInitializer {
 		});
 		VillagerNames.init();
 		Weapons.init();
+		Found.init();
+		Describe.init();
+		Details.init();
 		Pets.init();
 		Pets.registerPlaces();
 		Places.registerPlaces();
@@ -128,6 +178,7 @@ public final class InfoMod implements ModInitializer {
 			if (tick % 10 == 7) Places.tick(server, tick);
 			if (tick % 20 == 11) Pets.tick(server, tick);
 			if (tick % 40 == 13) Weapons.tick(server);
+			if (tick % 40 == 29) Found.tick(server);
 		});
 
 		UseEntityCallback.EVENT.register((player, world, hand, entity, hit) -> {

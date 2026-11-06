@@ -1,0 +1,187 @@
+# More texts for anything: reviews, warnings, notes, and quiet lore.
+*|Review: "Would get ambushed with it again." Five stars.
+*|Review: "It did exactly what it said. It didn't say much." Three stars.
+*|Review: "Arrived cursed. Seller unreachable. Seller is a ghost." One star.
+*|Review: "My husband used it once and now he lives in a cave. Recommended."
+*|Review: "Bought it for my son. My son is now a legend. I am now alone."
+*|Review: "The enchantment glows nicely. The screaming is a bit much."
+*|Review: "Not as described. Described as 'not haunted'."
+*|Review: "Fast delivery. It arrived before I ordered it."
+*|Review: "Works great. Wish it would stop whispering my name."
+*|Review: "Bit heavy. Bit cursed. Bit of a looker."
+*|Warning: may contain traces of a previous adventure.
+*|Warning: not suitable for people who like to sleep at night.
+*|Warning: contents under pressure. Emotional pressure.
+*|Warning: do not use near grandmothers, priests or the tax office.
+*|Warning: the enchantment is load-bearing. Do not remove.
+*|Warning: may cause sudden heroism. Consult a healer.
+*|Warning: this {item} is known to the state of the Nether to cause trouble.
+*|Warning: keep away from water, fire, villagers and your feelings.
+*|Warning: side effects include fame, debt and a very persistent witch.
+*|Warning: has escaped twice. Keep the chest locked.
+*|Note found with it: "Back in five minutes." The ink is very old.
+*|Note found with it: "If you're reading this, I lost the bet."
+*|Note found with it: "Tell my llama I loved him."
+*|Note found with it: "Do not trust the cartographer."
+*|Note found with it: "The bell rang nine times. I counted. I'm leaving."
+*|Note found with it: "Don't use it on Tuesdays. Trust me."
+*|Note found with it: "I'm not hiding it, I'm storing it aggressively."
+*|Note found with it: "This is not the treasure. The treasure is behind you."
+*|Note found with it: "Sold to the gentleman with the nice hat. Never again."
+*|Note found with it: "Mum, don't open this chest." Mum opened the chest.
+*|Note found with it: "Keep it away from Pell. She knows what it did to her pie."
+*|Note found with it: "I'm sorry about the flowers. And the house. And the cat."
+*|Note found with it: "It's not a weapon, it's a conversation starter."
+*|Note found with it: "If it starts glowing, put it down and walk away slowly."
+*|Note found with it: "This is the last one. The others are at the bottom of the lake."
+*|Note found with it: "Twelve gold. Not a nugget more. Tell no one."
+*|Forged the winter the sky went quiet. Nobody alive remembers which winter that was.
+*|The rune near the grip matches one in a temple nobody has found yet.
+*|Old Builders' marks run along it, too small to read without a lantern.
+*|The bell of the Ninth Village rang the night this was made. The village has not been seen since.
+*|There is a map scratched into it. The coastline doesn't exist. Or doesn't exist yet.
+*|A star is etched into it, pointing at the End. It turns slowly when nobody looks.
+*|It was here before the strongholds. It will be here after.
+*|Someone in the deep dark is still singing the song that was sung over this.
+*|The metal is older than the mountain it was found under.
+*|Under a coat of rust: the seal of a kingdom that drowned.
+*|An eye has been carved into it, closed. Pray it stays closed.
+*|They say the Old Builders made only nine of these. You'd think they'd have stopped at one.
+*|Its glow is the colour of the sky on the night the portals first lit.
+*|Somewhere, a stronghold has an empty hook with this {item}'s shape on the wall.
+*|Whoever made it knew the true name of the Ender Dragon. They took it to the grave. The grave is empty.
+*|It points north. Always. Even when you put it down.
+*|Old letters on it spell a word that makes endermen look away.
+*|The last time this {item} saw the sun, the sun was a different colour.
+*|It hums in the key of the Warden.
+*|An inscription says "The Choir keeps time." You can hear ticking.
+*|Marked with the sign of the Order of the Last Torch: a flame inside a circle.
+*|The Pale Cartographer left a pin hole in it, the way she marked things she'd measured.
+*|Etched along it: a sunken hall, a crown, and three bubbles.
+*|Its pattern matches tiles in an ocean monument. The guardians would like a word.
+*|A scholar once spent her life studying this exact {item}. Her notes are illegible. Her fear is not.
+*|Recorded in the Ledger of Lost Things, page 1,204: "Do not look for it." Too late.
+*|Some say it was carried across the End by someone who came back. Nobody comes back.
+*|The ash on it is not from any fire in this world.
+*|Inside the scratches you can just make out a date. The year is negative.
+*|It was buried with a warning, and the warning was buried with a warning.
+*|A tiny crown is engraved on it upside down. A king who wanted to be forgotten.
+*|You found it. It found you first.
+*|It was placed in that chest by someone who expected you specifically.
+*|The enchantment is older than the enchanting table.
+*|A small inscription reads "for the one who opens the ninth chest". This was the ninth chest.
+*|Smells like the air before a thunderstorm in a world that doesn't have them.
+*|Under the grime there is a name. It's yours. That's not possible.
+*|It was forged in the Nether, cooled in the ocean and blessed in a place that no longer exists.
+*|A whisper on it says "they never stopped digging".
+*|Pressed into it: a fingerprint, a crown, and a skull. In that order.
+*|Corny but true: this {item} is a real piece of work.
+*|It's not just an {item}, it's an {item}-venture.
+*|Holding it feels like a pun waiting to happen.
+*|They called it "the legend". Its friends call it "Leg".
+*|You've heard of priceless. This is the opposite.
+*|It's been around the block. Literally. Mined it, even.
+*|A real conversation piece. The conversation is usually "where did you get that?"
+*|Does exactly what it says on the tin. There was no tin. Long story.
+*|It's got character. Some of the characters are dead.
+*|The best thing since sliced bread. Sliced bread was a dark time.
+*|It's like a cucumber: cool, useful, and strangely unsettling at night.
+*|Puts the "fun" in "funeral".
+*|It's a {item} of few words. Mostly "ow".
+*|Not to brag, but it's been in three prophecies. Wrong in all three.
+*|Comes with a certificate of authenticity. The certificate is fake. The {item} is real.
+*|Rated "acceptable" by the Department of Mild Adventures.
+*|Fresh from the dungeon. Contains no added skeletons.
+*|It's a bit rough around the edges. So is life.
+*|Found in a chest, as nature intended.
+*|It's not much, but it's honest work. The work was robbery.
+*|Your grandparents would have killed for this. One of them did.
+*|Hand-crafted. The hands are not available for comment.
+*|Like a fine wine, it gets better with age. Unlike wine, it gets more cursed.
+*|In a world of ordinary items, it is also an ordinary item. But it tries.
+*|Whatever you do, don't name it. You'll get attached.
+*|Was once accidentally baked into a cake. The cake was the best anyone ever had.
+*|Owned by a dog for a while. The dog was a very good adventurer.
+*|It has been dropped, kicked, cursed and lost. It still shows up for work.
+*|The kind of thing you'd pass down to your kids. If you liked danger, and had no kids.
+*|It survived a llama spitting contest. It came second.
+*|Someone painted a smiley face on it. The face has been crying.
+*|Looks expensive. Was free. Will cost you.
+*|Previously owned by a wandering bard who rhymed "{item}" with everything.
+*|An adventurer's best friend, when the adventurer's actual friends have left.
+*|Fun fact: it's illegal in three villages. Less fun fact: it's illegal in yours.
+*|It's never been the same since the Nether.
+*|Smells like it spent the night in a pig's den. It did.
+*|The kind of {item} that makes a skeleton reconsider its life choices.
+*|The last person to sharpen this left a tip. It was a fingertip.
+*|Previously owned by a lighthouse. Nobody knows how a lighthouse owned it.
+*|Comes from a long line of {item}s. Most of them were melted down for being annoying.
+*|It sneezed once. You weren't there. You missed it. Shame.
+*|Someone once called it "magnificent". It has never recovered.
+*|Has outstanding debts with a gold farm.
+*|Once bought a round for an entire tavern. Nobody knows how.
+*|Do not let it watch you sleep. It already has.
+*|Comes with a small pouch of dried mud and a smaller pouch of drier mud.
+*|It's been a long road. Mostly downhill. Mostly on fire.
+*|You won't believe where this has been. Neither will the court.
+*|Got this from a man in a dark alley. The alley was in a dark cave. Very dark.
+*|Not "lost". Strategically placed for later. A very long later.
+*|The tag says "Cash only. No haggling. No crying."
+*|Previously used as a mirror by someone extremely unattractive.
+*|Is this how you treat a family heirloom? Probably, yes.
+*|It's the right {item} at the wrong time. Story of its life.
+*|Good condition, considering. Considering everything.
+*|Beware: its last owner had an evil twin. This was the evil twin's.
+*|Was involved in a minor crime. Then a medium one. Retired before the big one.
+*|Contains 0% guilt, 100% consequences.
+*|Used to belong to someone who could talk to zombies. They mostly said "hrrg".
+*|Ask it nicely and it might do a trick. The trick is "falling".
+*|A collector would pay well for this. A detective would pay better.
+*|You've seen nicer, but you've never seen sadder.
+*|It's like an onion: it has layers and makes people cry.
+*|Its previous owner said it changed their life. Their life ended a week later.
+*|Was once used in a play about a famous hero. It was the hero's understudy.
+*|This {item} believes in you. It's the only one.
+*|Owned once by a witch who used it to stir soup. The soup gained sentience.
+*|Comes with a small dent and a big story. The story is about the dent.
+*|It saw the face of a Warden and lived. Its owner saw it too and moved to the desert.
+*|There's dried sugar on it. And something else. Mostly sugar.
+*|The last owner swore it was enchanted with Luck. It was enchanted with a lie.
+*|Once taken apart and put back together by a curious child. A few parts are extra.
+*|Once known as the "Pride of the Valley". The valley flooded.
+*|Somebody keeps writing "help" on it in the dust. You keep wiping it off.
+*|Fell out of the sky one day. The sky has not explained itself.
+*|Has a hole in it that goes slightly deeper than it should.
+*|In a former life it was a gate key. The gate is still locked. Something is still behind it.
+*|It walked into a bar. The bar was a dungeon. Classic.
+*|There's a faint tune if you hold it to your ear. It's a lullaby. It's a sad one.
+*|A child named it "Gerald". Gerald has killed many things.
+*|Tested in the deep dark by brave volunteers. One volunteer remains.
+*|It was the last thing a lighthouse keeper held. Or so they say on the coast.
+*|Marked "do not open until the end". It doesn't say which end.
+*|You'll want to wash your hands after touching this. Then again. Then a third time.
+*|Fished out of a swamp by a frog with ambitions.
+*|Comes with a small poem: "Roses are red, my armour is too, I'm out of iron, so I'm coming for you."
+*|Last used in a duel over the last piece of cake. Worth it.
+*|Has been loved, lost, buried and dug up by a very confused sniffer.
+*|There's a dried flower pressed into a crack in it. Someone was sentimental. Then stabbed.
+*|The previous owner insisted you have to say "please" before using it. Say please.
+*|It once belonged to the Saltmarsh Twins, which means it once belonged to everyone they robbed.
+*|Contains genuine dungeon dust, harvested by hand from genuine dungeons.
+*|Fifty per cent off, because the other fifty per cent is in a zombie somewhere.
+*|Belonged to an ambassador to the illagers. Diplomacy failed. The {item} did not.
+*|It was smuggled in a pumpkin. The pumpkin did most of the work.
+*|There's a smudge on it that looks like a face. The face looks worried.
+*|The kind of {item} people whisper about in taverns, then stop when you walk in.
+*|Somewhere, a witch is furious that this {item} got away.
+*|There's a burn mark on it shaped like a hand. Not a big hand.
+*|It's very much like its previous owner: battered, stubborn and suspiciously shiny.
+*|Owned by someone who kept every receipt. This is the only item without one.
+*|Once used to win a bet against an enderman. Nobody knows what the bet was. The enderman does.
+*|It was prophesied that whoever found this would do something great. Or eat something great. The prophecy was smudged.
+*|Fragile. Handle with gloves. Handle with someone else's gloves.
+*|A seagull stole it once and dropped it on a pirate. The pirate is still angry.
+*|Stored in a museum next to a sign saying "the cursed one". There were five signs. This is the worst one.
+*|It sat on a mantelpiece for twenty years, judging guests.
+*|Its owner named their firstborn after it. The child is fine. Mostly fine.
+*|Was it used for good or evil? Yes.

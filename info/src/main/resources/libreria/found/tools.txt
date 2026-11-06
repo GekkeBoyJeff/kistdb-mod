@@ -1,0 +1,114 @@
+# Tools. "tool" = pickaxe, shovel, hoe, shears (and the axe, which is also a weapon).
+tool|Built for work. Its last owner was built for naps.
+tool|It's a tool, not a weapon. Its last owner did not get the memo.
+tool|Has done an honest day's work. Then a very dishonest night's work.
+tool|Previously owned by a builder whose houses were all slightly crooked.
+tool|The handle has been replaced twice. The head has been replaced once. Is it the same tool? Philosophers argue.
+tool|Its owner swore it was the best tool in the world. Its owner had only owned one tool.
+tool|This tool has blisters. On its handle. Somehow.
+tool|There's a little sticker on it: "Property of the Mines Department". There is no Mines Department.
+tool|It's been dropped down more holes than a ferret.
+tool|A good tool never complains. This one complains constantly. It's still good.
+pickaxe|Struck diamonds once. Its owner fainted from excitement and fell in lava. The pickaxe stayed.
+pickaxe|Has chips from every kind of stone in the world. Including one that doesn't exist yet.
+pickaxe|Dug straight down. Every time. Its owners never learned.
+pickaxe|Pick-ed up from a mine, as you do.
+pickaxe|It's been underground so long it gets nervous in sunlight.
+pickaxe|You can hear the cave sounds when you hold it to your ear. Every single one. Especially the bad one.
+pickaxe|The miner who owned it dug a tunnel to the other side of the world. It's a very small world.
+pickaxe|A dwarf would cry at its beauty. A real dwarf. A lawyer, actually.
+pickaxe|Has struck so much gold it has become a little smug.
+pickaxe|It mined the last block of a dungeon wall and saw what was behind it. It won't say.
+pickaxe|There's a tally of diamonds on the handle. It's a sad number.
+pickaxe|Previous owner: a miner who always said "just one more block". There's a hole where he used to be.
+pickaxe|Rock and roll. Mostly rock. Some rolling, down a ravine.
+pickaxe|It found ancient debris once. It's never let anyone forget.
+pickaxe|Its owner mined at night, alone, singing. The cave sang back.
+pickaxe|Has been used to break into a bank vault, a cathedral and a bakery. In that order.
+pickaxe|The point is blunted from the time its owner tried to mine bedrock. Out of spite.
+pickaxe|A shiny pickaxe. A pickaxe that has been very, very lucky.
+pickaxe|Made for mining. Used for crime. Back to mining now. Allegedly.
+pickaxe|There's dried redstone dust in the cracks. Someone built something. It exploded.
+shovel|Dig it.
+shovel|Has dug more holes than a gopher with a grudge.
+shovel|Previously used to dig a grave. The grave was empty. The shovel is suspicious.
+shovel|It's not about the dirt. It's about where you put the dirt.
+shovel|The gravel has a personal vendetta against this shovel.
+shovel|Spade-tacular? No. Shovel-ish? Absolutely.
+shovel|A gardener's shovel. The garden is very deep now.
+shovel|Its owner buried treasure with it, then forgot where. Then buried the map with it.
+shovel|There's sand in every crack. It's from a desert where something was buried in a hurry.
+shovel|Dug up a dinosaur. The dinosaur was a cow. Still exciting.
+shovel|Has a small dent from hitting something hard under the snow. Something with a face.
+shovel|Do you know how many paths this shovel made? Neither does it. It stopped counting.
+shovel|This shovel has questions about the last thing it buried. It's not going to get answers.
+shovel|Best friend of every sniffer it ever met.
+hoe|Grows things. Mostly anxiety.
+hoe|A farmer's hoe. The farmer was a very dangerous man.
+hoe|The most feared weapon in the history of agriculture.
+hoe|It has tilled every field in the valley and some that weren't fields.
+hoe|You think it's a joke. The pumpkins don't.
+hoe|The scythe-wannabe of tools.
+hoe|Its owner grew the largest pumpkin in the land. Then the pumpkin grew back.
+hoe|Netherite hoe energy: overqualified, underappreciated.
+hoe|Hoe-ly cow, it's a hoe.
+hoe|Previously owned by a witch's gardener. Some of the crops have teeth.
+hoe|Used to harvest the last wheat before the Quiet Winter. Nothing grew right after.
+hoe|There's a carrot stuck in the blade from a harvest that went wrong.
+hoe|Farmers fear it, crops respect it, zombies are confused by it.
+shears|For sheep, mostly. For the occasional cobweb. For one very unfortunate hedge.
+shears|A sheep's worst barber.
+shears|Has trimmed so many leaves it dreams of trees.
+shears|The previous owner sheared a sheep and the sheep sheared back.
+shears|Snip snap, nobody's coming back.
+shears|Used to cut the ribbon of a famous bridge. The bridge collapsed the next day.
+shears|Shear brilliance.
+shears|There's a strand of pink wool caught in the hinge. From a pink sheep. The legend is real.
+shears|They've cut through tripwire in a jungle temple. Nobody knows how they knew it was there.
+shears|Used to trim the beard of a very old villager. He hasn't spoken since.
+shears|Snipped the thread of fate once. Fate was mildly annoyed.
+rod|The one that got away? This is the rod it got away from.
+rod|Its line has been snapped by every fish in the sea and one very large squid.
+rod|Caught a boot once. Then the foot that went with it.
+rod|A fishing rod that has heard every single lie its owners told about the size of their catch.
+rod|Reel talk: it's seen things.
+rod|Fished up a treasure, then a warning, then the thing the warning was about.
+rod|Its last owner fished for forty years and never caught anything. He was very happy.
+rod|There's an old hook on the line from a fisherman who vanished at sea.
+rod|It once caught a drowned. The drowned was not pleased.
+rod|Pull. Wait. Pull. Wait. Regret.
+rod|The bobber has a tiny face painted on it. It looks seasick.
+rod|Caught a nametag once. The name on it was its owner's.
+rod|You'll catch fish with this. You'll also catch feelings. Fishing is like that.
+rod|Bait not included, patience sold separately.
+rod|It's been to every lake in the land and was asked to leave half of them.
+rod|Someone carved "THE BIG ONE" on it. The big one is still out there.
+rod|Used to hook a key out of a dungeon. The dungeon was not amused.
+brush|Brushed the dust off an old civilisation. The civilisation wasn't ready.
+brush|Its bristles have touched more history than most historians.
+brush|Gently, gently. Then a skeleton jumps out.
+brush|Previously owned by an archaeologist who found everything except her lost brother.
+brush|A brush with greatness. Sorry, that one was too easy.
+brush|Swept the sand off a pot that should never have been opened.
+brush|The bristles are stained with ancient pottery dye and modern tea.
+brush|Has uncovered three treasures and one very upset armadillo.
+brush|It brushed the face of a statue that then blinked.
+brush|This brush knows where the Old Builders buried their mistakes.
+flint|Fire starter, career ender.
+flint|Lit the first portal on this server. Allegedly. Everyone says that.
+flint|The striker is worn from a thousand campfires and one forest.
+flint|It's been banned from three villages and one very wet swamp.
+flint|Previous owner: an arsonist with a heart of gold. And a lot of lava.
+flint|Spark joy. Then spark fire. Then spark panic.
+flint|It lit a candle for someone who never came home.
+flint|Used to light every torch in a stronghold. The stronghold remembers.
+flint|Its owner said "I'll just light this one thing". There were no survivors among the trees.
+flint|Has lit more portals than the Old Builders, and with less paperwork.
+stick|For pigs who need motivation and striders who need direction.
+stick|The pig followed it for three days. It thought they were dating.
+stick|A carrot on a stick: the original life coach.
+stick|Its previous owner rode a pig across the entire continent. The pig has blocked him.
+stick|The fungus smells like the Nether. The striders don't care. They're in love.
+stick|Used to win the Great Pig Race. Nobody else entered.
+stick|It's a stick with something on it. Like most life advice.
+stick|The carrot is wooden now. It's been dangled so long it fossilised.

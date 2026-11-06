@@ -274,6 +274,36 @@ public final class Screens implements FabricClientGameTest {
 						"item replace entity @a armor.legs with minecraft:air", "item replace entity @a armor.feet with minecraft:air");
 			});
 
+			// Tooltips: found gear with its text (a part of a story, named), what each enchantment does and what it adds
+			// to the attack damage; a book; a pickaxe with its owner's words; then the same sword with the details off
+			safe("tooltips", () -> {
+				run(server, "clear @a");
+				server.runOnServer(sv -> nl.libreria.info.InfoMod.debugFound(player));
+				ctx.waitTicks(10);
+				ctx.getInput().pressKey(o2 -> o2.keyInventory);
+				ctx.waitTicks(20);
+				noToasts(ctx);
+				double scale = ctx.computeOnClient(mc -> (double) mc.getWindow().getGuiScale());
+				int w = ctx.computeOnClient(mc -> mc.getWindow().getGuiScaledWidth());
+				int h = ctx.computeOnClient(mc -> mc.getWindow().getGuiScaledHeight());
+				int left = (w - 176) / 2, top = (h - 166) / 2;
+				String[] names = {"sword", "mace", "boots", "book", "pickaxe"};
+				for (int i = 0; i < names.length; i++) {
+					ctx.getInput().setCursorPos((left + 16 + 18 * i) * scale, (top + 150) * scale);
+					ctx.waitTicks(4);
+					ctx.takeScreenshot("tooltip_" + names[i]);
+				}
+				server.runOnServer(sv -> nl.libreria.info.InfoMod.setDetails(player, false));
+				ctx.waitTicks(10);
+				ctx.getInput().setCursorPos((left + 16) * scale, (top + 150) * scale);
+				ctx.waitTicks(4);
+				ctx.takeScreenshot("tooltip_sword_details_off");
+				server.runOnServer(sv -> nl.libreria.info.InfoMod.setDetails(player, true));
+				ctx.getInput().setCursorPos(2, 2);
+				ctx.getInput().pressKey(o2 -> o2.keyInventory);
+				ctx.waitTicks(5);
+			});
+
 			// Items of every rarity in the inventory and hotbar
 			run(server, "clear @a",
 					"give @a minecraft:diamond_sword[enchantments={sharpness:5}]",

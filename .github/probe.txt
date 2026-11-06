@@ -17,3 +17,5 @@ net.minecraft.world.level.storage.loot.parameters.LootContextParams
 net.minecraft.world.level.block.AnvilBlock
 +net.minecraft.world.item.ItemStack
 ? loot/v[0-9]/LootTableEvents
+net.minecraft.world.item.enchantment.EnchantmentHelper
+net.minecraft.world.item.Item$TooltipContext

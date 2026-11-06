@@ -1,0 +1,189 @@
+# Weapons. "weapon" = sword, axe, bow, crossbow, trident, mace, spear.
+weapon|Has killed more zombies than the plague, and the plague was mostly zombies.
+weapon|The notches on it stop at forty. Then someone started a second row.
+weapon|Its previous owner used it exclusively to defend his garden. Nobody touched his carrots. Ever.
+weapon|Barely used. Its owner kept missing.
+weapon|It has a taste for skeletons. Literally. It's a bit worrying.
+weapon|Some weapons are forged for war. This one was forged for a misunderstanding.
+weapon|Has been pointed at a dragon. The dragon was unimpressed.
+weapon|It won a war once. Then it lost the peace.
+weapon|Used in a duel at dawn. Both sides overslept, so this was used at noon.
+weapon|The pillagers have a wanted poster with this weapon on it. Not the owner. The weapon.
+weapon|Feared by creepers. Not because it's dangerous. Because it's ugly.
+weapon|Once used to defend a village from a raid. The village kept the weapon. The hero kept the bill.
+weapon|Killed a witch. The witch's sister would like a word.
+weapon|Has a faint smell of spider. And worse, of spider that you've stepped in.
+weapon|You could say it has a killer personality.
+weapon|Not for pacifists. Not for anyone, honestly.
+weapon|Its owner gave it a cute name. It has since killed four hundred things. Its name is "Biscuit".
+weapon|The phrase "I come in peace" has been scratched off.
+weapon|Trained on pumpkins. Graduated to pillagers.
+weapon|This weapon is wanted in three biomes.
+weapon|Used once to settle an inheritance dispute. Settled it very quickly.
+weapon|Blessed against the undead. The undead have filed an appeal.
+weapon|The guards confiscated this once. The guards are on a long holiday now.
+weapon|It's seen battle. It's seen worse: a village wedding.
+weapon|The old knight who owned it fell asleep on watch. Once. They never found the knight.
+weapon|It once made a ravager cry. The ravager doesn't talk about it.
+weapon|Previous owner insisted on naming every zombie before fighting it. It took a while.
+weapon|A tool of war, if war were mostly accidentally hitting chickens.
+weapon|The illagers sing a song about this weapon. It's not a nice song.
+weapon|The enchantment was added by a librarian who didn't approve of violence. She did it anyway.
+sword|A cut above the rest. It insists.
+sword|The pointy end goes in the other person. Instructions included, apparently necessary.
+sword|Forged for a hero. Sold by the hero's nephew.
+sword|You could say it has an edge on the competition.
+sword|Sharp wit, sharper edge, no sense of humour.
+sword|There's a tiny inscription near the guard: "swing responsibly".
+sword|The blade has a nick in it from that time with the anvil. Don't bring up the anvil.
+sword|Has been sharpened so many times it's worried about its waistline.
+sword|Made by a smith who was really into dramatic reveals. It's a bit too shiny.
+sword|The last knight to carry it was called Sir Reginald the Unremarkable. He lived up to it.
+sword|Squires used to polish it at night and tell it their secrets. It remembers every one.
+sword|It's not a sword, it's a lifestyle. A short one.
+sword|Made from the iron of a fallen golem. The village held a small funeral.
+sword|Pulled from a stone by a child who then put it back because it was "too heavy".
+sword|This blade has two settings: sharp and sharper.
+sword|Was used to cut a ribbon at a castle's opening. Then the castle's owner.
+sword|Its scabbard was lost. Its dignity, too.
+sword|It whistles when swung, a little off-key, like a drunk uncle.
+sword|Swords are all edge and no listening. This one is the worst.
+sword|It was a ceremonial sword. The ceremony got out of hand.
+sword|The previous owner swore he'd never use it in anger. He used it mostly in mild irritation.
+sword|There are tally marks on the blade. They're in a code. The code means "lunch".
+sword|A family sword, passed down until it reached the wrong family member.
+sword|This sword is a poem. A violent one. The poet was arrested.
+sword|Sheathed in a pig once, by accident. The pig was furious.
+sword|It made a skeleton laugh once, which, given the circumstances, was a feat.
+sword|Your parry needs work. The sword has noticed.
+sword|Sword-ny about the mess. It's been a rough century.
+sword|Hilt-arious if you're into blade jokes. Nobody is.
+sword|Has a crossguard. Not because it's angry. It's just how it was made.
+sword|It once cut a cake into perfectly equal slices. Its proudest moment.
+sword|The pommel has a tiny mirror in it so you can look heroic while being heroic.
+sword|A sword that has seen many sunsets, and stabbed someone at each of them.
+axe|Axe me anything. Go on.
+axe|For trees. And for people who argue about trees.
+axe|It's been used on more doors than trees. Make of that what you will.
+axe|Previously owned by a lumberjack who just really, really hated birch.
+axe|Its blade is chipped from the time it met a diamond block. The block won.
+axe|Not a weapon, technically. Tell that to the pillager it got lodged in.
+axe|Handle made of oak. Head made of attitude.
+axe|The woodcutter's union would like to know where you got this.
+axe|There are leaves still stuck in the handle. From a tree that no longer exists. Anywhere.
+axe|It has chopped down a forest and apologised to none of it.
+axe|Axe-ceptional? No. Axe-ceptable? Yes.
+axe|The previous owner chopped wood every morning for thirty years and never once smiled.
+axe|Best friends with every fireplace in the village.
+axe|Do not ask what happened to the shield it was used against.
+axe|Has a little notch for every tree it felled. It's mostly notch now.
+axe|Survived a beaver uprising. The beavers remember.
+axe|Its owner said "I can chop that in one swing". It took eight. Nobody mentions it.
+axe|Has the faint scent of pine, sap and danger.
+axe|The edge says "work". The blood says "overtime".
+axe|Used by a witch to chop herbs. And by her neighbour to chop the witch's fence.
+axe|This one's been through the woods and back. Mostly through.
+axe|It's a cleaver, but for people who think big.
+axe|Grip worn smooth by a thousand bad decisions and one good one.
+axe|The forest goes quiet when it's carried in. Very rude of the forest.
+axe|Ex-executioner's axe. It's retired. It still has dreams.
+bow|Bow-ner's manual not included.
+bow|It's not you, it's the bow. Okay, it's mostly you.
+bow|The string has been replaced more times than its owners.
+bow|Shoots straight. Its owners usually don't.
+bow|Has a small carved deer on the grip. The deer looks nervous.
+bow|Made by a fletcher who could hit a fly at fifty paces. He never hit a fly. He liked flies.
+bow|Its arrows always find their mark. Its owners, less so.
+bow|Quiver not included. Neither is aim.
+bow|Previously belonged to a skeleton who wanted to try being a hero.
+bow|You could say it's a little highly strung.
+bow|Bow-tiful, if you squint.
+bow|The skeletons recognise it. They do a little nod.
+bow|A hunting bow, bent from years of hunting nothing in particular.
+bow|Taken off a skeleton who didn't need it anymore. Skeletons never need anything anymore.
+bow|There are teeth marks on the grip. Its last owner was very, very nervous.
+bow|The string twangs a little sad note. It misses someone.
+bow|Ah yes, the classic "point at problem, release problem".
+bow|A poacher's bow. The deer still talk about it.
+bow|Sends arrows faster than the postal service sends letters, and with more love.
+bow|Bent from the weight of all the shots it missed.
+bow|It shoots the wind out of things.
+bow|Some archers whisper to their bow. Don't. This one whispers back.
+bow|Made from the wood of a tree that was struck by lightning twice. The tree was asking for it.
+bow|Used in a famous archery contest. It came third. The first two cheated.
+bow|Aim for the head. The bow will aim for the knee. It has a thing about knees.
+crossbow|Pillager surplus. Lightly used, heavily shouted with.
+crossbow|Has a sticker on the stock: "Raid Captain's Choice".
+crossbow|You can still hear the pillager who owned it going "HUH".
+crossbow|Click, thunk, oops.
+crossbow|It's like a bow, but with commitment issues solved.
+crossbow|The bolt slot is scratched with tally marks. The tally marks are scratched with tally marks.
+crossbow|Loaded. Always loaded. Don't point it at the cat.
+crossbow|Made in an illager workshop with an aggressively cheerful work culture.
+crossbow|It has a jammed trigger memory. Only for things it likes.
+crossbow|Taken off a pillager mid-sentence. The sentence was "HRRM".
+crossbow|Crossbows don't kill people. Crossbows with pillagers behind them do.
+crossbow|Cross-bow? More like cross-WOW. That's the joke. That was it.
+crossbow|Taken from a woodland mansion where nobody asks questions and everybody is armed.
+crossbow|The stock is carved with a tiny portrait of a raid captain. He looks smug.
+crossbow|It shoots fireworks too. It's the life of the party and the end of it.
+crossbow|Has a slightly bent sight, which explains a lot about its previous owner.
+crossbow|Reloading it is a workout. Using it is a lifestyle.
+crossbow|The illagers had a name for this one. The name was a scream.
+crossbow|It's got a crossbow face. You know the one. Mean.
+crossbow|Very loyal to pillagers. Less loyal to you. It's warming up.
+trident|Fork it over. To the fish.
+trident|Previously owned by a drowned with a dream.
+trident|The fish whisper about it. The squids just flee.
+trident|Three prongs, zero chill.
+trident|Taken off a drowned who was mid-way through a very angry gurgle.
+trident|It's wet. It's always slightly wet. Even in the desert.
+trident|Tri your best. The trident certainly does.
+trident|The sea wants it back. The sea always wants things back.
+trident|Seaweed still tangled in it from a kingdom that drowned three times.
+trident|Once speared a guardian, which is not something you should be proud of. Guardians have families.
+trident|This trident has been to the bottom of the ocean and found it disappointing.
+trident|You can smell salt on it. And the faint sorrow of a drowned king.
+trident|The drowned used to pass this one down. Now it's passed up.
+trident|Thrown at a lightning storm once. The lightning threw back.
+trident|A fork for a giant, a spear for a fish, a disappointment for a dolphin.
+trident|Its prongs have names. The left one is Kevin.
+trident|Pulled out of a dolphin's favourite spot. The dolphin did not consent.
+trident|It came back every time it was thrown, even the time its owner really didn't want it to.
+trident|The tide goes out when it's raised. That's not how tides work. Tell the tides.
+trident|Has the faint barnacle of a ship that never reached the shore.
+mace|Maces you think, doesn't it?
+mace|For when you want to make a point, but bluntly.
+mace|Some weapons cut. This one has a frank discussion with your skeleton.
+mace|It doesn't need an edge. It has gravity on its side.
+mace|Dropped from a great height once. The ground is still recovering.
+mace|The breeze it was made from is still angry about it.
+mace|Has a dent in it from a very unlucky iron golem.
+mace|It's heavy. Not as heavy as the guilt, but heavy.
+mace|Swung once at a trial chamber door. The trial was over very quickly.
+mace|They call it "the gavel". Court is in session. Court is final.
+mace|Bonk-certified.
+mace|Fall damage, but you're the one handing it out.
+mace|The breezes spin a little faster when they see it. Out of fear.
+mace|This mace has dropped from more mountains than most goats.
+mace|Used to tenderise meat. And arguments.
+mace|Its previous owner jumped off a cliff with it, on purpose. It worked out for one of them.
+mace|It has the weight of experience, and most of a breeze rod.
+mace|A blunt instrument for blunt people.
+mace|There's a tiny cloud carved on it. The cloud looks scared.
+mace|A conversation-ender in a world full of conversation-starters.
+spear|Long reach, short temper.
+spear|For poking things you don't want to get closer to. Which is most things.
+spear|Its owner always kept people at arm's length. Plus a spear's length.
+spear|Has a red ribbon tied near the tip. It used to be white.
+spear|Spear-ited away from a battlefield in the night.
+spear|It's got a point, and it will make it.
+spear|Once used to fish. The fish learned to fear the shallows.
+spear|A guard's spear. The guard is not here. The guard will not be here.
+spear|Charged into a skeleton line once. The line became a pile.
+spear|This spear has lunged more times than a very motivated frog.
+spear|The shaft is notched where a dozen hands have gripped it and a dozen hands have let go.
+spear|Proper soldiers march with spears. This one wandered off.
+spear|It's poking the bear. There was a bear. The bear lost.
+spear|There's a little flag on it. The flag says "YES".
+spear|Built for formation fighting. Its owner was a formation of one.

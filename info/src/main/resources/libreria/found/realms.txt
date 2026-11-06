@@ -1,0 +1,135 @@
+# Texts for where something was found: <kinds>@<where>|<text>. Where: overworld, nether, end, or a place:
+# bastion, fortress, ruined_portal, end_city, ancient_city, stronghold, mansion, outpost, shipwreck, buried, desert,
+# jungle, igloo, mineshaft, dungeon, trial, village, fishing, barter, mob, archaeology.
+*@nether|Smells of sulphur, singed hair and a very bad decision.
+*@nether|Still warm from the Nether. It will always be a little warm from the Nether.
+*@nether|Piglins have been arguing over this for a hundred years. You just ended the argument.
+*@nether|The Nether gave it up without a fight. That's never a good sign.
+*@nether|There's soul sand in every crack. The souls are still complaining.
+*@nether|A ghast cried on it once. The tears burned.
+*@nether|Forged in a place where the floor is lava and the ceiling is worse.
+*@nether|It has the faint smell of a strider's bath.
+*@nether|Was dropped by someone fleeing a hoglin. The hoglin kept the rest.
+*@nether|Glows a little red at night, as if the Nether keeps a candle lit in it.
+*@nether|The basalt dust on it never fully washes off. You'll find it in your bed.
+*@nether|Its previous owner came through the portal with it and never went back. Then went back.
+*@nether|Lost in the Nether by a builder who wanted to make a highway. The highway lost too.
+*@nether|Picked up in the Nether. Your mum would not approve.
+*@nether|Comes with a complimentary scream from a nearby ghast.
+*@nether|Its glow matches the lava oceans. Romantic, in a burning way.
+*@nether|The Nether doesn't lose things. It lends them.
+*@nether|Wither skeletons used to fight over this. Then they stopped fighting over anything.
+*@nether|You can still smell the crimson forest on it. Like fungus and bad intentions.
+*@nether|A blaze polished this once. It was a very hot afternoon.
+*@nether|It survived a fall into a lava lake by landing on a strider. The strider was furious.
+*@end|Cold to the touch, in a way that isn't about temperature.
+*@end|The End gave this up. The End doesn't give things up.
+*@end|There's a faint purple shimmer on it, like it's still deciding where it is.
+*@end|It's very quiet. Things from the End are always very quiet.
+*@end|Shulkers guarded it for a thousand years and got bored at the very end.
+*@end|Endermen keep looking at it, then at you, then at it. Rude.
+*@end|Smells of chorus fruit and the void. The void smells like nothing, which is worse.
+*@end|Tiny particles of end stone are stuck to it. They glow when the dragon roars.
+*@end|It's been floating for a long time. It's not used to gravity yet.
+*@end|Whoever left it in the End did not expect visitors.
+*@end|If you hold it to your ear you can hear the dragon breathing. Not now. Then.
+*@end|An enderman tried to move it once. It did not want to be moved.
+*@end|The End is the end, but this is clearly a beginning.
+*@end|It has seen the void up close and didn't blink. It doesn't have eyes. Still.
+*@end|Some say it's from a ship that sailed from somewhere even further.
+*@overworld|Smells like grass, rain and somebody's lunch.
+*@overworld|A good, honest overworld find. Probably stolen from a good, honest overworld person.
+*@overworld|Has a few grass stains. And a moss stain. And a story.
+*@overworld|The birds sang when you picked it up. Or screamed. Hard to tell with birds.
+*@bastion|Piglin treasure. The piglins have filed a missing item report.
+*@bastion|Taken from a bastion where the gold was guarded by teeth.
+*@bastion|Polished by piglins every day for centuries. They loved it more than you ever will.
+*@bastion|The piglin brute who guarded this would like it back. He has an axe.
+*@bastion|Gold-adjacent, which is why the piglins tolerated it.
+*@bastion|A treasure room piece. The treasure room is now just a room.
+*@bastion|It was the piglins' crown jewel. The crown was a pumpkin.
+*@fortress|Taken from a Nether fortress. The wither skeletons were too busy being angry to notice.
+*@fortress|A blaze sat on it for a century to keep it warm. It's very warm.
+*@fortress|Nether brick dust in every crack. Smells of ancient war and dinner.
+*@fortress|The fortress guards fell asleep. They're skeletons. They don't sleep. Weird.
+*@ruined_portal|Found next to a portal that someone tried very hard to break.
+*@ruined_portal|The portal it came from is in ruins. It's fine though. Mostly.
+*@ruined_portal|Gold-trimmed portals always come with something left behind. Usually a regret.
+*@ruined_portal|Whoever built that portal was trying to go somewhere. They went somewhere else.
+*@end_city|Taken from an End city's tallest tower. The view was the best part.
+*@end_city|The shulkers in the End city tried to make it float away. It refused.
+*@end_city|End city loot: purple, quiet and suspiciously well-kept.
+*@end_city|There's a tiny shulker shell fragment stuck to it. It still twitches.
+*@end_city|Found in a city nobody lives in, guarded by things nobody understands.
+*@ancient_city|Taken from an ancient city. Walk quietly. Walk very, very quietly.
+*@ancient_city|There's sculk in the cracks. It's listening.
+*@ancient_city|The Warden was asleep. Don't wake it up by bragging.
+*@ancient_city|The ancient city people left this behind when they went... wherever they went.
+*@ancient_city|It hums at the frequency of a sculk shrieker. You'll get used to it. You won't.
+*@ancient_city|The candles were still lit when you found it. Who lit them?
+*@ancient_city|Smells like old stone and fear in the dark.
+*@ancient_city|The Hollow Choir used to sing over this. You'll hear them on quiet nights.
+*@stronghold|Found in a stronghold library. It was checked out a thousand years ago and never returned.
+*@stronghold|The Old Builders left it beside the portal room, as if waiting for someone.
+*@stronghold|Silverfish lived in it for years. They paid no rent.
+*@stronghold|A stronghold relic. The eyes of ender stared at it until you came along.
+*@mansion|Taken from a woodland mansion. The mansion has many rooms and many secrets. This was one.
+*@mansion|An evoker cast spells around it for years. It's a little bit tingly.
+*@mansion|Mansion loot. The vindicators were not consulted.
+*@mansion|There was a secret room. In the secret room, a secret chest. In the chest: this, and a smell.
+*@outpost|Pillager outpost loot. It still yells "HUH" sometimes.
+*@outpost|Taken from the top of a pillager tower. The banners are very upset.
+*@outpost|The pillagers were using it as a coat rack.
+*@shipwreck|Recovered from a shipwreck. The captain went down with the ship. The {item} went down with the captain.
+*@shipwreck|There's barnacles on it and a little bit of a sea shanty.
+*@shipwreck|The ship's log mentions this {item}. The log is mostly about how much the captain hated the sea.
+*@shipwreck|Smells of salt, oak and drowned sailors' songs.
+*@shipwreck|The crew mutinied over this. The mutiny ended badly. Everyone sank.
+*@buried|Buried treasure! The map was right for once.
+*@buried|Pirates buried this with a curse. The curse is mostly about bad weather.
+*@buried|Under the sand, under the X, under a pirate's dying wish.
+*@buried|Whoever buried it meant to come back. Pirates always mean to come back.
+*@desert|Found in a desert pyramid, next to a floor that really wanted you dead.
+*@desert|Taken from a pyramid. The TNT under the floor was disappointed.
+*@desert|There's sand in every crack. There will always be sand. Forever.
+*@desert|The pharaoh who owned it was a very small rabbit. Long story.
+*@desert|Husks have been sitting on it for centuries, dreaming of being zombies.
+*@jungle|Found in a jungle temple, past arrow traps aimed at someone much shorter.
+*@jungle|The jungle tried to keep it. The vines had a good grip.
+*@jungle|Parrots repeated the temple's password for years. The password was "please".
+*@jungle|There's moss on it, and a little bit of ancient lever grease.
+*@igloo|Found under an igloo, in a room you weren't supposed to find.
+*@igloo|There was a villager down there. And a zombie. And this. Don't think about it.
+*@igloo|Cold. Like the secret it was kept with.
+*@mineshaft|Left behind in an abandoned mineshaft. Abandoned for a reason. The reason has eight legs.
+*@mineshaft|The minecart it came in had no brakes and no regrets.
+*@mineshaft|A miner's spare. The miner did not need it in the end.
+*@mineshaft|Cobwebs everywhere, and a faint smell of old lanterns.
+*@dungeon|Dungeon loot. The spawner was very protective of it.
+*@dungeon|Found in a mossy dungeon, under a skeleton who was guarding nothing else.
+*@dungeon|It survived a zombie spawner. Barely. It's in therapy.
+*@trial|Won from a trial chamber. The breezes have issued a formal complaint.
+*@trial|From a vault that only opens for the worthy. It opened for you. Weird.
+*@trial|The trial spawners tested it and it passed. Mostly.
+*@trial|The copper in the chamber turned green in shame when you took it.
+*@village|Found in a village chest. Somebody's going to have a very confusing morning.
+*@village|Taken from a village. The villagers said "hrm". It was a sad "hrm".
+*@village|The village blacksmith made this. The village blacksmith has no idea it's gone.
+*@village|An iron golem watched you take this. The golem is thinking about it.
+*@fishing|Fished up. Not the catch you were expecting. Not the catch anyone was expecting.
+*@fishing|Came up on the line with a boot, a bone and a bad feeling.
+*@fishing|The sea gave it up. The sea would like you to know it's not a loan.
+*@fishing|You were fishing for cod. The ocean had other plans.
+*@fishing|Hooked from the deep by a fisherman's luck and a dead man's grudge.
+*@barter|A piglin traded this for gold. The piglin thinks it got the better deal.
+*@barter|Bartered from a piglin, who immediately forgot it ever had it.
+*@barter|Piglins don't value this. That's why you have it. Think about that.
+*@mob|Dropped by a monster that clearly had better gear than sense.
+*@mob|Prised from the cold, dead hands of something that shouldn't have been alive.
+*@mob|The zombie who owned this had a full life before. Then a full unlife. Now it's yours.
+*@mob|Its last owner moaned a lot. Not unusual for a zombie, but still.
+*@mob|The skeleton dropped it, and then dropped the rest of itself.
+*@mob|Taken off a mob who looked very surprised to lose.
+*@archaeology|Brushed out of the sand from a place that remembers better times.
+*@archaeology|Dug up with care, love and a little brush. Buried with neither.
+*@archaeology|The pottery around it was smashed. The pottery knew.

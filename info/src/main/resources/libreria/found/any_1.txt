@@ -1,0 +1,221 @@
+# Found-item texts. One per line: <kinds>|<text>. Kinds: * (anything), weapon, armour, tool, or an item kind
+# (sword, axe, bow, crossbow, trident, mace, spear, helmet, chestplate, leggings, boots, shield, elytra, pickaxe,
+# shovel, hoe, shears, rod, brush, flint, stick). {item} becomes the item's name ("sword", "fishing rod").
+# Each text is handed out once on a server, so nobody meets the same one twice.
+*|Previous owner: unavailable for comment.
+*|Comes with a small stain. Do not ask about the stain.
+*|Sold "as is". The seller left town that same night.
+*|It isn't stolen if nobody comes looking. Nobody has come looking. Yet.
+*|Its last three owners all said "watch this".
+*|Smells faintly of burnt bread and ambition.
+*|Lightly used. Heavily regretted.
+*|Someone carved "NO" into it. Nobody knows what the question was.
+*|Cleaned thoroughly. Twice. Then once more, just in case.
+*|Warranty void if used.
+*|The receipt says "no refunds, no questions, no witnesses".
+*|Found exactly where someone said it would never be found.
+*|Has a tiny tooth mark on it. Not a human one. Probably.
+*|Still slightly warm. That is not a good sign.
+*|A label on it reads "DO NOT". The rest has been scratched off.
+*|Certified mostly cursed-free.
+*|Whoever owned this {item} left in a hurry and never came back for it.
+*|Comes pre-haunted at no extra cost.
+*|There is a name scratched into it, and then scratched out, and then scratched in again.
+*|Rated four stars by a skeleton. The fifth star was taken by a creeper.
+*|Do not let it near cats. It knows what it did.
+*|Smells like a cave and someone's bad decisions.
+*|Has been in more trouble than you have. Treat it with respect.
+*|It was a gift. From whom, it refuses to say.
+*|Somebody's grandmother wants this back. Run.
+*|Bought at a discount from a man with no shadow.
+*|Has survived three floods, two fires and one family dinner.
+*|Hums softly when nobody is listening. It stops when you check.
+*|Rumoured to have belonged to a king. The king was a slime.
+*|Faintly sticky. Nobody knows why. Nobody wants to know why.
+*|This {item} has seen things. It would rather not talk about them.
+*|Came with a note: "Sorry about the village."
+*|Comes with free emotional baggage.
+*|Smells of gunpowder, which is concerning for something that doesn't use any.
+*|Its last owner swore it was lucky. Its last owner is no longer with us.
+*|Officially lost in an accident. Unofficially, here it is.
+*|The dent was there when you got it. That's your story and you're sticking to it.
+*|Sold three times in one night. Each buyer returned it before dawn.
+*|Spent a decade at the bottom of a well, thinking about its life.
+*|Has an inventory number. Somebody, somewhere, is still looking for number 4417.
+*|Made by a smith who was paid in apologies.
+*|Previously owned by a wandering trader. The llamas did not approve.
+*|Engraved: "If found, please don't."
+*|Lightly enchanted, heavily dramatic.
+*|Hand-me-down. The hands it was handed down from are missing.
+*|It has a reputation. You now have a reputation too.
+*|Someone wrapped the grip in a love letter. The ending is sad.
+*|Do not say its old name out loud.
+*|It came out of the chest before you opened it. Just a little.
+*|A creeper once hugged its owner. The {item} survived. The owner did not.
+*|Certified pre-owned by at least one ghost.
+*|Smells like a library that has been on fire.
+*|Somebody wrote "MINE" on it in what you hope is red paint.
+*|There's a thumbprint on it that matches nobody alive.
+*|Free to a good home. You are not a good home, but here we are.
+*|It was hidden under a floorboard with a note that said "for emergencies only".
+*|You are the fourth person to find this. The other three left it here.
+*|The ink on its label reads "property of the evidence room".
+*|Mostly harmless. Mostly.
+*|Has a crack shaped like a smile. It wasn't there yesterday.
+*|Tastes faintly of copper. Please stop licking it.
+*|It is not cursed. It is just disappointed in you.
+*|Found next to a sign that said "YOU WILL REGRET THIS". You didn't read the sign.
+*|Its previous owner traded it for a single potato. Times were hard.
+*|Its previous owner traded a single potato for it. Times were harder.
+*|Comes with a lifetime guarantee. Whose lifetime is not specified.
+*|One careful owner. Several careless ones after that.
+*|Still has the shop tag on it. The shop burned down in a year nobody remembers.
+*|Recovered from a place you should never go back to.
+*|A note tucked inside says "It's yours now. I'm so sorry."
+*|Has a slight lean to the left, politically and physically.
+*|Once fell into lava and came back out. Nobody knows how. It won't say.
+*|Its last owner kept a diary. The last entry just says "the {item} knows".
+*|Was used as a doorstop for eleven years. It has opinions about doors.
+*|Previously owned by an enderman. It keeps looking at you funny.
+*|You feel watched while holding it. You are. Probably by a bat.
+*|Do not leave it alone with villagers. It sells their secrets.
+*|Someone tied a ribbon on it. The ribbon is the only thing that's ever loved it.
+*|The smith who made it retired immediately afterwards.
+*|It's a long story. The short version involves a witch and a bet.
+*|Covered in tiny scratches, as if something kept count of something.
+*|Proof that someone, somewhere, had a very bad day.
+*|Has been dropped into the void exactly once. It remembers.
+*|Its value went up when its owner went missing.
+*|Do not ask where it was before the chest. You don't want the answer.
+*|The previous owner left you their debts too. Surprise.
+*|Feels like it has a story. The story feels like it has a body count.
+*|Smells of rain, regret and slightly of fish.
+*|Every village has a rumour about this {item}. Every rumour is worse.
+*|Made in a hurry by someone who was being chased.
+*|Hidden by a man who said he'd be right back. He was not right back.
+*|It was cheaper than therapy, and about as effective.
+*|You can hear the sea in it. You should not be able to hear the sea in it.
+*|Fully paid for. Probably.
+*|The initials on it belong to someone who doesn't exist. On paper.
+*|Contains no zombie parts. Anymore.
+*|It is very old, very loyal, and very tired of your nonsense already.
+*|Smells exactly like the inside of a dungeon. Which is to say: nostalgia and mould.
+*|Originally sold as a set. The rest of the set is in someone.
+*|It has been blessed, cursed, blessed again and then forgotten about.
+*|Belonged to an adventurer who described everything as "fine".
+*|Its last owner's final words were "how bad can it be?".
+*|A rather nice {item}, considering where it has been.
+*|Comes with a faint smell of witch hut. You'll never get rid of it.
+*|Somebody really wanted this to stay lost.
+*|Do not taunt it.
+*|It was the only thing left in the chest. The chest was the only thing left in the house.
+*|Previously used to settle an argument. The argument is settled. Permanently.
+*|Has been sworn at in four languages.
+*|You are holding someone's life savings, emotionally.
+*|It survived the Great Gravel Collapse. Its owner was standing a block to the left.
+*|Inspected by Quality Control. Quality Control is now missing.
+*|Smells like a nether portal on a hot day.
+*|There's a tiny drawing of a creeper on it with an X through it. Brave.
+*|A villager named this {item} "Hrmmm". It suits it.
+*|Tested on zombies. Very effective. The zombies have filed a complaint.
+*|It was found. That's the official story and everyone's sticking to it.
+*|Legally, this is now a family heirloom. Of which family is unclear.
+*|It has a dent shaped exactly like a pillager's face.
+*|A pirate buried this. A pirate should have buried it deeper.
+*|The tag says "lost and found". Mostly lost.
+*|Someone glued a feather to it for luck. The luck has not arrived.
+*|This {item} was blessed by a priest who was mostly guessing.
+*|Last seen in the hands of someone screaming. Next seen: here.
+*|Is it ethical to keep it? Is anything? Keep it.
+*|Comes with complimentary dust.
+*|Older than it looks, younger than its problems.
+*|There's an IOU wrapped around it, signed by a skeleton.
+*|It might be worth something. It might be evidence. Possibly both.
+*|Contains traces of nuts, bones and one very old secret.
+*|Its owner tried to sell it to a villager. The villager said "hrm" and walked away.
+*|The previous owner insisted it was a family heirloom and then sold it for bread.
+*|Previously used by a tourist. It has seen every sunset and none of the danger.
+*|A small engraving on it says "for when the others stop listening".
+*|Was it lying there by accident? Nothing in a chest is there by accident.
+*|Someone, long ago, gave this {item} a name. It still answers to it, but won't tell you.
+*|Stained with something that might be berry juice. Choose to believe it's berry juice.
+*|Has outlived every single person who said "I'll be careful with it".
+*|Do not hold it during thunderstorms. It holds grudges against the sky.
+*|It's not haunted. It's just got very strong memories.
+*|Discount price, full price personality.
+*|Its owner was last seen running from something with too many legs.
+*|Once traded for a map that led to another {item}. Circle of life.
+*|Has an aura of "I was here first".
+*|Somebody really loved this. Then somebody really didn't.
+*|Finders keepers. Previous keepers: very angry.
+*|The phrase "it's fine" has been scratched into it 37 times.
+*|A small sticker reads "Handled by a professional". The handwriting says otherwise.
+*|It's yours until someone bigger finds you.
+*|The last person who called it ugly was never seen again. It's a beautiful {item}.
+*|Has never lost a fight. Has lost several owners.
+*|It belonged to the second-best adventurer in the land. The best one never needed it.
+*|Previously owned by a man who talked to it. It talked back. Once.
+*|Smells faintly of pumpkin pie and treachery.
+*|Somebody spent a fortune on this. Somebody else spent the somebody.
+*|It's been through a lot. Most of it was a cave.
+*|Comes with one free nightmare per week.
+*|Kept in a vault for a hundred years, then left on the floor for five minutes. Typical.
+*|The engraving says "To my beloved". Beloved who? It doesn't say. Beloved ran.
+*|Has a faint glow at night. Possibly enchantment. Possibly guilt.
+*|It was a lot shinier before the incident.
+*|Its value is mostly sentimental. The sentiment is mostly fear.
+*|Do not put it near gold. It gets jealous.
+*|Was used to prop up a wobbly table for a decade. Thank you for your service.
+*|It knows what you did last summer. It was there.
+*|If anyone asks, you've always had this.
+*|Recently escaped from a museum.
+*|The museum would like it back. The museum can try.
+*|Its last owner said it brought them nothing but trouble. They were right. Enjoy.
+*|Made by a blacksmith who couldn't stop sneezing. You can tell.
+*|Survived an enderman's attempt to put it in a different place.
+*|It's a bit like a cat: it will love you on its own terms, and it bites.
+*|There's a hair stuck to it that is definitely not yours.
+*|Smells of incense and burnt eyebrows.
+*|This {item} was found guilty in its absence.
+*|Has a sticker that says "I survived the Nether" and another that says "barely".
+*|You get a weird feeling someone will turn up and say "that's mine".
+*|Someone hid it under a carpet. The carpet was a trap. The trap is still armed. Good luck.
+*|Previously the prize in a contest nobody remembers entering.
+*|Its last owner died of natural causes. Naturally, a creeper.
+*|It has been in so many chests it should pay rent.
+*|Held together by hope, string and a very persistent enchantment.
+*|Not for resale. Not that anyone would buy it.
+*|Worth exactly one awkward conversation with its previous owner.
+*|Belonged to an archaeologist who found it, lost it, and found it again in someone else's chest.
+*|This one fell off a cart. A very specific cart. With very specific guards.
+*|Used to belong to the village drunk. The village drunk was a witch. Nobody told the village.
+*|Has a smell you can't place. You will place it at 3 in the morning, in a cold sweat.
+*|Two adventurers fought over this. Both lost. It won.
+*|It is unclear whether this {item} chose you or simply gave up.
+*|Somewhere, a dungeon is short one {item} and very upset about it.
+*|Packed with a sachet of silica and a sense of dread.
+*|Do not feed after midnight. Do not feed at all. It's a {item}.
+*|The smith signed it with a tiny skull. Fun fellow.
+*|It's not a bribe if you don't take it to anyone.
+*|Found under a sign reading "free". The sign was lying.
+*|Has a single rune on it that translates to "oops".
+*|The previous owner tried to throw it into lava. It came back like a boomerang.
+*|This {item} has a fan club. The fan club is two zombies and a bat.
+*|Had a past life as a crime scene.
+*|Its original owner swore it would never leave their side. It left. With their side.
+*|Comes with a tiny folded map. The map just says "you are here" and "run".
+*|Heavier than it looks. Like the truth.
+*|Its last fight ended in a draw. Its owner, in a grave.
+*|Someone scratched a tally into it. It stops at 99. Nobody wants to know about 100.
+*|You found it, so it's a find. Not a theft. Repeat that until it sounds true.
+*|There's a stain shaped like a heart. Romantic, if you don't think about it.
+*|Previously used by a famous hero during their less famous years.
+*|The engraving reads "Property of the Crown". Which crown? Long gone. Yours now.
+*|Retired after a long career of poor decisions.
+*|It once saved a village. The village sent a thank-you note. Then an invoice.
+*|Taped to it: a recipe for soup and the words "DON'T TRUST HIM".
+*|Look, everyone who touched this {item} had a great time right up until they didn't.
+*|Passed down from father to son to whoever robbed the son.
+*|Its paperwork was lost in a fire. Its previous owner was lost in the same fire.
+*|It squeaks if you squeeze it. You should not be able to squeeze it.
+*|Recovered from the bottom of an ocean, the top of a mountain and the back of a drawer.

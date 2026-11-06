@@ -211,6 +211,104 @@ final class InfoTests {
 			SelfTests.check(names.size() == 300, "300 weapons, 300 names: " + names.size() + ", e.g. " + names.iterator().next());
 			Names.data().weaponsTaken.clear();
 		});
+		SelfTests.register("info.found", level -> {
+			// The texts: many, every kind and place known, every story at least three parts, no stray {slots}
+			SelfTests.check(Found.LINES.size() >= 1000, "found texts: " + Found.summary());
+			SelfTests.check(Found.STORIES.size() >= 20 && Found.PIECES.size() >= 120, "stories: " + Found.summary());
+			java.util.Set<String> known = new java.util.HashSet<>(java.util.List.of("*", "weapon", "armour", "tool", "sword", "axe", "bow", "crossbow",
+					"trident", "mace", "spear", "helmet", "chestplate", "leggings", "boots", "shield", "elytra", "pickaxe", "shovel", "hoe", "shears",
+					"rod", "brush", "flint", "stick"));
+			java.util.Set<String> where = new java.util.HashSet<>(java.util.List.of("", "overworld", "nether", "end", "bastion", "fortress",
+					"ruined_portal", "end_city", "ancient_city", "stronghold", "mansion", "outpost", "shipwreck", "buried", "desert", "jungle", "igloo",
+					"mineshaft", "dungeon", "trial", "village", "fishing", "barter", "mob", "archaeology"));
+			java.util.List<Found.Text> all = new java.util.ArrayList<>(Found.LINES);
+			all.addAll(Found.PIECES);
+			for (Found.Text t : all) {
+				SelfTests.check(known.containsAll(t.kinds()) && where.contains(t.where()), "kinds/where of " + t.id() + ": " + t.kinds() + " @" + t.where());
+				SelfTests.check(!t.text().replace("{item}", "").contains("{") && !t.text().contains("|"), "no stray slot in " + t.text());
+				SelfTests.check(t.text().length() <= 260, "not too long: " + t.text());
+			}
+			for (var e : Found.partsPerStory().entrySet()) SelfTests.check(e.getValue() >= 3, "story " + e.getKey() + " has " + e.getValue() + " parts");
+			for (Found.Family f : Found.FAMILIES) {
+				for (String slot : f.slots()) SelfTests.check(f.form().contains("{" + slot + "}"), "family " + f.id() + " uses {" + slot + "}");
+				SelfTests.check(f.size() >= 10, "family " + f.id() + " has " + f.size());
+			}
+			// Kinds of things
+			SelfTests.check("sword".equals(Found.kindOf(new ItemStack(Items.NETHERITE_SWORD))) && "pickaxe".equals(Found.kindOf(new ItemStack(Items.WOODEN_PICKAXE)))
+					&& "helmet".equals(Found.kindOf(new ItemStack(Items.TURTLE_HELMET))) && "rod".equals(Found.kindOf(new ItemStack(Items.FISHING_ROD)))
+					&& Found.kindOf(new ItemStack(Items.ENCHANTED_BOOK)) == null && Found.kindOf(new ItemStack(Items.STONE)) == null, "kinds of found gear");
+			// Never the same text twice: 400 swords from the overworld, 60 boots from a bastion
+			java.util.Random r = new java.util.Random(4);
+			java.util.Set<String> ids = new java.util.HashSet<>();
+			Found.Origin ow = new Found.Origin("overworld", "dungeon", "in a dungeon"), nb = new Found.Origin("nether", "bastion", "in a bastion");
+			int got = 0;
+			for (int i = 0; i < 400; i++) {
+				Found.Text t = Found.pick("sword", ow, r);
+				if (t != null) {
+					got++;
+					ids.add(t.id());
+					SelfTests.check(Found.fits(t.kinds(), "sword") && ow.matches(t.where()), "a text for a sword from a dungeon: " + t.text());
+				}
+			}
+			for (int i = 0; i < 60; i++) {
+				Found.Text t = Found.pick("boots", nb, r);
+				if (t != null) {
+					got++;
+					ids.add(t.id());
+					SelfTests.check(Found.fits(t.kinds(), "boots") && nb.matches(t.where()), "a text for boots from a bastion: " + t.text());
+				}
+			}
+			SelfTests.check(got == 460 && ids.size() == 460, "460 finds, 460 different texts: " + ids.size());
+			// Written on an item: the story part names it and says which part; the weapon's own story stays last
+			ItemStack sword = new ItemStack(Items.IRON_SWORD);
+			Found.Text piece = Found.PIECES.get(0);
+			Found.write(sword, piece, "in a shipwreck", 12, "Anna", level.registryAccess());
+			var lore = sword.getOrDefault(DataComponents.LORE, ItemLore.EMPTY).lines();
+			SelfTests.check(lore.get(0).getString().contains(piece.title()) && lore.get(0).getString().contains("part 1 of"), "story header: " + lore.get(0).getString());
+			SelfTests.check(lore.get(lore.size() - 1).getString().equals("Found in a shipwreck · day 12 · Anna"), "where: " + lore.get(lore.size() - 1).getString());
+			SelfTests.check(sword.get(DataComponents.CUSTOM_NAME) != null && sword.get(DataComponents.CUSTOM_NAME).getString().equals(piece.name()), "named after the story");
+			SelfTests.check((piece.story() + ":1").equals(Found.pieceOf(sword)), "knows its part: " + Found.pieceOf(sword));
+			int found = lore.size();
+			Lore.set(sword, Lore.OWN, java.util.List.of(Lore.line("\"mine\"", Describe.OWN, true), Lore.line("  ~ Anna", Describe.BY, false)));
+			SelfTests.check(sword.get(DataComponents.LORE).lines().size() == found + 2 && Lore.get(sword, Lore.FOUND).size() == found, "own words after the find");
+			SelfTests.check("mine".equals(Describe.text(sword)), "own words read back: " + Describe.text(sword));
+			Lore.set(sword, Lore.OWN, java.util.List.of());
+			SelfTests.check(sword.get(DataComponents.LORE).lines().size() == found, "own words taken off again");
+			SelfTests.check("a b".equals(Describe.clean(" a \n\u0007 b ")) && Describe.clean("x".repeat(500)).length() == Describe.MAX, "own words are plain text");
+			// Loot remembers where it came from; the story comes when a player takes it
+			SelfTests.check(Found.origin("chests/bastion_treasure", level) != null && "bastion".equals(Found.origin("chests/bastion_treasure", level).place())
+					&& "fishing".equals(Found.origin("gameplay/fishing/treasure", level).place()) && Found.origin("blocks/stone", level) == null, "where loot comes from");
+		});
+		SelfTests.register("info.details", level -> {
+			FakePlayer p = FakePlayer.get(level);
+			var reg = level.registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.ENCHANTMENT);
+			java.util.function.Function<String, net.minecraft.core.Holder<net.minecraft.world.item.enchantment.Enchantment>> ench = id -> reg.getOrThrow(
+					net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.ENCHANTMENT, net.minecraft.resources.Identifier.withDefaultNamespace(id)));
+			// Every vanilla enchantment is explained
+			reg.listElements().forEach(h -> SelfTests.check(Details.what(h, 1) != null, "explained: " + h.getRegisteredName()));
+			ItemStack sword = new ItemStack(Items.DIAMOND_SWORD);
+			EnchantmentHelper.updateEnchantments(sword, m -> {
+				m.set(ench.apply("sharpness"), 5);
+				m.set(ench.apply("looting"), 3);
+			});
+			sword.set(DataComponents.LORE, new ItemLore(java.util.List.of(Component.literal("old line"))));
+			ItemStack before = sword.copy();
+			Details.ON.set(p, true);
+			ItemStack seen = Details.view(p, sword);
+			SelfTests.check(ItemStack.isSameItemSameComponents(sword, before), "the item itself is not changed");
+			String all = String.join("\n", seen.get(DataComponents.LORE).lines().stream().map(Component::getString).toList());
+			SelfTests.check(all.contains("Every hit does 3 more damage.") && all.contains("old line") && all.contains("(+3)"), "explained, with the bonus: " + all);
+			var d = seen.get(DataComponents.TOOLTIP_DISPLAY);
+			SelfTests.check(d != null && !d.shows(DataComponents.ENCHANTMENTS) && !d.shows(DataComponents.ATTRIBUTE_MODIFIERS), "the game's own lines hidden");
+			SelfTests.check(ItemStack.isSameItemSameComponents(Details.clean(seen), before), "creative mode gets the item back as it was");
+			Details.ON.set(p, false);
+			SelfTests.check(Details.view(p, sword) == sword, "off: as it is");
+			Details.ON.set(p, true);
+			ItemStack boots = new ItemStack(Items.IRON_BOOTS);
+			EnchantmentHelper.updateEnchantments(boots, m -> m.set(ench.apply("depth_strider"), 3));
+			String b = String.join("\n", Details.view(p, boots).get(DataComponents.LORE).lines().stream().map(Component::getString).toList());
+			SelfTests.check(b.contains("Depth Strider") && b.contains("(Depth Strider)"), "an enchantment's own attribute: " + b);
+		});
 		SelfTests.register("info.pets", level -> {
 			java.util.Set<String> pets = new java.util.HashSet<>();
 			for (int i = 0; i < 400; i++) pets.add(Names.pet(java.util.UUID.nameUUIDFromBytes(("p" + i).getBytes())));
