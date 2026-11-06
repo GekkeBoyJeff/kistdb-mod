@@ -74,24 +74,42 @@ final class BodyAura {
 		if (s != null) s.views.values().forEach(v -> v.holder.destroy());
 	}
 
-	/** Which card this viewer gets: from the wearer's body and where the viewer stands. */
+	/**
+	 * Which card this viewer gets: from the wearer's body and where the viewer stands. A card per 15 degrees of the
+	 * angle between where the body faces and where the viewer is (s0 seen from the front or the back, s5 from the side),
+	 * c0..c5 for a crouching body, and c1m..c5m for one crouching that's seen from its other side (it leans the other
+	 * way on your screen).
+	 */
 	static String view(LivingEntity e, ServerPlayer v) {
 		boolean crouch = e.getPose() == Pose.CROUCHING;
-		if (v == e) return crouch ? "crouch_front" : "front";
+		if (v == e) return crouch ? "c0" : "s0";
 		double dx = v.getX() - e.getX(), dz = v.getZ() - e.getZ();
 		double len = Math.sqrt(dx * dx + dz * dz);
-		if (len < 1e-3) return crouch ? "crouch_front" : "front";
+		if (len < 1e-3) return crouch ? "c0" : "s0";
 		float yaw = e.yBodyRot * Mth.DEG_TO_RAD;
 		double fx = -Mth.sin(yaw), fz = Mth.cos(yaw);
-		double c = (fx * dx + fz * dz) / len;
-		double ac = Math.abs(c);
-		if (crouch) {
-			if (ac > 0.7) return "crouch_front";
-			// which way the body leans as this viewer sees it: to their right or their left
-			double cross = fx * dz - fz * dx;
-			return cross > 0 ? "crouch_side" : "crouch_side_m";
-		}
-		return ac > 0.866 ? "front" : ac < 0.5 ? "side" : "quarter";
+		double c = Math.min(1, Math.abs(fx * dx + fz * dz) / len);
+		int step = Math.min(5, (int) (Math.toDegrees(Math.acos(c)) / 15));
+		if (!crouch) return "s" + step;
+		// which way the body leans as this viewer sees it: to their right or their left
+		double cross = fx * dz - fz * dx;
+		return "c" + step + (step > 0 && cross < 0 ? "m" : "");
+	}
+
+	/**
+	 * How far each card sits behind the body's middle, away from its viewer (blocks; scripts/glint/body_aura.py works
+	 * them out): behind the arm and leg on the far side, so the card is never drawn over a part of you they can see.
+	 */
+	private static final Map<String, Float> DEPTH = Map.ofEntries(
+			Map.entry("s0", 0.15f), Map.entry("s1", 0.234f), Map.entry("s2", 0.307f), Map.entry("s3", 0.363f),
+			Map.entry("s4", 0.398f), Map.entry("s5", 0.41f), Map.entry("c0", 0.314f), Map.entry("c1", 0.318f),
+			Map.entry("c1m", 0.318f), Map.entry("c2", 0.372f), Map.entry("c2m", 0.372f), Map.entry("c3", 0.409f),
+			Map.entry("c3m", 0.409f), Map.entry("c4", 0.422f), Map.entry("c4m", 0.422f), Map.entry("c5", 0.422f),
+			Map.entry("c5m", 0.422f));
+
+	private static Vector3f place(LivingEntity e, String view) {
+		// the card rides at the top of the body: its feet on the ground as the body's height changes, and behind you
+		return new Vector3f(0, (float) (0.70 - e.getBbHeight()), -DEPTH.getOrDefault(view, 0.3f));
 	}
 
 	static boolean hidden(LivingEntity e) {
@@ -113,7 +131,8 @@ final class BodyAura {
 				for (ServerPlayer v : ((ServerLevel) e.level()).players()) {
 					if (v.distanceToSqr(e) > 64 * 64) continue;
 					seen.add(v.getUUID());
-					String model = s.id + "__" + view(e, v);
+					String look = view(e, v);
+					String model = s.id + "__" + look;
 					View vw = s.views.get(v.getUUID());
 					if (vw != null && vw.entityId != e.getId()) {
 						vw.holder.destroy();
@@ -127,8 +146,7 @@ final class BodyAura {
 						vw.el.setItem(stack(model));
 						vw.model = model;
 					}
-					// the card rides at the top of the body: keep its feet on the ground as the body's height changes
-					vw.el.setTranslation(new Vector3f(0, (float) (0.70 - e.getBbHeight()), 0));
+					vw.el.setTranslation(place(e, look));
 					if (!vw.linked && vw.age++ >= 1) {
 						ClientboundSetPassengersPacket link = new ClientboundSetPassengersPacket(e);
 						v.connection.send(link);
@@ -155,7 +173,7 @@ final class BodyAura {
 		vw.el.setBrightness(new Brightness(15, 15));
 		vw.el.setViewRange(1.0f);
 		vw.el.setScale(new Vector3f(1.875f));
-		vw.el.setTranslation(new Vector3f(0, (float) (0.70 - e.getBbHeight()), 0));
+		vw.el.setTranslation(place(e, model.substring(model.lastIndexOf("__") + 2)));
 		vw.el.setSendPositionUpdates(false);
 		vw.holder.addPassengerElement(vw.el);
 		vw.attachment = new ViewerAttachment(vw.holder, e, viewer);

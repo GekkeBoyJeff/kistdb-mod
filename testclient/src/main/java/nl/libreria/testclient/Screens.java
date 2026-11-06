@@ -78,42 +78,42 @@ public final class Screens implements FabricClientGameTest {
 				ctx.takeScreenshot("nameplate_front");
 				camera(ctx, CameraType.FIRST_PERSON);
 			});
-			// Proof of concept, round 13: the set auras made to fit from every angle. Mannequins in five angles (front,
-			// three-quarter, side, three-quarter back, back) and crouching, seen by this player; and the player walking,
-			// running, sneaking and swinging, from behind and the front
-			safe("fx_round13", () -> {
+			// Proof of concept, round 14: the set auras' outline taken from the player model itself, a card per 15 degrees,
+			// set behind the body. Mannequins in ten angles, standing and crouching, seen by this player; and the player
+			// walking, running, sneaking and swinging, from behind and the front
+			safe("fx_round14", () -> {
 				ctx.getInput().lookAt(0, 0);
 				ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.HIDDEN));
 				server.runOnServer(sv -> nl.libreria.glint.GlintMod.AURA_THIRD.set(player, false));
 				run(server, "time set midnight", "clear @a", "kill @e[type=minecraft:mannequin]");
 				camera(ctx, CameraType.FIRST_PERSON);
-				int[] yaws = {180, 135, 90, 45, 0};
-				for (int i = 0; i < yaws.length; i++) {
-					int mx = x - 4 + i * 2;
-					run(server, "summon minecraft:mannequin " + mx + " " + y + " " + (z + 5) + " {Rotation:[" + yaws[i] + "f,0f],hide_description:1b,immovable:1b}");
-					for (String[] sl : new String[][]{{"head", "helmet"}, {"chest", "chestplate"}, {"legs", "leggings"}, {"feet", "boots"}})
-						run(server, "item replace entity @e[type=minecraft:mannequin,limit=1,sort=nearest,x=" + mx + ",y=" + y + ",z=" + (z + 5) + "] armor." + sl[0]
-								+ " with minecraft:diamond_" + sl[1]);
-				}
 				ctx.getInput().lookAt(0, 12);
-				for (String id : new String[]{"fire_4", "protection_4", "blast_4", "thorns_3", "binding_1"}) {
-					server.runOnServer(sv -> {
-						var box = new net.minecraft.world.phys.AABB(x - 6, y - 1, z + 3, x + 6, y + 3, z + 7);
-						for (var m : sv.overworld().getEntitiesOfClass(net.minecraft.world.entity.LivingEntity.class, box, e -> !(e instanceof ServerPlayer)))
-							nl.libreria.glint.GlintMod.debugBodyAura(m, id);
-					});
-					ctx.waitTicks(20);
-					ctx.takeScreenshot("fxangle_" + id);
+				int[][] rows = {{180, 135, 90, 45, 0}, {160, 115, 70, 25, 270}};
+				for (int r = 0; r < rows.length; r++) {
+					int[] yaws = rows[r];
+					int row = r;
+					run(server, "kill @e[type=minecraft:mannequin]");
+					for (int i = 0; i < yaws.length; i++) {
+						int mx = x - 4 + i * 2;
+						run(server, "summon minecraft:mannequin " + mx + " " + y + " " + (z + 5) + " {Rotation:[" + yaws[i] + "f,0f],hide_description:1b,immovable:1b}");
+						for (String[] sl : new String[][]{{"head", "helmet"}, {"chest", "chestplate"}, {"legs", "leggings"}, {"feet", "boots"}})
+							run(server, "item replace entity @e[type=minecraft:mannequin,limit=1,sort=nearest,x=" + mx + ",y=" + y + ",z=" + (z + 5) + "] armor." + sl[0]
+									+ " with minecraft:diamond_" + sl[1]);
+					}
+					for (int crouch = 0; crouch < 2; crouch++) {
+						if (crouch == 1) run(server, "execute as @e[type=minecraft:mannequin] run data merge entity @s {pose:\"crouching\"}");
+						for (String id : new String[]{"fire_4", "protection_4", "thorns_3"}) {
+							if (crouch == 1 && id.equals("thorns_3")) continue;
+							server.runOnServer(sv -> {
+								var box = new net.minecraft.world.phys.AABB(x - 6, y - 1, z + 3, x + 6, y + 3, z + 7);
+								for (var m : sv.overworld().getEntitiesOfClass(net.minecraft.world.entity.LivingEntity.class, box, e -> !(e instanceof ServerPlayer)))
+									nl.libreria.glint.GlintMod.debugBodyAura(m, id);
+							});
+							ctx.waitTicks(20);
+							ctx.takeScreenshot("fxangle_" + (crouch == 1 ? "crouch_" : "") + id + "_row" + row);
+						}
+					}
 				}
-				// crouching mannequins (the pose of a sneaking player)
-				run(server, "execute as @e[type=minecraft:mannequin] run data merge entity @s {pose:\"crouching\"}");
-				server.runOnServer(sv -> {
-					var box = new net.minecraft.world.phys.AABB(x - 6, y - 1, z + 3, x + 6, y + 3, z + 7);
-					for (var m : sv.overworld().getEntitiesOfClass(net.minecraft.world.entity.LivingEntity.class, box, e -> !(e instanceof ServerPlayer)))
-						nl.libreria.glint.GlintMod.debugBodyAura(m, "fire_4");
-				});
-				ctx.waitTicks(20);
-				ctx.takeScreenshot("fxangle_crouch");
 				run(server, "kill @e[type=minecraft:mannequin]");
 				ctx.getInput().lookAt(0, 0);
 				// the player: walking and running from behind, walking towards the camera, sneaking, swinging
