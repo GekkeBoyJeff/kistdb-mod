@@ -49,6 +49,16 @@ public final class Goals {
 		public String text(long target) {
 			return String.format(Locale.ROOT, this.what, Ui.n(target / this.divisor));
 		}
+
+		/** Helping reach it: common (chopping logs together is no feat), uncommon for a hard one. */
+		public Rarity helped() {
+			return this.hard ? Rarity.UNCOMMON : Rarity.COMMON;
+		}
+
+		/** Doing the most for it: rare, epic for a hard one. */
+		public Rarity champion() {
+			return this.hard ? Rarity.EPIC : Rarity.RARE;
+		}
 	}
 
 	public static final class Running {

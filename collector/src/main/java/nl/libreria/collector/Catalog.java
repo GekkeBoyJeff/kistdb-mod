@@ -841,7 +841,7 @@ public final class Catalog {
 		Category c = Category.SAMEN;
 		for (Goals.Kind k : Goals.kinds()) {
 			String id = "samen." + k.id();
-			Rarity help = k.hard() ? R : U, champ = k.hard() ? L : E;
+			Rarity help = k.helped(), champ = k.champion();
 			Achievement helped = new Achievement(id, c, k.name(), "Help the server reach the server goal " + k.name(), k.icon(), help,
 					goal(1, (p, d) -> Goals.helped(p.getUUID(), k.id()) ? 1 : 0), null);
 			// The next grade of the same goal: helped, and did the most

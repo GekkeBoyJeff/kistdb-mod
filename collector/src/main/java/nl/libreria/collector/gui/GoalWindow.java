@@ -134,7 +134,7 @@ public final class GoalWindow extends CanvasWindow {
 			} else if (rank.isEmpty()) {
 				c.centred("Nobody has started yet. Be the first!", 88, Canvas.cellY(4) + 5, Glyphs.muted);
 			} else {
-				c.centred(k.hard() ? "Most at the end: Legendary" : "Most at the end: Epic", 88, Canvas.cellY(8) + 5, Glyphs.muted);
+				c.centred("Most at the end: " + k.champion().label, 88, Canvas.cellY(8) + 5, Glyphs.muted);
 			}
 		}
 		small(c, 0, 4, "Back");
@@ -221,7 +221,10 @@ public final class GoalWindow extends CanvasWindow {
 		about.add(Ui.text("the most gets its Champion achievement.", ChatFormatting.GRAY));
 		if (r != null) {
 			Goals.Kind k = Goals.kind(r.kind);
-			bold = Ui.text(k.name(), Domain.PROGRESS.rgb).withStyle(ChatFormatting.BOLD);
+			// the name in the colour of what you get for helping, so it never looks rarer than it is
+			bold = Ui.text(k.name(), k.helped().color).withStyle(ChatFormatting.BOLD);
+			about.add(Component.empty().append(Ui.text("1% or more: ", ChatFormatting.GRAY)).append(Ui.text(k.helped().label, k.helped().color)));
+			about.add(Component.empty().append(Ui.text("The most: ", ChatFormatting.GRAY)).append(Ui.text(k.champion().label, k.champion().color)));
 			about.addFirst(Ui.text(k.text(r.target) + ", together", ChatFormatting.WHITE));
 			long mine = r.done.getOrDefault(this.player.getUUID(), 0L);
 			about.add(1, Ui.text("You: " + Ui.n(mine / k.divisor()), ChatFormatting.AQUA));
