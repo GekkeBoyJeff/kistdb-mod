@@ -258,7 +258,18 @@ final class Fx {
 			case "thorns" -> thorns(p, w, level, viewers, tick, g, ps);
 			case "tide" -> tide(p, w, level, viewers, tick, g, ps);
 			case "curse" -> curse(p, w, level, viewers, tick, ps);
-			case "blade_fire", "blade_sharp", "blade_smite", "blade_bane" -> blade(p, w, tick, g, ps);
+			case "blade_fire", "blade_sharp", "blade_smite", "blade_bane" -> {
+				// Others see it on the sword in your hand; you (in first person) see it on the sword at the bottom right
+				// of your screen. The server can't tell which view you use, so yours goes where first person has it
+				List<ServerPlayer> others = new ArrayList<>(viewers);
+				others.remove(p);
+				List<P> mine = new ArrayList<>();
+				blade(p, w, tick, g, ps, t -> blade(p, t), 1f);
+				blade(p, w, tick, g, mine, t -> bladeFp(p, t), 0.45f);
+				if (!ps.isEmpty()) emit(level, p.position(), others, ps);
+				if (!mine.isEmpty()) emit(level, p.position(), List.of(p), mine);
+				ps.clear();
+			}
 			case "vanish" -> vanish(p, w, level, viewers, tick, ps);
 			default -> {
 			}
@@ -457,27 +468,49 @@ final class Fx {
 	 * with a warm light at your hand. Sharpness: now and then a glint runs from the hilt to the tip. Smite: golden motes
 	 * rise off the blade, a soft light.
 	 */
-	private static void blade(ServerPlayer p, Wearer w, int tick, int g, List<P> ps) {
+	/** Where the sword is on your own screen in first person, for a spot along the blade (0 the hilt, 1 the tip). */
+	static Vec3 bladeFp(ServerPlayer p, double t) {
+		Vec3 fwd = p.getViewVector(1.0f);
+		float yaw = p.getYRot() * Mth.DEG_TO_RAD;
+		Vec3 right = new Vec3(-Mth.cos(yaw), 0, -Mth.sin(yaw));
+		Vec3 up = right.cross(fwd).normalize();
+		Vec3 eye = new Vec3(0, p.getEyeHeight(), 0);
+		return eye.add(fwd.scale(0.62 + 0.3 * t)).add(right.scale(0.44 - 0.26 * t)).add(up.scale(-0.44 + 0.4 * t));
+	}
+
+	private static void blade(ServerPlayer p, Wearer w, int tick, int g, List<P> out, java.util.function.DoubleFunction<Vec3> at, float k) {
+		List<P> ps = new ArrayList<>();
+		bladeFx(p, w, tick, g, ps, at);
+		// the same, smaller (on your own screen it's close by)
+		for (P q : ps) {
+			List<S> st = new ArrayList<>();
+			Vec3 o = q.states().getFirst().pos();
+			for (S x : q.states()) st.add(new S(o.add(x.pos().subtract(o).scale(k)), x.scale() * k, x.rot()));
+			out.add(new P(q.sprite(), q.rgb(), q.step(), st, q.base()));
+		}
+	}
+
+	private static void bladeFx(ServerPlayer p, Wearer w, int tick, int g, List<P> ps, java.util.function.DoubleFunction<Vec3> blade) {
 		switch (w.kind) {
 			case "blade_fire" -> {
 				if (every(tick, g >= 2 ? 2 : 4)) {
-					Vec3 at = blade(p, rnd(0.1f, 1.0f));
+					Vec3 at = blade.apply(rnd(0.1f, 1.0f));
 					ps.add(line("ember", pick(0xFFE9A8, 0xFFB64A, 0xFF7A2A), at, at.add(rnd(-0.08f, 0.08f), rnd(0.3f, 0.55f), rnd(-0.08f, 0.08f)),
 							rnd(0.22f, 0.32f), 0.02f, 0, 0, 12 + R.nextInt(8)));
 				}
 				if (every(tick, g >= 2 ? 5 : 9)) {
-					Vec3 at = blade(p, rnd(0.2f, 0.9f));
+					Vec3 at = blade.apply(rnd(0.2f, 0.9f));
 					ps.add(new P("flame", pick(0xFF9A3C, 0xFFB64A), 4, List.of(new S(at, 0.05f, 0), new S(at.add(0, 0.08, 0), rnd(0.22f, 0.3f), 0),
 							new S(at.add(0, 0.2, 0), 0.04f, 0)), null));
 				}
-				if (every(tick, 6)) ps.add(pop("haze", 0xFF8A2E, blade(p, 0.5), 0.6f, 12, 0));
+				if (every(tick, 6)) ps.add(pop("haze", 0xFF8A2E, blade.apply(0.5), 0.6f, 12, 0));
 			}
 			case "blade_sharp" -> {
 				// a glint that runs along the edge: sparkles that light up one after the other, hilt to tip
 				int every = g >= 5 ? 24 : g >= 3 ? 36 : 50;
 				if (tick % every == 0) {
 					for (int k = 0; k < 5; k++) {
-						Vec3 at = blade(p, 0.2 + k * 0.2);
+						Vec3 at = blade.apply(0.2 + k * 0.2);
 						List<S> st = new ArrayList<>();
 						for (int q = 0; q < k; q++) st.add(new S(at, 0.01f, 0));
 						st.add(new S(at, 0.32f + g * 0.02f, 0.4f));
@@ -489,16 +522,16 @@ final class Fx {
 			case "blade_smite" -> {
 				// Radiance: a soft white-gold light. A slow twinkle at the tip; pale motes that drift up; at III a glow
 				// round the blade; at V little lights that run up and down it
-				if (every(tick, g >= 3 ? 14 : 30)) ps.add(pop("twinkle", 0xFFF6DA, blade(p, 1.0), 0.32f + g * 0.03f, 10, 0.5f));
+				if (every(tick, g >= 3 ? 14 : 30)) ps.add(pop("twinkle", 0xFFF6DA, blade.apply(1.0), 0.32f + g * 0.03f, 10, 0.5f));
 				if (g >= 2 && every(tick, g >= 4 ? 4 : 8)) {
-					Vec3 at = blade(p, rnd(0.2f, 1.0f));
+					Vec3 at = blade.apply(rnd(0.2f, 1.0f));
 					ps.add(line("mote", pick(0xFFF2C8, 0xFFFFFF, 0xFFE6A0), at, at.add(rnd(-0.06f, 0.06f), rnd(0.25f, 0.45f), rnd(-0.06f, 0.06f)),
 							rnd(0.2f, 0.28f), 0.02f, 0, 0, 22));
 				}
-				if (g >= 3 && every(tick, 10)) ps.add(pop("haze", 0xFFE6A0, blade(p, 0.6), 0.55f + g * 0.05f, 16, 0));
+				if (g >= 3 && every(tick, 10)) ps.add(pop("haze", 0xFFE6A0, blade.apply(0.6), 0.55f + g * 0.05f, 16, 0));
 				if (g >= 5 && every(tick, 16)) {
 					for (int k = 0; k < 4; k++) {
-						Vec3 at = blade(p, 0.25 + k * 0.25);
+						Vec3 at = blade.apply(0.25 + k * 0.25);
 						List<S> st = new ArrayList<>();
 						for (int q = 0; q < k * 2; q++) st.add(new S(at, 0.01f, 0));
 						st.add(new S(at, 0.26f, 0.3f));
@@ -511,17 +544,17 @@ final class Fx {
 				// Venom: green drops that run off the blade and fall; more per grade, then bubbles and a green mist
 				int[] drip = {0, 30, 16, 10, 6, 4};
 				if (every(tick, drip[Math.min(5, g)])) {
-					Vec3 at = blade(p, rnd(0.3f, 0.9f));
+					Vec3 at = blade.apply(rnd(0.3f, 0.9f));
 					ps.add(new P("mote", pick(0x7EE85C, 0x5BCB3E, 0xA6F27E), 6, List.of(new S(at, 0.16f, 0), new S(at.add(0, -0.12, 0), 0.22f, 0),
 							new S(at.add(0, -0.55, 0), 0.12f, 0), new S(at.add(0, -0.7, 0), 0.01f, 0)), null));
 				}
-				if (g >= 3 && every(tick, 12)) ps.add(pop("haze", 0x4FB83A, blade(p, 0.6), 0.6f, 16, 0));
+				if (g >= 3 && every(tick, 12)) ps.add(pop("haze", 0x4FB83A, blade.apply(0.6), 0.6f, 16, 0));
 				if (g >= 4 && every(tick, 8)) {
-					Vec3 at = blade(p, rnd(0.3f, 1.0f));
+					Vec3 at = blade.apply(rnd(0.3f, 1.0f));
 					ps.add(line("bubble", 0xA6F27E, at, at.add(0, rnd(0.2f, 0.35f), 0), 0.16f, 0.02f, 0, 0, 14));
 				}
 				if (g >= 5 && every(tick, 8)) {
-					Vec3 at = blade(p, rnd(0.3f, 0.9f));
+					Vec3 at = blade.apply(rnd(0.3f, 0.9f));
 					ps.add(line("smoke", 0x3E8C2C, at, at.add(rnd(-0.1f, 0.1f), 0.2, rnd(-0.1f, 0.1f)), 0.3f, 0.6f, 0, 0.4f, 24));
 				}
 			}
@@ -685,19 +718,23 @@ final class Fx {
 				Vec3 shoulder = side.scale(-0.36).add(0, 1.38, 0);
 				Vec3 base = p.position().subtract(at);
 				int n = 4 + Math.round(f * 6);
+				// the arc as others see it (round your body), and as you see it (across your screen, top right to bottom left)
+				List<P> arc = new ArrayList<>(), arcFp = new ArrayList<>();
+				Vec3 fwd = p.getViewVector(1.0f), rightV = side.scale(-1), upV = rightV.cross(fwd).normalize();
+				Vec3 eye = new Vec3(0, p.getEyeHeight(), 0);
 				for (int k = 0; k < n; k++) {
 					double s0 = k / (double) (n - 1);
 					double a = Math.toRadians(65 - s0 * 110);
 					Vec3 tip = shoulder.add(look.scale(Math.cos(a) * 1.05)).add(0, Math.sin(a) * 0.9, 0).add(side.scale(-0.35 + s0 * 0.6));
-					Vec3 pos = base.add(tip);
-					List<S> st = new ArrayList<>();
-					for (int q = 0; q < k * 6 / n; q++) st.add(new S(pos, 0.01f, 0));
 					float sz = 0.2f + f * 0.16f;
-					st.add(new S(pos, sz, 0.3f));
-					st.add(new S(pos.add(look.scale(0.08)).add(0, -0.04, 0), sz * 0.55f, 0.6f));
-					st.add(new S(pos, 0.01f, 0.9f));
-					ps.add(new P(spark, k % 2 == 0 ? 0xFFFFFF : c, 1, st, null));
+					arc.add(new P(spark, k % 2 == 0 ? 0xFFFFFF : c, 1, sweepStates(base.add(tip), look, k, n, sz), null));
+					Vec3 fp = eye.add(fwd.scale(0.85)).add(rightV.scale(0.42 - 0.72 * s0)).add(upV.scale(0.26 - 0.56 * s0));
+					arcFp.add(new P(spark, k % 2 == 0 ? 0xFFFFFF : c, 1, sweepStates(fp, fwd.scale(0.4), k, n, sz * 0.5f), null));
 				}
+				List<ServerPlayer> others = new ArrayList<>(viewers);
+				others.remove(p);
+				emit(level, at, others, arc);
+				emit(level, p.position(), List.of(p), arcFp);
 				if (f >= 0.5f) {
 					ps.add(pop("twinkle", 0xFFFFFF, Vec3.ZERO, 0.45f + f * 0.25f, 4, 0.4f));
 					for (int k = 0; k < 2 + Math.round(f * 8); k++) {
@@ -837,6 +874,16 @@ final class Fx {
 			}
 		}
 		emit(level, at, viewers, ps);
+	}
+
+	/** A spark of a swing: dark until its turn (the blade gets there), then it flares and fades. */
+	private static List<S> sweepStates(Vec3 pos, Vec3 push, int k, int n, float sz) {
+		List<S> st = new ArrayList<>();
+		for (int q = 0; q < k * 6 / n; q++) st.add(new S(pos, 0.01f, 0));
+		st.add(new S(pos, sz, 0.3f));
+		st.add(new S(pos.add(push.scale(0.08)).add(0, -0.04, 0), sz * 0.55f, 0.6f));
+		st.add(new S(pos, 0.01f, 0.9f));
+		return st;
 	}
 
 	/** Which way Smite lands (proof of concept: to compare). */
