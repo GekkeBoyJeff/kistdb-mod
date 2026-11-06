@@ -22,6 +22,7 @@ layout(location = 3) in vec4 lightMapColor;
 layout(location = 4) in vec4 overlayColor;
 #endif
 layout(location = 5) in vec2 texCoord0;
+layout(location = 7) in float libreriaDist;
 #ifdef GLINT
 layout(location = 6) in vec2 texCoordGlint;
 #endif
@@ -80,8 +81,16 @@ void main() {
     vec4 color = texture(Sampler0, texCoord0);
     int libreriaCode = int(color.a * 255.0 + 0.5);
     bool libreriaFx = libreriaCode >= 249 && libreriaCode <= 254;
-    // Libreria: a sword's aura (see-through pixels, never fully opaque) gets no enchantment glint: the aura is the effect
-    bool libreriaAura = !libreriaFx && libreriaCode > 0 && libreriaCode <= 246;
+    // Libreria, two more marks in the alpha (both see-through, so never a vanilla item's solid pixel):
+    // 1 (mod 16): a sword's aura. Lit by itself (no lightmap, no shading), and no enchantment glint: the aura is the effect.
+    // 2 (mod 16): a far-only particle (an armour set's). Fades out within 3 blocks of the camera: you see your own set in
+    //             third person and others see it on you, but it never fills your screen in first person.
+    bool libreriaAura = !libreriaFx && libreriaCode > 0 && libreriaCode <= 241 && libreriaCode % 16 == 1;
+    bool libreriaFar = !libreriaFx && libreriaCode > 0 && libreriaCode <= 242 && libreriaCode % 16 == 2;
+    if (libreriaFar) {
+        color.a *= smoothstep(2.2, 3.0, libreriaDist);
+        if (color.a < 0.004) discard;
+    }
     if (libreriaFx) color.a = 1.0;
     #ifdef ALPHA_CUTOUT
     if (color.a < ALPHA_CUTOUT) {
@@ -92,6 +101,8 @@ void main() {
     if (libreriaFx) {
         // lit by itself: no lightmap, no shading from the side, only its own colour (and a tint)
         color.rgb = libreriaGlow(libreriaCode, color.rgb, texCoord0);
+        color *= vec4(1.0, 1.0, 1.0, vertexColor.a) * ColorModulator;
+    } else if (libreriaAura) {
         color *= vec4(1.0, 1.0, 1.0, vertexColor.a) * ColorModulator;
     } else {
         color *= vertexColor * ColorModulator;
@@ -104,6 +115,6 @@ void main() {
     #ifdef OIT_ALPHA_ONLY
     executeAlphaOnlyPhase(gl_FragCoord.z, color.a);
     #else
-    fragColor = calculateFinalColor(color, !libreriaFx, !libreriaAura);
+    fragColor = calculateFinalColor(color, !libreriaFx && !libreriaAura, !libreriaAura);
     #endif
 }

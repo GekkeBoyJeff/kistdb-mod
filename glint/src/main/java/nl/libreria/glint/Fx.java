@@ -94,8 +94,15 @@ final class Fx {
 		return s;
 	}
 
+	/**
+	 * While true, sprites are the far-only copies: the shader fades them out within 3 blocks of the camera. An armour
+	 * set's particles are made that way, so you see your set on yourself in third person (and others see it on you),
+	 * but it never fills your screen in first person.
+	 */
+	static boolean far;
+
 	private static ItemDisplayElement element(String sprite, int rgb, boolean fixed) {
-		ItemDisplayElement e = new ItemDisplayElement(sprite(sprite, rgb));
+		ItemDisplayElement e = new ItemDisplayElement(sprite(far ? "far_" + sprite : sprite, rgb));
 		e.setItemDisplayContext(ItemDisplayContext.FIXED);
 		e.setBillboardMode(fixed ? Display.BillboardConstraints.FIXED : Display.BillboardConstraints.CENTER);
 		e.setBrightness(new Brightness(15, 15));
@@ -136,6 +143,9 @@ final class Fx {
 	private static final class Wearer {
 		String kind;
 		int grade;
+		/** For an armour set: protection, fire, blast or projectile, and what the pieces add (thorns, feather, frost, soul). */
+		String set = "";
+		final java.util.Set<String> extras = new java.util.HashSet<>();
 		@Nullable BlockPos light;
 		int lightLevel;
 		final Map<String, Ring> rings = new HashMap<>();
@@ -151,8 +161,20 @@ final class Fx {
 		String[] parts = spec.split(":");
 		w = new Wearer();
 		w.kind = parts[0];
-		w.grade = parts.length > 1 ? Integer.parseInt(parts[1]) : 1;
-		w.lightLevel = lightFor(w.kind, w.grade);
+		if (w.kind.equals("set")) {  // "set:fire:4:thorns,soul"
+			w.set = parts[1];
+			w.grade = Integer.parseInt(parts[2]);
+			if (parts.length > 3) for (String x : parts[3].split(",")) if (!x.isEmpty()) w.extras.add(x);
+			w.lightLevel = switch (w.set) {
+				case "fire" -> w.extras.contains("frost") ? 4 + w.grade : 4 + w.grade * 2;
+				case "protection" -> w.grade >= 3 ? 5 : 0;
+				default -> 0;
+			};
+			if (w.extras.contains("soul")) w.lightLevel = Math.max(w.lightLevel, 6);
+		} else {
+			w.grade = parts.length > 1 ? Integer.parseInt(parts[1]) : 1;
+			w.lightLevel = lightFor(w.kind, w.grade);
+		}
 		WEARERS.put(p.getUUID(), w);
 	}
 
@@ -271,6 +293,16 @@ final class Fx {
 				ps.clear();
 			}
 			case "vanish" -> vanish(p, w, level, viewers, tick, ps);
+			case "set" -> {
+				far = true;
+				try {
+					armourSet(p, w, level, viewers, tick, g, ps);
+					if (!ps.isEmpty()) emit(level, p.position(), viewers, ps);
+				} finally {
+					far = false;
+				}
+				ps.clear();
+			}
 			default -> {
 			}
 		}
@@ -412,6 +444,200 @@ final class Fx {
 							0.02f, 0)), null));
 		}
 		if (g >= 3) orbit(p, w, level, viewers, tick, "bubbles", 8, 0.7, 0.45, 0.22f, 70, new String[]{"bubble"}, new int[]{0xBFF3FF});
+	}
+
+	// ---------------------------------------------------------------- armour sets
+
+	/**
+	 * Four pieces with the same protection: one effect instead of four, that flows (things circle and rise in one
+	 * motion). Thin lines and small sprites at the outline, so you still see who's wearing it. The pieces' own
+	 * enchantments are woven in: Thorns adds barbs to the circle, Feather Falling feathers, and the boots decide what
+	 * happens at your feet (Frost Walker: ice, Soul Speed: soul fire).
+	 *
+	 * <ul>
+	 * <li>Protection, "Ward": a rune circle under you, one then two thin rings of light turning round you like a
+	 * gyroscope, light rising along them; at IV a shimmer of the shield on you now and then.</li>
+	 * <li>Fire Protection, "Ember mantle": small flames at your feet, embers spiralling up round you in one stream,
+	 * two from II, heat rising from III, sparks at IV.</li>
+	 * <li>Blast Protection, "Bulwark": heavy smoke curling at your feet, shards of stone circling and tumbling round
+	 * your middle from II, sparks from III, a dark ring on the ground at IV.</li>
+	 * <li>Projectile Protection, "Windward": wind lines sweeping round you, from II a leaf caught in it, at III at
+	 * three heights, at IV a ring of wind at your feet.</li>
+	 * </ul>
+	 */
+	private static void armourSet(ServerPlayer p, Wearer w, ServerLevel level, List<ServerPlayer> viewers, int tick, int g, List<P> ps) {
+		boolean frost = w.extras.contains("frost"), soul = w.extras.contains("soul");
+		double h = p.getBbHeight();
+		int feet = soul ? 0x5FE6FF : frost ? 0xBFE6FF : 0;
+		switch (w.set) {
+			case "protection" -> {
+				int main = 0x9FB4FF, accent = 0xC2A6FF;
+				ground(p, w, level, viewers, tick, "circle", feet != 0 ? feet : main, 1.5f + 0.15f * g, 200);
+				if (g >= 2) spinRing(p, w, level, viewers, tick, "ward1", feet != 0 ? feet : main, 1.75f, 0.5, 16, 110);
+				if (g >= 3) spinRing(p, w, level, viewers, tick, "ward2", accent, 1.95f, 0.56, -26, -150);
+				if (every(tick, g >= 3 ? 3 : 6)) ps.add(helix("mote", pick(main, accent, 0xE6ECFF), tick * 0.31, 0.55, 0.42, 0.1, h * 1.05,
+						0.45, 36, 0.13f, 0.02f));
+				if (g >= 4 && every(tick, 9)) ps.add(pop("hex", pick(main, accent), onBody(p, 0.3f, 0.85f, 0.34f), rnd(0.28f, 0.38f), 10, 0));
+			}
+			case "fire" -> {
+				int[] fire = soul ? new int[]{0x5FE6FF, 0x3FC6E8, 0x9FF4FF} : frost ? new int[]{0xBFE6FF, 0x8FD0FF, 0xFFFFFF}
+						: new int[]{0xFF9A3C, 0xFFB64A, 0xFF6A1F};
+				feetFlames(p, w, level, viewers, tick, "flames", 4 + g, 0.5, 0.26f + 0.04f * g, fire);
+				int[] embers = soul ? new int[]{0x9FF4FF, 0x5FE6FF} : new int[]{0xFFE9A8, 0xFFB64A, 0xFF8A2E};
+				int every = new int[]{0, 6, 4, 3, 2}[g];
+				if (every(tick, every)) {
+					ps.add(helix("ember", pick(embers), tick * 0.22, 0.55, 0.32, 0.15, h * 1.15, 0.8, 30, 0.17f, 0.03f));
+					if (g >= 2) ps.add(helix("ember", pick(embers), tick * 0.22 + Math.PI, 0.55, 0.32, 0.15, h * 1.15, 0.8, 30, 0.15f, 0.03f));
+				}
+				if (g >= 3 && every(tick, 6)) {
+					Vec3 from = new Vec3(rnd(-0.12f, 0.12f), h * rnd(0.3f, 0.55f), rnd(-0.12f, 0.12f));
+					ps.add(line("haze", soul ? 0x3FC6E8 : 0xFF8A3C, from, from.add(0, 0.55, 0), 0.9f, 1.3f, 0, 0, 22));
+				}
+				if (g >= 4 && every(tick, 4)) ps.add(pop("twinkle", soul ? 0xCFFAFF : 0xFFF1C2, onBody(p, 0.2f, 1.0f, 0.42f), rnd(0.22f, 0.3f), 6, 0.8f));
+			}
+			case "blast" -> {
+				if (every(tick, 5)) {
+					double a = R.nextDouble() * Math.PI * 2;
+					Vec3 from = new Vec3(Math.cos(a) * 0.42, 0.08, Math.sin(a) * 0.42);
+					int smoke = feet != 0 ? feet : pick(0x6A6A74, 0x585862, 0x7A7A84);
+					ps.add(new P("smoke", smoke, 10, List.of(new S(from, 0.25f, 0), new S(from.add(Math.cos(a) * 0.18, 0.22, Math.sin(a) * 0.18), 0.6f, 0.6f),
+							new S(from.add(Math.cos(a) * 0.3, 0.38, Math.sin(a) * 0.3), 0.8f, 1.2f), new S(from.add(Math.cos(a) * 0.36, 0.5, Math.sin(a) * 0.36), 0.02f, 1.6f)), null));
+				}
+				if (g >= 2) shards(p, w, level, viewers, tick, "shards", g >= 4 ? 5 : g >= 3 ? 4 : 3, 0.78, 0.47, new int[]{0x8E8E9A, 0xA8A8B4, 0x74747E});
+				if (g >= 3 && every(tick, 7)) ps.add(pop("twinkle", 0xFFA040, onBody(p, 0.35f, 0.6f, 0.78f), rnd(0.2f, 0.28f), 6, 0.6f));
+				if (g >= 4) ground(p, w, level, viewers, tick, "crater", feet != 0 ? feet : 0x52525C, 2.3f, 260);
+			}
+			case "projectile" -> {
+				int[] wind = {0xD8F5E6, 0xA8E6C8, 0xF2FFF8};
+				double[] heights = g >= 3 ? new double[]{0.25, 0.55, 0.85} : new double[]{0.35, 0.7};
+				if (every(tick, g >= 3 ? 3 : 4)) {
+					double y = heights[(tick / 3) % heights.length] * h;
+					ps.add(helix("streak", pick(wind), tick * 0.5, 0.7, 0.72, y, y + 0.12, 0.55, 15, 0.42f, 0.2f));
+				}
+				if (g >= 2 && every(tick, 14)) ps.add(helix("feather", pick(0xE8F7EE, 0xC8EBD6), tick * 0.5, 0.62, 0.68, 0.3, h * 0.95, 1.1, 42, 0.2f, 0.18f));
+				if (g >= 4) ground(p, w, level, viewers, tick, "windring", feet != 0 ? feet : 0xD8F5E6, 2.0f, 90);
+			}
+			default -> {
+			}
+		}
+		// what the pieces add, in the same motion
+		if (w.extras.contains("thorns")) {
+			orbit(p, w, level, viewers, tick, "barbs", 3, 0.66, 0.4, 0.3f, 130, new String[]{"thorn"}, new int[]{0x9C2236, 0x5E8C3A});
+			if (every(tick, 11)) ps.add(pop("twinkle", 0xFF6A6A, onBody(p, 0.2f, 0.8f, 0.5f), 0.22f, 6, 0.5f));
+		}
+		if (w.extras.contains("feather") && every(tick, 12)) {
+			double a = R.nextDouble() * Math.PI * 2;
+			Vec3 from = new Vec3(Math.cos(a) * 0.5, h * 0.55, Math.sin(a) * 0.5);
+			ps.add(new P("feather", pick(0xFFFFFF, 0xEDEDED), 12, List.of(new S(from, 0.18f, 0.3f), new S(from.add(0.15, -0.3, 0.05), 0.2f, -0.4f),
+					new S(from.add(-0.05, -0.62, 0.12), 0.2f, 0.4f), new S(from.add(0.1, -0.92, 0.0), 0.02f, -0.2f)), null));
+		}
+		if (frost && every(tick, 6)) {
+			Vec3 from = new Vec3(rnd(-0.55f, 0.55f), h * rnd(0.5f, 1.0f), rnd(-0.55f, 0.55f));
+			ps.add(line("flake", pick(0xF2FAFF, 0xBFE6FF), from, from.add(rnd(-0.15f, 0.15f), -rnd(0.7f, 1.0f), rnd(-0.15f, 0.15f)), 0.16f, 0.06f,
+					0, rnd(-2f, 2f), 30));
+		}
+		if (soul && every(tick, 8)) {
+			Vec3 from = onBody(p, 0.0f, 0.1f, 0.4f);
+			ps.add(line("wisp", pick(0x5FE6FF, 0x9FF4FF), from, from.add(rnd(-0.1f, 0.1f), rnd(0.6f, 0.9f), rnd(-0.1f, 0.1f)), 0.22f, 0.04f, 0, 0, 26));
+		}
+	}
+
+	/** A particle that goes round and up you along a helix (one motion: a stream of these looks like a spiral). */
+	static P helix(String sprite, int rgb, double a0, double r0, double r1, double y0, double y1, double turns, int ticks, float s0, float s1) {
+		int n = Math.max(2, ticks / 3);
+		List<S> st = new ArrayList<>();
+		for (int k = 0; k <= n; k++) {
+			double t = (double) k / n;
+			double a = a0 + turns * Math.PI * 2 * t, r = r0 + (r1 - r0) * t;
+			float sc = k == 0 ? 0.01f : (float) (s0 + (s1 - s0) * t);
+			st.add(new S(new Vec3(Math.cos(a) * r, y0 + (y1 - y0) * t, Math.sin(a) * r), sc, 0));
+		}
+		return new P(sprite, rgb, 3, st, null);
+	}
+
+	/** A thin ring of light round you, tilted, turning slowly about the up axis (a gyroscope's ring). */
+	private static void spinRing(ServerPlayer p, Wearer w, ServerLevel level, List<ServerPlayer> viewers, int tick, String key, int rgb, float size,
+			double height, float tiltDeg, int period) {
+		Ring r = w.rings.get(key);
+		if (r == null) {
+			r = new Ring();
+			ItemDisplayElement e = element("thinring", rgb, true);
+			e.setScale(new Vector3f(size));
+			e.setOffset(new Vec3(0, p.getBbHeight() * height, 0));
+			e.setInterpolationDuration(5);
+			e.setLeftRotation(ringTurn(tick, tiltDeg, period));
+			r.holder.addElement(e);
+			r.els.add(e);
+			show(p, w, level, viewers, key, r);
+		}
+		if (tick % 5 == 0) {
+			ItemDisplayElement e = r.els.getFirst();
+			e.setLeftRotation(ringTurn(tick + 5, tiltDeg, period));
+			e.startInterpolation();
+		}
+		r.holder.tick();
+	}
+
+	private static Quaternionf ringTurn(int tick, float tiltDeg, int period) {
+		float a = (float) (tick * (Math.PI * 2 / period));
+		return new Quaternionf().rotateY(a).rotateX(-Mth.HALF_PI + tiltDeg * Mth.DEG_TO_RAD);
+	}
+
+	/** Small flames round your feet (like {@link #flames}, but a size of your choosing and a set's colours). */
+	private static void feetFlames(ServerPlayer p, Wearer w, ServerLevel level, List<ServerPlayer> viewers, int tick, String key, int n, double radius,
+			float size, int[] colours) {
+		Ring r = w.rings.get(key);
+		if (r == null) {
+			r = new Ring();
+			for (int i = 0; i < n; i++) {
+				ItemDisplayElement e = element("flame", colours[i % colours.length], false);
+				double a = i * Math.PI * 2 / n;
+				e.setOffset(new Vec3(Math.cos(a) * radius, size * 0.42, Math.sin(a) * radius));
+				e.setScale(new Vector3f(size));
+				e.setInterpolationDuration(4);
+				r.holder.addElement(e);
+				r.els.add(e);
+			}
+			show(p, w, level, viewers, key, r);
+		}
+		if (tick % 4 == 0) {
+			for (ItemDisplayElement e : r.els) {
+				float s = size * rnd(0.75f, 1.2f);
+				e.setScale(new Vector3f(s * 0.85f, s, s));
+				e.setTranslation(new Vector3f(0, (s - size) * 0.4f, 0));
+				e.startInterpolation();
+			}
+		}
+		r.holder.tick();
+	}
+
+	/** Shards of stone circling your middle, bobbing and tumbling. */
+	private static void shards(ServerPlayer p, Wearer w, ServerLevel level, List<ServerPlayer> viewers, int tick, String key, int n, double radius,
+			double height, int[] colours) {
+		Ring r = w.rings.get(key);
+		if (r == null) {
+			r = new Ring();
+			for (int i = 0; i < n; i++) {
+				ItemDisplayElement e = element("shard", colours[i % colours.length], false);
+				e.setScale(new Vector3f(0.26f + 0.04f * (i % 3)));
+				e.setTeleportDuration(3);
+				e.setInterpolationDuration(3);
+				e.setOffset(orbitSpot(p, i, n, tick, radius, height, 140));
+				r.holder.addElement(e);
+				r.els.add(e);
+			}
+			show(p, w, level, viewers, key, r);
+		}
+		if (tick % 3 == 0) {
+			for (int i = 0; i < r.els.size(); i++) {
+				ItemDisplayElement e = r.els.get(i);
+				Vec3 at = orbitSpot(p, i, n, tick + 3, radius, height, 140);
+				e.setOffset(at.add(0, Math.sin((tick + i * 17) * 0.09) * 0.08, 0));
+				e.setLeftRotation(new Quaternionf().rotateZ((tick + 3) * 0.05f * (i % 2 == 0 ? 1 : -1) + i));
+				e.startInterpolation();
+			}
+		}
+		r.holder.tick();
 	}
 
 	/**
@@ -613,7 +839,8 @@ final class Fx {
 		Ring r = w.rings.get(key);
 		if (r == null) {
 			r = new Ring();
-			ItemDisplayElement e = element(key.equals("icering") ? "ring" : key.equals("shadow") ? "haze" : "circle", rgb, true);
+			ItemDisplayElement e = element(key.equals("icering") ? "ring" : key.equals("shadow") ? "haze"
+					: key.equals("crater") || key.equals("windring") ? "thinring" : "circle", rgb, true);
 			e.setScale(new Vector3f(size));
 			e.setOffset(new Vec3(0, 0.04, 0));
 			e.setInterpolationDuration(10);

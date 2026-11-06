@@ -10,6 +10,7 @@ import json
 import os
 import sys
 
+import numpy as np
 from PIL import Image
 
 sys.path.insert(0, os.path.dirname(__file__))
@@ -58,6 +59,10 @@ def main():
             if any(f[..., 3].any() for f in frames):
                 strip = Image.new('RGBA', (aura.SIZE, aura.SIZE * len(frames)), (0, 0, 0, 0))
                 for k, f in enumerate(frames):
+                    f = f.copy()
+                    a = f[..., 3].astype(int)
+                    # the aura's mark for the shader: alpha 1 (mod 16) = lit by itself, no enchantment glint
+                    f[..., 3] = np.where(a > 0, np.clip(16 * np.round((a - 1) / 16) + 1, 17, 241), 0).astype(np.uint8)
                     strip.paste(Image.fromarray(f, 'RGBA'), (0, k * aura.SIZE))
                 strip.save(os.path.join(atex, f'{name}_{g}.png'))
                 json.dump({'animation': {'frametime': 1, 'interpolate': False}},

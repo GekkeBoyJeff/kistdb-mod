@@ -78,48 +78,76 @@ public final class Screens implements FabricClientGameTest {
 				ctx.takeScreenshot("nameplate_front");
 				camera(ctx, CameraType.FIRST_PERSON);
 			});
-			// Proof of concept, round 7: a sword's effect as a texture part (in the sword) plus an aura (an animated plane
-			// behind it whose width changes per piece), no server particles, so only the model is judged; with the glint, by
-			// night and by day
-			safe("fx_round7", () -> {
+			// Proof of concept, round 8: armour sets, one effect for the whole set (far-only: seen in third person and by
+			// others, not in first person), per grade and with what the pieces add; and the sword aura lit by itself
+			safe("fx_round8", () -> {
 				ctx.getInput().lookAt(0, 0);
 				ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.HIDDEN));
+				server.runOnServer(s -> nl.libreria.glint.GlintMod.AURA_THIRD.set(player, false));
 				run(server, "time set midnight");
-				String[][] swords = {{"sharp", "3"}, {"sharp", "5"}, {"fire", "1"}, {"fire", "2"}, {"smite", "3"}, {"smite", "5"},
-						{"bane", "3"}, {"bane", "5"}};
-				for (String[] sw : swords) {
-					String id = sw[0] + "_" + sw[1];
-					run(server, "item replace entity @a weapon.mainhand with minecraft:diamond_sword[item_model=\"libreria:fx/sword_" + id + "\",enchantment_glint_override=true]");
-					camera(ctx, CameraType.FIRST_PERSON);
-					ctx.waitTicks(30);
-					for (int f = 0; f < 6; f++) {
-						ctx.takeScreenshot("fxa_" + id + "_hold_" + f);
-						ctx.waitTicks(3);
-					}
-					ctx.getInput().pressKey(o2 -> o2.keyAttack);
-					for (int f = 1; f <= 5; f++) {
-						ctx.waitTicks(1);
-						ctx.takeScreenshot("fxa_" + id + "_swing_" + f);
-					}
-					ctx.waitTicks(10);
-					camera(ctx, CameraType.THIRD_PERSON_FRONT);
-					ctx.waitTicks(12);
-					ctx.takeScreenshot("fxa_" + id + "_third_0");
-					ctx.waitTicks(4);
-					ctx.takeScreenshot("fxa_" + id + "_third_1");
-				}
-				// By day, and with the enchantment glint on top (as a real enchanted sword has)
 				camera(ctx, CameraType.FIRST_PERSON);
+				for (String id : new String[]{"fire_2", "smite_5"}) {
+					run(server, "item replace entity @a weapon.mainhand with minecraft:diamond_sword[item_model=\"libreria:fx/sword_" + id + "\",enchantment_glint_override=true]");
+					ctx.waitTicks(20);
+					ctx.takeScreenshot("fxs_" + id + "_night");
+				}
 				run(server, "time set noon");
 				for (String id : new String[]{"fire_2", "smite_5"}) {
-					run(server, "item replace entity @a weapon.mainhand with minecraft:diamond_sword[item_model=\"libreria:fx/sword_" + id + "\"]");
-					ctx.waitTicks(20);
-					ctx.takeScreenshot("fxa_" + id + "_day");
 					run(server, "item replace entity @a weapon.mainhand with minecraft:diamond_sword[item_model=\"libreria:fx/sword_" + id + "\",enchantment_glint_override=true]");
 					ctx.waitTicks(20);
-					ctx.takeScreenshot("fxa_" + id + "_day_glint");
+					ctx.takeScreenshot("fxs_" + id + "_day");
 				}
-				run(server, "item replace entity @a weapon.mainhand with minecraft:air");
+				run(server, "item replace entity @a weapon.mainhand with minecraft:air", "time set midnight");
+				String[][] sets = {{"protection", "protection"}, {"fire", "fire_protection"}, {"blast", "blast_protection"},
+						{"projectile", "projectile_protection"}};
+				String[][] combos = {{"thorns", "thorns"}, {"feather", "feather"}, {"frost", "frost"}, {"soul", "soul"},
+						{"all", "thorns,feather,frost,soul"}};
+				camera(ctx, CameraType.THIRD_PERSON_FRONT);
+				for (String[] st : sets) {
+					for (int g = 1; g <= 4; g++) {
+						wearSet(server, st[1], g, "");
+						String spec = "set:" + st[0] + ":" + g;
+						server.runOnServer(x -> nl.libreria.glint.GlintMod.debugFx(player, spec));
+						ctx.waitTicks(45);
+						ctx.takeScreenshot("fxset_" + st[0] + "_" + g);
+						if (g == 4) {
+							ctx.waitTicks(5);
+							ctx.takeScreenshot("fxset_" + st[0] + "_4b");
+						}
+					}
+					for (String[] c : combos) {
+						wearSet(server, st[1], 4, c[1]);
+						String spec = "set:" + st[0] + ":4:" + c[1];
+						server.runOnServer(x -> nl.libreria.glint.GlintMod.debugFx(player, spec));
+						ctx.waitTicks(45);
+						ctx.takeScreenshot("fxset_" + st[0] + "_4_" + c[0]);
+					}
+				}
+				// From behind, by day, and in first person (where nothing of it should be in view)
+				wearSet(server, "fire_protection", 4, "thorns,feather,frost,soul");
+				server.runOnServer(x -> nl.libreria.glint.GlintMod.debugFx(player, "set:fire:4"));
+				camera(ctx, CameraType.THIRD_PERSON_BACK);
+				ctx.waitTicks(40);
+				ctx.takeScreenshot("fxset_fire_4_back");
+				camera(ctx, CameraType.FIRST_PERSON);
+				ctx.getInput().lookAt(0, 40);
+				ctx.waitTicks(30);
+				ctx.takeScreenshot("fxset_fire_4_first");
+				ctx.getInput().lookAt(0, 0);
+				run(server, "time set noon");
+				camera(ctx, CameraType.THIRD_PERSON_FRONT);
+				for (String[] st : new String[][]{{"fire", "fire_protection"}, {"protection", "protection"}}) {
+					wearSet(server, st[1], 4, "");
+					String spec = "set:" + st[0] + ":4";
+					server.runOnServer(x -> nl.libreria.glint.GlintMod.debugFx(player, spec));
+					ctx.waitTicks(40);
+					ctx.takeScreenshot("fxset_" + st[0] + "_4_day");
+				}
+				server.runOnServer(x -> nl.libreria.glint.GlintMod.debugFx(player, "off"));
+				server.runOnServer(x -> nl.libreria.glint.GlintMod.AURA_THIRD.set(player, true));
+				run(server, "item replace entity @a armor.head with minecraft:air", "item replace entity @a armor.chest with minecraft:air",
+						"item replace entity @a armor.legs with minecraft:air", "item replace entity @a armor.feet with minecraft:air");
+				camera(ctx, CameraType.FIRST_PERSON);
 				ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.FULL));
 			});
 			// Your own armour's particles in third person: a set (one orbit), and ordinary Protection armour
@@ -774,6 +802,17 @@ public final class Screens implements FabricClientGameTest {
 				LOG.warn("Could not clear toasts: {}", e.toString());
 			}
 		});
+	}
+
+	/** Four diamond pieces with the same protection at a level; extras: thorns (chest), feather/frost/soul (boots). */
+	private static void wearSet(net.fabricmc.fabric.api.client.gametest.v1.context.TestServerContext server, String prot, int lvl, String extras) {
+		String chest = extras.contains("thorns") ? "," + "thorns:3" : "";
+		String boots = (extras.contains("feather") ? ",feather_falling:4" : "") + (extras.contains("frost") ? ",frost_walker:2" : "")
+				+ (extras.contains("soul") ? ",soul_speed:3" : "");
+		run(server, "item replace entity @a armor.head with minecraft:diamond_helmet[enchantments={" + prot + ":" + lvl + "}]",
+				"item replace entity @a armor.chest with minecraft:diamond_chestplate[enchantments={" + prot + ":" + lvl + chest + "}]",
+				"item replace entity @a armor.legs with minecraft:diamond_leggings[enchantments={" + prot + ":" + lvl + "}]",
+				"item replace entity @a armor.feet with minecraft:diamond_boots[enchantments={" + prot + ":" + lvl + boots + "}]");
 	}
 
 	private static void camera(ClientGameTestContext ctx, CameraType type) {

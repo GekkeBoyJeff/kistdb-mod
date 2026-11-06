@@ -27,6 +27,8 @@ def put(img, x, y, a):
         v = max(old, int(round(min(1.0, a) * 255)))
         if 248 < v < 255:
             v = 255 if v >= 252 else 248
+        if v % 16 in (1, 2):
+            v -= v % 16
         img.putpixel((x, y), (255, 255, 255, v))
 
 
@@ -350,6 +352,41 @@ def thinarc():
     return img
 
 
+def thinring():
+    """A fine ring of light (an armour set's ward: thin, so you still see who's inside)."""
+    img = blank()
+    c = N / 2
+    for y in range(N):
+        for x in range(N):
+            d = abs(math.hypot(x + 0.5 - c, y + 0.5 - c) - 14.2)
+            put(img, x, y, max(0, 1 - d / 1.25) ** 1.3)
+    return img
+
+
+def shard():
+    """A broken-off shard of stone or iron: angular, with a bright edge on one side."""
+    img = blank()
+    pts = [(13, 30), (7, 18), (15, 2), (21, 12), (23, 24)]
+    def inside(px, py):
+        sign = None
+        for i in range(len(pts)):
+            (x1, y1), (x2, y2) = pts[i], pts[(i + 1) % len(pts)]
+            cr = (x2 - x1) * (py - y1) - (y2 - y1) * (px - x1)
+            if sign is None:
+                sign = cr > 0
+            elif (cr > 0) != sign:
+                return False
+        return True
+    for y in range(N):
+        for x in range(N):
+            if inside(x + 0.5, y + 0.5):
+                lit = 0.55 + 0.45 * max(0, (24 - y) / 20) * (1 if x > 12 else 0.5)
+                put(img, x, y, 0.62 * lit + 0.25)
+    for i in range(len(pts)):
+        line(img, pts[i], pts[(i + 1) % len(pts)], 0.95 if i in (1, 2) else 0.5, 0.9)
+    return img
+
+
 def streak():
     """A speed line: thin, bright in the middle, soft at both ends."""
     img = blank()
@@ -388,7 +425,7 @@ def smoke():
 
 SPRITES = {
     'glow': glow, 'haze': haze, 'ember': ember, 'mote': mote, 'spark': spark, 'flake': flake, 'wisp': wisp, 'arc': arc, 'ring': ring,
-    'thinarc': thinarc, 'streak': streak, 'chain': chain, 'smoke': smoke,
+    'thinarc': thinarc, 'streak': streak, 'chain': chain, 'smoke': smoke, 'thinring': thinring, 'shard': shard,
     'twinkle': twinkle, 'coin': coin, 'bubble': bubble, 'feather': feather, 'thorn': thorn, 'hex': hexshield,
     'rune_a': lambda: rune('a'), 'rune_b': lambda: rune('b'), 'rune_c': lambda: rune('c'), 'rune_d': lambda: rune('d'),
 }
@@ -456,6 +493,35 @@ def main():
         json.dump({'model': {'type': 'minecraft:model', 'model': f'libreria:item/fx/p/{name}',
                              'tints': [{'type': 'minecraft:custom_model_data', 'index': 0, 'default': 0xFFFFFF}]}},
                   open(os.path.join(itm, name + '.json'), 'w'), indent=1)
+    # far-only copies of every sprite: their alpha (2 mod 16) tells the shader to fade them out near the camera, so an
+    # armour set's particles show in third person and to others, never in your face in first person
+    for name in ('flame', 'circle', 'beam'):  # drawn without put(): keep them off the marker alphas too
+        img = Image.open(os.path.join(tex, name + '.png')).convert('RGBA')
+        px = img.load()
+        for y in range(img.height):
+            for x in range(img.width):
+                r, g, b, a = px[x, y]
+                if a % 16 in (1, 2):
+                    px[x, y] = (r, g, b, a - a % 16)
+        img.save(os.path.join(tex, name + '.png'))
+    for name in list(SPRITES) + ['flame', 'circle']:
+        img = Image.open(os.path.join(tex, name + '.png')).convert('RGBA')
+        px = img.load()
+        for y in range(img.height):
+            for x in range(img.width):
+                r, g, b, a = px[x, y]
+                if a:
+                    px[x, y] = (r, g, b, max(2, min(242, 16 * round((a - 2) / 16) + 2)))
+        img.save(os.path.join(tex, 'far_' + name + '.png'))
+        meta = os.path.join(tex, name + '.png.mcmeta')
+        if os.path.exists(meta):
+            open(os.path.join(tex, 'far_' + name + '.png.mcmeta'), 'w').write(open(meta).read())
+        m = card_model(name)
+        m['textures'] = {'s': f'libreria:item/fx/p/far_{name}', 'particle': f'libreria:item/fx/p/far_{name}'}
+        json.dump(m, open(os.path.join(mod, 'far_' + name + '.json'), 'w'), indent=1)
+        json.dump({'model': {'type': 'minecraft:model', 'model': f'libreria:item/fx/p/far_{name}',
+                             'tints': [{'type': 'minecraft:custom_model_data', 'index': 0, 'default': 0xFFFFFF}]}},
+                  open(os.path.join(itm, 'far_' + name + '.json'), 'w'), indent=1)
     # a sheet to look at
     sheet = Image.new('RGBA', (len(SPRITES) * (N + 4), N + 4), (20, 20, 28, 255))
     for k, make in enumerate(SPRITES.values()):
