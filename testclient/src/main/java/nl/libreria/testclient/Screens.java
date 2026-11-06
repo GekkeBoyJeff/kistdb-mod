@@ -177,6 +177,17 @@ public final class Screens implements FabricClientGameTest {
 				String[][] sets = {{"fire_protection:4", "fire4"}, {"protection:4", "protection4"}, {"blast_protection:4", "blast4"},
 						{"projectile_protection:4", "projectile4"}, {"thorns:3", "thorns3"}, {"mending:1", "mending"}, {"binding_curse:1", "binding"},
 						{"vanishing_curse:1", "vanishing"}, {"protection:4,thorns:3", "protection4_thorns"}};
+				// loose pieces (no set): each glows with its own enchantment, on you too in third person
+				run(server, "item replace entity @a armor.head with minecraft:iron_helmet[enchantments={binding_curse:1}]",
+						"item replace entity @a armor.chest with minecraft:diamond_chestplate[enchantments={blast_protection:4}]",
+						"item replace entity @a armor.legs with minecraft:golden_leggings[enchantments={projectile_protection:4}]",
+						"item replace entity @a armor.feet with minecraft:netherite_boots[enchantments={frost_walker:2,unbreaking:3}]");
+				camera(ctx, CameraType.THIRD_PERSON_FRONT);
+				ctx.waitTicks(30);
+				ctx.takeScreenshot("fxown_front");
+				camera(ctx, CameraType.THIRD_PERSON_BACK);
+				ctx.waitTicks(15);
+				ctx.takeScreenshot("fxown_back");
 				for (String[] k : sets) {
 					wearMaterial(server, "diamond", k[0]);
 					camera(ctx, CameraType.THIRD_PERSON_FRONT);

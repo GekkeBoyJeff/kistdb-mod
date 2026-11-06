@@ -261,6 +261,22 @@ def renewal(m, tier, seed):
     return img
 
 
+def sheen(m, tier, seed):
+    """Unbreaking: a cool steel sheen, a few bright lines a glint flows along (subtle: most armour has it)."""
+    img = {}
+    r = rng(seed, tier)
+    bright, soft = (226, 236, 250), (176, 192, 214)
+    for _ in range(2 + 2 * tier):
+        name = r.choice(list(STRIPS))
+        x0, x1, y0, y1 = STRIPS[name]
+        x, y = r.randrange(x0, x1), r.randrange(y0, y1)
+        for i in range(r.randrange(2, 4)):
+            xx, yy = x + i, y - i
+            if x0 <= xx < x1 and y0 <= yy < y1 and m[yy][xx]:
+                img[(xx, yy)] = (bright if i == 0 else soft) + (FLOW,)
+    return img
+
+
 FAMILIES = {
     'fireguard': lambda m, t, s: flames(m, t, [(0, (210, 60, 15)), (0.5, (255, 140, 30)), (1, (255, 225, 110))], FLICKER, s),
     'soul': lambda m, t, s: flames(m, t, [(0, (20, 70, 200)), (0.5, (50, 170, 255)), (1, (190, 250, 255))], FLICKER, s),
@@ -273,7 +289,8 @@ FAMILIES = {
     'arrowguard': gusts,
     'feather': feathers,
     'mending': renewal,
-    'curse': lambda m, t, s: veins(m, t, (60, 24, 96), (176, 110, 255), s),
+    'curse': lambda m, t, s: veins(m, t + 1, (96, 40, 150), (206, 150, 255), s),
+    'sturdy': sheen,
 }
 
 

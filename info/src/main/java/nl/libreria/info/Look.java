@@ -390,8 +390,10 @@ final class Look {
 			double up = e instanceof Player ? 1.25 : e.hasCustomName() ? 0.9 : 0.4;
 			Vec3 above = e.position().add(0, e.getBbHeight() + up, 0);
 			if (fits(eye, dir, above)) return new Target(above, card, !(e instanceof LivingEntity));
-			// Up close: beside them, and smaller, so it's about as big on your screen as from a few steps back
-			Vec3 at = beside(eye, e);
+			// Up close: beside them, and smaller, so it's about as big on your screen as from a few steps back. Pulled
+			// towards you (it stays at the same spot on your screen), so it hangs in front of them: their head and
+			// shoulders never hide part of it
+			Vec3 at = inFront(eye, beside(eye, e), e.getBbWidth() / 2 + 0.45);
 			float size = (float) Math.max(0.35, Math.min(1.0, at.distanceTo(eye) / 3.5));
 			return new Target(at, card, !(e instanceof LivingEntity), size);
 		}
@@ -421,6 +423,14 @@ final class Look {
 		double rx = -dz / len, rz = dx / len;
 		double out = e.getBbWidth() / 2 + 0.35;
 		return new Vec3(e.getX() + rx * out, e.getEyeY() - 0.2, e.getZ() + rz * out);
+	}
+
+	/** A spot moved this far towards your eye along the line to it (at least half a block from your eye). */
+	static Vec3 inFront(Vec3 eye, Vec3 at, double by) {
+		Vec3 back = eye.subtract(at);
+		double len = back.length();
+		double move = Math.min(by, Math.max(0, len - 0.6));
+		return len < 1.0e-4 ? at : at.add(back.scale(move / len));
 	}
 
 	/** Above the block if there is room, otherwise just in front of the face you're looking at. */

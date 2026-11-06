@@ -48,7 +48,8 @@ public final class EquipmentFx {
 			{"fire_protection", "fireguard"}, {"blast_protection", "blast"}, {"projectile_protection", "arrowguard"},
 			{"protection", "protection"}, {"frost_walker", "frost"}, {"soul_speed", "soul"}, {"respiration", "water"},
 			{"aqua_affinity", "water"}, {"depth_strider", "water"}, {"swift_sneak", "sculk"}, {"thorns", "thorns"},
-			{"feather_falling", "feather"}, {"mending", "mending"}, {"binding_curse", "curse"}, {"vanishing_curse", "curse"}};
+			{"feather_falling", "feather"}, {"binding_curse", "curse"}, {"vanishing_curse", "curse"}, {"mending", "mending"},
+			{"unbreaking", "sturdy"}};
 	/** The armour materials the pack has layers for (vanilla equipment assets). */
 	private static final Set<String> MATERIALS = Set.of("leather", "chainmail", "copper", "iron", "gold", "diamond", "netherite",
 			"turtle_scute");
@@ -57,11 +58,14 @@ public final class EquipmentFx {
 			"shaper", "silence", "snout", "spire", "tide", "vex", "ward", "wayfinder", "wild");
 	private static final EquipmentSlot[] ARMOUR = {EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET};
 
-	/** What one viewer sees: effects on at all, and the families they switched off. Read while packets are written. */
-	record Prefs(boolean on, Set<String> off) {
+	/**
+	 * What one viewer sees: effects on others at all, on their own armour (third person), and the families they switched
+	 * off. Read while packets are written.
+	 */
+	record Prefs(boolean on, boolean self, Set<String> off) {
 	}
 
-	private static final Prefs OFF = new Prefs(false, Set.of());
+	private static final Prefs OFF = new Prefs(false, false, Set.of());
 	private static final Map<UUID, Prefs> VIEWERS = new ConcurrentHashMap<>();
 	/** (equippable, asset) → the equippable with that asset. */
 	private static final Map<Pair<Equippable, String>, Equippable> CACHE = new ConcurrentHashMap<>();
@@ -94,10 +98,15 @@ public final class EquipmentFx {
 
 	/** Takes this viewer's settings again; when they changed, the armour around them is sent again. */
 	static void refresh(ServerPlayer p) {
-		boolean on = Pack.has(p) && GlintMod.AURA.get(p);
-		Prefs now = on ? new Prefs(true, Set.copyOf(new HashSet<>(GlintMod.STORE.get(p).off))) : OFF;
+		boolean pack = Pack.has(p);
+		boolean on = pack && GlintMod.AURA.get(p), self = pack && GlintMod.AURA_THIRD.get(p);
+		Prefs now = on || self ? new Prefs(on, self, Set.copyOf(new HashSet<>(GlintMod.STORE.get(p).off))) : OFF;
 		Prefs before = VIEWERS.put(p.getUUID(), now);
-		if (before == null ? now.on() : !before.equals(now)) resend(p);
+		if (before == null ? now.on() || now.self() : !before.equals(now)) {
+			resend(p);
+			// your own armour too (it comes with your inventory)
+			p.inventoryMenu.sendAllDataToRemote();
+		}
 	}
 
 	/** Sends the armour of everything near this viewer again (as they should see it now). */
@@ -119,27 +128,65 @@ public final class EquipmentFx {
 	 */
 	public static ItemStack forViewer(ItemStack stack) {
 		try {
-			String asset = assetFor(stack);
-			if (asset == null) return stack;
-			Equippable eq = stack.get(DataComponents.EQUIPPABLE);
-			Equippable mod = CACHE.computeIfAbsent(Pair.of(eq, asset), k -> withAsset(k.getFirst(), k.getSecond()));
-			if (mod == null) return stack;
+			PacketContext ctx = PacketContext.get();
+			if (ctx == null) return stack;
+			var profile = ctx.get(PacketContext.GAME_PROFILE);
+			if (profile == null) return stack;
+			Prefs prefs = VIEWERS.getOrDefault(profile.id(), OFF);
+			return prefs.on() ? withEffect(stack, prefs) : stack;
+		} catch (Throwable t) {
+			return stack;
+		}
+	}
+
+	/**
+	 * Your own armour as you should see it (in third person and in your inventory's picture of you): only the copy in
+	 * the packet that tells your client what's in your armour slots. Never throws.
+	 */
+	public static ItemStack forOwner(ServerPlayer owner, ItemStack stack) {
+		try {
+			Prefs prefs = VIEWERS.getOrDefault(owner.getUUID(), OFF);
+			return prefs.self() ? withEffect(stack, prefs) : stack;
+		} catch (Throwable t) {
+			return stack;
+		}
+	}
+
+	/**
+	 * A piece that comes back from a client (creative mode sends whole items) with one of our assets gets its own back:
+	 * our asset must never end up in the item itself.
+	 */
+	public static ItemStack clean(ItemStack stack) {
+		try {
+			Equippable eq = stack.isEmpty() ? null : stack.get(DataComponents.EQUIPPABLE);
+			if (eq == null || eq.assetId().isEmpty()) return stack;
+			var key = eq.assetId().get().identifier();
+			if (!key.getNamespace().equals("libreria") || !key.getPath().startsWith("fx")) return stack;
+			String rest = key.getPath().substring(key.getPath().indexOf('_') + 1);
+			String material = MATERIALS.stream().filter(m -> rest.startsWith(m + "_")).findFirst().orElse(null);
 			ItemStack copy = stack.copy();
-			copy.set(DataComponents.EQUIPPABLE, mod);
+			Equippable back = material == null ? null : withAsset(eq, "minecraft:" + material);
+			if (back != null) copy.set(DataComponents.EQUIPPABLE, back);
+			else copy.remove(DataComponents.EQUIPPABLE);
 			return copy;
 		} catch (Throwable t) {
 			return stack;
 		}
 	}
 
-	private static @Nullable String assetFor(ItemStack stack) {
+	private static ItemStack withEffect(ItemStack stack, Prefs prefs) {
+		String asset = assetFor(stack, prefs);
+		if (asset == null) return stack;
+		Equippable eq = stack.get(DataComponents.EQUIPPABLE);
+		Equippable mod = CACHE.computeIfAbsent(Pair.of(eq, asset), k -> withAsset(k.getFirst(), k.getSecond()));
+		if (mod == null) return stack;
+		ItemStack copy = stack.copy();
+		copy.set(DataComponents.EQUIPPABLE, mod);
+		return copy;
+	}
+
+	private static @Nullable String assetFor(ItemStack stack, Prefs prefs) {
 		if (stack.isEmpty() || ops == null) return null;
-		PacketContext ctx = PacketContext.get();
-		if (ctx == null) return null;
-		var profile = ctx.get(PacketContext.GAME_PROFILE);
-		if (profile == null) return null;
-		Prefs prefs = VIEWERS.getOrDefault(profile.id(), OFF);
-		if (!prefs.on()) return null;
 		Equippable eq = stack.get(DataComponents.EQUIPPABLE);
 		if (eq == null || eq.assetId().isEmpty()) return null;
 		EquipmentSlot slot = eq.slot();

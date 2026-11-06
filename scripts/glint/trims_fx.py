@@ -23,7 +23,8 @@ KINDS = {
     'fireguard': ((196, 84, 26), FLICKER), 'protection': ((100, 116, 206), FLOW), 'blast': ((176, 112, 70), FLICKER),
     'arrowguard': ((150, 214, 192), FLOW), 'thorns': ((178, 40, 56), PULSE), 'frost': ((170, 222, 255), TWINKLE),
     'soul': ((60, 180, 232), FLICKER), 'water': ((70, 150, 250), FLOW), 'sculk': ((40, 190, 200), FLOW),
-    'feather': ((226, 232, 246), PULSE), 'mending': ((140, 220, 84), PULSE), 'curse': ((140, 84, 214), FLOW),
+    'feather': ((226, 232, 246), PULSE), 'mending': ((140, 220, 84), PULSE), 'curse': ((176, 112, 246), FLOW),
+    'sturdy': ((200, 214, 232), FLOW),
 }
 
 

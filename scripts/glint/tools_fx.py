@@ -38,34 +38,38 @@ ENCH = {
     'multishot': ('multishot', 1), 'piercing': ('piercing', 4), 'loyalty': ('loyalty', 3), 'riptide': ('riptide', 3),
     'channeling': ('channeling', 1), 'impaling': ('impaling', 5), 'density': ('density', 5), 'breach': ('breach', 4),
     'windburst': ('wind_burst', 3), 'lure': ('lure', 3), 'luck': ('luck_of_the_sea', 3),
+    'unbreak': ('unbreaking', 3), 'mend': ('mending', 1), 'vanish': ('vanishing_curse', 1),
 }
+# the quiet ones: on almost every tool, so they leave the enchantment glint on (only a small mark of their own)
+QUIET = ('unbreak', 'mend', 'vanish')
 # the effect family of each short name (families.json: what the "choose effects" window switches off)
 FAMILY = {
     'sharp': 'sharp', 'piercing': 'sharp', 'smite': 'holy', 'bane': 'poison', 'fire': 'fire', 'flame': 'fire',
     'knock': 'wind', 'punch': 'wind', 'windburst': 'wind', 'lunge': 'wind', 'loot': 'luck', 'fortune': 'luck',
     'sweep': 'sweep', 'eff': 'haste', 'quick': 'haste', 'silk': 'silk', 'power': 'power', 'infinity': 'infinity',
     'multishot': 'multishot', 'loyalty': 'loyalty', 'riptide': 'tide', 'channeling': 'lightning', 'impaling': 'impale',
-    'density': 'heavy', 'breach': 'breach', 'lure': 'sea', 'luck': 'sea',
+    'density': 'heavy', 'breach': 'breach', 'lure': 'sea', 'luck': 'sea', 'unbreak': 'sturdy', 'mend': 'mending',
+    'vanish': 'curse',
 }
 
 # kind -> sprites (name -> texture pattern, {m} = material), materials, enchantments
 KINDS = {
-    'sword': ({'sword': '{m}_sword'}, MATS, ['sharp', 'smite', 'bane', 'fire', 'sweep', 'loot', 'knock']),
-    'axe': ({'axe': '{m}_axe'}, MATS, ['sharp', 'smite', 'bane', 'eff', 'silk', 'fortune']),
-    'pickaxe': ({'pickaxe': '{m}_pickaxe'}, MATS, ['eff', 'silk', 'fortune']),
-    'shovel': ({'shovel': '{m}_shovel'}, MATS, ['eff', 'silk', 'fortune']),
-    'hoe': ({'hoe': '{m}_hoe'}, MATS, ['eff', 'silk', 'fortune']),
-    'shears': ({'shears': 'shears'}, [None], ['eff']),
+    'sword': ({'sword': '{m}_sword'}, MATS, ['sharp', 'smite', 'bane', 'fire', 'sweep', 'loot', 'knock', 'unbreak', 'mend', 'vanish']),
+    'axe': ({'axe': '{m}_axe'}, MATS, ['sharp', 'smite', 'bane', 'eff', 'silk', 'fortune', 'unbreak', 'mend', 'vanish']),
+    'pickaxe': ({'pickaxe': '{m}_pickaxe'}, MATS, ['eff', 'silk', 'fortune', 'unbreak', 'mend', 'vanish']),
+    'shovel': ({'shovel': '{m}_shovel'}, MATS, ['eff', 'silk', 'fortune', 'unbreak', 'mend', 'vanish']),
+    'hoe': ({'hoe': '{m}_hoe'}, MATS, ['eff', 'silk', 'fortune', 'unbreak', 'mend', 'vanish']),
+    'shears': ({'shears': 'shears'}, [None], ['eff', 'unbreak', 'mend', 'vanish']),
     'spear': ({'spear': '{m}_spear', 'hand': '{m}_spear_in_hand'}, MATS,
-              ['sharp', 'smite', 'bane', 'fire', 'knock', 'lunge', 'loot']),
+              ['sharp', 'smite', 'bane', 'fire', 'knock', 'lunge', 'loot', 'unbreak', 'mend', 'vanish']),
     'bow': ({'bow': 'bow', 'pull0': 'bow_pulling_0', 'pull1': 'bow_pulling_1', 'pull2': 'bow_pulling_2'}, [None],
-            ['flame', 'infinity', 'power', 'punch']),
+            ['flame', 'infinity', 'power', 'punch', 'unbreak', 'mend', 'vanish']),
     'crossbow': ({'crossbow': 'crossbow_standby', 'pull0': 'crossbow_pulling_0', 'pull1': 'crossbow_pulling_1',
                   'pull2': 'crossbow_pulling_2', 'arrow': 'crossbow_arrow', 'rocket': 'crossbow_firework'}, [None],
-                 ['piercing', 'quick', 'multishot']),
-    'trident': ({'trident': 'trident'}, [None], ['impaling', 'channeling', 'loyalty', 'riptide']),
-    'mace': ({'mace': 'mace'}, [None], ['smite', 'bane', 'density', 'breach', 'fire', 'windburst']),
-    'rod': ({'rod': 'fishing_rod', 'cast': 'fishing_rod_cast'}, [None], ['lure', 'luck']),
+                 ['piercing', 'quick', 'multishot', 'unbreak', 'mend', 'vanish']),
+    'trident': ({'trident': 'trident'}, [None], ['impaling', 'channeling', 'loyalty', 'riptide', 'unbreak', 'mend', 'vanish']),
+    'mace': ({'mace': 'mace'}, [None], ['smite', 'bane', 'density', 'breach', 'fire', 'windburst', 'unbreak', 'mend', 'vanish']),
+    'rod': ({'rod': 'fishing_rod', 'cast': 'fishing_rod_cast'}, [None], ['lure', 'luck', 'unbreak', 'mend', 'vanish']),
 }
 # the 16 px sprite of each kind a 32 px one borrows its regions' meaning from (the spear in hand is drawn bigger)
 BIG = {'hand'}
@@ -84,6 +88,9 @@ WATER = [(8, 30, 70), (14, 52, 110), (22, 80, 150), (36, 112, 190), (62, 150, 22
 GRAV = [(8, 4, 16), (18, 8, 32), (30, 14, 52), (44, 22, 74), (62, 32, 98), (84, 46, 126), (120, 72, 170)]
 SILK = [(150, 110, 140), (190, 140, 176), (220, 172, 206), (238, 200, 226), (248, 222, 238), (255, 238, 248), (255, 250, 254)]
 AMETHYST = (198, 120, 255)
+STEEL = [(60, 66, 78), (92, 100, 116), (126, 136, 154), (162, 172, 190), (196, 206, 222), (222, 230, 242), (246, 250, 255)]
+MEND = (150, 240, 90)
+VIOLET = (150, 96, 230)
 DAMAGE = ('sharp', 'smite', 'bane', 'density', 'breach')
 
 
@@ -167,6 +174,22 @@ def paint(kind, img, ref, e):
         return lst[:max(1, round(len(lst) * (lo + (hi - lo) * f)))] if lst else []
 
     dmg = next((k for k in DAMAGE if k in e), None)
+    # the quiet ones first, so anything else paints over them: Unbreaking a steel sheen along the edge, Mending two
+    # green glints of experience, Curse of Vanishing a violet vein
+    if 'unbreak' in e:
+        edge = sorted(r['edge'], key=lambda p: -r['dist'].get(p, 0))
+        for i, p in enumerate(take(edge, frac('unbreak'), 0.15, 0.5)):
+            if i % 2 == 0:
+                recolour(p, STEEL, 1)
+                glow[p] = 'flow'
+    if 'mend' in e:
+        for p in r['grip'][:1] + near_first(r, 'core')[1:2]:
+            px[p] = MEND + (255,)
+            glow[p] = 'twinkle'
+    if 'vanish' in e:
+        for p in [p for p in far_first(r) if 2 <= rk.get(img.getpixel(p)[:3], 0) <= 4][:4]:
+            px[p] = VIOLET + (255,)
+            glow[p] = 'flow'
     if 'sharp' in e or 'piercing' in e:
         k = 'sharp' if 'sharp' in e else 'piercing'
         part = 'string' if kind == 'crossbow' else 'head'
@@ -338,6 +361,23 @@ def paint_sword(img, e):
         orig = img.getpixel(p)[:3]
         px[p] = ramp_[max(0, min(6, rk.get(orig, 3) + shift))] + (255,)
 
+    if 'unbreak' in e:
+        lv = min(3, e['unbreak'])
+        for p in blade_px:
+            s, c = blade(*p)
+            if c == 13 and s % 2 == 0 and s >= 13 - 3 * lv:
+                recolour(p, STEEL, 1)
+                glow[p] = 'flow'
+    if 'mend' in e:
+        for p in (sorted(A.HANDLE)[0], (1, 14)):
+            px[p] = MEND + (255,)
+            glow[p] = 'twinkle'
+    if 'vanish' in e:
+        for p in blade_px:
+            s, c = blade(*p)
+            if c == 16 and s in (2, 6, 10):
+                px[p] = VIOLET + (255,)
+                glow[p] = 'flow'
     if 'sharp' in e:
         lv = min(5, e['sharp'])
         tip = {1: 99, 2: 12, 3: 9, 4: 6, 5: 3}[lv]
@@ -954,7 +994,8 @@ class Kind:
         out of the inventory its auras."""
         tex = self.texture_layers(sprite, mat, parent)
         auras = self.aura_layers(sprite)
-        base = cond_any(self.enchants, model_ref(base_model), model_ref(base_model, tint=False))
+        loud = [k for k in self.enchants if k not in QUIET]
+        base = cond_any(loud, model_ref(base_model), model_ref(base_model, tint=False))
         models = [base] + tex
         if auras:
             models.append({'type': 'minecraft:select', 'property': 'minecraft:display_context',
@@ -965,8 +1006,8 @@ class Kind:
 
 # the order texture parts are painted in (later ones on top)
 PAINT_ORDER = {
-    True: ['sharp', 'smite', 'bane', 'fire', 'sweep', 'loot', 'knock'],
-    False: ['sharp', 'piercing', 'smite', 'bane', 'density', 'breach', 'fire', 'flame', 'eff', 'quick', 'multishot',
+    True: ['unbreak', 'mend', 'vanish', 'sharp', 'smite', 'bane', 'fire', 'sweep', 'loot', 'knock'],
+    False: ['unbreak', 'mend', 'vanish', 'sharp', 'piercing', 'smite', 'bane', 'density', 'breach', 'fire', 'flame', 'eff', 'quick', 'multishot',
             'impaling', 'channeling', 'loyalty', 'riptide', 'infinity', 'power', 'lure', 'luck', 'silk', 'windburst',
             'knock', 'punch', 'lunge', 'fortune', 'loot'],
 }
