@@ -78,74 +78,46 @@ public final class Screens implements FabricClientGameTest {
 				ctx.takeScreenshot("nameplate_front");
 				camera(ctx, CameraType.FIRST_PERSON);
 			});
-			// Proof of concept, round 15: the armour sets back as they were in rounds 10 and 11 (particles round you, the
-			// material's accent, the trim's seam of light), seen from the front and the back, and sneaking
-			safe("fx_round15", () -> {
+			// Effects, round 16: every tool and weapon with its enchantments as texture parts and auras, layered by the client
+			// from the item's own enchantments (no item is changed): in the hotbar, in your hand (first and third person) and
+			// on the ground; no enchantment glint on them, the glint stays on an item with only Unbreaking
+			safe("fx_round16", () -> {
 				ctx.getInput().lookAt(0, 0);
 				ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.HIDDEN));
-				server.runOnServer(sv -> nl.libreria.glint.GlintMod.AURA_THIRD.set(player, false));
 				run(server, "time set midnight", "clear @a");
-				String[][] sets = {{"fire", "4", "fire_protection:4", "diamond"}, {"protection", "4", "protection:4", "diamond"}, {"blast", "4", "blast_protection:4", "diamond"},
-						{"projectile", "4", "projectile_protection:4", "diamond"}, {"thorns", "3", "thorns:3", "diamond"}, {"mending", "1", "mending:1", "diamond"},
-						{"binding", "1", "binding_curse:1", "diamond"}, {"vanishing", "1", "vanishing_curse:1", "diamond"}, {"fire", "4", "fire_protection:4", "golden"},
-						{"fire", "4", "fire_protection:4", "netherite"}};
-				for (String[] k : sets) {
-					wearMaterial(server, k[3], k[2]);
-					String spec = "set:" + k[0] + ":" + k[1] + "::" + k[3];
-					server.runOnServer(sv -> nl.libreria.glint.GlintMod.debugFx(player, spec));
-					String name = k[0] + "_" + k[1] + (k[3].equals("diamond") ? "" : "_" + k[3]);
-					camera(ctx, CameraType.THIRD_PERSON_FRONT);
-					ctx.waitTicks(40);
-					ctx.takeScreenshot("fxback_" + name + "_front");
-					camera(ctx, CameraType.THIRD_PERSON_BACK);
-					ctx.waitTicks(20);
-					ctx.takeScreenshot("fxback_" + name + "_back");
-				}
-				wearMaterial(server, "diamond", "fire_protection:4");
-				server.runOnServer(sv -> nl.libreria.glint.GlintMod.debugFx(player, "set:fire:4"));
-				ctx.getInput().holdKey(o2 -> o2.keyShift);
-				ctx.waitTicks(30);
-				ctx.takeScreenshot("fxback_fire_4_sneak_back");
-				camera(ctx, CameraType.THIRD_PERSON_FRONT);
-				ctx.waitTicks(20);
-				ctx.takeScreenshot("fxback_fire_4_sneak_front");
-				ctx.getInput().releaseKey(o2 -> o2.keyShift);
-				camera(ctx, CameraType.FIRST_PERSON);
+				String[][] tools = {
+						{"diamond_sword", "sharpness:5,fire_aspect:2,looting:3,knockback:2,sweeping_edge:3"},
+						{"netherite_sword", "smite:5,fire_aspect:2"}, {"iron_sword", "bane_of_arthropods:4,sweeping_edge:2"},
+						{"diamond_pickaxe", "efficiency:5,fortune:3"}, {"golden_axe", "efficiency:4,sharpness:5"}, {"iron_shovel", "efficiency:3,silk_touch:1"},
+						{"diamond_spear", "lunge:3,sharpness:5,fire_aspect:2,looting:3"}, {"mace", "density:5,wind_burst:3,fire_aspect:2"},
+						{"bow", "power:5,punch:2,flame:1,infinity:1"}, {"crossbow", "quick_charge:3,multishot:1"}, {"trident", "loyalty:3,channeling:1,impaling:5"},
+						{"fishing_rod", "lure:3,luck_of_the_sea:3"}, {"wooden_hoe", "efficiency:5,fortune:3"}, {"shears", "efficiency:5"},
+						{"stone_sword", "unbreaking:3"}};
+				for (int i = 0; i < 9; i++)
+					run(server, "item replace entity @a hotbar." + i + " with minecraft:" + tools[i][0] + "[enchantments={" + tools[i][1] + "}]");
 				ctx.waitTicks(10);
-				ctx.takeScreenshot("fxback_fire_4_first");
-				server.runOnServer(sv -> nl.libreria.glint.GlintMod.debugFx(player, "off"));
-				server.runOnServer(sv -> nl.libreria.glint.GlintMod.AURA_THIRD.set(player, true));
-				run(server, "clear @a");
-				ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.FULL));
-			});
-			// What the effects cost the server: each set at its top grade with a sword with an effect in hand, then swinging;
-			// logged as LIBRERIA-FX-COST (one wearer, one player seeing it: seven of each is seven and 49 times as much)
-			safe("fx_cost", () -> {
-				run(server, "clear @a", "item replace entity @a weapon.mainhand with " + sword("fire2_sharp5"));
-				camera(ctx, CameraType.THIRD_PERSON_BACK);
-				server.runOnServer(sv -> nl.libreria.glint.GlintMod.costReset());
-				ctx.waitTicks(100);
-				server.runOnServer(sv -> nl.libreria.glint.GlintMod.costReport("a sword, no set"));
-				for (String set : new String[]{"fire:4", "protection:4", "blast:4", "projectile:4", "thorns:3", "mending:1", "binding:1", "vanishing:1"}) {
-					server.runOnServer(sv -> nl.libreria.glint.GlintMod.debugFx(player, "set:" + set));
-					ctx.waitTicks(40);
-					server.runOnServer(sv -> nl.libreria.glint.GlintMod.costReset());
-					ctx.waitTicks(100);
-					server.runOnServer(sv -> nl.libreria.glint.GlintMod.costReport("set " + set + " + sword"));
+				ctx.takeScreenshot("fxtool_hotbar");
+				for (String[] t : tools) {
+					run(server, "item replace entity @a weapon.mainhand with minecraft:" + t[0] + "[enchantments={" + t[1] + "}]");
+					camera(ctx, CameraType.FIRST_PERSON);
+					ctx.waitTicks(12);
+					ctx.takeScreenshot("fxtool_" + t[0] + "_first");
+					camera(ctx, CameraType.THIRD_PERSON_FRONT);
+					ctx.waitTicks(12);
+					ctx.takeScreenshot("fxtool_" + t[0] + "_third");
 				}
-				server.runOnServer(sv -> nl.libreria.glint.GlintMod.debugFx(player, "set:fire:4"));
-				run(server, "summon minecraft:zombie " + x + " " + y + " " + (z + 2) + " {NoAI:1b,Health:1000f,attributes:[{id:\"minecraft:max_health\",base:1000}]}");
-				ctx.getInput().lookAt(0, 20);
-				server.runOnServer(sv -> nl.libreria.glint.GlintMod.costReset());
-				for (int k = 0; k < 10; k++) {
-					ctx.getInput().pressKey(o2 -> o2.keyAttack);
-					ctx.waitTicks(10);
-				}
-				server.runOnServer(sv -> nl.libreria.glint.GlintMod.costReport("set fire:4 + hitting with the sword twice a second"));
-				server.runOnServer(sv -> nl.libreria.glint.GlintMod.debugFx(player, "off"));
-				run(server, "kill @e[type=minecraft:zombie]", "clear @a");
-				ctx.getInput().lookAt(0, 0);
 				camera(ctx, CameraType.FIRST_PERSON);
+				run(server, "clear @a");
+				// on the ground, in a row in front of you
+				for (int i = 0; i < 8; i++)
+					run(server, "summon minecraft:item " + (x - 3.5 + i) + " " + (y + 0.2) + " " + (z + 3) + " {PickupDelay:32767,Age:-32768,NoGravity:1b,Motion:[0d,0d,0d],Item:{id:\"minecraft:" + tools[i][0]
+							+ "\",count:1,components:{\"minecraft:enchantments\":{" + tools[i][1].replace(":", ":").replace(",", ",") + "}}}}");
+				ctx.getInput().lookAt(0, 30);
+				ctx.waitTicks(15);
+				ctx.takeScreenshot("fxtool_ground");
+				run(server, "kill @e[type=minecraft:item]");
+				ctx.getInput().lookAt(0, 0);
+				ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.FULL));
 			});
 			// Your own armour's particles in third person: a set (one orbit), and ordinary Protection armour
 			safe("armour_third", () -> {

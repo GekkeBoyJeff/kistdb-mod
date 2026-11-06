@@ -23,6 +23,7 @@ layout(location = 4) in vec4 overlayColor;
 #endif
 layout(location = 5) in vec2 texCoord0;
 layout(location = 7) in vec3 libreriaPos;
+layout(location = 8) flat in int libreriaNoGlint;
 #ifdef GLINT
 layout(location = 6) in vec2 texCoordGlint;
 #endif
@@ -111,13 +112,15 @@ void main() {
         color *= vertexColor * ColorModulator;
     }
 
+    // the glint on everything but an aura and an item whose effect takes its place
+    bool libreriaGlint = !libreriaAura && libreriaNoGlint == 0;
     #ifdef GLINT
-    if (!libreriaAura) color.a = max(color.a, GlintAlpha);
+    if (libreriaGlint) color.a = max(color.a, GlintAlpha);
     #endif
 
     #ifdef OIT_ALPHA_ONLY
     executeAlphaOnlyPhase(gl_FragCoord.z, color.a);
     #else
-    fragColor = calculateFinalColor(color, !libreriaFx && !libreriaAura, !libreriaAura);
+    fragColor = calculateFinalColor(color, !libreriaFx && !libreriaAura, libreriaGlint);
     #endif
 }

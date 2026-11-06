@@ -34,6 +34,8 @@ layout(location = 5) out vec2 texCoord0;
 // Libreria: how far from the camera, in every pass (the fog distance is missing in the alpha-only pass), so a far-only
 // particle can fade out near the camera the same way in each pass
 layout(location = 7) out vec3 libreriaPos;
+// Libreria: a quad tinted 254,254,254 (an item with an enchantment effect of its own) gets no enchantment glint
+layout(location = 8) flat out int libreriaNoGlint;
 #ifdef GLINT
 layout(location = 6) out vec2 texCoordGlint;
 #endif
@@ -45,7 +47,13 @@ void main() {
     sphericalVertexDistance = fog_spherical_distance(Position);
     cylindricalVertexDistance = fog_cylindrical_distance(Position);
     #endif
-    vertexColor = minecraft_mix_light(Light0_Direction, Light1_Direction, Normal, Color);
+    vec4 libreriaColor = Color;
+    libreriaNoGlint = 0;
+    if (all(lessThan(abs(Color.rgb - vec3(254.0 / 255.0)), vec3(0.6 / 255.0)))) {
+        libreriaNoGlint = 1;
+        libreriaColor = vec4(1.0, 1.0, 1.0, Color.a);
+    }
+    vertexColor = minecraft_mix_light(Light0_Direction, Light1_Direction, Normal, libreriaColor);
     #ifndef OIT_ALPHA_ONLY
     lightMapColor = sample_lightmap(Sampler2, UV2);
     overlayColor = texelFetch(Sampler1, UV1, 0);

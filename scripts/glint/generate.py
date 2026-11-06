@@ -25,6 +25,9 @@ import sys
 import zipfile
 import zlib
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import tools_fx  # noqa: E402
+
 from PIL import Image
 
 VANILLA = sys.argv[1] if len(sys.argv) > 1 else '/home/claude/ref/assets/assets/minecraft'
@@ -789,9 +792,95 @@ def enchant_condition(family, on_true, on_false, stored=False):
     }
 
 
+# the categories that get the layered effects of tools_fx.py, and their kind there
+TOOL_KINDS = {'sword': 'sword', 'axe': 'axe', 'pickaxe': 'pickaxe', 'shovel': 'shovel', 'hoe': 'hoe', 'shears': 'shears',
+              'spear': 'spear', 'bow': 'bow', 'crossbow': 'crossbow', 'trident': 'trident', 'mace': 'mace',
+              'fishing_rod': 'rod'}
+
+
+def resolved(models_dir, mid, key):
+    """A model's property (display, parent chain merged) from the vanilla models."""
+    out = {}
+    chain = []
+    while mid:
+        name = mid.split(':')[-1]
+        path = os.path.join(models_dir, '..', name + '.json')
+        if not os.path.exists(path):
+            break
+        m = json.load(open(path))
+        chain.append(m)
+        mid = m.get('parent')
+    for m in reversed(chain):
+        if key in m:
+            if isinstance(m[key], dict):
+                out.update(m[key])
+            else:
+                out = m[key]
+    return out
+
+
+def tool_models(models_dir, tex_dir, writer):
+    """Every vanilla model of a tool or weapon sprite -> a function that builds what it becomes."""
+    by_texture = {}
+    kinds = {}
+    for name in tools_fx.KINDS:
+        sprites, mats, _ = tools_fx.KINDS[name]
+        for sprite, pattern in sprites.items():
+            for mat in mats:
+                by_texture[pattern.format(m=mat)] = (name, sprite, mat)
+    leaves = {}
+    for fname in sorted(os.listdir(models_dir)):
+        if not fname.endswith('.json'):
+            continue
+        m = json.load(open(os.path.join(models_dir, fname)))
+        layer0 = (m.get('textures') or {}).get('layer0')
+        if not layer0:
+            continue
+        tex = layer0.split(':')[-1].replace('item/', '', 1)
+        if tex not in by_texture:
+            continue
+        name, sprite, mat = by_texture[tex]
+        mid = 'minecraft:item/' + fname[:-5]
+        parent = m.get('parent', 'minecraft:item/generated')
+        if ':' not in parent:
+            parent = 'minecraft:' + parent
+        if name not in kinds:
+            kinds[name] = tools_fx.Kind(name, os.path.join(tex_dir, '../..'), writer, None)
+        k = kinds[name]
+        display = resolved(models_dir, mid, 'display')
+        leaves[mid] = (k, sprite, mat, parent, display)
+    return leaves
+
+
+def tool_tree(node, leaves):
+    """The vanilla item definition with each tool sprite's model replaced by its layered effects."""
+    hit = False
+    if isinstance(node, dict):
+        if node.get('type') == 'minecraft:model' and node.get('model') in leaves and len(node) == 2:
+            k, sprite, mat, parent, display = leaves[node['model']]
+            k.display_of = lambda s, d=display: d
+            return k.leaf(sprite, mat, node['model'], parent), True
+        out = {}
+        for key, val in node.items():
+            out[key], h = tool_tree(val, leaves)
+            hit = hit or h
+        return out, hit
+    if isinstance(node, list):
+        out = []
+        for val in node:
+            v, h = tool_tree(val, leaves)
+            out.append(v)
+            hit = hit or h
+        return out, hit
+    return node, False
+
+
 def main():
     assets = os.path.join(OUT, 'assets')
-    for sub in ('minecraft/items', NS):
+    # only what this script writes: the armour layers, set sprites and trims of the other scripts stay
+    mine = ['minecraft/items'] + [f'{NS}/{t}/item/{d}' for t in ('textures', 'models') for d in ('glint', 'frame')] + \
+        [f'{NS}/{t}/item/fx/{k}' for t in ('textures', 'models') for k in tools_fx.KINDS]
+    for sub in mine:
         shutil.rmtree(os.path.join(assets, sub), ignore_errors=True)
     shutil.rmtree(os.path.join(OUT, 'glint'), ignore_errors=True)
 
@@ -818,10 +907,23 @@ def main():
 
     overlay_models = {f: [] for f in FAMILIES}
     count_items = 0
+    # Tools and weapons: texture parts and auras per enchantment and level, layered (tools_fx.py)
+    writer = tools_fx.Writer(assets)
+    tool_leaves = tool_models(models_dir, tex_dir, writer)
     for fname in sorted(os.listdir(items_dir)):
         item = fname[:-5]
         cat = category(item)
         if cat is None or item.startswith('waxed_') or item in ('bowl',):
+            continue
+        if cat in TOOL_KINDS:
+            definition = json.load(open(os.path.join(items_dir, fname)))
+            model, hit = tool_tree(definition['model'], tool_leaves)
+            if not hit:
+                continue
+            definition['model'] = with_frame(model, item, rarity)
+            write_json(os.path.join(assets, 'minecraft/items', fname), definition)
+            written.add(fname)
+            count_items += 1
             continue
         model_path = os.path.join(models_dir, item + '.json')
         if not os.path.exists(model_path):
@@ -894,6 +996,8 @@ def main():
         with open(os.path.join(assets, 'minecraft/items', fname), 'w') as f:
             json.dump(definition, f, separators=(',', ':'))
 
+    for fam, paths in writer.family_models.items():
+        overlay_models.setdefault(fam, []).extend(paths)
     # "Uit"-pakketjes: per familie de overlay-modellen vervangen door een leeg model
     off_dir = os.path.join(OUT, 'glint/off')
     os.makedirs(off_dir, exist_ok=True)
