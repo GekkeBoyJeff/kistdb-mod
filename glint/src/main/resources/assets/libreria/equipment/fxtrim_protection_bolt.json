@@ -1,0 +1,20 @@
+{
+ "layers": {
+  "humanoid": [
+   {
+    "texture": "minecraft:diamond"
+   },
+   {
+    "texture": "libreria:fxtrim/protection_bolt"
+   }
+  ],
+  "humanoid_leggings": [
+   {
+    "texture": "minecraft:diamond"
+   },
+   {
+    "texture": "libreria:fxtrim/protection_bolt"
+   }
+  ]
+ }
+}

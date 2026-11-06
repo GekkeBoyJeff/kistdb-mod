@@ -78,26 +78,14 @@ public final class Screens implements FabricClientGameTest {
 				ctx.takeScreenshot("nameplate_front");
 				camera(ctx, CameraType.FIRST_PERSON);
 			});
-			// Proof of concept, round 10: armour sets on every material (an accent of its own: gold warmer, netherite
-			// dark and red, copper verdigris, leather earthy, chainmail links, diamond sparkle), and four more kinds of
-			// set (Thorns, Mending, Binding, Vanishing on all four pieces), moving
-			safe("fx_round10", () -> {
+			// Proof of concept, round 11: an armour set's light following its trim (a seam of light round the trim's
+			// lines; the trim itself stays as it is), every pattern; and the four new kinds of set again, moving
+			safe("fx_round11", () -> {
 				ctx.getInput().lookAt(0, 0);
 				ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.HIDDEN));
 				server.runOnServer(sv -> nl.libreria.glint.GlintMod.AURA_THIRD.set(player, false));
 				run(server, "time set midnight", "clear @a");
 				camera(ctx, CameraType.THIRD_PERSON_FRONT);
-				String[] mats = {"leather", "chainmail", "copper", "iron", "golden", "diamond", "netherite"};
-				String[][] kinds = {{"fire", "fire_protection:4"}, {"protection", "protection:4"}};
-				for (String[] k : kinds) {
-					for (String m : mats) {
-						wearMaterial(server, m, k[1]);
-						String spec = "set:" + k[0] + ":4::" + m;
-						server.runOnServer(sv -> nl.libreria.glint.GlintMod.debugFx(player, spec));
-						ctx.waitTicks(40);
-						ctx.takeScreenshot("fxmat_" + k[0] + "_" + m);
-					}
-				}
 				String[][] more = {{"thorns", "3", "thorns:3"}, {"mending", "1", "mending:1"}, {"binding", "1", "binding_curse:1"},
 						{"vanishing", "1", "vanishing_curse:1"}};
 				for (String[] k : more) {
@@ -110,23 +98,29 @@ public final class Screens implements FabricClientGameTest {
 						ctx.waitTicks(3);
 					}
 				}
-				for (int g = 1; g <= 2; g++) {
-					wearMaterial(server, "diamond", "thorns:" + g);
-					String spec = "set:thorns:" + g;
+				String[] patterns = {"bolt", "coast", "dune", "eye", "flow", "host", "raiser", "rib", "sentry", "shaper", "silence", "snout",
+						"spire", "tide", "vex", "ward", "wayfinder", "wild"};
+				String[][] kinds = {{"fire", "gold"}, {"protection", "amethyst"}};
+				for (String[] k : kinds) {
+					String spec = "set:" + k[0] + ":4";
 					server.runOnServer(sv -> nl.libreria.glint.GlintMod.debugFx(player, spec));
-					ctx.waitTicks(40);
-					ctx.takeScreenshot("fxkind_thorns_g" + g);
+					wearTrim(server, "coast", k[1], null);
+					ctx.waitTicks(30);
+					ctx.takeScreenshot("fxtrim_" + k[0] + "_coast_plain");
+					for (String pat : patterns) {
+						wearTrim(server, pat, k[1], "libreria:fxtrim_" + k[0] + "_" + pat);
+						ctx.waitTicks(20);
+						ctx.takeScreenshot("fxtrim_" + k[0] + "_" + pat);
+					}
+					camera(ctx, CameraType.THIRD_PERSON_BACK);
+					ctx.waitTicks(20);
+					ctx.takeScreenshot("fxtrim_" + k[0] + "_back");
+					camera(ctx, CameraType.THIRD_PERSON_FRONT);
 				}
-				camera(ctx, CameraType.FIRST_PERSON);
-				ctx.getInput().lookAt(0, 40);
-				wearMaterial(server, "netherite", "fire_protection:4");
-				server.runOnServer(sv -> nl.libreria.glint.GlintMod.debugFx(player, "set:fire:4::netherite"));
-				ctx.waitTicks(30);
-				ctx.takeScreenshot("fxkind_first");
-				ctx.getInput().lookAt(0, 0);
 				server.runOnServer(sv -> nl.libreria.glint.GlintMod.debugFx(player, "off"));
 				server.runOnServer(sv -> nl.libreria.glint.GlintMod.AURA_THIRD.set(player, true));
 				run(server, "clear @a");
+				camera(ctx, CameraType.FIRST_PERSON);
 				ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.FULL));
 			});
 			// Your own armour's particles in third person: a set (one orbit), and ordinary Protection armour
@@ -789,6 +783,18 @@ public final class Screens implements FabricClientGameTest {
 		String[] items = {"helmet", "chestplate", "leggings", "boots"};
 		for (int i = 0; i < 4; i++)
 			run(server, "item replace entity @a armor." + slots[i] + " with minecraft:" + mat + "_" + items[i] + "[enchantments={" + ench + "}]");
+	}
+
+	/** Diamond armour with a trim on every piece; with asset, our layers (a seam of light round the trim) on top of diamond. */
+	private static void wearTrim(net.fabricmc.fabric.api.client.gametest.v1.context.TestServerContext server, String pattern, String material,
+			String asset) {
+		String[] slots = {"head", "chest", "legs", "feet"};
+		String[] items = {"helmet", "chestplate", "leggings", "boots"};
+		for (int i = 0; i < 4; i++) {
+			String eq = asset == null ? "" : ",equippable={slot:\"" + slots[i] + "\",asset_id:\"" + asset + "\"}";
+			run(server, "item replace entity @a armor." + slots[i] + " with minecraft:diamond_" + items[i] + "[trim={pattern:\"minecraft:" + pattern
+					+ "\",material:\"minecraft:" + material + "\"}" + eq + "]");
+		}
 	}
 
 	/** A diamond sword with one of the effect models, without the enchantment glint (the effect takes its place). */

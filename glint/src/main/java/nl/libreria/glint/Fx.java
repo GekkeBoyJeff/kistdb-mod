@@ -593,48 +593,61 @@ final class Fx {
 				if (g >= 4) ground(p, w, level, viewers, tick, "windring", wind, 2.0f, 90);
 			}
 			case "thorns" -> {
-				// Briar (Thorns on all four): thorns climbing round you in a spiral, a red glint where one bites, a ring
-				// of bramble at your feet; per grade more of them
-				if (every(tick, new int[]{0, 6, 4, 3}[Math.min(3, g)])) {
-					int c = pick(0x5E8C3A, 0x3F6B2A, 0x9C2236);
-					ps.add(helix("thorn", c, tick * 0.27, 0.5, 0.42, 0.05, h * 1.0, 0.7, 33, 0.34f, 0.18f));
+				// Briar (Thorns on all four): two vines climbing round you in a double spiral (a steady stream of leaf
+				// green), thorns standing out on them, a rose-red glint where one bites, bramble round your feet
+				int vines = g >= 2 ? 2 : 1;
+				for (int k = 0; k < vines; k++) {
+					double a0 = tick * 0.21 + k * Math.PI;
+					ps.add(helix("mote", pick(0x4E8A32, 0x3F7A2A, 0x6AA040), a0, 0.52, 0.4, 0.02, h * (0.7 + 0.15 * g), 0.9, 30, 0.17f, 0.1f));
+					if (every(tick, 4)) ps.add(helix("thorn", pick(0x2F5A22, 0x9C2236), a0, 0.53, 0.41, 0.02, h * (0.7 + 0.15 * g), 0.9, 30,
+							0.24f, 0.16f));
 				}
-				if (g >= 2) orbit(p, w, level, viewers, tick, "briar", g >= 3 ? 5 : 3, 0.6, 0.35, 0.3f, 120, new String[]{"thorn"},
-						new int[]{0x5E8C3A, 0x9C2236});
-				if (every(tick, 9)) ps.add(pop("twinkle", 0xFF5A5A, onBody(p, 0.15f, 0.9f, 0.45f), 0.26f, 6, 0.5f));
-				ground(p, w, level, viewers, tick, "bramble", 0x3F6B2A, 1.9f, 300);
+				if (every(tick, new int[]{0, 10, 7, 4}[Math.min(3, g)])) ps.add(pop("twinkle", pick(0xFF4A5A, 0xE02A40), onBody(p, 0.1f, 0.85f, 0.48f),
+						0.3f, 8, 0.5f));
+				ground(p, w, level, viewers, tick, "bramble", 0x4E8A32, 1.9f, 300);
+				if (g >= 3) spinRing(p, w, level, viewers, tick, "briarring", 0x3F7A2A, 1.6f, 0.04, 0, 240);
 			}
 			case "mending" -> {
-				// Renewal (Mending on all four): green experience motes drifting in to you from all round and going in
-				// with a soft flash, a calm green glow under you
-				if (every(tick, 3)) {
+				// Renewal (Mending on all four): orbs of experience drifting in to you from all round, bright green and
+				// gold, and going in with a soft flash; a ring of green light turning slowly round your middle
+				if (every(tick, 2)) {
 					double a = R.nextDouble() * Math.PI * 2;
-					double y = h * rnd(0.2f, 0.9f);
-					ps.add(helix("mote", pick(0xB8FF6A, 0x8CE84A, 0xE0FF9A), a, 1.3, 0.25, y, h * 0.55, -0.4, 24, 0.2f, 0.06f));
+					double y = h * rnd(0.15f, 0.95f);
+					int c = pick(0xB8FF6A, 0xD8FF6A, 0xF0E060);
+					ps.add(helix("glow", c, a, 1.4, 0.2, y, h * 0.55, -0.35, 24, 0.3f, 0.08f));
+					ps.add(helix("mote", 0xFFFFE0, a, 1.4, 0.2, y, h * 0.55, -0.35, 24, 0.12f, 0.03f));
 				}
-				if (every(tick, 12)) ps.add(pop("glow", 0xA8F060, new Vec3(0, h * 0.55, 0), 0.9f, 10, 0));
+				if (every(tick, 10)) ps.add(pop("twinkle", 0xE8FFB0, new Vec3(rnd(-0.2f, 0.2f), h * rnd(0.4f, 0.7f), rnd(-0.2f, 0.2f)), 0.45f, 8, 0.5f));
+				spinRing(p, w, level, viewers, tick, "renewal", 0x9CF060, 1.7f, 0.45, 6, 160);
 				ground(p, w, level, viewers, tick, "pool", 0x6AD040, 1.6f, 400);
 			}
 			case "binding" -> {
-				// Shackled (Binding on all four): chains circling round your legs, violet-black smoke seeping off you, a
-				// pool of shadow under you; nothing bright, a curse takes light away
-				orbit(p, w, level, viewers, tick, "chains", 4, 0.55, 0.25, 0.36f, 150, new String[]{"chain"}, new int[]{0xA77DF0, 0x7A5AB0});
-				if (every(tick, 3)) {
-					Vec3 from = onBody(p, 0.05f, 0.7f, 0.32f);
-					frame.add(line("smoke", pick(0x4A2A6B, 0x3A2150, 0x2A1838), from, from.add(rnd(-0.15f, 0.15f), rnd(0.4f, 0.6f), rnd(-0.15f, 0.15f)),
-							rnd(0.45f, 0.6f), 0.9f, 0, rnd(-0.5f, 0.5f), 28));
+				// Shackled (Binding on all four): heavy chains circling round your legs, violet smoke seeping off you and
+				// sinking, a dark rune circle under you; dim violet, never bright: a curse takes light away
+				orbit(p, w, level, viewers, tick, "chains", 5, 0.58, 0.22, 0.42f, 150, new String[]{"chain"}, new int[]{0xB48CFF, 0x8A64D0});
+				if (every(tick, 2)) {
+					Vec3 from = onBody(p, 0.3f, 0.9f, 0.34f);
+					frame.add(line("smoke", pick(0x8A5AC8, 0x6A44A0, 0x9A70D8), from, from.add(rnd(-0.15f, 0.15f), -rnd(0.4f, 0.7f), rnd(-0.15f, 0.15f)),
+							rnd(0.4f, 0.55f), 0.8f, 0, rnd(-0.5f, 0.5f), 26));
 				}
-				ground(p, w, level, viewers, tick, "shadow", 0x1A0F24, 2.0f, 400);
+				if (every(tick, 8)) ps.add(pop("twinkle", 0xC8A8FF, onBody(p, 0.1f, 0.9f, 0.42f), 0.28f, 8, 0.6f));
+				ground(p, w, level, viewers, tick, "circle", 0x5A3A90, 1.9f, -260);
 			}
 			case "vanishing" -> {
-				// Fading (Vanishing on all four): you come apart at the edges, pale motes drifting off and winking out,
-				// a glint now and then that shrinks to nothing
+				// Fading (Vanishing on all four): you come apart at the edges: pale flakes of you drift off and wink out,
+				// a ghostly haze clings to your outline, a glint now and then that shrinks to nothing
 				if (every(tick, 1)) {
-					Vec3 from = onBody(p, 0.05f, 1.0f, 0.4f);
-					Vec3 away = new Vec3(from.x * 0.9, 0.25, from.z * 0.9);
-					ps.add(line("mote", pick(0xE8E0FF, 0xC8B8F0, 0xFFFFFF), from, from.add(away), rnd(0.16f, 0.22f), 0.01f, 0, 0, 20));
+					for (int k = 0; k < 2; k++) {
+						Vec3 from = onBody(p, 0.05f, 1.0f, 0.36f);
+						Vec3 away = new Vec3(from.x * 1.2, rnd(0.15f, 0.45f), from.z * 1.2);
+						ps.add(line("mote", pick(0xF0E8FF, 0xD8C8FF, 0xFFFFFF), from, from.add(away), rnd(0.2f, 0.3f), 0.01f, 0, 0, 22));
+					}
 				}
-				if (every(tick, 7)) ps.add(pop("twinkle", 0xF0E8FF, onBody(p, 0.1f, 1.0f, 0.4f), 0.32f, 10, 0.6f));
+				if (every(tick, 4)) {
+					Vec3 from = onBody(p, 0.1f, 0.9f, 0.32f);
+					frame.add(line("haze", 0xC8B8F0, from, from.add(from.x * 0.4, 0.3, from.z * 0.4), 0.5f, 0.8f, 0, 0, 20));
+				}
+				if (every(tick, 6)) ps.add(pop("twinkle", 0xF0E8FF, onBody(p, 0.1f, 1.0f, 0.42f), 0.36f, 10, 0.6f));
 			}
 			default -> {
 			}

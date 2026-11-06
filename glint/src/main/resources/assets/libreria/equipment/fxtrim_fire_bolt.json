@@ -1,0 +1,20 @@
+{
+ "layers": {
+  "humanoid": [
+   {
+    "texture": "minecraft:diamond"
+   },
+   {
+    "texture": "libreria:fxtrim/fire_bolt"
+   }
+  ],
+  "humanoid_leggings": [
+   {
+    "texture": "minecraft:diamond"
+   },
+   {
+    "texture": "libreria:fxtrim/fire_bolt"
+   }
+  ]
+ }
+}
