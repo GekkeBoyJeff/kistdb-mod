@@ -14,7 +14,7 @@ from PIL import Image
 
 VAN = sys.argv[1] if len(sys.argv) > 1 else '/home/claude/ref/vanilla26/assets/minecraft'
 OUT = os.path.join(os.path.dirname(__file__), '../../glint/src/main/resources/assets/libreria')
-KINDS = {'fire': ((255, 150, 50), 252), 'protection': ((150, 178, 255), 251)}
+KINDS = {'fire': ((196, 84, 26), 252), 'protection': ((100, 116, 206), 251)}
 
 
 def main():

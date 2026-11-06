@@ -598,9 +598,11 @@ final class Fx {
 				int vines = g >= 2 ? 2 : 1;
 				for (int k = 0; k < vines; k++) {
 					double a0 = tick * 0.21 + k * Math.PI;
-					ps.add(helix("mote", pick(0x4E8A32, 0x3F7A2A, 0x6AA040), a0, 0.52, 0.4, 0.02, h * (0.7 + 0.15 * g), 0.9, 30, 0.17f, 0.1f));
-					if (every(tick, 4)) ps.add(helix("thorn", pick(0x2F5A22, 0x9C2236), a0, 0.53, 0.41, 0.02, h * (0.7 + 0.15 * g), 0.9, 30,
-							0.24f, 0.16f));
+					ps.add(helix("mote", pick(0x5E9A3A, 0x4E8A32, 0x7AB048), a0, 0.52, 0.4, 0.02, h * (0.7 + 0.15 * g), 0.9, 30, 0.26f, 0.16f));
+					if (every(tick, 3)) ps.add(helix("thorn", pick(0x2F5A22, 0x9C2236), a0 + 0.1, 0.54, 0.42, 0.02, h * (0.7 + 0.15 * g), 0.9, 30,
+							0.3f, 0.2f));
+					if (every(tick, 7)) ps.add(helix("feather", pick(0x6AA040, 0x8CC050), a0 - 0.1, 0.53, 0.41, 0.02, h * (0.7 + 0.15 * g), 0.9, 30,
+							0.26f, 0.18f));
 				}
 				if (every(tick, new int[]{0, 10, 7, 4}[Math.min(3, g)])) ps.add(pop("twinkle", pick(0xFF4A5A, 0xE02A40), onBody(p, 0.1f, 0.85f, 0.48f),
 						0.3f, 8, 0.5f));
