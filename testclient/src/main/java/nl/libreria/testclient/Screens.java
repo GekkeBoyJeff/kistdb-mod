@@ -517,7 +517,13 @@ public final class Screens implements FabricClientGameTest {
 				ctx.getInput().lookAt(new BlockPos(x, y + 1, z + 1));
 				ctx.waitTicks(20);
 				ctx.takeScreenshot("look_close");
-				run(server, "kill @e[type=minecraft:villager]");
+				// and from a few steps back, where the card fits
+				run(server, f("tp @a %d %d %d 0 0", x, y, z - 3));
+				ctx.waitTicks(6);
+				ctx.getInput().lookAt(new BlockPos(x, y + 1, z + 1));
+				ctx.waitTicks(20);
+				ctx.takeScreenshot("look_far");
+				run(server, "kill @e[type=minecraft:villager]", f("tp @a %d %d %d 0 0", x, y, z));
 			});
 			menu(ctx, server, player, "own_secrets", p -> nl.libreria.collector.gui.AchievementsGui.openCategory(p,
 					nl.libreria.collector.Achievement.Category.GEHEIM));
