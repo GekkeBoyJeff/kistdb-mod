@@ -294,14 +294,14 @@ final class Details {
 		for (Component c : lore.lines()) if (!MARK.equals(c.getStyle().getInsertion())) keep.add(c);
 		if (keep.size() == lore.lines().size()) return stack;
 		ItemStack out = stack.copy();
-		if (keep.isEmpty()) out.remove(DataComponents.LORE);
-		else out.set(DataComponents.LORE, new ItemLore(keep));
+		// (set, never remove: every item has an empty lore and the default tooltip display to begin with, and setting
+		// that back leaves the item exactly as it was)
+		out.set(DataComponents.LORE, keep.isEmpty() ? ItemLore.EMPTY : new ItemLore(keep));
 		TooltipDisplay d = out.get(DataComponents.TOOLTIP_DISPLAY);
 		if (d != null) {
 			for (DataComponentType<?> t : List.<DataComponentType<?>>of(DataComponents.ENCHANTMENTS, DataComponents.STORED_ENCHANTMENTS,
 					DataComponents.ATTRIBUTE_MODIFIERS)) d = d.withHidden(t, false);
-			if (d.equals(TooltipDisplay.DEFAULT)) out.remove(DataComponents.TOOLTIP_DISPLAY);
-			else out.set(DataComponents.TOOLTIP_DISPLAY, d);
+			out.set(DataComponents.TOOLTIP_DISPLAY, d.equals(TooltipDisplay.DEFAULT) ? TooltipDisplay.DEFAULT : d);
 		}
 		return out;
 	}

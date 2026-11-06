@@ -204,6 +204,31 @@ public final class Services {
 		int structureKindsTotal();
 	}
 
+	/** The stories found gear tells in parts (Info): which there are, and how many parts of each a player has held. */
+	public interface Stories {
+		/** Story id → its title, in a fixed order. */
+		java.util.Map<String, String> titles();
+
+		/** How many parts a story has. */
+		int parts(String story);
+
+		/** How many different parts of a story this player has had in their inventory. */
+		int held(ServerPlayer player, String story);
+
+		/** Story parts held, all stories together. */
+		int pieces(ServerPlayer player);
+	}
+
+	private static @Nullable Stories stories;
+
+	public static void provideStories(Stories s) {
+		stories = s;
+	}
+
+	public static Optional<Stories> stories() {
+		return Optional.ofNullable(stories);
+	}
+
 	private static @Nullable Discoveries discoveries;
 
 	public static void provideDiscoveries(Discoveries d) {

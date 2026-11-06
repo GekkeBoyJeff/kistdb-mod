@@ -1,0 +1,65 @@
+# More per kind of thing.
+sword|The blade is nicked in the exact spot where it once met a better sword.
+sword|Some swords sing. This one mutters.
+sword|Still has a lump of cake on the tip from a celebration that went wrong.
+sword|It was knighted once, by accident, at a very confusing ceremony.
+sword|The edge is so fine it once cut a rumour in half.
+sword|A duellist's blade: it has stood at dawn more times than a rooster.
+sword|They say every sword wants one thing. This one wants a nap.
+sword|Engraved: "To Sir Reginald, with adequate regards."
+axe|Its last owner chopped down a tree that the whole village had said was sacred. Nobody has seen him since. The tree grew back.
+axe|There's a little smiley face on the blade, painted by someone who did not understand axes.
+axe|A tree-hugger's nightmare and a tree-cutter's dream.
+axe|The previous owner talked to every tree before he cut it down. They weren't comforted.
+axe|Has seen more splinters than a grandpa's rocking chair.
+bow|The grip is wrapped in a ribbon from someone's wedding. Romantic, unless you were the groom.
+bow|It shoots a little to the left. So did its last owner, in every sense.
+bow|The string hums when a phantom passes overhead.
+bow|An archer's best friend. The archer's other friends left.
+crossbow|Has a little sign on the stock: "Point away from face". Learned the hard way.
+crossbow|Taken from an illager who had decorated it with flowers. Even pillagers have a soft side.
+crossbow|It goes "click". Then everybody else goes very quiet.
+trident|The prongs hum when it rains. Not with joy.
+trident|A dolphin carried this for a mile once, as a gift. Then took it back.
+trident|Thrown so often it gets dizzy on dry land.
+mace|One swing and the argument's over. So is the floor.
+mace|There's a dent in it from hitting a breeze. Breezes are mostly air. That's a strong mace.
+mace|It came down from a great height once. It's been looking down on everyone ever since.
+spear|The tip is bent from the time it was used to pole-vault over a moat. It almost worked.
+spear|Built for a long reach. Its owner had a long reach and short arms. Complicated man.
+spear|There's a small banner on it reading "CHARGE". Its owner mostly retreated.
+helmet|Its last wearer had a big head. Literally. Also figuratively.
+helmet|There's an old bird's nest in it. The bird was evicted. The bird is still angry.
+helmet|Dented on the side from a closet door. Embarrassing, but true.
+chestplate|There's a heart drawn inside with initials. One set has been scratched out.
+chestplate|Built to stop a sword, used to stop a door, now stopping nothing.
+chestplate|It smells of a long march and the soup at the end of it.
+leggings|The left leg is slightly longer. So was its owner's.
+leggings|Previously worn by a dancer. The leggings know steps you don't.
+boots|There's a pebble in the left one. There will always be a pebble in the left one.
+boots|They smell like they've walked through every swamp in the land. They have.
+boots|These have kicked a creeper. Once. That's all you need to know.
+shield|There's a painted eye on the front. It blinks if you look away.
+shield|It was used as a dinner plate for an entire siege. It doesn't want to talk about the menu.
+shield|The banner on it is from a guild that only existed for one very disastrous afternoon.
+elytra|There's a scorch mark from a firework that went off a little too early.
+elytra|The wings creak when the wind changes. They miss the End.
+elytra|Its last pilot did a loop over a village and the whole village applauded. Then he hit the church.
+pickaxe|It mined a tunnel straight to a dungeon and kept going. Unstoppable. Unwise.
+pickaxe|Has struck so much stone it hums gravel songs.
+pickaxe|Rumour says it once mined a diamond out of a villager's tooth. The villager was fine. Rich, even.
+shovel|It once dug a hole so deep the miners below complained about the noise.
+shovel|There's a faded "X" on the blade. This shovel found the spot. Someone else got the gold.
+hoe|There's a little seed stuck in it that keeps trying to grow.
+hoe|A villager wept when it was taken. He was a farmer. It was his favourite hoe. You monster.
+shears|The handles are wrapped in wool, out of respect.
+shears|These shears have cut more ribbons than a mayor.
+rod|The line has a knot in it from every big fish that got away. It's mostly knots.
+rod|There's a tiny lure on it shaped like a frog. The fish think it's funny. They still bite.
+rod|It fished up a bottle with a message. The message said "stop fishing for messages".
+brush|It brushed a skeleton once that brushed back.
+brush|Soft bristles, hard history.
+flint|The striker is shaped like a tiny dragon. Very fitting. Very concerning.
+flint|Used to light the candles at every birthday in a village. The cakes were never the same.
+stick|The carrot looks tired. It's been dangled for so long.
+stick|The fungus on the end is very fresh. The striders know. The striders always know.

@@ -777,6 +777,29 @@ public final class Catalog {
 			find(c, "vondst.endstad", "Void Tourist", "Find an end city", Items.PURPUR_BLOCK, E, "End City");
 			find(c, "vondst.proef", "Trial and Error", "Find trial chambers", Ui.item("copper_block"), U, "Trial Chambers");
 		});
+		buildStories(c);
+	}
+
+	/** The stories found gear tells (Info): every part of one held, one achievement each; and a ladder. */
+	private static void buildStories(Category c) {
+		Services.Stories st = Services.stories().orElse(null);
+		if (st == null || st.titles().isEmpty()) return;
+		ladder(c, "verhaal.delen", Items.WRITABLE_BOOK, "Find a part of a story|Find %,d parts of stories", new Counter((p, d) -> st.pieces(p)), 1,
+				r(U, R, E), 1, "Once Upon a Time", 10, "Page Turner", 50, "Bookworm");
+		int total = st.titles().size();
+		for (var e : st.titles().entrySet()) {
+			String story = e.getKey();
+			int parts = st.parts(story);
+			add(new Achievement("verhaal." + story, c, e.getValue(), "Hold every part of the story \"" + e.getValue() + "\" (" + parts + ")",
+					Items.WRITTEN_BOOK, E, goal(parts, (p, d) -> st.held(p, story)), null));
+		}
+		Counter complete = new Counter((p, d) -> {
+			long n = 0;
+			for (String story : st.titles().keySet()) if (st.held(p, story) >= st.parts(story)) n++;
+			return n;
+		});
+		ladder(c, "verhalen", Items.BOOKSHELF, "Know a whole story|Know %,d whole stories", complete, 1, r(R, E, L, M),
+				1, "Storyteller", 5, "Lorekeeper", 15, "Keeper of Tales", total, "Every Story Told");
 	}
 
 	private static void find(Category c, String id, String name, String desc, Item icon, Rarity r, String kind) {

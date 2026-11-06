@@ -81,6 +81,15 @@ final class Found {
 	}
 
 	static final WorldStore<Data> STORE = WorldStore.create("libreria/found.json", Data.class, Data::new);
+
+	/** Which parts of which stories a player has had in their inventory. */
+	static final class Seen {
+		public Map<String, Set<Integer>> parts = new HashMap<>();
+	}
+
+	static final nl.libreria.core.PlayerStore<Seen> SEEN = nl.libreria.core.PlayerStore.create("libreria/stories", Seen.class, Seen::new, d -> {
+		if (d.parts == null) d.parts = new HashMap<>();
+	});
 	static final List<Text> LINES = new ArrayList<>(), PIECES = new ArrayList<>();
 	static final List<Family> FAMILIES = new ArrayList<>();
 	/** Story id → title and number of parts. */
@@ -441,7 +450,10 @@ final class Found {
 			var inv = p.getInventory();
 			for (int i = 0; i < inv.getContainerSize(); i++) {
 				ItemStack s = inv.getItem(i);
-				if (!s.isEmpty() && has(s, PENDING)) stamp(p, s);
+				if (s.isEmpty()) continue;
+				if (has(s, PENDING)) stamp(p, s);
+				String piece = pieceOf(s);
+				if (piece != null) saw(p, piece);
 			}
 		}
 	}
@@ -487,6 +499,45 @@ final class Found {
 		}
 	}
 
+	/** A player has (had) this story part ("lantern:3") in their inventory. */
+	static void saw(ServerPlayer p, String piece) {
+		int colon = piece.lastIndexOf(':');
+		String story = piece.substring(0, colon);
+		int part = Integer.parseInt(piece.substring(colon + 1));
+		Seen s = SEEN.get(p);
+		if (s.parts.computeIfAbsent(story, k -> new HashSet<>()).add(part)) SEEN.markDirty(p);
+	}
+
+	static void provide() {
+		nl.libreria.core.Services.provideStories(new nl.libreria.core.Services.Stories() {
+			@Override
+			public Map<String, String> titles() {
+				Map<String, String> out = new LinkedHashMap<>();
+				for (var e : STORIES.entrySet()) out.put(e.getKey(), e.getValue().title());
+				return out;
+			}
+
+			@Override
+			public int parts(String story) {
+				Text last = STORIES.get(story);
+				return last == null ? 0 : last.parts();
+			}
+
+			@Override
+			public int held(ServerPlayer player, String story) {
+				Set<Integer> s = SEEN.get(player).parts.get(story);
+				return s == null ? 0 : s.size();
+			}
+
+			@Override
+			public int pieces(ServerPlayer player) {
+				int n = 0;
+				for (Set<Integer> s : SEEN.get(player).parts.values()) n += s.size();
+				return n;
+			}
+		});
+	}
+
 	/** The story part an item carries ("lantern:3"), or null. */
 	static @Nullable String pieceOf(ItemStack s) {
 		CustomData cd = s.get(DataComponents.CUSTOM_DATA);
@@ -498,6 +549,7 @@ final class Found {
 
 	static void init() {
 		load();
+		provide();
 		net.fabricmc.fabric.api.loot.v3.LootTableEvents.MODIFY_DROPS.register((entry, context, drops) -> {
 			try {
 				entry.unwrapKey().ifPresent(key -> onLoot(key.identifier().getPath(), context, drops));

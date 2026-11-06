@@ -1,0 +1,95 @@
+# Yet more for anything. Some of these nod at the stories (the lantern, the Ninth Village, Pell, the Choir…).
+*|Somebody left a candle burning next to it. The candle is still burning. Nobody has been here in years.
+*|A little card tied to it says "for the lighthouse". There is no lighthouse anymore.
+*|It smells faintly of pumpkin pie. Grandma Pell has been here.
+*|There's a bell-shaped dent in it. Nine small marks around the dent. Count them. Don't.
+*|Someone wrote "the Choir is still singing" on it in chalk. The chalk is fresh.
+*|It has the sign of the Last Torch scratched off it, angrily.
+*|A pin hole near the edge: the Pale Cartographer measured this once.
+*|A receipt from the Saltmarsh Twins is folded around it. It says "genuine". It is spelled wrong.
+*|Tobias Crumb's name is on it, crossed out, then written again, then crossed out by someone else.
+*|It carries a faint stain of salt water from a sea that drowned a king.
+*|A little turnip is carved into it. Upper or Lower Wellroot? Don't ask. Never ask.
+*|A goat hair is stuck to it. A prophetic goat hair.
+*|There's a tiny "13" scratched into it, between a 12 and a 1.
+*|There's a tally on it of days marched. It stops at one thousand and ninety-five.
+*|There's a single honeycomb stuck to it. Agnes's bees went everywhere.
+*|It has a piglin tooth mark in it. Grashk was here, collecting.
+*|The handle has a strip of black glass set into it. If you look closely, someone waves.
+*|Faintly, it smells of cheese. A very old, very famous cheese.
+*|There's a burn on it in the shape of a hand that was kind.
+*|Inside a crack, a tiny folded note: "tell my father the Warden was dreaming".
+*|It was never meant to be found. It's been found nine times.
+*|You can tell a story with this {item}. You'll just have to make it up.
+*|Contains a single grain of sand from every desert. It's a lot of sand.
+*|Has a sticky label: "Do not open until the End". You're not in the End. Don't open it.
+*|Somebody wrapped it in a map of the world. The map is wrong about the shape of the world.
+*|It's warm on one side and cold on the other, like it can't decide what kind of {item} it is.
+*|A wandering trader sold it for twelve emeralds and three questions. He answered none of the questions.
+*|There's a single eyelash stuck to it, from something with very big eyes.
+*|The last owner sang to it before every fight. The songs were terrible. They won every fight.
+*|You'll swear it moved a little. It didn't. Probably. It did.
+*|It belonged to a knight so polite he apologised to every zombie he hit.
+*|Previously the pride of a museum that charged three emeralds to look at it and five to touch it.
+*|A tiny mouse lived in it for a while. It left a tiny thank-you note.
+*|It's been under a bed, in a chest, in a well and in a cow. Don't ask about the cow.
+*|Smells faintly of a library where someone was reading about you.
+*|The engraving says "for the brave". The previous owner wasn't. It came along anyway.
+*|It was hidden behind a painting. The painting was of this {item}. Very clever, very obvious.
+*|Every time you hold it, somewhere a bard gets a new idea.
+*|It survived a dragon, a flood and three tax collectors. The tax collectors were the worst.
+*|Someone scratched a recipe for cookies into it. The recipe is missing the cocoa. Monster.
+*|There's a tiny bite out of it, like someone checked whether it was gold.
+*|It's been the hero's weapon, the villain's weapon and the comedy relief's weapon. Same story.
+*|It only works if you believe in it. It also works if you don't. It's a {item}.
+*|The owner said it "spoke to him". The owner also spoke to his boots.
+*|Once used to point dramatically at the horizon. The horizon was not impressed.
+*|There's a little flower drawn on it, and under it the words "for Mum". Mum would be proud. Mum would also be worried.
+*|It feels like someone is about to walk in and ask for it back. Walk faster.
+*|Previously owned by a gnome. Gnomes don't exist. That's how good the gnome was at hiding.
+*|You can see a reflection in it of a room you're not in.
+*|Bought at an auction for a single copper coin. The other bidder had died. Of shock, at the price.
+*|It was the last thing in a wizard's will. The will said "to whoever annoys my cat least".
+*|Comes with a smell of oak smoke, a story about a fire, and a firm "no comment".
+*|Once lost in the snow and found in spring by a very surprised rabbit.
+*|There's a single word stamped on it: "AGAIN". Again what? It won't say.
+*|It doesn't like the dark. It doesn't like the light either. It likes a nice grey afternoon.
+*|Kept as an ornament on a fireplace by a family who never once looked at it. Rude.
+*|It's not expensive, it's just priceless. There's a difference: one of them can be sold.
+*|Somebody spent a lot of time making this. Somebody else spent a lot of time losing it.
+*|Belonged to a woman who said "watch me". People watched. It was worth it.
+*|You've seen worse. You've also seen better. Mostly you've seen worse.
+*|It once got a standing ovation in a tavern for being thrown very far.
+*|It was the guest of honour at a party it did not want to go to.
+*|The inside of it is lined with felt, as if someone cared. Then the felt is lined with spiders, as if someone stopped caring.
+*|If this {item} could talk, it would demand a raise.
+*|Belonged to a twin. Not one of the Saltmarsh ones. A nice one. There's always a nice one.
+*|Nobody remembers who left it there. The chest remembers. The chest won't talk.
+*|It has a very faint whistle when you swing it, like someone calling a dog that's long gone.
+*|Someone tried to engrave "Hope" on it and ran out of room after "Ho".
+*|It's on its second life. The first one was eventful.
+*|This {item} was traded for a recipe for the best stew in the world. The stew was not worth it. The {item} was.
+*|Owned by a farmer who saved the village from a raid with it and then went back to sorting potatoes.
+*|It has seen a sunrise from the top of the world. It wasn't impressed. It's very hard to impress.
+*|Left on a doorstep with a note: "Please take care of him."
+*|Someone drew a moustache on it. Distinguished.
+*|It once held off a horde of zombies on its own. Its owner was asleep at the time.
+*|The previous owner always said "that's a problem for later". This is later. You're the problem now.
+*|It has a little bell attached. The bell doesn't ring. It's waiting for something.
+*|A child carved her name into it. Next to it, smaller: "and her dad helped".
+*|It sat in a chest so long a family of silverfish named it as their landlord.
+*|If you shake it, something rattles. If you open it, nothing's there. Shake it again. Rattle.
+*|There's a good chance this saved someone's life. There's a better chance it ended someone's.
+*|You get a sense it's been waiting for you specifically, and it's a little annoyed at how long you took.
+*|It came from far away and it never once complained. Well, once. In the Nether. Fair.
+*|Someone embroidered a tiny pig on the strap. The pig is winking.
+*|Proof that the Old Builders had a sense of humour. They hid it very well.
+*|It's covered in a fine layer of the dust that collects on things nobody wants to touch.
+*|A pressed four-leaf clover is tucked into it. It brought luck to nobody.
+*|There's a message under the grime: "If found, return to the lighthouse keeper". Good luck with that.
+*|A wizard tried to turn it into a toad. Now it's a {item} that sometimes croaks.
+*|Its owner used it to impress a girl. The girl was impressed by someone else's goat.
+*|It was carried in a parade once. The parade was a funeral. The {item} stole the show.
+*|You can almost hear the applause from the last time it did something amazing.
+*|The tag on it reads "For display only". You are not display. Use it.
+*|There's a crack in it that someone fixed with gold. It's prettier for it. So are you.

@@ -50,8 +50,7 @@ final class Lore {
 		}
 		out.addAll(all.subList(all.size() - story, all.size()));
 		if (out.size() > 200) out = out.subList(0, 200);
-		if (out.isEmpty()) stack.remove(DataComponents.LORE);
-		else stack.set(DataComponents.LORE, new ItemLore(List.copyOf(out)));
+		stack.set(DataComponents.LORE, out.isEmpty() ? ItemLore.EMPTY : new ItemLore(List.copyOf(out)));
 		CustomData.update(DataComponents.CUSTOM_DATA, stack, root -> root.put(KEY, counts));
 	}
 
