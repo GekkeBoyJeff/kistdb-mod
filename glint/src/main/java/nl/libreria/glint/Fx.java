@@ -308,9 +308,9 @@ final class Fx {
 		if (every(tick, g >= 3 ? 4 : 9)) ps.add(pop("twinkle", 0xCFEFFF, onBody(p, 0.0f, g >= 2 ? 0.9f : 0.25f, 0.38f), rnd(0.35f, 0.5f), 8, 0.8f));
 		int[] flakes = {0, 0, 5, 3, 2};
 		if (every(tick, flakes[g])) {
-			Vec3 from = new Vec3(rnd(-0.6f, 0.6f), p.getBbHeight() * rnd(0.85f, 1.25f), rnd(-0.6f, 0.6f));
-			ps.add(line("flake", pick(0xF2FAFF, 0xBFE6FF, 0x8FD0FF), from, from.add(rnd(-0.2f, 0.2f), -rnd(0.9f, 1.4f), rnd(-0.2f, 0.2f)),
-					rnd(0.28f, 0.38f), 0.12f, 0, rnd(-2.2f, 2.2f), 30 + R.nextInt(10)));
+			Vec3 from = new Vec3(rnd(-0.6f, 0.6f), p.getBbHeight() * rnd(0.6f, 1.05f), rnd(-0.6f, 0.6f));
+			ps.add(line("flake", pick(0xF2FAFF, 0xBFE6FF, 0x8FD0FF), from, from.add(rnd(-0.2f, 0.2f), -rnd(0.8f, 1.2f), rnd(-0.2f, 0.2f)),
+					rnd(0.22f, 0.3f), 0.1f, 0, rnd(-2.2f, 2.2f), 30 + R.nextInt(10)));
 		}
 		if (g >= 3 && every(tick, 6)) {
 			Vec3 from = new Vec3(rnd(-0.4f, 0.4f), 0.1, rnd(-0.4f, 0.4f));
@@ -319,7 +319,7 @@ final class Fx {
 		if (g >= 4) {
 			// snow from above, in a wider circle
 			if (every(tick, 1)) {
-				double a = R.nextDouble() * Math.PI * 2, r = rnd(0.5f, 1.6f);
+				double a = R.nextDouble() * Math.PI * 2, r = rnd(0.7f, 1.8f);
 				Vec3 from = new Vec3(Math.cos(a) * r, p.getBbHeight() + rnd(0.6f, 1.2f), Math.sin(a) * r);
 				ps.add(line("flake", pick(0xFFFFFF, 0xDDF3FF), from, from.add(rnd(-0.3f, 0.3f), -from.y + 0.05, rnd(-0.3f, 0.3f)),
 						rnd(0.16f, 0.24f), 0.1f, 0, rnd(-2.5f, 2.5f), 40));
@@ -345,6 +345,7 @@ final class Fx {
 					new S(to, 0.05f, 0)), null));
 		}
 		if (g >= 3 && every(tick, 6)) ps.add(line("haze", 0x3FCFEA, new Vec3(0, 0.3, 0), new Vec3(0, 1.0, 0), 1.1f, 1.5f, 0, 0, 26));
+		if (g >= 3 && every(tick, 4)) ps.add(pop("twinkle", 0xC8FBFF, onBody(p, 0.1f, 0.9f, 0.4f), rnd(0.35f, 0.5f), 8, 0.7f));
 		if (g >= 4) flames(p, w, level, viewers, tick, "soulflames", 6, 0.5, new int[]{0x4FDDF5, 0x8FF8FF, 0x2FB5E0});
 	}
 
@@ -413,6 +414,13 @@ final class Fx {
 		if (r == null) {
 			r = new Ring();
 			for (int i = 0; i < n; i++) {
+				// a soft glow behind each, so it reads as light
+				ItemDisplayElement glow = element("haze", colours[i % colours.length], false);
+				glow.setScale(new Vector3f(scale * 2.2f));
+				glow.setTeleportDuration(3);
+				glow.setOffset(orbitSpot(p, i, n, tick, radius, height, period));
+				r.holder.addElement(glow);
+				r.els.add(glow);
 				ItemDisplayElement e = element(sprites[i % sprites.length], colours[i % colours.length], false);
 				e.setScale(new Vector3f(scale));
 				e.setTeleportDuration(3);
@@ -423,7 +431,7 @@ final class Fx {
 			show(p, w, level, viewers, key, r);
 		}
 		if (tick % 3 == 0) {
-			for (int i = 0; i < r.els.size(); i++) r.els.get(i).setOffset(orbitSpot(p, i, n, tick + 3, radius, height, period));
+			for (int i = 0; i < r.els.size(); i++) r.els.get(i).setOffset(orbitSpot(p, i / 2, n, tick + 3, radius, height, period));
 		}
 		r.holder.tick();
 	}
@@ -441,11 +449,17 @@ final class Fx {
 			r = new Ring();
 			ItemDisplayElement e = element(key.equals("icering") ? "ring" : "circle", rgb, true);
 			e.setScale(new Vector3f(size));
-			e.setOffset(new Vec3(0, 0.03, 0));
+			e.setOffset(new Vec3(0, 0.04, 0));
 			e.setInterpolationDuration(10);
 			e.setLeftRotation(new Quaternionf().rotateX(-Mth.HALF_PI));
 			r.holder.addElement(e);
 			r.els.add(e);
+			// a pool of glow under it
+			ItemDisplayElement pool = element("haze", rgb, true);
+			pool.setScale(new Vector3f(size * 1.25f));
+			pool.setOffset(new Vec3(0, 0.03, 0));
+			pool.setLeftRotation(new Quaternionf().rotateX(-Mth.HALF_PI));
+			r.holder.addElement(pool);
 			show(p, w, level, viewers, key, r);
 		}
 		if (tick % 10 == 0) {
@@ -472,6 +486,10 @@ final class Fx {
 				r.holder.addElement(e);
 				r.els.add(e);
 			}
+			ItemDisplayElement glow = element("haze", colours[0], false);
+			glow.setScale(new Vector3f(2.2f));
+			glow.setOffset(new Vec3(0, 0.35, 0));
+			r.holder.addElement(glow);
 			show(p, w, level, viewers, key, r);
 		}
 		if (tick % 4 == 0) {
