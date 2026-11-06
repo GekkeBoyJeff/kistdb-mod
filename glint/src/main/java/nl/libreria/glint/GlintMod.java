@@ -120,7 +120,6 @@ public final class GlintMod implements ModInitializer {
 			if (server.getTickCount() % Aura.RUN == 0) Aura.tick(server);
 			long t0 = System.nanoTime();
 			Fx.tick(server);
-			BodyAura.tick(server);
 			costNs += System.nanoTime() - t0;
 			costTicks++;
 		});
@@ -151,13 +150,6 @@ public final class GlintMod implements ModInitializer {
 
 	/** For the screenshot test: what the particles of this player's gear are, and how many were sent so far. */
 	/** Proof of concept: our own particles and light ("ember:3", "aegis:4" … "off"), or a hit ("hit:sharpness:5"). */
-	public static void debugFx(ServerPlayer p, String spec) {
-		if (spec.startsWith("hit:")) Fx.hit(p, spec.substring(4));
-		else if (spec.startsWith("smite_style:")) Fx.smiteStyle = spec.substring("smite_style:".length());
-		else Fx.set(p, spec);
-	}
-
-	/** Proof of concept: a set's aura on anything that looks like a player (a mannequin), "fire_4", or null to take it off. */
 	private static long costNs, costTicks;
 
 	/** Test only: start measuring what the effects cost the server. */
@@ -172,13 +164,16 @@ public final class GlintMod implements ModInitializer {
 	 */
 	public static void costReport(String what) {
 		double secs = Math.max(1, costTicks) / 20.0;
-		nl.libreria.core.Libreria.LOG.info("LIBRERIA-FX-COST {}: {} us per tick (of 50000), {} sprites alive, {} sprite packets/s, {} aura cards",
-				what, Math.round(costNs / 1000.0 / Math.max(1, costTicks)), Fx.alive(), Math.round((Fx.made * 2 + Fx.updates) / secs), BodyAura.cards());
+		nl.libreria.core.Libreria.LOG.info("LIBRERIA-FX-COST {}: {} us per tick (of 50000), {} sprites alive, {} sprite packets/s",
+				what, Math.round(costNs / 1000.0 / Math.max(1, costTicks)), Fx.alive(), Math.round((Fx.made * 2 + Fx.updates) / secs));
 	}
 
-	public static void debugBodyAura(net.minecraft.world.entity.LivingEntity e, String id) {
-		BodyAura.wear(e, id);
+	public static void debugFx(ServerPlayer p, String spec) {
+		if (spec.startsWith("hit:")) Fx.hit(p, spec.substring(4));
+		else if (spec.startsWith("smite_style:")) Fx.smiteStyle = spec.substring("smite_style:".length());
+		else Fx.set(p, spec);
 	}
+
 
 	public static @org.jetbrains.annotations.Nullable net.minecraft.core.BlockPos debugFxLight(ServerPlayer p) {
 		return Fx.lightOf(p);

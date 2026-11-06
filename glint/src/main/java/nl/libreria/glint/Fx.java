@@ -180,7 +180,6 @@ final class Fx {
 	static void set(ServerPlayer p, String spec) {
 		Wearer w = WEARERS.remove(p.getUUID());
 		if (w != null) clear(p, w);
-		BodyAura.clear(p.getUUID());
 		if (spec.equals("off")) return;
 		String[] parts = spec.split(":");
 		w = new Wearer();
@@ -508,7 +507,6 @@ final class Fx {
 		// except the ones on the side facing them, so they frame you instead of covering you
 		List<P> frame = new ArrayList<>();
 		double h = p.getBbHeight();
-		BodyAura.wear(p, auraId(w, g));
 		int feet = soul ? 0x5FE6FF : frost ? 0xBFE6FF : 0;
 		switch (w.set) {
 			case "protection" -> {
@@ -516,8 +514,10 @@ final class Fx {
 				// runes circling between the rings from III, the shield shimmering on you at IV
 				int main = feet != 0 ? feet : 0x9FB4FF, accent = 0xC2A6FF;
 				ground(p, w, level, viewers, tick, "circle", main, 1.45f + 0.15f * g, 200);
-				if (g >= 4) spinRing(p, w, level, viewers, tick, "ward1", main, 1.75f, 0.5, 16, 110);
-
+				if (g >= 2) spinRing(p, w, level, viewers, tick, "ward1", main, 1.75f, 0.5, 16, 110);
+				if (g >= 3) spinRing(p, w, level, viewers, tick, "ward2", accent, 1.95f, 0.56, -26, -150);
+				if (g >= 3) orbit(p, w, level, viewers, tick, "wardrunes", g >= 4 ? 4 : 2, 0.62, 0.76, 0.2f, 90,
+						new String[]{"rune_a", "rune_b", "rune_c", "rune_d"}, new int[]{main, accent});
 				if (every(tick, new int[]{0, 7, 5, 3, 2}[g])) ps.add(helix("mote", pick(main, accent, 0xE6ECFF), tick * 0.31, 0.6, 0.4, 0.08, h * 1.1,
 						0.5, 36, 0.14f, 0.02f));
 				if (g >= 4 && every(tick, 8)) ps.add(pop("hex", pick(main, accent), onBody(p, 0.3f, 0.85f, 0.36f), rnd(0.3f, 0.4f), 10, 0));
@@ -530,15 +530,16 @@ final class Fx {
 						: new int[]{0xFF9A3C, 0xFFB64A, 0xFF6A1F};
 				int[] embers = soul ? new int[]{0x9FF4FF, 0x5FE6FF} : frost ? new int[]{0xFFFFFF, 0xBFE6FF}
 						: new int[]{0xFFE9A8, 0xFFB64A, 0xFF8A2E};
+				feetFlames(p, w, level, viewers, tick, "flames", 6 + g, 0.47, 0.3f + 0.05f * g, fire);
 				ground(p, w, level, viewers, tick, "pool", fire[0], 1.25f + 0.15f * g, 400);
-				int lick = new int[]{0, 0, 0, 0, 0}[g];
+				int lick = new int[]{0, 0, 2, 1, 1}[g];
 				if (lick > 0 && every(tick, lick)) {
 					for (int k = 0; k < (g >= 4 ? 2 : 1); k++) {
 						frame.add(helix("flame", pick(fire), R.nextDouble() * Math.PI * 2, 0.47, 0.36, 0.05, h * new double[]{0, 0, 0.45, 0.6, 0.75}[g],
 								0.3, 14, 0.38f + 0.04f * g, 0.1f));
 					}
 				}
-				int streams = new int[]{0, 0, 0, 1, 2}[g];
+				int streams = new int[]{0, 1, 1, 2, 3}[g];
 				if (every(tick, new int[]{0, 5, 3, 2, 2}[g])) {
 					for (int k = 0; k < streams; k++) {
 						double a0 = tick * 0.22 + k * Math.PI * 2 / streams;
@@ -549,7 +550,11 @@ final class Fx {
 						}
 					}
 				}
-
+				if (g >= 3 && every(tick, 5)) {
+					Vec3 from = new Vec3(rnd(-0.2f, 0.2f), h * rnd(0.55f, 0.8f), rnd(-0.2f, 0.2f));
+					frame.add(line("haze", fire[0], from, from.add(0, 0.6, 0), 0.7f, 1.1f, 0, 0, 20));
+				}
+				if (g >= 4) mantle(p, w, level, viewers, tick, "mantle", fire);
 				if (g >= 4 && every(tick, 4)) ps.add(pop("twinkle", soul ? 0xCFFAFF : frost ? 0xFFFFFF : 0xFFF1C2, onBody(p, 0.2f, 1.05f, 0.45f),
 						rnd(0.22f, 0.3f), 6, 0.8f));
 			}
@@ -557,7 +562,7 @@ final class Fx {
 				// Bulwark: heavy smoke curling at your feet, shards of stone circling and tumbling round your middle from II,
 				// from III a thump now and then (a ring of dust running out over the ground) and sparks, at IV a dark ring
 				int dust = feet != 0 ? feet : 0xB8B8C4;
-				if (false) {
+				if (every(tick, g >= 3 ? 2 : 3)) {
 					double a = R.nextDouble() * Math.PI * 2;
 					Vec3 from = new Vec3(Math.cos(a) * 0.42, 0.08, Math.sin(a) * 0.42);
 					int smoke = feet != 0 ? feet : pick(0xA4A4B0, 0x8C8C98, 0xB8B8C2);
@@ -583,10 +588,12 @@ final class Fx {
 				// Windward: arcs of wind sweeping round you (more heights per grade), leaves caught in it from II, dust
 				// swirling off your feet from III, at IV speed lines flying past and a ring of wind on the ground
 				int wind = feet != 0 ? feet : 0xD8F5E6;
-				if (g >= 4) spinRing(p, w, level, viewers, tick, "gust1", wind, 1.8f, 0.3, 8, 34, "thinarc");
+				spinRing(p, w, level, viewers, tick, "gust1", wind, 1.8f, 0.3, 8, 34, "thinarc");
+				if (g >= 2) spinRing(p, w, level, viewers, tick, "gust2", 0xF2FFF8, 1.65f, 0.62, -12, -28, "thinarc");
+				if (g >= 3) spinRing(p, w, level, viewers, tick, "gust3", 0xA8E6C8, 1.5f, 0.88, 6, 40, "thinarc");
 				if (g >= 2 && every(tick, g >= 4 ? 6 : 9)) ps.add(helix("feather", pick(0xE8F7EE, 0xC8EBD6, 0xB6E3A8), tick * 0.5, 0.62, 0.7, 0.25,
 						h * 1.0, 1.2, 39, 0.28f, 0.24f));
-
+				if (g >= 3 && every(tick, 3)) ps.add(helix("mote", pick(0xE8F2EC, 0xCFE3D8), tick * 0.6, 0.35, 0.8, 0.05, 0.45, 0.6, 15, 0.13f, 0.02f));
 				if (g >= 4 && every(tick, 7)) {
 					double a = R.nextDouble() * Math.PI * 2, y = h * rnd(0.2f, 0.9f);
 					Vec3 from = new Vec3(Math.cos(a) * 0.8, y, Math.sin(a) * 0.8);
@@ -598,7 +605,7 @@ final class Fx {
 			case "thorns" -> {
 				// Briar (Thorns on all four): two vines climbing round you in a double spiral (a steady stream of leaf
 				// green), thorns standing out on them, a rose-red glint where one bites, bramble round your feet
-				int vines = 0;
+				int vines = g >= 2 ? 2 : 1;
 				for (int k = 0; k < vines; k++) {
 					double a0 = tick * 0.21 + k * Math.PI;
 					ps.add(helix("mote", pick(0x5E9A3A, 0x4E8A32, 0x7AB048), a0, 0.52, 0.4, 0.02, h * (0.7 + 0.15 * g), 0.9, 30, 0.26f, 0.16f));
@@ -615,7 +622,7 @@ final class Fx {
 			case "mending" -> {
 				// Renewal (Mending on all four): orbs of experience drifting in to you from all round, bright green and
 				// gold, and going in with a soft flash; a ring of green light turning slowly round your middle
-				if (every(tick, 6)) {
+				if (every(tick, 2)) {
 					double a = R.nextDouble() * Math.PI * 2;
 					double y = h * rnd(0.15f, 0.95f);
 					int c = pick(0xB8FF6A, 0xD8FF6A, 0xF0E060);
@@ -630,7 +637,7 @@ final class Fx {
 				// Shackled (Binding on all four): heavy chains circling round your legs, violet smoke seeping off you and
 				// sinking, a dark rune circle under you; dim violet, never bright: a curse takes light away
 				orbit(p, w, level, viewers, tick, "chains", 5, 0.58, 0.22, 0.42f, 150, new String[]{"chain"}, new int[]{0xB48CFF, 0x8A64D0});
-				if (false) {
+				if (every(tick, 2)) {
 					Vec3 from = onBody(p, 0.3f, 0.9f, 0.34f);
 					frame.add(line("smoke", pick(0x8A5AC8, 0x6A44A0, 0x9A70D8), from, from.add(rnd(-0.15f, 0.15f), -rnd(0.4f, 0.7f), rnd(-0.15f, 0.15f)),
 							rnd(0.4f, 0.55f), 0.8f, 0, rnd(-0.5f, 0.5f), 26));
@@ -641,8 +648,8 @@ final class Fx {
 			case "vanishing" -> {
 				// Fading (Vanishing on all four): you come apart at the edges: pale flakes of you drift off and wink out,
 				// a ghostly haze clings to your outline, a glint now and then that shrinks to nothing
-				if (every(tick, 3)) {
-					for (int k = 0; k < 1; k++) {
+				if (every(tick, 1)) {
+					for (int k = 0; k < 2; k++) {
 						Vec3 from = onBody(p, 0.05f, 1.0f, 0.36f);
 						Vec3 away = new Vec3(from.x * 1.2, rnd(0.15f, 0.45f), from.z * 1.2);
 						ps.add(line("mote", pick(0xF0E8FF, 0xD8C8FF, 0xFFFFFF), from, from.add(away), rnd(0.2f, 0.3f), 0.01f, 0, 0, 22));
@@ -737,16 +744,6 @@ final class Fx {
 			default -> {
 			}
 		}
-	}
-
-	/** Which aura card a set wears (scripts/glint/body_aura.py makes them): kind, grade, material, what the boots add. */
-	private static String auraId(Wearer w, int g) {
-		String id = w.set + "_" + g;
-		boolean four = g == 4 && (w.set.equals("fire") || w.set.equals("protection"));
-		if (four && (w.material.equals("golden") || w.material.equals("netherite"))) id += "_" + w.material;
-		else if (g == 4 && w.set.equals("fire") && w.extras.contains("soul")) id += "_soul";
-		else if (g == 4 && w.set.equals("fire") && w.extras.contains("frost")) id += "_frost";
-		return id;
 	}
 
 	/** A particle that goes round and up you along a helix (one motion: a stream of these looks like a spiral). */
