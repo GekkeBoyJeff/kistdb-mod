@@ -141,7 +141,7 @@ public final class SortButton {
 		lore.add(Component.empty());
 		lore.add(Ui.text("Deposit: adds items it already has", ChatFormatting.GRAY));
 		lore.add(Ui.text("from your inventory, not the hotbar.", ChatFormatting.GRAY));
-		if (ChestsMod.MIDDLE_CLICK.get(player)) lore.add(Ui.text("Middle-click any slot also sorts.", ChatFormatting.GRAY));
+		if (ChestsMod.DOUBLE_CLICK.get(player)) lore.add(Ui.text("Double-click an empty slot also sorts.", ChatFormatting.GRAY));
 		lore.add(Ui.text("Hide it: Settings › Items › Search & sorting", ChatFormatting.DARK_GRAY));
 		ItemStack s = new ItemStack(Items.HOPPER);
 		s.set(DataComponents.CUSTOM_NAME, Ui.text("⇅ Sort", ChatFormatting.GOLD).withStyle(ChatFormatting.BOLD));

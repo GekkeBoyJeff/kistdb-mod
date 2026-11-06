@@ -227,8 +227,26 @@ final class CollectorTests {
 			Records.offer(FakePlayer.get(level), Records.Kind.FALL, 999);
 			SelfTests.check(Records.get(Records.Kind.FALL) == before, "a fake player sets no records");
 			for (Records.Kind k : Records.Kind.values()) {
-				SelfTests.check(Catalog.get("record." + k.id) != null, "achievement for holding " + k.id);
+				SelfTests.check(Catalog.get("record." + k.id) == null, "holding " + k.id + " is no title any more");
 			}
+			SelfTests.check(Trophies.isFeat(Records.Kind.FALL, 150) && !Trophies.isFeat(Records.Kind.FALL, 149), "a fall is a trophy from 150 m");
+			SelfTests.check(Trophies.isFeat(Records.Kind.ALIVE, 48) && !Trophies.isFeat(Records.Kind.ALIVE, 41), "alive: from 48 hours");
+			SelfTests.check(!Records.Kind.SESSION.hasTrophy() && !Records.Kind.DEPTH.hasTrophy(), "no trophy for a long session or the bottom");
+			// Only the holder has it, and only while they hold it
+			java.util.UUID anna = java.util.UUID.nameUUIDFromBytes("trophy-anna".getBytes()), bram = java.util.UUID.nameUUIDFromBytes("trophy-bram".getBytes());
+			Records.Rec keep = Records.get(Records.Kind.LEVELS);
+			Records.debugSet(Records.Kind.LEVELS, anna, "Anna", 120, null, 0);
+			SelfTests.check(Trophies.has(anna, Records.Kind.LEVELS) && !Trophies.has(bram, Records.Kind.LEVELS), "the holder has the trophy");
+			CollectorMod.Data dd = new CollectorMod.Data();
+			dd.trophy = "levels";
+			SelfTests.check(Trophies.worn(anna, dd) == Records.Kind.LEVELS, "and can wear it");
+			Records.debugSet(Records.Kind.LEVELS, bram, "Bram", 130, "Anna", 120);
+			SelfTests.check(Trophies.worn(anna, dd) == null && Trophies.has(bram, Records.Kind.LEVELS), "beaten: the trophy goes to the new holder");
+			Records.debugSet(Records.Kind.LEVELS, bram, "Bram", 60, null, 0);
+			SelfTests.check(!Trophies.has(bram, Records.Kind.LEVELS), "a record below the bar is no trophy");
+			if (keep == null) Records.forget(Records.Kind.LEVELS);
+			else Records.debugSet(Records.Kind.LEVELS, keep.who, keep.name, keep.value, keep.before == null ? null : keep.beforeName, keep.beforeValue);
+			SelfTests.check(CollectorMod.withTrophy(anna, dd, null) == null, "no trophy and no title: no title line");
 			SelfTests.check(Catalog.get("records.1") != null && Catalog.get("records.20") != null, "record breaker ladder");
 		});
 		SelfTests.register("collector.showcase", level -> {

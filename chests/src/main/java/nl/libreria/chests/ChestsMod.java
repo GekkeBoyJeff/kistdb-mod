@@ -29,7 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * ChestsMod – een Libreria-module. Sorteren (knop in E, middelklik in kisten), een kisten-database per speler met
+ * ChestsMod – een Libreria-module. Sorteren (knop in kisten, dubbelklik op een leeg slot), een kisten-database per speler met
  * iconen-GUI, afstand en een lichtstraal, noIndex per kist en snel opbergen in kisten in de buurt.
  */
 public final class ChestsMod implements ModInitializer {
@@ -43,8 +43,6 @@ public final class ChestsMod implements ModInitializer {
 			"The magnifying glass beside your", "inventory: a right-click opens your", "items. Off: a right-click sorts.");
 	public static final Setting.Toggle SORT_BUTTON = MODULE.toggle("sorteerknop", "Sort button in chests", true, Items.CHEST,
 			"A ⇅ Sort button in the last empty", "slot of chests, barrels and boxes.", "Right-click: deposit matching items.");
-	public static final Setting.Toggle MIDDLE_CLICK = MODULE.toggle("middelklik", "Middle-click sorts", true, Items.HOPPER,
-			"Middle-click sorts the open chest,", "or your inventory if you click there.");
 	public static final Setting.Toggle DOUBLE_CLICK = MODULE.toggle("dubbelklik", "Double-click empty slot sorts", true, Items.HOPPER_MINECART,
 			"Handy without a middle mouse button", "(for example on a laptop).");
 	public static final Setting.Toggle NEW_MESSAGE = MODULE.toggle("melding", "Message for new chests", true, Items.PAPER,
@@ -86,14 +84,14 @@ public final class ChestsMod implements ModInitializer {
 
 		// In het Libreria-menu en op de knop in het E-scherm
 		// The buttons beside your inventory window (any click outside the window, with an empty hand: the game doesn't
-		// say where, so the mouse button decides). Left: your items into your nearby chests. Right: search. Middle: sort.
+		// say where, so the mouse button decides). Left: your items into your nearby chests. Right: search.
 		java.util.function.Consumer<ServerPlayer> sort = p -> {
 			if (Sorter.sortPlayer(p)) nl.libreria.core.Notify.whisper(p, "✔ Your inventory is sorted", net.minecraft.ChatFormatting.GREEN);
 			else nl.libreria.core.Notify.whisper(p, "Your inventory is too full to sort", net.minecraft.ChatFormatting.GRAY);
 		};
 		Hub.setEdgeButton(QuickStack::run, p -> {
 			if (!ChestSearch.fromInventory(p)) sort.accept(p);
-		}, sort);
+		});
 		MODULE.hubEntry(Domain.ITEMS, 10, Items.SPYGLASS, "Your items", ChestSearch::open,
 				"Everything on you and in your chests, searchable. Click one and its chest lights up.",
 				"Also: {inventory}, then right-click beside it.");
@@ -131,16 +129,18 @@ public final class ChestsMod implements ModInitializer {
 		LOG.info("Libreria Chests loaded");
 	}
 
-	/** De ⇅-knop in kisten; middelklik (of dubbelklik op een leeg slot) sorteert de container of je inventory. */
+	/**
+	 * De ⇅-knop in kisten; dubbelklik op een leeg slot sorteert de container of je inventory. (Middelklik kan niet: in
+	 * survival stuurt de game die in een venster niet naar de server.)
+	 */
 	private static boolean onClick(ServerPlayer player, AbstractContainerMenu menu, int slot, ContainerInput input, int button) {
 		if (slot < 0 || slot >= menu.slots.size()) return false;
 		if (SortButton.supports(menu) && SortButton.onClick(player, menu, slot, input, button)) return true;
 		boolean supported = menu == player.inventoryMenu || menu instanceof ChestMenu || menu instanceof ShulkerBoxMenu;
 		if (!supported) return false;
-		boolean middle = input == ContainerInput.CLONE && !player.hasInfiniteMaterials() && MIDDLE_CLICK.get(player);
 		boolean doubleEmpty = input == ContainerInput.PICKUP_ALL && menu.getCarried().isEmpty()
 				&& !menu.getSlot(slot).hasItem() && DOUBLE_CLICK.get(player);
-		if (!middle && !doubleEmpty) return false;
+		if (!doubleEmpty) return false;
 
 		Slot clicked = menu.getSlot(slot);
 		if (clicked.container instanceof Inventory) {

@@ -228,13 +228,23 @@ public final class AchievementsGui {
 								.append(Ui.text("  " + num(a.target()), ChatFormatting.DARK_GRAY)));
 					}
 					b.addLoreLine(Component.empty());
-					if (shown.isCollection()) Menu.action(b, "Click: see what you have and miss");
-					if (best != null) Menu.action(b, (shown.isCollection() ? "Right-click" : "Click") + ": use ✦ " + best.name() + " ✦ as title");
+					if (shown.isCollection()) {
+						Menu.action(b, "Click: see what you have and miss");
+						Menu.action(b, "Right-click: pick a grade to wear");
+					} else {
+						Menu.action(b, "Click: pick a grade to wear");
+						if (best != null) Menu.action(b, "Right-click: wear ✦ " + best.name() + " ✦");
+					}
 				}
+				boolean graded = ladder.size() > 1;
 				b.setCallback((x, t, act, g) -> {
 					if (shown.isCollection() && !t.isRight) {
 						Ui.click(p);
 						new ItemsPage(p, shown.name(), shown, shown.items(), Filter.ALL, 0, () -> new CategoryPage(p, c, pg).open()).open();
+					} else if (graded && (shown.isCollection() || !t.isRight)) {
+						// The grades of this ladder: wear any one you earned
+						Ui.click(p);
+						GradesWindow.open(p, ladder, c.label, q -> new CategoryPage(q, c, pg).open());
 					} else if (best != null) {
 						CollectorMod.setTitle(p, best.id());
 						new CategoryPage(p, c, pg).open();
@@ -246,7 +256,7 @@ public final class AchievementsGui {
 			pages(pg, pages, n -> new CategoryPage(p, c, n).open());
 			closeButton();
 			help("One icon per achievement, with its", "grades: mine 100 stone, then 1,000,", "then 10,000… Every grade is a title.", "",
-					"Sorted by how close you are.", "Click one you earned to use it", "as your title.");
+					"Sorted by how close you are.", "Click one to pick the grade you", "wear (each in its own colour).");
 			finish();
 		}
 

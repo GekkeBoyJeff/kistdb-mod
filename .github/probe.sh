@@ -44,3 +44,5 @@ for j in $(find ~/.gradle/caches .gradle -name '*.jar' 2>/dev/null | grep -i min
     break
   fi
 done
+
+exit 0

@@ -52,7 +52,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class GlintMod implements ModInitializer {
 	public static final Module MODULE = Module.register("glint", "Glint", Items.ENCHANTED_BOOK,
-			"Enchant effects and rarity frames on", "your items, custom book covers and", "particles around players. No install.").in(nl.libreria.core.Domain.YOU, "Effects");
+			"Enchant effects on your tools, weapons", "and armour, armour sets, rarity frames", "and book covers. No install.").in(nl.libreria.core.Domain.YOU, "Effects");
 	public static final Setting.Toggle FRAMES = MODULE.toggle("frames", "Rarity frames", true, Items.ITEM_FRAME,
 			"A light border around uncommon, rare", "and epic items in your inventory;", "rare and epic ones sparkle.");
 	public static final Setting.Toggle BOOKS = MODULE.toggle("books", "Custom book textures", true, Items.BOOK,
@@ -63,9 +63,9 @@ public final class GlintMod implements ModInitializer {
 	public static final Setting.Toggle AURA_FIRST = MODULE.toggle("particles_self", "First person: your weapon", true, Items.GLOWSTONE_DUST,
 			"Particles of the enchanted item in", "your hand, as you look around.");
 	public static final Setting.Toggle AURA_THIRD = MODULE.toggle("particles_third", "Third person: your armour", true, Items.DIAMOND_CHESTPLATE,
-			"Your armour's particles, only visible", "in third person (F5): they never", "fill your own view.");
+			"Your armour set and particles, only", "visible in third person (F5): they", "never fill your own view.");
 	public static final Setting.Toggle AURA = MODULE.toggle("particles", "On other players", true, Items.BLAZE_POWDER,
-			"Flames, snow, soul fire… around", "other players with enchanted gear.");
+			"Glowing armour, armour sets and", "particles on other players.");
 
 	/** Een effect-familie uit families.json (gegenereerd door tools/glans/generate.py). */
 	public record Family(String id, String group, String name, String enchants, int items, List<String> ids) {

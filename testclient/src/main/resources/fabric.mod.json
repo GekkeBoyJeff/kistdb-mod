@@ -2,14 +2,15 @@
 	"schemaVersion": 1,
 	"id": "libreria_testclient",
 	"version": "${version}",
-	"name": "Libreria screenshot client (CI only)",
+	"name": "Libreria screenshot and network client (CI only)",
 	"environment": "*",
 	"entrypoints": {
 		"main": [
 			"nl.libreria.testclient.Init"
 		],
 		"fabric-client-gametest": [
-			"nl.libreria.testclient.Screens"
+			"nl.libreria.testclient.Screens",
+			"nl.libreria.testclient.NetworkTest"
 		]
 	},
 	"depends": {

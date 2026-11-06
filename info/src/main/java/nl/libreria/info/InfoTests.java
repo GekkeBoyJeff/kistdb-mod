@@ -65,6 +65,19 @@ final class InfoTests {
 			SelfTests.check(!Places.remember(p, "test|village|1,2", a, "Village", new BlockPos(20, 64, 40)), "second visit isn't");
 			Places.STORE.get(p).places.removeIf(pl -> pl.key.startsWith("test|"));
 		});
+		SelfTests.register("info.look-close", level -> {
+			// Looking straight ahead at someone a step away: above their head is off the screen, beside them it fits
+			net.minecraft.world.phys.Vec3 eye = new net.minecraft.world.phys.Vec3(0, 1.62, 0), dir = new net.minecraft.world.phys.Vec3(0, 0, 1);
+			SelfTests.check(!Look.fits(eye, dir, new net.minecraft.world.phys.Vec3(0, 3.4, 1.1)), "a step away, above the head is off screen");
+			SelfTests.check(Look.fits(eye, dir, new net.minecraft.world.phys.Vec3(0, 3.4, 6)), "a few steps back it fits");
+			var cow = net.minecraft.world.entity.EntityTypes.COW.create(level, net.minecraft.world.entity.EntitySpawnReason.COMMAND);
+			if (cow != null) {
+				cow.setPos(0, 0, 1.5);
+				net.minecraft.world.phys.Vec3 at = Look.beside(eye, cow);
+				SelfTests.check(at.x < -0.5 && Math.abs(at.z - 1.5) < 0.01, "beside: on your right (west, facing south): " + at);
+				SelfTests.check(Look.fits(eye, dir, at), "and that's on the screen");
+			}
+		});
 		SelfTests.register("info.discoveries", level -> {
 			FakePlayer p = FakePlayer.get(level);
 			String mine = "test|disc|mine", theirs = "test|disc|theirs";

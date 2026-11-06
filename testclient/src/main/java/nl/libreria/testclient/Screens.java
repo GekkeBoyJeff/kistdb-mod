@@ -35,6 +35,17 @@ public final class Screens implements FabricClientGameTest {
 			TestServerContext server = sp.getServer();
 			sp.getConnection().waitForChunksRender();
 			ServerPlayer player = server.computeOnServer(s -> sp.getConnection().getServerPlayer());
+			scene(ctx, server, player);
+		}
+		LOG.info("LIBRERIA-SCREENSHOTS DONE");
+	}
+
+	/**
+	 * The whole walk through Libreria: the scene, then every menu, card and effect. Also run against a real dedicated
+	 * server by {@link NetworkTest}, where every packet really goes over the network (in singleplayer they don't).
+	 */
+	static void scene(ClientGameTestContext ctx, TestServerContext server, ServerPlayer player) {
+		{
 			BlockPos o = server.computeOnServer(s -> player.blockPosition());
 			int x = o.getX(), y = o.getY(), z = o.getZ();
 
@@ -78,10 +89,10 @@ public final class Screens implements FabricClientGameTest {
 				ctx.takeScreenshot("nameplate_front");
 				camera(ctx, CameraType.FIRST_PERSON);
 			});
-			// Effects, round 16: every tool and weapon with its enchantments as texture parts and auras, layered by the client
+			// Effects: every tool and weapon with its enchantments as texture parts and auras, layered by the client
 			// from the item's own enchantments (no item is changed): in the hotbar, in your hand (first and third person) and
 			// on the ground; no enchantment glint on them, the glint stays on an item with only Unbreaking
-			safe("fx_round16", () -> {
+			safe("effects_tools", () -> {
 				ctx.getInput().lookAt(0, 0);
 				ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.HIDDEN));
 				run(server, "time set midnight", "clear @a");
@@ -119,9 +130,9 @@ public final class Screens implements FabricClientGameTest {
 				ctx.getInput().lookAt(0, 0);
 				ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.FULL));
 			});
-			// Effects, round 17: worn armour seen by someone else: every material with its enchantment's glow, and trimmed
+			// Effects: worn armour seen by someone else: every material with its enchantment's glow, and trimmed
 			// pieces with a seam of light round the trim in the colour of their enchantment
-			safe("fx_round17", () -> {
+			safe("effects_armour", () -> {
 				ctx.getInput().lookAt(0, 12);
 				ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.HIDDEN));
 				camera(ctx, CameraType.FIRST_PERSON);
@@ -157,9 +168,9 @@ public final class Screens implements FabricClientGameTest {
 				ctx.getInput().lookAt(0, 0);
 				ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.FULL));
 			});
-			// Effects, round 18: armour sets from the armour you wear (all four pieces sharing an enchantment), Thorns as
-			// spikes flying off you; and what each costs the server, at the default and the richest particle intensity
-			safe("fx_round18", () -> {
+			// Effects: armour sets from the armour you wear (all four pieces sharing an enchantment), Thorns as
+			// spikes flying off you
+			safe("effects_sets", () -> {
 				ctx.getInput().lookAt(0, 0);
 				ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.HIDDEN));
 				run(server, "time set midnight", "clear @a", "kill @e[type=minecraft:mannequin]");
@@ -182,20 +193,6 @@ public final class Screens implements FabricClientGameTest {
 					ctx.waitTicks(15);
 					ctx.takeScreenshot("fxset_" + k[1] + "_back");
 				}
-				// the cost, with a sword with an effect in hand: at the default intensity, then the richest
-				run(server, "item replace entity @a weapon.mainhand with minecraft:diamond_sword[enchantments={sharpness:5,fire_aspect:2}]");
-				for (int rich = 0; rich < 2; rich++) {
-					int r = rich;
-					server.runOnServer(sv -> nl.libreria.glint.GlintMod.INTENSITY.set(player, r == 1 ? 3 : 2));
-					for (String[] k : sets) {
-						wearMaterial(server, "diamond", k[0]);
-						ctx.waitTicks(30);
-						server.runOnServer(sv -> nl.libreria.glint.GlintMod.costReset());
-						ctx.waitTicks(100);
-						server.runOnServer(sv -> nl.libreria.glint.GlintMod.costReport((r == 1 ? "rich " : "normal ") + k[1]));
-					}
-				}
-				server.runOnServer(sv -> nl.libreria.glint.GlintMod.INTENSITY.set(player, 2));
 				camera(ctx, CameraType.FIRST_PERSON);
 				run(server, "clear @a");
 				ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.FULL));
@@ -265,7 +262,7 @@ public final class Screens implements FabricClientGameTest {
 				int w = ctx.computeOnClient(mc -> mc.getWindow().getGuiScaledWidth());
 				int h = ctx.computeOnClient(mc -> mc.getWindow().getGuiScaledHeight());
 				int left = (w - 176) / 2, top = (h - 166) / 2;
-				// The buttons on the window's left edge (a click outside the window): left deposits, middle sorts
+				// The buttons on the window's left edge (a click outside the window): left deposits
 				ctx.getInput().setCursorPos((left - 14) * scale, (top + 61) * scale);
 				ctx.waitTicks(3);
 				ctx.getInput().pressKey(o2 -> o2.keyAttack);
@@ -273,9 +270,11 @@ public final class Screens implements FabricClientGameTest {
 				ctx.getInput().setCursorPos(2, 2);
 				ctx.waitTicks(2);
 				ctx.takeScreenshot("inventory_deposit");
-				ctx.getInput().setCursorPos((left - 14) * scale, (top + 61) * scale);
+				// Sorting: a double-click on an empty slot (the bottom row of the inventory)
+				ctx.getInput().setCursorPos((left + 16) * scale, (top + 128) * scale);
 				ctx.waitTicks(3);
-				ctx.getInput().pressKey(o2 -> o2.keyPickItem);
+				ctx.getInput().pressKey(o2 -> o2.keyAttack);
+				ctx.getInput().pressKey(o2 -> o2.keyAttack);
 				ctx.waitTicks(10);
 				ctx.getInput().setCursorPos(2, 2);
 				ctx.waitTicks(2);
@@ -593,7 +592,7 @@ public final class Screens implements FabricClientGameTest {
 				nl.libreria.collector.Records.debugSet(nl.libreria.collector.Records.Kind.LEVELS, player.getUUID(), me, 112, null, 0);
 				nl.libreria.collector.Records.debugSet(nl.libreria.collector.Records.Kind.DEPTH, bram, "Bram", -64, null, 0);
 				var cd = nl.libreria.collector.CollectorMod.STORE.get(player);
-				for (String id : new String[] {"items.drakenei", "record.fall", "geheim.cactus", "baas.draak", "tijd.1"}) {
+				for (String id : new String[] {"items.drakenei", "geheim.cactus", "baas.draak", "tijd.1"}) {
 					if (nl.libreria.collector.Catalog.get(id) != null) cd.earned.putIfAbsent(id, now);
 				}
 				cd.secrets.add("cactus");
@@ -609,6 +608,62 @@ public final class Screens implements FabricClientGameTest {
 			menu(ctx, server, player, "own_showcase", p -> nl.libreria.collector.gui.ShowcaseWindow.open(p, 1, q -> {
 			}));
 			menu(ctx, server, player, "own_records", nl.libreria.collector.gui.RecordsWindow::open);
+			// A trophy: Range (31 km) is a feat and it's ours. Its emblem in Records, the tooltip, and on the name tag
+			safe("trophy", () -> {
+				server.runOnServer(s -> nl.libreria.collector.gui.RecordsWindow.open(player));
+				ctx.waitTicks(10);
+				double scale = ctx.computeOnClient(mc -> (double) mc.getWindow().getGuiScale());
+				int w = ctx.computeOnClient(mc -> mc.getWindow().getGuiScaledWidth());
+				int h = ctx.computeOnClient(mc -> mc.getWindow().getGuiScaledHeight());
+				ctx.getInput().setCursorPos(((w - 176) / 2 + 16) * scale, ((h - 222) / 2 + 18 + 18 * 3 + 8) * scale);
+				ctx.waitTicks(4);
+				ctx.takeScreenshot("trophy_records_hover");
+				ctx.getInput().pressKey(o2 -> o2.keyAttack);
+				ctx.waitTicks(6);
+				ctx.takeScreenshot("trophy_worn_card");
+				close(ctx, server, player);
+				ctx.getInput().lookAt(0, 0);
+				camera(ctx, CameraType.THIRD_PERSON_FRONT);
+				ctx.waitTicks(30);
+				ctx.takeScreenshot("trophy_nameplate");
+				camera(ctx, CameraType.FIRST_PERSON);
+			});
+			// Picking a grade: four of the mining ladder earned, wearing the second
+			safe("grades", () -> {
+				server.runOnServer(s -> {
+					var cd = nl.libreria.collector.CollectorMod.STORE.get(player);
+					long at = System.currentTimeMillis();
+					for (String id : new String[] {"mijn.1000", "mijn.10000", "mijn.50000", "mijn.200000"}) cd.earned.putIfAbsent(id, at);
+					nl.libreria.collector.CollectorMod.setTitle(player, "mijn.10000");
+					var first = nl.libreria.collector.Catalog.get("mijn.1000");
+					if (first != null) nl.libreria.collector.gui.GradesWindow.open(player, nl.libreria.collector.Catalog.ladder(first), "Mining", q -> {
+					});
+				});
+				ctx.waitTicks(12);
+				double scale = ctx.computeOnClient(mc -> (double) mc.getWindow().getGuiScale());
+				int w = ctx.computeOnClient(mc -> mc.getWindow().getGuiScaledWidth());
+				int h = ctx.computeOnClient(mc -> mc.getWindow().getGuiScaledHeight());
+				ctx.getInput().setCursorPos(((w - 176) / 2 + 100) * scale, ((h - 222) / 2 + 18 + 18 * 3 + 8) * scale);
+				ctx.waitTicks(4);
+				ctx.takeScreenshot("grades_window");
+				close(ctx, server, player);
+			});
+			// Looking at someone up close: where the card about them is now
+			safe("look_close", () -> {
+				run(server, f("tp @a %d %d %d 0 0", x, y, z), "kill @e[type=minecraft:villager]",
+						f("summon minecraft:villager %d.5 %d %d.6 {NoAI:1b,Rotation:[180f,0f],CustomName:\"Ada\"}", x, y, z + 1));
+				ctx.waitTicks(10);
+				ctx.getInput().lookAt(new BlockPos(x, y + 1, z + 1));
+				ctx.waitTicks(20);
+				ctx.takeScreenshot("look_close");
+				// and from a few steps back, where the card fits
+				run(server, f("tp @a %d %d %d 0 0", x, y, z - 3));
+				ctx.waitTicks(6);
+				ctx.getInput().lookAt(new BlockPos(x, y + 1, z + 1));
+				ctx.waitTicks(20);
+				ctx.takeScreenshot("look_far");
+				run(server, "kill @e[type=minecraft:villager]", f("tp @a %d %d %d 0 0", x, y, z));
+			});
 			menu(ctx, server, player, "own_secrets", p -> nl.libreria.collector.gui.AchievementsGui.openCategory(p,
 					nl.libreria.collector.Achievement.Category.GEHEIM));
 			menu(ctx, server, player, "own_goal", nl.libreria.collector.gui.GoalWindow::open);
@@ -800,7 +855,6 @@ public final class Screens implements FabricClientGameTest {
 						e.action());
 			}
 		}
-		LOG.info("LIBRERIA-SCREENSHOTS DONE");
 	}
 
 	private static String f(String fmt, Object... args) {
@@ -817,12 +871,18 @@ public final class Screens implements FabricClientGameTest {
 		}
 	}
 
+	/** Set by {@link NetworkTest}: after every step, check the client is still connected. */
+	static ClientGameTestContext network;
+	static String lostAfter;
+
 	private static void safe(String what, Runnable r) {
+		if (lostAfter != null) return;
 		try {
 			r.run();
 		} catch (Throwable t) {
 			LOG.error("Screenshot step '{}' failed", what, t);
 		}
+		if (network != null) NetworkTest.check(network, what);
 	}
 
 	private static void look(ClientGameTestContext ctx, String name, BlockPos at) {
