@@ -94,6 +94,15 @@ public final class Records {
 		public @Nullable UUID before;
 		public String beforeName = "";
 		public double beforeValue;
+		/** Since when the holder has it (improving your own record doesn't change this). */
+		public long heldSince;
+		/** Who the server was last told holds it, with what and when: a new holder goes to chat only now and then. */
+		public @Nullable UUID toldWho;
+		public String toldName = "";
+		public double toldValue;
+		public long toldAt;
+		/** When each player last had taking this record counted (ms), so swapping it back and forth farms nothing. */
+		public @Nullable Map<String, Long> counted;
 	}
 
 	static final class Data {
@@ -107,10 +116,87 @@ public final class Records {
 	private Records() {
 	}
 
+	/**
+	 * Players travelling together keep taking a record from each other (the farthest out, the longest flight). The
+	 * server hears about a new holder at most once per {@link #ANNOUNCE_EVERY} per record, once the holder has had it
+	 * for {@link #SETTLED} (or the change has been waiting twice as long). Then it says who has it now and who had it
+	 * at the last announcement; the back and forth in between goes unsaid.
+	 */
+	static final long ANNOUNCE_EVERY = 15 * 60 * 1000L, SETTLED = 60 * 1000L;
+	/** Taking a record counts for the "Set a server record" ladder once a day per record per player. */
+	static final long COUNT_EVERY = 24 * 3600 * 1000L;
+	/** The holder's own card: at most this often per record. */
+	private static final long CARD_EVERY = 10 * 60 * 1000L;
+
 	static Data data() {
 		Data d = STORE.get();
 		if (d.records == null) d.records = new HashMap<>();
+		// Records from before announcements were spaced out: the server already heard about these
+		for (Rec r : d.records.values()) {
+			if (r.who != null && r.toldWho == null && r.toldAt == 0) {
+				r.toldWho = r.who;
+				r.toldName = r.name;
+				r.toldValue = r.value;
+				r.toldAt = r.at;
+			}
+		}
 		return d;
+	}
+
+	/** Whether a record's new holder should be announced now. */
+	static boolean due(Rec r, long now) {
+		if (r.who == null || r.who.equals(r.toldWho)) return false;
+		long since = now - r.toldAt;
+		if (since < ANNOUNCE_EVERY) return false;
+		return now - r.heldSince >= SETTLED || since >= 2 * ANNOUNCE_EVERY;
+	}
+
+	/** Whether taking this record counts for {@code who} now (and remembers that it did). */
+	static boolean count(Rec r, UUID who, long now) {
+		if (r.counted == null) r.counted = new HashMap<>();
+		Long last = r.counted.get(who.toString());
+		if (last != null && now - last < COUNT_EVERY) return false;
+		r.counted.put(who.toString(), now);
+		return true;
+	}
+
+	/** Every ten seconds: announce the records whose new holder has waited long enough. */
+	static void tick(net.minecraft.server.MinecraftServer server) {
+		long now = System.currentTimeMillis();
+		for (Kind k : Kind.values()) {
+			Rec r = data().records.get(k.id);
+			if (r != null && due(r, now)) announce(server, k, r, now);
+		}
+	}
+
+	private static void announce(net.minecraft.server.MinecraftServer server, Kind k, Rec r, long now) {
+		UUID who = r.who;
+		if (who == null) return;
+		ServerPlayer p = server.getPlayerList().getPlayer(who);
+		boolean taken = r.toldWho != null;
+		String was = taken ? " (was " + r.toldName + ", " + k.format(r.toldValue) + ")" : "";
+		// The chronicle keeps it; its own chat line would say the same as ours
+		Chronicle.write(who, p != null ? p.getName().getString() : r.name, Chronicle.Kind.MILESTONE,
+				"set a new record: " + k.about.toLowerCase(Locale.ROOT) + ", " + k.format(r.value) + was, taken, false);
+		if (taken) {
+			Component name = p != null ? Nameplate.displayName(p).copy() : Component.literal(r.name);
+			Component line = Say.line(Domain.PROGRESS).append(name.copy().withStyle(ChatFormatting.WHITE))
+					.append(Ui.text(" took the record ", ChatFormatting.GRAY)).append(Ui.text(k.about.toLowerCase(Locale.ROOT), ChatFormatting.GOLD))
+					.append(Ui.text(": " + k.format(r.value) + was, ChatFormatting.GRAY));
+			for (ServerPlayer o : server.getPlayerList().getPlayers()) if (!o.getUUID().equals(who)) o.sendSystemMessage(line);
+		}
+		r.toldWho = who;
+		r.toldName = r.name;
+		r.toldValue = r.value;
+		r.toldAt = now;
+		if (count(r, who, now)) {
+			CollectorMod.Data cd = CollectorMod.STORE.get(who);
+			cd.recordsTaken++;
+			cd.recordsHeld.add(k.id);
+			CollectorMod.STORE.markDirty(who);
+			if (p != null) CollectorMod.check(p);
+		}
+		STORE.markDirty();
 	}
 
 	public static @Nullable Rec get(Kind k) {
@@ -131,44 +217,37 @@ public final class Records {
 		Rec r = d.records.get(k.id);
 		if (r != null && !k.beats(v, r.value)) return;
 		boolean newHolder = r == null || !p.getUUID().equals(r.who);
+		long now = System.currentTimeMillis();
 		Rec n = new Rec();
 		n.who = p.getUUID();
 		n.name = Nameplate.displayName(p).getString();
 		n.value = v;
-		n.at = System.currentTimeMillis();
+		n.at = now;
+		n.heldSince = newHolder ? now : r.heldSince;
 		if (r != null) {
 			n.before = newHolder ? r.who : r.before;
 			n.beforeName = newHolder ? r.name : r.beforeName;
 			n.beforeValue = newHolder ? r.value : r.beforeValue;
+			n.toldWho = r.toldWho;
+			n.toldName = r.toldName;
+			n.toldValue = r.toldValue;
+			n.toldAt = r.toldAt;
+			n.counted = r.counted;
 		}
 		d.records.put(k.id, n);
 		STORE.markDirty();
-		CollectorMod.Data cd = CollectorMod.STORE.get(p);
-		if (newHolder) {
-			cd.recordsTaken++;
-			cd.recordsHeld.add(k.id);
-			CollectorMod.STORE.markDirty(p);
-			String was = r == null ? "" : " (was " + r.name + ", " + k.format(r.value) + ")";
-			Chronicle.write(p, Chronicle.Kind.MILESTONE, "set a new record: " + k.about.toLowerCase(Locale.ROOT) + ", " + k.format(v) + was,
-					r != null);
-			card(p, "New record!", k.about + " · " + k.format(v), k, Trophies.isFeat(k, v));
-			// whoever had it loses the trophy (their plate shows it the next time it updates)
-			if (r != null) {
-				Component line = Say.line(Domain.PROGRESS).append(Nameplate.displayName(p).copy().withStyle(ChatFormatting.WHITE))
-						.append(Ui.text(" took the record ", ChatFormatting.GRAY)).append(Ui.text(k.about.toLowerCase(Locale.ROOT), ChatFormatting.GOLD))
-						.append(Ui.text(": " + k.format(v) + was, ChatFormatting.GRAY));
-				for (ServerPlayer o : p.level().getServer().getPlayerList().getPlayers()) if (o != p) o.sendSystemMessage(line);
-			}
-			CollectorMod.check(p);
-		} else {
-			// Beating your own: now and then a card, never a stream of them
-			String key = p.getUUID() + "|" + k.id;
-			long last = TOLD.getOrDefault(key, 0L);
-			if (n.at - last > 10 * 60 * 1000L) {
-				TOLD.put(key, n.at);
-				card(p, "Your record, better", k.about + " · " + k.format(v), k, Trophies.isFeat(k, v) && !Trophies.isFeat(k, r.value));
-			}
+		// The holder's own card: now and then, never a stream of them while two players keep passing each other
+		String key = p.getUUID() + "|" + k.id;
+		long last = TOLD.getOrDefault(key, 0L);
+		if (now - last > CARD_EVERY) {
+			TOLD.put(key, now);
+			if (newHolder) card(p, "New record!", k.about + " · " + k.format(v), k, Trophies.isFeat(k, v));
+			else card(p, "Your record, better", k.about + " · " + k.format(v), k, Trophies.isFeat(k, v) && !Trophies.isFeat(k, r.value));
 		}
+		// The very first holder of a record: written down and counted right away (nobody to tell it was taken from)
+		if (r == null) announce(p.level().getServer(), k, n, now);
+		// Whoever had it loses the trophy (their plate shows it the next time it updates); the server hears of the
+		// new holder in tick(), spaced out
 	}
 
 	private static void card(ServerPlayer p, String title, String sub, Kind k, boolean trophy) {

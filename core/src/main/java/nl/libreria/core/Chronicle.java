@@ -90,6 +90,11 @@ public final class Chronicle {
 
 	/** Writes a moment. {@code name} may be empty (then {@code text} is the whole line). Never throws. */
 	public static void write(@Nullable UUID who, String name, Kind kind, String text, boolean major) {
+		write(who, name, kind, text, major, true);
+	}
+
+	/** Same, with {@code chat} false for a big moment whose own chat line already says it (a record changing hands). */
+	public static void write(@Nullable UUID who, String name, Kind kind, String text, boolean major, boolean chat) {
 		try {
 			MinecraftServer server = Libreria.server();
 			Entry e = new Entry();
@@ -106,7 +111,7 @@ public final class Chronicle {
 			STORE.markDirty();
 			// One quiet line for everybody. Not for achievements (the achievement itself already says so in chat), and
 			// not to the player it's about when they already got a card for it (a weapon that earned its name).
-			if (major && server != null && ANNOUNCE.get() && kind != Kind.ACHIEVEMENT) {
+			if (major && chat && server != null && ANNOUNCE.get() && kind != Kind.ACHIEVEMENT) {
 				Component line = Say.line(Domain.PROGRESS).append(Ui.text("Chronicle · ", ChatFormatting.DARK_GRAY)).append(line(e, false));
 				for (ServerPlayer p : server.getPlayerList().getPlayers()) {
 					if (kind == Kind.LEGEND && p.getUUID().equals(who)) continue;

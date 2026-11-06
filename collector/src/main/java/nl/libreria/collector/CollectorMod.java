@@ -194,6 +194,7 @@ public final class CollectorMod implements ModInitializer {
 			if (t % 20 == 7) scanAll(server);
 			if (t % 100 == 13) checkAll(server);
 			if (t % 100 == 41) Goals.tick(server);
+			if (t % 200 == 59) Records.tick(server);
 			Secrets.tick(server);
 			if (t % 1200 == 77) for (ServerPlayer p : server.getPlayerList().getPlayers()) day(p);
 			Banner.tick(server);

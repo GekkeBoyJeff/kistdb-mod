@@ -248,6 +248,27 @@ final class CollectorTests {
 			else Records.debugSet(Records.Kind.LEVELS, keep.who, keep.name, keep.value, keep.before == null ? null : keep.beforeName, keep.beforeValue);
 			SelfTests.check(CollectorMod.withTrophy(anna, dd, null) == null, "no trophy and no title: no title line");
 			SelfTests.check(Catalog.get("records.1") != null && Catalog.get("records.20") != null, "record breaker ladder");
+			// Two players passing each other: the server hears of it now and then, and it counts once a day
+			long now = System.currentTimeMillis(), min = 60_000L;
+			Records.Rec swap = new Records.Rec();
+			swap.who = bram;
+			swap.toldWho = anna;
+			swap.toldAt = now - 20 * min;
+			swap.heldSince = now - 2 * min;
+			SelfTests.check(Records.due(swap, now), "a new holder who kept it a while is announced");
+			swap.heldSince = now - 10_000L;
+			SelfTests.check(!Records.due(swap, now), "not while they're still passing each other");
+			swap.toldAt = now - 31 * min;
+			SelfTests.check(Records.due(swap, now), "but not forever either");
+			swap.toldAt = now - 5 * min;
+			swap.heldSince = now - 5 * min;
+			SelfTests.check(!Records.due(swap, now), "at most once every 15 minutes per record");
+			swap.toldWho = bram;
+			swap.toldAt = now - 60 * min;
+			SelfTests.check(!Records.due(swap, now), "taken back before anyone heard: nothing to say");
+			SelfTests.check(Records.count(swap, anna, now) && !Records.count(swap, anna, now + 60 * min) && Records.count(swap, bram, now),
+					"taking a record counts once a day per player");
+			SelfTests.check(Records.count(swap, anna, now + 25 * 60 * min), "and again the next day");
 		});
 		SelfTests.register("collector.showcase", level -> {
 			if (Catalog.all().isEmpty()) Catalog.build();
