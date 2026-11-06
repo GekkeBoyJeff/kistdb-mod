@@ -110,12 +110,29 @@ final class Aura {
 
 	// ---------------------------------------------------------------- what to show
 
+	/**
+	 * What a player's gear gives off here. Leaves out what shows another way now: a tool or weapon carries its own
+	 * effect (texture parts and auras, drawn by the item itself), and a full armour set has its set effect (Fx).
+	 */
 	static Gear gear(ServerPlayer p) {
+		boolean set = Fx.hasSet(p);
 		List<List<Effect>> armour = new ArrayList<>();
-		for (EquipmentSlot s : ARMOUR) armour.add(effects(p.getItemBySlot(s)));
+		for (EquipmentSlot s : ARMOUR) armour.add(set ? List.of() : effects(p.getItemBySlot(s)));
 		ItemStack main = p.getMainHandItem();
 		ItemStack off = p.getOffhandItem();
-		return new Gear(effects(main), isBook(main), effects(off), isBook(off), armour);
+		return new Gear(drawnByItself(main) ? List.of() : effects(main), isBook(main), drawnByItself(off) ? List.of() : effects(off),
+				isBook(off), armour);
+	}
+
+	/** The tools and weapons whose enchantments the item shows itself (scripts/glint/tools_fx.py). */
+	private static final java.util.Set<String> SELF_DRAWN = java.util.Set.of("sword", "axe", "pickaxe", "shovel", "hoe", "shears",
+			"spear", "bow", "crossbow", "trident", "mace", "fishing_rod");
+
+	static boolean drawnByItself(ItemStack st) {
+		if (st.isEmpty()) return false;
+		String path = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(st.getItem()).getPath();
+		for (String k : SELF_DRAWN) if (path.equals(k) || path.endsWith("_" + k)) return true;
+		return false;
 	}
 
 	/**

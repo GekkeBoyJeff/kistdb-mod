@@ -97,7 +97,7 @@ public final class Screens implements FabricClientGameTest {
 					run(server, "item replace entity @a hotbar." + i + " with minecraft:" + tools[i][0] + "[enchantments={" + tools[i][1] + "}]");
 				ctx.waitTicks(10);
 				ctx.takeScreenshot("fxtool_hotbar");
-				for (String[] t : tools) {
+				for (String[] t : java.util.Arrays.copyOf(tools, 5)) {
 					run(server, "item replace entity @a weapon.mainhand with minecraft:" + t[0] + "[enchantments={" + t[1] + "}]");
 					camera(ctx, CameraType.FIRST_PERSON);
 					ctx.waitTicks(12);
@@ -135,7 +135,7 @@ public final class Screens implements FabricClientGameTest {
 				String[] slots = {"head", "chest", "legs", "feet"};
 				String[] pieces = {"helmet", "chestplate", "leggings", "boots"};
 				for (int r = 0; r < rows.length; r++) {
-					run(server, "kill @e[type=minecraft:mannequin]");
+					run(server, "tp @e[type=minecraft:mannequin] ~ -100 ~", "kill @e[type=minecraft:mannequin]");
 					for (int i = 0; i < rows[r].length; i++) {
 						String[] m = rows[r][i];
 						StringBuilder eq = new StringBuilder();
@@ -155,6 +155,49 @@ public final class Screens implements FabricClientGameTest {
 				ctx.takeScreenshot("fxarmour_row2_day");
 				run(server, "time set midnight", "kill @e[type=minecraft:mannequin]");
 				ctx.getInput().lookAt(0, 0);
+				ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.FULL));
+			});
+			// Effects, round 18: armour sets from the armour you wear (all four pieces sharing an enchantment), Thorns as
+			// spikes flying off you; and what each costs the server, at the default and the richest particle intensity
+			safe("fx_round18", () -> {
+				ctx.getInput().lookAt(0, 0);
+				ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.HIDDEN));
+				run(server, "time set midnight", "clear @a", "kill @e[type=minecraft:mannequin]");
+				String[][] sets = {{"fire_protection:4", "fire4"}, {"protection:4", "protection4"}, {"blast_protection:4", "blast4"},
+						{"projectile_protection:4", "projectile4"}, {"thorns:3", "thorns3"}, {"mending:1", "mending"}, {"binding_curse:1", "binding"},
+						{"vanishing_curse:1", "vanishing"}, {"protection:4,thorns:3", "protection4_thorns"}};
+				for (String[] k : sets) {
+					wearMaterial(server, "diamond", k[0]);
+					camera(ctx, CameraType.THIRD_PERSON_FRONT);
+					ctx.waitTicks(40);
+					server.runOnServer(sv -> LOG.info("LIBRERIA-SET {} -> {}", k[1], nl.libreria.glint.GlintMod.debugSet(player)));
+					ctx.takeScreenshot("fxset_" + k[1] + "_front");
+					if (k[1].startsWith("thorns")) {
+						for (int f = 1; f < 4; f++) {
+							ctx.waitTicks(4);
+							ctx.takeScreenshot("fxset_" + k[1] + "_front_" + f);
+						}
+					}
+					camera(ctx, CameraType.THIRD_PERSON_BACK);
+					ctx.waitTicks(15);
+					ctx.takeScreenshot("fxset_" + k[1] + "_back");
+				}
+				// the cost, with a sword with an effect in hand: at the default intensity, then the richest
+				run(server, "item replace entity @a weapon.mainhand with minecraft:diamond_sword[enchantments={sharpness:5,fire_aspect:2}]");
+				for (int rich = 0; rich < 2; rich++) {
+					int r = rich;
+					server.runOnServer(sv -> nl.libreria.glint.GlintMod.INTENSITY.set(player, r == 1 ? 3 : 2));
+					for (String[] k : sets) {
+						wearMaterial(server, "diamond", k[0]);
+						ctx.waitTicks(30);
+						server.runOnServer(sv -> nl.libreria.glint.GlintMod.costReset());
+						ctx.waitTicks(100);
+						server.runOnServer(sv -> nl.libreria.glint.GlintMod.costReport((r == 1 ? "rich " : "normal ") + k[1]));
+					}
+				}
+				server.runOnServer(sv -> nl.libreria.glint.GlintMod.INTENSITY.set(player, 2));
+				camera(ctx, CameraType.FIRST_PERSON);
+				run(server, "clear @a");
 				ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.FULL));
 			});
 			// Your own armour's particles in third person: a set (one orbit), and ordinary Protection armour

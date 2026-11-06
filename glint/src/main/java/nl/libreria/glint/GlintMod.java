@@ -169,10 +169,15 @@ public final class GlintMod implements ModInitializer {
 				what, Math.round(costNs / 1000.0 / Math.max(1, costTicks)), Fx.alive(), Math.round((Fx.made * 2 + Fx.updates) / secs));
 	}
 
+	/** For the screenshot test: what this player's armour makes, and whether the set effect is on. */
+	public static String debugSet(ServerPlayer p) {
+		return Fx.specFor(p) + (Fx.hasSet(p) ? " (on)" : " (not on)");
+	}
+
 	public static void debugFx(ServerPlayer p, String spec) {
 		if (spec.startsWith("hit:")) Fx.hit(p, spec.substring(4));
 		else if (spec.startsWith("smite_style:")) Fx.smiteStyle = spec.substring("smite_style:".length());
-		else Fx.set(p, spec);
+		else Fx.setByHand(p, spec);
 	}
 
 

@@ -21,6 +21,8 @@ import net.minecraft.util.Brightness;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Display;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -172,9 +174,88 @@ final class Fx {
 		@Nullable BlockPos light;
 		int lightLevel;
 		final Map<String, Ring> rings = new HashMap<>();
+		/** What it was made from (the spec), and where: a new one when either changes. */
+		String spec = "";
+		@Nullable ServerLevel level;
 	}
 
+	/** Players whose effect a test set by hand: their gear isn't read until it's set "off" again. */
+	private static final java.util.Set<UUID> BY_HAND = new java.util.HashSet<>();
+
 	private static final Map<UUID, Wearer> WEARERS = new HashMap<>();
+
+	/** For tests: an effect by hand ("set:fire:4"), until "off"; meanwhile this player's gear isn't read. */
+	static void setByHand(ServerPlayer p, String spec) {
+		if (spec.equals("off")) BY_HAND.remove(p.getUUID());
+		else BY_HAND.add(p.getUUID());
+		set(p, spec);
+	}
+
+	/** Is an armour set's effect on this player now? (Then the plain particles of their armour stay away.) */
+	static boolean hasSet(ServerPlayer p) {
+		Wearer w = WEARERS.get(p.getUUID());
+		return w != null && w.kind.equals("set");
+	}
+
+	// ---------------------------------------------------------------- reading the gear
+
+	private static final EquipmentSlot[] PIECES = {EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET};
+	/** Set kind → the enchantment all four pieces share, in the order they're looked for. */
+	private static final String[][] SETS = {{"fire", "fire_protection"}, {"blast", "blast_protection"},
+			{"projectile", "projectile_protection"}, {"protection", "protection"}, {"thorns", "thorns"}, {"mending", "mending"},
+			{"binding", "binding_curse"}, {"vanishing", "vanishing_curse"}};
+	/** Set kind → its effect family (families.json): switched off there, it's off here too. */
+	static final Map<String, String> SET_FAMILY = Map.of("fire", "fireguard", "blast", "blast", "projectile", "arrowguard",
+			"protection", "protection", "thorns", "thorns", "mending", "mending", "binding", "curse", "vanishing", "curse");
+
+	/**
+	 * What this player's armour makes: "set:kind:grade:extras:material" when all four pieces share an enchantment (a
+	 * protection first, then Thorns, Mending, a curse), graded by the weakest piece; "off" otherwise.
+	 */
+	static String specFor(ServerPlayer p) {
+		if (p.isSpectator() || p.isInvisible()) return "off";
+		ItemStack[] pieces = new ItemStack[4];
+		for (int i = 0; i < 4; i++) {
+			pieces[i] = p.getItemBySlot(PIECES[i]);
+			if (pieces[i].isEmpty()) return "off";
+		}
+		for (String[] set : SETS) {
+			int weakest = Integer.MAX_VALUE;
+			for (ItemStack st : pieces) weakest = Math.min(weakest, level(st, set[1]));
+			if (weakest <= 0) continue;
+			int top = set[0].equals("thorns") ? 3 : set[0].length() > 0 && set[1].endsWith("protection") ? 4 : 1;
+			int grade = Math.min(top, weakest);
+			StringBuilder extras = new StringBuilder();
+			if (!set[0].equals("thorns") && level(pieces[1], "thorns") > 0) extras.append("thorns,");
+			if (level(pieces[3], "feather_falling") > 0) extras.append("feather,");
+			if (level(pieces[3], "frost_walker") > 0) extras.append("frost,");
+			if (level(pieces[3], "soul_speed") > 0) extras.append("soul,");
+			return "set:" + set[0] + ":" + grade + ":" + extras + ":" + material(pieces);
+		}
+		return "off";
+	}
+
+	private static int level(ItemStack st, String id) {
+		ItemEnchantments ench = st.get(DataComponents.ENCHANTMENTS);
+		if (ench == null) return 0;
+		for (var en : ench.entrySet()) {
+			if (en.getKey().unwrapKey().map(k -> k.identifier().getPath().equals(id)).orElse(false)) return en.getIntValue();
+		}
+		return 0;
+	}
+
+	/** The material all four pieces share (its accent in the effect), or "diamond" (no accent) when they're mixed. */
+	private static String material(ItemStack[] pieces) {
+		String m = null;
+		for (ItemStack st : pieces) {
+			var eq = st.get(DataComponents.EQUIPPABLE);
+			String here = eq == null ? "" : eq.assetId().map(k -> k.identifier().getPath()).orElse("");
+			if (here.equals("gold")) here = "golden";
+			if (m != null && !m.equals(here)) return "diamond";
+			m = here;
+		}
+		return m == null || m.isEmpty() ? "diamond" : m;
+	}
 
 	/** "aegis:3", "ember:4", … or "off". */
 	static void set(ServerPlayer p, String spec) {
@@ -183,6 +264,8 @@ final class Fx {
 		if (spec.equals("off")) return;
 		String[] parts = spec.split(":");
 		w = new Wearer();
+		w.spec = spec;
+		w.level = (ServerLevel) p.level();
 		w.kind = parts[0];
 		if (w.kind.equals("set")) {  // "set:fire:4:thorns,soul"
 			w.set = parts[1];
@@ -236,12 +319,22 @@ final class Fx {
 	}
 
 	static void tick(MinecraftServer server) {
+		if (server.getTickCount() % 10 == 0) {
+			for (ServerPlayer p : server.getPlayerList().getPlayers()) {
+				if (BY_HAND.contains(p.getUUID())) continue;
+				Wearer w = WEARERS.get(p.getUUID());
+				String spec = specFor(p);
+				String now = w == null ? "off" : w.spec;
+				if (!spec.equals(now) || (w != null && w.level != p.level())) set(p, spec);
+			}
+		}
 		for (Iterator<Map.Entry<UUID, Wearer>> it = WEARERS.entrySet().iterator(); it.hasNext();) {
 			var e = it.next();
 			ServerPlayer p = server.getPlayerList().getPlayer(e.getKey());
 			if (p == null) {
 				e.getValue().rings.values().forEach(r -> r.holder.destroy());
 				it.remove();
+				BY_HAND.remove(e.getKey());
 				continue;
 			}
 			wear(p, e.getValue(), server.getTickCount());
@@ -319,6 +412,8 @@ final class Fx {
 			}
 			case "vanish" -> vanish(p, w, level, viewers, tick, ps);
 			case "set" -> {
+				viewers = setViewers(p, w);
+				if (tick % 10 == 0) syncWatchers(w, viewers);
 				far = true;
 				// the material pulls the colours its way: gold warmer and brighter, netherite dark and red, copper
 				// towards verdigris, leather earthy; iron, chainmail and diamond keep the set's own colours
@@ -332,7 +427,7 @@ final class Fx {
 				try {
 					armourSet(p, w, level, viewers, tick, g, ps);
 					materialTouch(p, w, tick, ps);
-					if (!ps.isEmpty()) emit(level, p.position(), viewers, ps);
+					if (!ps.isEmpty()) emitShare(level, p, viewers, ps);
 				} finally {
 					far = false;
 					tint = -1;
@@ -344,6 +439,64 @@ final class Fx {
 		}
 		if (!ps.isEmpty()) emit(level, p.position(), viewers, ps);
 		light(p, w, viewers, tick);
+	}
+
+	// ---------------------------------------------------------------- who sees a set, and how much of it
+
+	/**
+	 * Who sees this set: everyone near who has effects on other players on and this set's family not switched off; you
+	 * yourself only with "third person: your armour" on (the sprites fade out near your camera, so never in first person).
+	 */
+	private static List<ServerPlayer> setViewers(ServerPlayer p, Wearer w) {
+		String family = SET_FAMILY.getOrDefault(w.set, w.set);
+		List<ServerPlayer> out = new ArrayList<>();
+		for (ServerPlayer v : viewers(p)) {
+			if (v == p ? !GlintMod.AURA_THIRD.get(v) : !GlintMod.AURA.get(v)) continue;
+			if (!GlintMod.enabled(v, family)) continue;
+			out.add(v);
+		}
+		return out;
+	}
+
+	/** The things that stay on a wearer (rings, flames at the feet…) are seen by exactly the players who see the set now. */
+	private static void syncWatchers(Wearer w, List<ServerPlayer> viewers) {
+		for (Ring r : w.rings.values()) {
+			java.util.Set<ServerPlayer> want = new java.util.HashSet<>(viewers);
+			for (var c : new ArrayList<>(r.holder.getWatchingPlayers())) {
+				if (!want.remove(c.player)) r.holder.stopWatching(c);
+			}
+			for (ServerPlayer v : want) r.holder.startWatching(v);
+		}
+	}
+
+	/**
+	 * How much of a set's sprites a viewer gets (0..1): as many as their "particle intensity" allows (subtle a third,
+	 * normal two thirds, rich all), fewer the further away they are. Keeps a group of players in sets light for
+	 * everyone's connection and frame rate.
+	 */
+	static float share(ServerPlayer v, ServerPlayer wearer) {
+		float base = switch (GlintMod.INTENSITY.get(v)) {
+			case 1 -> 0.35f;
+			case 2 -> 0.65f;
+			default -> 1f;
+		};
+		double d = v.distanceToSqr(wearer);
+		return base * (d < 16 * 16 ? 1f : d < 32 * 32 ? 0.6f : 0.35f);
+	}
+
+	/** Emits sprites to each viewer as much as their share allows (the same sprites for everyone, fewer for some). */
+	static void emitShare(ServerLevel level, ServerPlayer wearer, List<ServerPlayer> viewers, List<P> ps) {
+		if (ps.isEmpty() || viewers.isEmpty()) return;
+		float[] u = new float[ps.size()];
+		for (int i = 0; i < u.length; i++) u[i] = R.nextFloat();
+		Map<Integer, List<ServerPlayer>> groups = new HashMap<>();
+		for (ServerPlayer v : viewers) groups.computeIfAbsent(Math.round(share(v, wearer) * 20), k -> new ArrayList<>()).add(v);
+		for (var g : groups.entrySet()) {
+			float f = g.getKey() / 20f;
+			List<P> mine = new ArrayList<>();
+			for (int i = 0; i < u.length; i++) if (u[i] < f) mine.add(ps.get(i));
+			if (!mine.isEmpty()) emit(level, wearer.position(), g.getValue(), mine);
+		}
 	}
 
 	// ---------------------------------------------------------------- armour, per motif
@@ -603,21 +756,33 @@ final class Fx {
 				if (g >= 4) ground(p, w, level, viewers, tick, "windring", wind, 2.0f, 90);
 			}
 			case "thorns" -> {
-				// Briar (Thorns on all four): two vines climbing round you in a double spiral (a steady stream of leaf
-				// green), thorns standing out on them, a rose-red glint where one bites, bramble round your feet
-				int vines = g >= 2 ? 2 : 1;
-				for (int k = 0; k < vines; k++) {
-					double a0 = tick * 0.21 + k * Math.PI;
-					ps.add(helix("mote", pick(0x5E9A3A, 0x4E8A32, 0x7AB048), a0, 0.52, 0.4, 0.02, h * (0.7 + 0.15 * g), 0.9, 30, 0.26f, 0.16f));
-					if (every(tick, 3)) ps.add(helix("thorn", pick(0x2F5A22, 0x9C2236), a0 + 0.1, 0.54, 0.42, 0.02, h * (0.7 + 0.15 * g), 0.9, 30,
-							0.3f, 0.2f));
-					if (every(tick, 7)) ps.add(helix("feather", pick(0x6AA040, 0x8CC050), a0 - 0.1, 0.53, 0.41, 0.02, h * (0.7 + 0.15 * g), 0.9, 30,
-							0.26f, 0.18f));
+				// Briar (Thorns on all four): thorns shoot up off you and fall back down round you, more and faster per
+				// grade, a rose-red glint where one leaves; spikes now and then simply drop off you; bramble at your feet
+				int rate = new int[]{0, 6, 4, 2}[Math.min(3, g)];
+				if (every(tick, rate)) {
+					for (int k = 0; k < (g >= 3 ? 2 : 1); k++) {
+						Vec3 from = onBody(p, 0.3f, 0.9f, 0.32f);
+						double a = Math.atan2(from.z, from.x) + rnd(-0.4f, 0.4f);
+						double out = rnd(0.3f, 0.55f), up = rnd(0.45f, 0.75f) + 0.12 * g;
+						Vec3 peak = from.add(Math.cos(a) * out, up, Math.sin(a) * out);
+						Vec3 land = new Vec3(from.x + Math.cos(a) * out * 2.0, 0.05, from.z + Math.sin(a) * out * 2.0);
+						Vec3 fall = new Vec3((peak.x + land.x) / 2, peak.y * 0.7 + land.y * 0.3, (peak.z + land.z) / 2);
+						float spin = rnd(-1.6f, 1.6f);
+						int c = pick(0x2F5A22, 0x9C2236, 0x4E7A2E, 0x7A1E2A);
+						ps.add(new P("thorn", c, 4, List.of(new S(from, 0.16f, 0), new S(peak, 0.3f, spin), new S(fall, 0.3f, spin * 2),
+								new S(land, 0.27f, spin * 3), new S(land, 0.02f, spin * 3)), null));
+						if (k == 0) ps.add(pop("twinkle", pick(0xFF4A5A, 0xE02A40), from, 0.26f, 6, 0.5f));
+					}
 				}
-				if (every(tick, new int[]{0, 10, 7, 4}[Math.min(3, g)])) ps.add(pop("twinkle", pick(0xFF4A5A, 0xE02A40), onBody(p, 0.1f, 0.85f, 0.48f),
-						0.3f, 8, 0.5f));
+				if (every(tick, new int[]{0, 10, 7, 5}[Math.min(3, g)])) {
+					Vec3 from = onBody(p, 0.2f, 0.8f, 0.36f);
+					Vec3 to = new Vec3(from.x * 1.2, 0.04, from.z * 1.2);
+					ps.add(new P("thorn", pick(0x2F5A22, 0x9C2236), 6, List.of(new S(from, 0.22f, 0),
+							new S(from.add(from.x * 0.05, -from.y * 0.25, from.z * 0.05), 0.22f, 0.6f), new S(to, 0.2f, 1.6f),
+							new S(to, 0.02f, 1.6f)), null));
+				}
 				ground(p, w, level, viewers, tick, "bramble", 0x4E8A32, 1.9f, 300);
-				if (g >= 3) spinRing(p, w, level, viewers, tick, "briarring", 0x3F7A2A, 1.6f, 0.04, 0, 240);
+				if (g >= 3) ground(p, w, level, viewers, tick, "shadow", 0x7A1E2A, 1.4f, -400);
 			}
 			case "mending" -> {
 				// Renewal (Mending on all four): orbs of experience drifting in to you from all round, bright green and
@@ -679,7 +844,7 @@ final class Fx {
 					double diff = Math.abs(Mth.wrapDegrees((float) Math.toDegrees(Math.atan2(at.z, at.x) - va)));
 					if (diff > 55) mine.add(q);
 				}
-				emit(level, p.position(), List.of(v), mine);
+				emitShare(level, p, List.of(v), mine);
 			}
 		}
 		// what the pieces add, in the same motion
