@@ -266,20 +266,27 @@ final class CollectorTests {
 			swap.toldWho = bram;
 			swap.toldAt = now - 60 * min;
 			SelfTests.check(!Records.due(swap, now), "taken back before anyone heard: nothing to say");
-			SelfTests.check(Records.count(swap, anna, now) && !Records.count(swap, anna, now + 60 * min) && Records.count(swap, bram, now),
-					"taking a record counts once a day per player");
-			SelfTests.check(Records.count(swap, anna, now + 25 * 60 * min), "and again the next day");
-			// The one-time recount: a record passed back and forth 40 times in an hour counts once per player
+			SelfTests.check(Records.count(swap, anna, bram.toString()) && !Records.count(swap, anna, bram.toString())
+					&& Records.count(swap, bram, anna.toString()) && !Records.count(swap, bram, anna.toString()), "passing it back and forth counts once each");
+			java.util.UUID cas = java.util.UUID.nameUUIDFromBytes("trophy-cas".getBytes());
+			SelfTests.check(Records.count(swap, anna, cas.toString()) && Records.count(swap, anna, ""), "taking it from someone else does count");
+			// The recount: a record passed back and forth 40 times between two players counts once each
 			java.util.List<nl.libreria.core.Chronicle.Entry> lines = new java.util.ArrayList<>();
 			long t0 = now - 100 * 60 * min;
-			for (int i = 0; i < 40; i++) lines.add(recordLine(t0 + i * 90_000L, i % 2 == 0 ? anna : bram, "farthest from the middle of the world, " + (2000 + i) + " m (was x, 1 m)"));
-			lines.add(recordLine(t0 + 30 * 60 * min, anna, "farthest from the middle of the world, 3 km (was Bram, 2 km)"));
-			nl.libreria.core.Chronicle.Entry fast = recordLine(t0, bram, "fastest, 40 m/s");
+			for (int i = 0; i < 40; i++) {
+				lines.add(recordLine(t0 + i * 90_000L, i % 2 == 0 ? anna : bram,
+						"farthest from the middle of the world, " + (2000 + i) + " m" + (i == 0 ? "" : " (was " + (i % 2 == 0 ? "Bram" : "Anna") + ", 1 m)")));
+			}
+			for (int d = 1; d <= 30; d++) {
+				lines.add(recordLine(t0 + d * 26 * 60 * min, d % 2 == 0 ? anna : bram,
+						"farthest from the middle of the world, " + (3000 + d) + " m (was " + (d % 2 == 0 ? "Bram" : "Anna") + ", 2 km)"));
+			}
+			nl.libreria.core.Chronicle.Entry fast = recordLine(t0, bram, "fastest, 40 m/s (was Cas, 39 m/s)");
 			lines.add(fast);
-			java.util.Map<String, Long> last = new java.util.HashMap<>();
-			java.util.Map<java.util.UUID, Integer> takes = Records.recountTakes(lines, last);
-			SelfTests.check(takes.get(anna) == 2 && takes.get(bram) == 2, "recount: once a day per record: " + takes);
-			SelfTests.check(Records.kindOf(fast) == Records.Kind.SPEED && last.containsKey("speed|" + bram), "recount: which record a line is about");
+			java.util.Map<java.util.UUID, java.util.Set<String>> takes = Records.takes(lines, n -> n.toLowerCase());
+			SelfTests.check(takes.get(anna).size() == 2 && takes.get(bram).size() == 2, "recount: once per record and holder, a month of walking together or not: " + takes);
+			SelfTests.check(Records.kindOf(fast) == Records.Kind.SPEED && "Cas".equals(Records.takenFrom(fast)) && takes.get(bram).contains("speed|cas"),
+					"recount: which record, taken from whom");
 			SelfTests.check(Records.burstLines(lines).size() == 39, "of a run of 40 record lines one stays: " + Records.burstLines(lines).size());
 		});
 		SelfTests.register("collector.showcase", level -> {

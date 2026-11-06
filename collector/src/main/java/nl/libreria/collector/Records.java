@@ -101,8 +101,14 @@ public final class Records {
 		public String toldName = "";
 		public double toldValue;
 		public long toldAt;
-		/** When each player last had taking this record counted (ms), so swapping it back and forth farms nothing. */
+		/** No longer used (counting was once a day per record). */
 		public @Nullable Map<String, Long> counted;
+		/**
+		 * Whom each player took this record from, as far as the ladder counts it (a player's id, "" for the very first
+		 * holder): taking a record counts once per record and per holder you took it from, so passing it back and forth
+		 * with a friend counts once each.
+		 */
+		public @Nullable Map<String, java.util.List<String>> takenFrom;
 	}
 
 	static final class Data {
@@ -125,8 +131,7 @@ public final class Records {
 	 * at the last announcement; the back and forth in between goes unsaid.
 	 */
 	static final long ANNOUNCE_EVERY = 15 * 60 * 1000L, SETTLED = 60 * 1000L;
-	/** Taking a record counts for the "Set a server record" ladder once a day per record per player. */
-	static final long COUNT_EVERY = 24 * 3600 * 1000L;
+
 	/** The holder's own card: at most this often per record. */
 	private static final long CARD_EVERY = 10 * 60 * 1000L;
 
@@ -153,18 +158,21 @@ public final class Records {
 		return now - r.heldSince >= SETTLED || since >= 2 * ANNOUNCE_EVERY;
 	}
 
-	/** Whether taking this record counts for {@code who} now (and remembers that it did). */
-	static boolean count(Rec r, UUID who, long now) {
-		if (r.counted == null) r.counted = new HashMap<>();
-		Long last = r.counted.get(who.toString());
-		if (last != null && now - last < COUNT_EVERY) return false;
-		r.counted.put(who.toString(), now);
+	/**
+	 * Whether {@code who} taking this record from {@code from} (a player's id, "" for nobody) counts for the ladder: once
+	 * per record and per holder. Remembers that it did.
+	 */
+	static boolean count(Rec r, UUID who, String from) {
+		if (r.takenFrom == null) r.takenFrom = new HashMap<>();
+		java.util.List<String> mine = r.takenFrom.computeIfAbsent(who.toString(), k -> new java.util.ArrayList<>());
+		if (mine.contains(from)) return false;
+		mine.add(from);
 		return true;
 	}
 
 	/** Every ten seconds: announce the records whose new holder has waited long enough. */
 	static void tick(net.minecraft.server.MinecraftServer server) {
-		if (data().fixed < 1) recount(server);
+		if (data().fixed < 2) recount(server);
 		long now = System.currentTimeMillis();
 		for (Kind k : Kind.values()) {
 			Rec r = data().records.get(k.id);
@@ -183,23 +191,28 @@ public final class Records {
 		return null;
 	}
 
+	/** Whom a chronicle line says the record was taken from ("Anna" for "… (was Anna, 2.3 km)"), "" for the first holder. */
+	static String takenFrom(Chronicle.Entry e) {
+		int at = e.text.lastIndexOf(" (was ");
+		if (at < 0) return "";
+		String rest = e.text.substring(at + 6);
+		int comma = rest.lastIndexOf(", ");
+		return comma < 0 ? "" : rest.substring(0, comma);
+	}
+
 	/**
-	 * How many takes count, per player, under today's rule (once a day per record), from the chronicle's lines; and
-	 * per record and player when the last one counted (in {@code last}, "kind|uuid" → ms).
+	 * The takes that count, per player, by today's rule (once per record and per holder taken from), from the
+	 * chronicle's lines: player → "kind|from", with {@code resolve} turning a name into the id it's kept under.
 	 */
-	static Map<UUID, Integer> recountTakes(java.util.List<Chronicle.Entry> entries, Map<String, Long> last) {
-		java.util.List<Chronicle.Entry> takes = new java.util.ArrayList<>();
-		for (Chronicle.Entry e : entries) if (kindOf(e) != null) takes.add(e);
-		takes.sort(java.util.Comparator.comparingLong(e -> e.at));
-		Map<UUID, Integer> counts = new HashMap<>();
-		for (Chronicle.Entry e : takes) {
-			String key = kindOf(e).id + "|" + e.who;
-			Long before = last.get(key);
-			if (before != null && e.at - before < COUNT_EVERY) continue;
-			last.put(key, e.at);
-			counts.merge(e.who, 1, Integer::sum);
+	static Map<UUID, java.util.Set<String>> takes(java.util.List<Chronicle.Entry> entries, java.util.function.UnaryOperator<String> resolve) {
+		Map<UUID, java.util.Set<String>> out = new HashMap<>();
+		for (Chronicle.Entry e : entries) {
+			Kind k = kindOf(e);
+			if (k == null) continue;
+			String from = takenFrom(e);
+			out.computeIfAbsent(e.who, x -> new java.util.LinkedHashSet<>()).add(k.id + "|" + (from.isEmpty() ? "" : resolve.apply(from)));
 		}
-		return counts;
+		return out;
 	}
 
 	/**
@@ -220,31 +233,48 @@ public final class Records {
 	}
 
 	/**
-	 * Once: before records were spaced out, two players passing one back and forth (in a tree, travelling together)
-	 * climbed the "Set a server record" ladder in minutes. Takes are counted again by today's rule (once a day per
-	 * record); grades that were bought that way go again, with their lines in the chronicle, and of a run of record
-	 * lines only the last stays. Nobody gets more than they had.
+	 * Once: before records were spaced out, two players passing one back and forth (walking out together, in a tree)
+	 * climbed the "Set a server record" ladder in no time. Every player's takes are counted again by today's rule (once
+	 * per record and per holder taken from; a record you hold now counts at least once); grades that were bought that
+	 * way go again, with their lines in the chronicle, and of a run of record lines only the last stays. Nobody gets
+	 * more than they had.
 	 */
 	static void recount(net.minecraft.server.MinecraftServer server) {
 		Data d = data();
-		d.fixed = 1;
+		d.fixed = 2;
 		STORE.markDirty();
 		try {
 			java.util.List<Chronicle.Entry> all = Chronicle.all();
-			Map<String, Long> last = new HashMap<>();
-			Map<UUID, Integer> counts = recountTakes(all, last);
-			for (Map.Entry<String, Long> e : last.entrySet()) {
-				String[] parts = e.getKey().split("\\|", 2);
-				Rec r = d.records.get(parts[0]);
-				if (r == null) continue;
-				if (r.counted == null) r.counted = new HashMap<>();
-				r.counted.merge(parts[1], e.getValue(), Math::max);
+			Map<UUID, java.util.Set<String>> pairs = takes(all, name -> {
+				nl.libreria.core.Players.Known k = nl.libreria.core.Players.byName(server, name);
+				return k != null ? k.id().toString() : "name:" + name.toLowerCase(Locale.ROOT);
+			});
+			// A record somebody holds now was taken at least once
+			for (Rec r : d.records.values()) {
+				if (r.who == null) continue;
+				Kind k = null;
+				for (Kind x : Kind.values()) if (d.records.get(x.id) == r) k = x;
+				if (k == null) continue;
+				String prefix = k.id + "|";
+				java.util.Set<String> mine = pairs.computeIfAbsent(r.who, x -> new java.util.LinkedHashSet<>());
+				if (mine.stream().noneMatch(p -> p.startsWith(prefix))) mine.add(prefix + "?");
+			}
+			for (Map.Entry<UUID, java.util.Set<String>> e : pairs.entrySet()) {
+				for (String pair : e.getValue()) {
+					String[] kp = pair.split("\\|", 2);
+					Rec r = d.records.get(kp[0]);
+					if (r == null) continue;
+					if (r.takenFrom == null) r.takenFrom = new HashMap<>();
+					java.util.List<String> mine = r.takenFrom.computeIfAbsent(e.getKey().toString(), x -> new java.util.ArrayList<>());
+					if (!mine.contains(kp[1])) mine.add(kp[1]);
+				}
 			}
 			java.util.Set<Chronicle.Entry> drop = burstLines(all);
+			java.util.Set<UUID> everyone = new java.util.LinkedHashSet<>(pairs.keySet());
+			for (nl.libreria.core.Players.Known k : nl.libreria.core.Players.all(server)) everyone.add(k.id());
 			int lowered = 0;
-			for (Map.Entry<UUID, Integer> e : counts.entrySet()) {
-				UUID who = e.getKey();
-				int n = e.getValue();
+			for (UUID who : everyone) {
+				int n = pairs.getOrDefault(who, java.util.Set.of()).size();
 				CollectorMod.Data cd = CollectorMod.STORE.get(who);
 				if (cd.recordsTaken <= n) continue;
 				if (cd.recountedFrom == 0) cd.recountedFrom = cd.recordsTaken;
@@ -265,7 +295,7 @@ public final class Records {
 				}
 			}
 			if (!drop.isEmpty()) Chronicle.forget(drop::contains);
-			nl.libreria.core.Libreria.LOG.info("Records: recounted taking records by the once-a-day rule; {} players had more, {} chronicle lines of records passed back and forth went",
+			nl.libreria.core.Libreria.LOG.info("Records: recounted taking records (once per record and per holder); {} players had more, {} chronicle lines went",
 					lowered, drop.size());
 		} catch (RuntimeException ex) {
 			nl.libreria.core.Libreria.LOG.warn("Records: the recount failed", ex);
@@ -277,7 +307,7 @@ public final class Records {
 		CollectorMod.Data cd = CollectorMod.STORE.get(p);
 		if (cd.recountedFrom <= 0) return;
 		nl.libreria.core.Notify.info(p, Items.GOLD_BLOCK, "Records recounted: " + cd.recountedFrom + " → " + cd.recordsTaken,
-				"Passing a record back and forth counts once a day now.");
+				"A record counts once per holder you take it from.");
 		cd.recountedFrom = 0;
 		CollectorMod.STORE.markDirty(p);
 	}
@@ -287,6 +317,7 @@ public final class Records {
 		if (who == null) return;
 		ServerPlayer p = server.getPlayerList().getPlayer(who);
 		boolean taken = r.toldWho != null;
+		String from = taken ? r.toldWho.toString() : "";
 		String was = taken ? " (was " + r.toldName + ", " + k.format(r.toldValue) + ")" : "";
 		// The chronicle keeps it; its own chat line would say the same as ours
 		Chronicle.write(who, p != null ? p.getName().getString() : r.name, Chronicle.Kind.MILESTONE,
@@ -302,7 +333,7 @@ public final class Records {
 		r.toldName = r.name;
 		r.toldValue = r.value;
 		r.toldAt = now;
-		if (count(r, who, now)) {
+		if (count(r, who, from)) {
 			CollectorMod.Data cd = CollectorMod.STORE.get(who);
 			cd.recordsTaken++;
 			cd.recordsHeld.add(k.id);
@@ -346,6 +377,7 @@ public final class Records {
 			n.toldValue = r.toldValue;
 			n.toldAt = r.toldAt;
 			n.counted = r.counted;
+			n.takenFrom = r.takenFrom;
 		}
 		d.records.put(k.id, n);
 		STORE.markDirty();
@@ -374,7 +406,7 @@ public final class Records {
 	static void build() {
 		Category c = Category.SAMEN;
 		Catalog.Counter taken = new Catalog.Counter((p, d) -> d.recordsTaken);
-		Catalog.ladder(c, "records", Items.GOLD_BLOCK, "Set a server record|Set a server record %,d times", taken, 1,
+		Catalog.ladder(c, "records", Items.GOLD_BLOCK, "Set a server record|Take %,d server records (each record once per holder)", taken, 1,
 				Catalog.r(Rarity.RARE, Rarity.EPIC, Rarity.LEGENDARY), 1, "Record Breaker", 5, "Hall of Famer", 20, "Living Legend");
 	}
 
