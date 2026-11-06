@@ -707,17 +707,7 @@ final class Fx {
 				}
 				switch (kind) {
 					case "swing_fire" -> flash(level, at, viewers, 8 + g * 2, 4);
-					case "swing_smite" -> {
-						if (g >= 3) {
-							Quaternionf flat = new Quaternionf().rotateX(-Mth.HALF_PI);
-							Vec3 foot = new Vec3(0, -0.95, 0);
-							ps.add(new P("ring", 0xFFF0C0, 6, List.of(new S(foot, 0.3f, 0), new S(foot, 1.0f + g * 0.25f, 0.3f), new S(foot, 1.3f + g * 0.3f, 0.4f)),
-									flat));
-							ps.add(new P("haze", 0xFFE6A0, 8, List.of(new S(foot, 0.4f, 0), new S(foot, 2.0f, 0), new S(foot, 0.1f, 0)), flat));
-						}
-						if (g >= 5) shaft(level, at.add(0, -1.0, 0), viewers, 0xFFF0C8);
-						if (g >= 3) flash(level, at, viewers, 6 + g, 6);
-					}
+					case "swing_smite" -> smiteHit(ps, level, at, viewers, g, facing, look, side);
 					case "swing_bane" -> {
 						// green drops splash off the target
 						for (int k = 0; k < 2 + g * 2; k++) {
@@ -847,6 +837,81 @@ final class Fx {
 			}
 		}
 		emit(level, at, viewers, ps);
+	}
+
+	/** Which way Smite lands (proof of concept: to compare). */
+	static String smiteStyle = "beam";
+
+	/**
+	 * Where Smite lands. "beam": a ring on the ground and, at V, a shaft of light. "halo": a soft ring of light round
+	 * the target that widens and fades. "sunburst": short rays out from the hit. "glow": the target glows for a moment,
+	 * and specks of light drift up off it.
+	 */
+	private static void smiteHit(List<P> ps, ServerLevel level, Vec3 at, List<ServerPlayer> viewers, int g, Quaternionf facing, Vec3 look, Vec3 side) {
+		int gold = 0xFFF0C0;
+		switch (smiteStyle) {
+			case "halo" -> {
+				if (g >= 3) {
+					ps.add(new P("ring", gold, 3, List.of(new S(Vec3.ZERO, 0.3f, 0), new S(Vec3.ZERO, 0.9f + g * 0.08f, 0.2f),
+							new S(Vec3.ZERO, 1.2f + g * 0.08f, 0.3f), new S(Vec3.ZERO, 0.02f, 0.4f)), facing));
+					ps.add(pop("haze", 0xFFE6A0, Vec3.ZERO, 0.9f + g * 0.1f, 10, 0));
+				}
+				if (g >= 5) {
+					ps.add(new P("ring", 0xFFFFFF, 3, List.of(new S(Vec3.ZERO, 0.01f, 0), new S(Vec3.ZERO, 0.4f, 0), new S(Vec3.ZERO, 1.0f, 0.2f),
+							new S(Vec3.ZERO, 0.02f, 0.3f)), facing));
+					for (int k = 0; k < 6; k++) {
+						Vec3 f = side.scale(rnd(-0.5f, 0.5f)).add(0, rnd(-0.6f, 0.2f), 0);
+						ps.add(line("mote", pick(gold, 0xFFFFFF), f, f.add(0, rnd(0.5f, 0.9f), 0), 0.22f, 0.01f, 0, 0, 18));
+					}
+				}
+				if (g >= 3) flash(level, at, viewers, 5 + g, 5);
+			}
+			case "sunburst" -> {
+				if (g >= 3) {
+					int rays = g >= 5 ? 10 : 7;
+					for (int k = 0; k < rays; k++) {
+						float a = (float) (k * Math.PI * 2 / rays + rnd(-0.12f, 0.12f));
+						Vec3 dir = side.scale(Math.cos(a)).add(0, Math.sin(a), 0);
+						Quaternionf rot = new Quaternionf(facing).rotateZ(a);
+						float len = rnd(0.45f, 0.7f) + (g >= 5 ? 0.15f : 0);
+						ps.add(new P("streak", k % 2 == 0 ? 0xFFFFFF : gold, 2, List.of(new S(dir.scale(0.15), 0.15f, 0), new S(dir.scale(0.4), len, 0),
+								new S(dir.scale(0.7), 0.05f, 0)), rot));
+					}
+					ps.add(pop("twinkle", 0xFFFFFF, Vec3.ZERO, 0.6f + g * 0.04f, 4, 0.3f));
+					ps.add(pop("haze", 0xFFE6A0, Vec3.ZERO, 0.8f, 6, 0));
+					flash(level, at, viewers, 5 + g, 4);
+				}
+			}
+			case "glow" -> {
+				if (g >= 3) {
+					// a soft glow that lingers a moment where it hit
+					ps.add(new P("haze", 0xFFE6A0, 5, List.of(new S(Vec3.ZERO, 0.3f, 0), new S(Vec3.ZERO, 1.1f + g * 0.08f, 0), new S(Vec3.ZERO, 1.0f, 0),
+							new S(Vec3.ZERO, 0.7f, 0), new S(Vec3.ZERO, 0.02f, 0)), null));
+					int n = g >= 5 ? 12 : 6;
+					for (int k = 0; k < n; k++) {
+						Vec3 f = side.scale(rnd(-0.45f, 0.45f)).add(look.scale(rnd(-0.2f, 0.2f))).add(0, rnd(-0.8f, 0.3f), 0);
+						List<S> st = new ArrayList<>();
+						for (int q = 0; q < k / 2; q++) st.add(new S(f, 0.01f, 0));
+						st.add(new S(f, 0.22f, 0));
+						st.add(new S(f.add(0, 0.3, 0), 0.2f, 0));
+						st.add(new S(f.add(0, 0.7, 0), 0.01f, 0));
+						ps.add(new P(k % 3 == 0 ? "twinkle" : "mote", pick(gold, 0xFFFFFF), 4, st, null));
+					}
+					flash(level, at, viewers, 6 + g, 12);
+				}
+			}
+			default -> {
+				if (g >= 3) {
+					Quaternionf flat = new Quaternionf().rotateX(-Mth.HALF_PI);
+					Vec3 foot = new Vec3(0, -0.95, 0);
+					ps.add(new P("ring", gold, 6, List.of(new S(foot, 0.3f, 0), new S(foot, 1.0f + g * 0.25f, 0.3f), new S(foot, 1.3f + g * 0.3f, 0.4f)),
+							flat));
+					ps.add(new P("haze", 0xFFE6A0, 8, List.of(new S(foot, 0.4f, 0), new S(foot, 2.0f, 0), new S(foot, 0.1f, 0)), flat));
+				}
+				if (g >= 5) shaft(level, at.add(0, -1.0, 0), viewers, 0xFFF0C8);
+				if (g >= 3) flash(level, at, viewers, 6 + g, 6);
+			}
+		}
 	}
 
 	private static void sparks(List<P> ps, int n, int rgb, Vec3 side, double spread) {

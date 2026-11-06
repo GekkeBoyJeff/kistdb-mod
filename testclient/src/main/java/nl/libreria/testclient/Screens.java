@@ -78,40 +78,31 @@ public final class Screens implements FabricClientGameTest {
 				ctx.takeScreenshot("nameplate_front");
 				camera(ctx, CameraType.FIRST_PERSON);
 			});
-			// Proof of concept, round 4: swords per enchantment and grade (the edge glows more per grade, the effects grow)
-			safe("fx_round4", () -> {
+			// Proof of concept, round 5: other ways for Smite to land (the shaft of light was too much)
+			safe("fx_round5", () -> {
 				ctx.getInput().lookAt(0, 0);
 				camera(ctx, CameraType.THIRD_PERSON_FRONT);
 				ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.HIDDEN));
-				run(server, "time set midnight");
-				String[][] swords = {{"sharp", "1", "3", "5"}, {"fire", "1", "2"}, {"smite", "1", "3", "5"}, {"bane", "1", "3", "5"}};
-				for (String[] sw : swords) {
-					for (int k = 1; k < sw.length; k++) {
-						String g = sw[k];
-						run(server, "item replace entity @a weapon.mainhand with minecraft:diamond_sword[item_model=\"libreria:fx/sword_" + sw[0] + "_" + g + "\"]");
-						String hold = "blade_" + sw[0] + ":" + g;
-						server.runOnServer(s -> nl.libreria.glint.GlintMod.debugFx(player, hold));
-						ctx.waitTicks(30);
-						ctx.takeScreenshot("fxw_" + sw[0] + "_" + g + "_hold");
-						String swing = "hit:swing_" + sw[0] + ":" + g;
+				run(server, "time set midnight",
+						"item replace entity @a weapon.mainhand with minecraft:diamond_sword[item_model=\"libreria:fx/sword_smite_5\"]");
+				server.runOnServer(s -> nl.libreria.glint.GlintMod.debugFx(player, "blade_smite:5"));
+				ctx.waitTicks(20);
+				for (String style : new String[] {"beam", "halo", "sunburst", "glow"}) {
+					for (String g : new String[] {"3", "5"}) {
+						server.runOnServer(s -> nl.libreria.glint.GlintMod.debugFx(player, "smite_style:" + style));
 						ctx.getInput().pressKey(o2 -> o2.keyAttack);
-						server.runOnServer(s -> nl.libreria.glint.GlintMod.debugFx(player, swing));
-						for (int f = 1; f <= 5; f++) {
-							ctx.waitTicks(1);
-							ctx.takeScreenshot("fxw_" + sw[0] + "_" + g + "_swing_" + f);
+						server.runOnServer(s -> nl.libreria.glint.GlintMod.debugFx(player, "hit:swing_smite:" + g));
+						for (int f = 1; f <= 8; f++) {
+							ctx.waitTicks(f <= 5 ? 1 : 3);
+							ctx.takeScreenshot("fxm_" + style + "_" + g + "_" + f);
 						}
-						server.runOnServer(s -> nl.libreria.glint.GlintMod.debugFx(player, "off"));
-						ctx.waitTicks(16);
+						ctx.waitTicks(20);
 					}
 				}
-				camera(ctx, CameraType.FIRST_PERSON);
-				for (String sw : new String[] {"sharp_5", "fire_2", "smite_5", "bane_5"}) {
-					run(server, "item replace entity @a weapon.mainhand with minecraft:diamond_sword[item_model=\"libreria:fx/sword_" + sw + "\"]");
-					ctx.waitTicks(8);
-					ctx.takeScreenshot("fxw_" + sw + "_first");
-				}
+				server.runOnServer(s -> nl.libreria.glint.GlintMod.debugFx(player, "off"));
 				run(server, "time set noon", "item replace entity @a weapon.mainhand with minecraft:air");
 				ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.FULL));
+				camera(ctx, CameraType.FIRST_PERSON);
 			});
 			// Your own armour's particles in third person: a set (one orbit), and ordinary Protection armour
 			safe("armour_third", () -> {

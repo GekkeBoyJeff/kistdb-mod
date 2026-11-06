@@ -149,6 +149,7 @@ public final class GlintMod implements ModInitializer {
 	/** Proof of concept: our own particles and light ("ember:3", "aegis:4" … "off"), or a hit ("hit:sharpness:5"). */
 	public static void debugFx(ServerPlayer p, String spec) {
 		if (spec.startsWith("hit:")) Fx.hit(p, spec.substring(4));
+		else if (spec.startsWith("smite_style:")) Fx.smiteStyle = spec.substring("smite_style:".length());
 		else Fx.set(p, spec);
 	}
 
