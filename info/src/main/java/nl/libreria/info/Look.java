@@ -379,13 +379,35 @@ final class Look {
 			// named villager) floats half a block above the head while you look at it, so the card
 			// goes above that; players also get room for a scoreboard line under their name.
 			double up = e instanceof Player ? 1.25 : e.hasCustomName() ? 0.9 : 0.4;
-			return new Target(e.position().add(0, e.getBbHeight() + up, 0), card, !(e instanceof LivingEntity));
+			Vec3 above = e.position().add(0, e.getBbHeight() + up, 0);
+			return new Target(fits(eye, dir, above) ? above : beside(eye, e), card, !(e instanceof LivingEntity));
 		}
 		if (bh.getType() != HitResult.Type.BLOCK) return null;
 		BlockPos pos = bh.getBlockPos();
 		Card card = describeBlock(p, level, pos, all);
 		if (card == null) return null;
 		return new Target(anchorFor(level, pos, bh, eye), card, true);
+	}
+
+	/**
+	 * Would a card here still be on your screen? Up close, the spot above someone's head is above the top of the screen
+	 * (the screen reaches about 35 degrees up and down from where you look; the card needs a little room too).
+	 */
+	static boolean fits(Vec3 eye, Vec3 dir, Vec3 at) {
+		Vec3 to = at.subtract(eye);
+		// up and down is what runs out first (the screen is wider than it is high)
+		double look = Math.atan2(dir.y, Math.hypot(dir.x, dir.z)), there = Math.atan2(to.y, Math.hypot(to.x, to.z));
+		return Math.abs(Math.toDegrees(there - look)) <= 26;
+	}
+
+	/** Beside someone, at head height, on your right: for when the spot above their head is off your screen. */
+	static Vec3 beside(Vec3 eye, Entity e) {
+		double dx = e.getX() - eye.x, dz = e.getZ() - eye.z;
+		double len = Math.max(1.0e-4, Math.sqrt(dx * dx + dz * dz));
+		// your right, as you face them
+		double rx = -dz / len, rz = dx / len;
+		double out = e.getBbWidth() / 2 + 0.45;
+		return new Vec3(e.getX() + rx * out, e.getEyeY() - 0.2, e.getZ() + rz * out);
 	}
 
 	/** Above the block if there is room, otherwise just in front of the face you're looking at. */
