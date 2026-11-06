@@ -52,7 +52,7 @@ public final class CollectorMod implements ModInitializer {
 	public static final Setting.Toggle BIG = MODULE.toggle("groot", "Achievement banner", true, Items.FIREWORK_ROCKET,
 			"A banner at the top of your screen and", "fireworks when you earn an achievement,", "or someone else a rare (or better) one.");
 	public static final Setting.Toggle OTHERS = MODULE.toggle("anderen", "Others' achievements in chat", true, Items.BELL,
-			"A chat line when someone else earns", "a rare (or better) achievement.");
+			"A chat line when someone else earns", "an achievement: hover it to see", "what it is and how rare.");
 
 	static final nl.libreria.core.Tips.Tip TIP_FIRST = nl.libreria.core.Tips.register("achievement", Domain.PROGRESS, Items.NETHER_STAR,
 			"Your first achievement", "Click [Use as title] in chat to wear it above your name.", "All of them: Progress › Achievements.");
@@ -419,6 +419,24 @@ public final class CollectorMod implements ModInitializer {
 			return;
 		}
 		for (Achievement a : fresh) announce(p, a);
+		tellOthers(p, fresh);
+	}
+
+	/**
+	 * Everyone else (with "others' achievements in chat" on) gets one chat line for what someone just earned: every
+	 * achievement, each one in its rarity's colour, hover it for what it is. Several at once go on the same line.
+	 */
+	static void tellOthers(ServerPlayer p, List<Achievement> earned) {
+		if (earned.isEmpty()) return;
+		MutableComponent msg = Say.line(Domain.PROGRESS).append(Nameplate.displayName(p).copy().withStyle(ChatFormatting.WHITE))
+				.append(Ui.text(" earned ", ChatFormatting.GRAY));
+		for (int i = 0; i < earned.size(); i++) {
+			if (i > 0) msg.append(Ui.text(i == earned.size() - 1 ? " and " : ", ", ChatFormatting.GRAY));
+			msg.append(chip(earned.get(i)));
+		}
+		for (ServerPlayer other : p.level().getServer().getPlayerList().getPlayers()) {
+			if (other != p && OTHERS.get(other)) other.sendSystemMessage(msg);
+		}
 	}
 
 	/** For the screenshot test: announce a legendary achievement as if it was just earned. */
@@ -454,14 +472,6 @@ public final class CollectorMod implements ModInitializer {
 						.withHoverEvent(new HoverEvent.ShowText(Component.literal("Show ").withStyle(ChatFormatting.GRAY)
 								.append(Component.literal("✦ " + a.name() + " ✦").withStyle(a.rarity().color))
 								.append(Component.literal(" above your name").withStyle(ChatFormatting.GRAY)))))));
-		// Others hear about the rare ones (with this many achievements, every common one would be a lot of chat)
-		if (r.ordinal() >= Rarity.RARE.ordinal()) {
-			Component msg = Say.line(Domain.PROGRESS).append(Nameplate.displayName(p).copy().withStyle(ChatFormatting.WHITE))
-					.append(Ui.text(" earned ", ChatFormatting.GRAY)).append(chip);
-			for (ServerPlayer other : p.level().getServer().getPlayerList().getPlayers()) {
-				if (other != p && OTHERS.get(other)) other.sendSystemMessage(msg);
-			}
-		}
 	}
 
 	/** [NicknamesMod] in rariteitskleur, met uitleg als je eroverheen beweegt. */
@@ -469,7 +479,9 @@ public final class CollectorMod implements ModInitializer {
 		Component hover = Component.empty()
 				.append(Component.literal(a.name()).withStyle(a.rarity().color, ChatFormatting.BOLD))
 				.append("\n").append(Component.literal(a.rarity().label).withStyle(a.rarity().color))
-				.append("\n").append(Component.literal(a.description()).withStyle(ChatFormatting.GRAY));
+				.append("\n").append(Component.literal(a.description()).withStyle(ChatFormatting.GRAY))
+				.append("\n").append(Component.literal("+" + a.rarity().points + (a.rarity().points == 1 ? " point" : " points"))
+						.withStyle(ChatFormatting.DARK_GRAY));
 		return Component.literal("[" + a.name() + "]").withStyle(s -> s.withColor(a.rarity().color)
 				.withHoverEvent(new HoverEvent.ShowText(hover)));
 	}

@@ -875,6 +875,18 @@ def strip(frames):
     return out
 
 
+def half(img):
+    """A 32 px sprite at 16 px: a pixel wherever one of its four is."""
+    out = Image.new('RGBA', (16, 16), (0, 0, 0, 0))
+    for y in range(16):
+        for x in range(16):
+            px = [img.getpixel((2 * x + i, 2 * y + j)) for j in (0, 1) for i in (0, 1)]
+            px = [p for p in px if p[3]]
+            if px:
+                out.putpixel((x, y), px[0])
+    return out
+
+
 def split(over):
     """An overlay as (its plain pixels, its glowing ones): either None when empty."""
     lit = Image.new('RGBA', over.size, (0, 0, 0, 0))
@@ -984,10 +996,9 @@ class Kind:
         if sprite in self.auras:
             return self.auras[sprite]
         nodes = []
-        if sprite in BIG:  # drawn bigger than the plane is made for: texture parts only
-            self.auras[sprite] = nodes
-            return nodes
         ref = self.ref(sprite)
+        if sprite in BIG:  # drawn at 32 px: its aura follows the same shape at 16, as the plane is made for that
+            ref = half(ref)
         r = regions(self.name, ref)
         display = self.display_of(sprite)
         style = 'sword' if self.name == 'sword' else 'generic'
