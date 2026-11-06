@@ -306,6 +306,13 @@ public final class Screens implements FabricClientGameTest {
 				server.runOnServer(sv -> nl.libreria.info.InfoMod.debugDescribe(player));
 				ctx.waitTicks(15);
 				ctx.takeScreenshot("describe_window");
+				// The lore book: the stories you know a part of, one story to read, and everything you found
+				ctx.waitTicks(45);
+				for (String page : new String[] {"index", "story", "finds"}) {
+					server.runOnServer(sv -> nl.libreria.info.InfoMod.debugLoreBook(player, page));
+					ctx.waitTicks(12);
+					ctx.takeScreenshot("lorebook_" + page);
+				}
 				server.runOnServer(sv -> nl.libreria.core.dialog.Dialogs.close(player));
 				ctx.waitTicks(5);
 			});

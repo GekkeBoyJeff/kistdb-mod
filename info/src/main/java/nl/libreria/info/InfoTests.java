@@ -259,6 +259,20 @@ final class InfoTests {
 				}
 			}
 			SelfTests.check(got == 460 && ids.size() == 460, "460 finds, 460 different texts: " + ids.size());
+			// The lore book reads every text back from its id, a family's combination too
+			for (String id : ids) {
+				Found.Text back = Found.byId(id);
+				SelfTests.check(back != null && back.id().equals(id), "the lore book finds " + id + " again");
+			}
+			Found.Family fam = Found.FAMILIES.get(0);
+			StringBuilder fid = new StringBuilder("f:" + fam.id());
+			String expect = fam.form();
+			for (int i = 0; i < fam.slots().size(); i++) {
+				fid.append(":0");
+				expect = expect.replace("{" + fam.slots().get(i) + "}", fam.options().get(i).get(0));
+			}
+			SelfTests.check(Found.byId(fid.toString()) != null && Found.byId(fid.toString()).text().equals(expect), "a family text from its id: " + expect);
+			SelfTests.check(Found.byId("f:" + fam.id() + ":999:0:0:0") == null && Found.byId("t:nothing") == null, "unknown ids: nothing");
 			// Written on an item: the story part names it and says which part; the weapon's own story stays last
 			ItemStack sword = new ItemStack(Items.IRON_SWORD);
 			Found.Text piece = Found.PIECES.get(0);

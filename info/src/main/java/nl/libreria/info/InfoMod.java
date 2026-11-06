@@ -76,13 +76,30 @@ public final class InfoMod implements ModInitializer {
 		};
 		var sword = make.apply(Items.DIAMOND_SWORD, new Object[] {"sharpness", 5, "fire_aspect", 2, "looting", 3, "unbreaking", 3, "mending", 1});
 		Found.Text piece = Found.PIECES.stream().filter(t -> "lantern".equals(t.story()) && t.part() == 1).findFirst().orElse(null);
-		if (piece != null) Found.write(sword, piece, "in a shipwreck", 312, p.getName().getString(), access);
+		if (piece != null) {
+			Found.write(sword, piece, "in a shipwreck", 312, p.getName().getString(), access);
+			Found.remember(p, sword, piece, "in a shipwreck", 312);
+		}
+		// a second part of the same story, as if it was found earlier and given away
+		Found.Text third = Found.PIECES.stream().filter(t -> "lantern".equals(t.story()) && t.part() == 3).findFirst().orElse(null);
+		if (third != null) {
+			var axe = new net.minecraft.world.item.ItemStack(Items.GOLDEN_AXE);
+			Found.write(axe, third, "in a village", 330, p.getName().getString(), access);
+			Found.remember(p, axe, third, "in a village", 330);
+			Found.saw(p, "lantern:3", axe);
+		}
 		var mace = make.apply(Items.MACE, new Object[] {"density", 5, "breach", 4});
 		Found.Text sold = Found.LINES.stream().filter(t -> t.text().startsWith("Sold \"as is\"")).findFirst().orElse(null);
-		if (sold != null) Found.write(mace, sold, "Dropped by a pillager", 298, p.getName().getString(), access);
+		if (sold != null) {
+			Found.write(mace, sold, "Dropped by a pillager", 298, p.getName().getString(), access);
+			Found.remember(p, mace, sold, "Dropped by a pillager", 298);
+		}
 		var boots = make.apply(Items.NETHERITE_BOOTS, new Object[] {"depth_strider", 3, "feather_falling", 4});
 		Found.Text stain = Found.LINES.stream().filter(t -> t.text().startsWith("Comes with a small stain")).findFirst().orElse(null);
-		if (stain != null) Found.write(boots, stain, "Fished up", 300, p.getName().getString(), access);
+		if (stain != null) {
+			Found.write(boots, stain, "Fished up", 300, p.getName().getString(), access);
+			Found.remember(p, boots, stain, "Fished up", 300);
+		}
 		var book = new net.minecraft.world.item.ItemStack(Items.ENCHANTED_BOOK);
 		book.set(net.minecraft.core.component.DataComponents.STORED_ENCHANTMENTS, make.apply(Items.DIAMOND_SWORD,
 				new Object[] {"mending", 1, "unbreaking", 3}).get(net.minecraft.core.component.DataComponents.ENCHANTMENTS));
@@ -97,6 +114,15 @@ public final class InfoMod implements ModInitializer {
 		inv.setItem(2, boots);
 		inv.setItem(3, book);
 		inv.setItem(4, pick);
+	}
+
+	/** For the screenshots: the lore book, a story in it, or your finds. */
+	public static void debugLoreBook(ServerPlayer p, String page) {
+		switch (page) {
+			case "story" -> LoreBook.story(p, "lantern");
+			case "finds" -> LoreBook.finds(p, 0);
+			default -> LoreBook.open(p);
+		}
 	}
 
 	/** For the screenshots: the window to write on what's in your hand. */

@@ -1,0 +1,135 @@
+# Nods to games a lot of us grew up with (and some from since). Never named; if you know, you know.
+*|Its last owner was an adventurer like you. Then he took an arrow to the knee. Now he guards a gate and tells everyone.
+*|Let me guess: someone stole your sweet roll? Same thing happened to the last owner of this {item}.
+*|Its owner asked everyone he met whether they got to the cloud district very often. Nobody ever did.
+*|It's dangerous to go alone. Take this {item}.
+*|Found next to an old man in a cave, who gave it away and then just stood there, forever.
+*|Comes with a tiny glowing fairy who won't stop saying "hey" and "listen". You can't turn her off.
+*|Its previous owner smashed every pot in every house he walked into, looking for money. Nobody stopped him. He never said a word.
+*|Hit a chicken with it once. The chickens came back. With friends. So many friends.
+*|Thank you, adventurer! But the treasure is in another chest.
+*|Its previous owner jumped on the heads of everything he fought. It worked far more often than it should have.
+*|There's a little mushroom painted on it. Eat a real one and you'll grow. Eat a wrong one and you'll also grow, but sideways.
+*|Smells faintly of pipes, plumbing and spaghetti.
+*|A wild {item} appeared! You picked it up. It was not very effective at running away.
+*|It's super effective.
+*|It's not very effective…
+*|An old professor once told its owner there's a time and a place for everything. This was neither.
+*|What? Your {item} is evolving! …No, it was just the light.
+*|Its owner tried to collect one of everything. There were a hundred and fifty-one. Then there were more. He never stopped.
+*|Its owner was promised cake at the end of the test. There was no cake.
+*|Speedy thing goes in, speedy thing comes out. That's all the last owner understood about portals, and it was enough.
+*|Its previous owner wore boots with strange springs at the heels and could fall from any height. He still couldn't get cake.
+*|Its owner was a very tall soldier who never once took off his helmet. Nobody knows what he looked like. Nobody asked.
+*|"Wake me when you need me," its owner said. Nobody woke him. He's still asleep in a chest somewhere.
+*|Its owner never said a word. He carried a crowbar and solved everybody's problems by hitting them.
+*|The third part of this {item}'s story is coming soon. It has been coming soon for a very long time.
+*|Someone scratched "try jumping" into the handle. Don't. It's a trap. It's always a trap.
+*|Someone scratched "amazing chest ahead" into it. The chest had teeth.
+*|Its owner died here four hundred times. Then once more. Then he won, and cried.
+*|Its last owner rolled through everything: fights, doorways, conversations. Especially conversations.
+*|There's a little sun drawn on it, with arms raised to it in praise. It's a very jolly sun.
+*|Its owner levelled up nothing but faith and hope. It went about as well as you'd think.
+*|War never changes. Neither does the smell of this {item}.
+*|Its owner came out of a vault after two hundred years and his first words were "where's the bathroom".
+*|Its owner turned all the way around before every shot. He hit exactly one thing. Once. He's still bragging.
+*|Its previous owner camped in the same corner for nine years. He got a lot of kills. He has no friends.
+*|Press F to pay respects to its last owner.
+*|Its last owner jumped off a church tower into a cart of hay. He was fine. The hay was not.
+*|Its owner wore a white hood and hid in plain sight by standing next to three villagers. It worked, somehow.
+*|Its owner's answer to everything was "hmm". It got him surprisingly far.
+*|Its owner carried two swords: steel for people, silver for monsters. This one was for bread.
+*|"Wind's howling," its last owner said, every single time the wind howled.
+*|Ah, here we go again, its owner said every morning. Then he went again.
+*|Mission passed. Respect plus.
+*|All its owner had to do was follow the train. He did not follow the train.
+*|Its owner had a plan. Just one more job, he said. Then: the islands, the mangoes, the sun. He never made it to the mangoes.
+*|Its owner ran into the dragon's nest shouting his own name. The rest of the party had a plan. They do not have a plan anymore.
+*|Stay a while, and listen. This {item} has a story. It's very long. It's mostly about a cow level.
+*|You require more emeralds. Its last owner always required more emeralds.
+*|Not enough minerals. Its owner's eternal complaint.
+*|Its owner sold lobsters at the bank for years. It was the happiest time of his life.
+*|Its owner was promised that if he dropped all his gold, he'd get double back. He dropped it. You know the rest.
+*|Its owner chopped willow trees for six weeks to afford this. He'd do it again.
+*|Its previous owner waddled around a snowy island in a tiny hat, and was, secretly, a spy.
+*|Its owner spun into everything: crates, enemies, a very confused bandicoot. Wait, no, he WAS the bandicoot.
+*|Its owner was a small purple dragon who headbutted sheep. It was a simpler time.
+*|Its owner believed his friends were his power. His friends were a duck and a dog. It worked.
+*|After every fight, its owner heard a little victory tune. Nobody else did.
+*|Its owner had to go fast. Blue, rude and terrified of water.
+*|Found under a cardboard box. The box was very suspicious. The box moved.
+*|There's an exclamation mark scratched into it, and under it, a guard who was very surprised.
+*|Its previous owner is still paying off a house to a very polite raccoon.
+*|Its owner's whole village was animals, and they all wanted something. He spent years fetching fruit.
+*|You feel an evil presence watching you. It's the {item}. It's fine. Mostly.
+*|Despite everything, it's still a {item}.
+*|Holding it fills you with determination.
+*|Its last owner built a wooden tower around himself every time someone looked at him funny.
+*|Its owner did a little dance after every win. And every loss. And at funerals.
+*|Its owner was very suspicious. Everyone voted him out. He was innocent. Probably.
+*|Its owner blamed the jungle for everything. Every loss, every mistake, every cold he caught.
+*|Its previous owner was a spy. He was right behind you the whole time.
+*|Would you kindly pick it up? Thank you.
+*|Its owner defended his lawn with sunflowers and peas. The zombies ate his brains anyway. The flowers were great though.
+*|Launched by a slingshot at a fortress full of pigs. Hit a pig. Very satisfying.
+*|Its owner ran from a monkey through an endless temple. He's still running. He's very fit.
+*|Its last owner rode a pig into battle, shouting his own job title.
+*|What a save! What a save! What a save! (Its owner's whole vocabulary.)
+*|Its last owner was stuck in a pool with no ladder for a week. He was being watched. By a god. With a mouse.
+*|Its owner could only speak in made-up words and still found a wife, a job and a house.
+*|Stop right there, criminal scum! Nobody steals a {item} on my watch.
+*|Its owner shouted at a mountain once, in three very loud words. The mountain moved. A little.
+*|Its last owner said "I'm the main character" and then fell off a bridge.
+*|Comes with a notice: "Removed. Never existed." Its previous owner had very white eyes.
+*|Its owner opened every chest he ever saw and found mostly ammo and a lot of shouting.
+*|Its owner was told to collect ten wolf pelts for a quest. He collected ten wolf pelts. Then ten more. Nobody needed them.
+*|Its last owner insisted the cheese wheels were a perfectly legitimate way down a mountain. He was right.
+*|Its owner kept a rotting fish in his inventory for three years because it might be "useful later".
+*|Its owner jumped into the water from a great height every time he found some. No damage. No explanation.
+*|Its owner saved the princess eight times. The princess kept getting taken. Maybe hire a guard.
+*|Its owner's horse could climb sheer mountains. Nobody questioned this.
+*|The previous owner climbed every tower in the land to see the map. The map was the same every time.
+*|Its owner pressed A to talk to every single villager. Some of them are still recovering.
+*|Its last owner's companion followed him everywhere and said "I'll wait here" in every single doorway.
+*|This {item} has never been in a game where you could pause. Respect that.
+*|Its owner played on the hardest setting. With one hand. While eating. He was a legend in his own kitchen.
+*|Its last owner loaded his last save. The save was from three days earlier. He lost a lot.
+*|Respawned here. More than once.
+*|Its owner never once read the tutorial. It shows.
+*|Its owner blew into the cartridge before using it. It's not a cartridge. He did it anyway.
+*|Its owner stayed up until three every school night with it. His mother never found out.
+*|The cheat code for this {item} was up, up, down, down, left, right, left, right. It didn't work. It never works.
+*|Its owner's little brother had the second controller. It wasn't plugged in. He never knew.
+*|Its last owner played split-screen and always looked at the other side. Everybody knew where he was.
+*|This {item} still has a sticker that says "Player 2".
+*|Its last owner beat the final boss and then the game started again, harder. He said a bad word.
+*|Its owner insisted the secret level was real. Behind the waterfall. It was not behind the waterfall.
+*|Its owner traded his best friend a rare card for this. They're still not talking.
+*|Its last owner saved before every fight. And every conversation. And every door.
+*|Its owner grinded slimes for three hours to afford it. Worth it.
+*|There's a tiny "GG" scratched on it.
+*|Its owner said "one more turn" in the evening and looked up at sunrise.
+*|Achievement unlocked: picked up a {item}.
+*|Its last owner was AFK. He's still AFK. He'll be back.
+*|Comes with a tiny loading screen tip: "You can pick things up."
+*|Its owner was always the healer. Nobody ever thanked the healer.
+*|Its owner pulled the boss early and blamed the tank.
+*|Its owner said "trust me, I've done this dungeon before". He had not.
+*|It has a little health bar over it. It's full. For now.
+*|Its owner could carry ninety swords, forty helmets and a cabbage, but one more cabbage and he couldn't walk.
+*|Somewhere, a narrator just said "and then he found the {item}".
+*|Its last owner had a skill tree. He put all his points into lockpicking.
+*|Its owner wouldn't stop asking everyone if they'd heard about the dragons. Everyone had heard about the dragons.
+*|There's a tiny gold ring on it. One ring. Don't put it on.
+*|Its last owner fought a final boss with forty-seven health potions. He still almost lost.
+*|Its owner got lost in the water level. Everyone gets lost in the water level.
+*|Its owner never used his best potion because he was saving it. He's still saving it.
+*|Its owner sold every quest item before finishing the quest. Classic.
+*|Its last owner skipped every cutscene, and so he has no idea why he's here. Neither do you.
+*|Its owner waited for the sale. The sale never came. He bought it anyway.
+*|Its last owner went straight for the final boss at level one. It went how you think.
+*|This {item} survived the great server reset.
+*|Its owner's name was XxDarkSlayerxX. He was nine.
+*|Its owner had a guild. The guild had one rule: no drama. The guild ended in drama.
+*|Its owner farmed a rare drop for a month. This is not the rare drop. Sorry.
+*|It's a legendary drop. In the sense that its owner never stopped talking about it.

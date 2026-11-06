@@ -58,8 +58,8 @@ final class Found {
 	static final String STAMP = "libreria_found", PENDING = "libreria_found_pending";
 	static final int TEXT = 0xC8AFEB, HEAD = 0xF0C86E, WHERE = 0x6E6E6E;
 	static final nl.libreria.core.Tips.Tip TIP = nl.libreria.core.Tips.register("found_story", nl.libreria.core.Domain.ITEMS,
-			net.minecraft.world.item.Items.WRITTEN_BOOK, "A part of a story", "Some found gear belongs to a longer story.",
-			"Its tooltip says which one: find the other parts.");
+			net.minecraft.world.item.Items.WRITTEN_BOOK, "A part of a story", "Some found gear belongs to a longer story:",
+			"find the other parts. Read them in Items › Lore book.");
 
 	/** One text: a line, a part of a story, or one combination of a family. */
 	record Text(String id, Set<String> kinds, String where, String text, @Nullable String name, @Nullable String story,
@@ -82,14 +82,34 @@ final class Found {
 
 	static final WorldStore<Data> STORE = WorldStore.create("libreria/found.json", Data.class, Data::new);
 
-	/** Which parts of which stories a player has had in their inventory. */
+	/** One thing a player found: which text, on what, where and when. */
+	static final class Find {
+		public String id = "";
+		public String item = "";
+		public String name = "";
+		public String where = "";
+		public int day;
+	}
+
+	/** Which parts of which stories a player has had in their inventory, and what they found themselves. */
 	static final class Seen {
 		public Map<String, Set<Integer>> parts = new HashMap<>();
+		/** "story:part" → "where|day|by", from the item when the part was first held. */
+		public Map<String, String> partInfo = new HashMap<>();
+		/** Newest last. */
+		public List<Find> finds = new ArrayList<>();
 	}
+
+	static final int MAX_FINDS = 2000;
 
 	static final nl.libreria.core.PlayerStore<Seen> SEEN = nl.libreria.core.PlayerStore.create("libreria/stories", Seen.class, Seen::new, d -> {
 		if (d.parts == null) d.parts = new HashMap<>();
+		if (d.partInfo == null) d.partInfo = new HashMap<>();
+		if (d.finds == null) d.finds = new ArrayList<>();
 	});
+
+	/** Every text by its id (lines and story parts; family texts are made again from their id). */
+	static final Map<String, Text> BY_ID = new HashMap<>();
 	static final List<Text> LINES = new ArrayList<>(), PIECES = new ArrayList<>();
 	static final List<Family> FAMILIES = new ArrayList<>();
 	/** Story id → title and number of parts. */
@@ -170,6 +190,9 @@ final class Found {
 		} catch (IOException e) {
 			Libreria.LOG.error("Found: could not read the texts", e);
 		}
+		BY_ID.clear();
+		for (Text t : LINES) BY_ID.put(t.id(), t);
+		for (Text t : PIECES) BY_ID.put(t.id(), t);
 		Libreria.LOG.info("Found: {} texts, {} story parts in {} stories, {} families ({} combinations)", LINES.size(), PIECES.size(),
 				STORIES.size(), FAMILIES.size(), FAMILIES.stream().mapToLong(Family::size).sum());
 	}
@@ -346,6 +369,29 @@ final class Found {
 		return null;
 	}
 
+	/** The text with this id: a line, a story part, or a family's combination made again. */
+	static @Nullable Text byId(String id) {
+		Text t = BY_ID.get(id);
+		if (t != null || !id.startsWith("f:")) return t;
+		String[] p = id.split(":");
+		for (Family f : FAMILIES) {
+			if (!f.id().equals(p[1]) || p.length != 2 + f.slots().size()) continue;
+			String text = f.form();
+			try {
+				for (int i = 0; i < f.slots().size(); i++) {
+					List<String> o = f.options().get(i);
+					int pick = Integer.parseInt(p[2 + i]);
+					if (pick < 0 || pick >= o.size()) return null;
+					text = text.replace("{" + f.slots().get(i) + "}", o.get(pick));
+				}
+			} catch (NumberFormatException e) {
+				return null;
+			}
+			return new Text(id, f.kinds(), f.where(), text, null, null, null, 0, 0);
+		}
+		return null;
+	}
+
 	private static @Nullable Text weighted(List<Text> pool, List<Double> weights, double total, Random r) {
 		if (pool.isEmpty()) return null;
 		double x = r.nextDouble() * total;
@@ -453,7 +499,7 @@ final class Found {
 				if (s.isEmpty()) continue;
 				if (has(s, PENDING)) stamp(p, s);
 				String piece = pieceOf(s);
-				if (piece != null) saw(p, piece);
+				if (piece != null) saw(p, piece, s);
 			}
 		}
 	}
@@ -470,7 +516,22 @@ final class Found {
 		if (t == null) return;
 		int day = Chronicle.day(p.level().getServer());
 		write(s, t, from.label(), day, p.getName().getString(), p.level().registryAccess());
+		remember(p, s, t, from.label(), day);
 		if (t.story() != null) nl.libreria.core.Tips.once(p, TIP);
+	}
+
+	/** Into the finder's lore book. */
+	static void remember(ServerPlayer p, ItemStack s, Text t, String label, int day) {
+		Seen seen = SEEN.get(p);
+		Find f = new Find();
+		f.id = t.id();
+		f.item = BuiltInRegistries.ITEM.getKey(s.getItem()).toString();
+		f.name = t.name() == null ? "" : t.name();
+		f.where = where(label);
+		f.day = day;
+		seen.finds.add(f);
+		while (seen.finds.size() > MAX_FINDS) seen.finds.remove(0);
+		SEEN.markDirty(p);
 	}
 
 	static void write(ItemStack s, Text t, String label, int day, String by, net.minecraft.core.RegistryAccess access) {
@@ -481,13 +542,14 @@ final class Found {
 			lines.add(Lore.line("✦ " + t.title() + " · part " + t.part() + " of " + t.parts(), HEAD, false));
 		}
 		for (String l : Lore.wrap(t.text().replace("{item}", noun), 40)) lines.add(Lore.line(l, TEXT, true));
-		String where = label.startsWith("in ") || label.startsWith("by ") || label.startsWith("under ") ? "Found " + label : label;
+		String where = where(label);
 		lines.add(Lore.line(where + " · day " + day + " · " + by, WHERE, false));
 		Lore.set(s, Lore.FOUND, lines);
 		CompoundTag stamp = new CompoundTag();
 		stamp.putString("id", t.id());
 		stamp.putInt("day", day);
 		stamp.putString("by", by);
+		stamp.putString("where", where);
 		if (t.story() != null) {
 			stamp.putString("story", t.story());
 			stamp.putInt("part", t.part());
@@ -500,12 +562,16 @@ final class Found {
 	}
 
 	/** A player has (had) this story part ("lantern:3") in their inventory. */
-	static void saw(ServerPlayer p, String piece) {
+	static void saw(ServerPlayer p, String piece, ItemStack stack) {
 		int colon = piece.lastIndexOf(':');
 		String story = piece.substring(0, colon);
 		int part = Integer.parseInt(piece.substring(colon + 1));
 		Seen s = SEEN.get(p);
-		if (s.parts.computeIfAbsent(story, k -> new HashSet<>()).add(part)) SEEN.markDirty(p);
+		if (s.parts.computeIfAbsent(story, k -> new HashSet<>()).add(part)) {
+			CompoundTag st = stack.get(DataComponents.CUSTOM_DATA).copyTag().getCompoundOrEmpty(STAMP);
+			s.partInfo.put(piece, st.getStringOr("where", "Found") + "|" + st.getIntOr("day", 0) + "|" + st.getStringOr("by", ""));
+			SEEN.markDirty(p);
+		}
 	}
 
 	static void provide() {
@@ -538,6 +604,11 @@ final class Found {
 		});
 	}
 
+	/** "Found in a bastion" for "in a bastion"; "Fished up" stays. */
+	static String where(String label) {
+		return label.startsWith("in ") || label.startsWith("by ") || label.startsWith("under ") ? "Found " + label : label;
+	}
+
 	/** The story part an item carries ("lantern:3"), or null. */
 	static @Nullable String pieceOf(ItemStack s) {
 		CustomData cd = s.get(DataComponents.CUSTOM_DATA);
@@ -565,6 +636,7 @@ final class Found {
 			}
 			return true;
 		});
+		LoreBook.init();
 	}
 
 	/** For the self-test and the screenshots: every story's parts, how many lines and families there are. */

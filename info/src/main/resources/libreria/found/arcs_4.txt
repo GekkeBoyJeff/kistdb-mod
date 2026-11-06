@@ -1,0 +1,122 @@
+# Sets: stories told by a whole outfit or a whole kit. Armour sets, a miner's kit, a fisher's kit, an archer's,
+# a farmer's, an explorer's, a pilot's… Each part is one piece of the set.
+
+@ odric | Ser Odric's Armour
+helmet | Ser Odric's Helm | Ser Odric was the bravest knight in the valley for exactly one afternoon. This helm still has the dent from the evening.
+chestplate | Ser Odric's Plate | Polished every morning for twenty years by a squire who hated him. The squire wrote rude words on the inside. They're still there.
+leggings | Ser Odric's Greaves | Ser Odric marched into every battle in these. He marched out of most of them backwards, which he called "advancing the other way".
+boots | Ser Odric's Sabatons | The only part of the armour that ever saw the front line, because Ser Odric kept kicking doors open and then remembering he was afraid.
+sword | Ser Odric's Oathblade | He swore an oath on this blade to protect the valley. The valley still talks about it. Mostly about how loud he swore.
+shield | Ser Odric's Crest | Painted with a lion. It looks more like a cat. Ser Odric insisted it was a lion. The cat on it looks embarrassed.
+
+@ bramble | The Bramblewick Miners
+pickaxe | Old Bramble's Pick | Old Bramble mined the deepest shaft in the hills and named every tunnel after one of his eleven children. He ran out of children before he ran out of tunnels.
+shovel | Bramble's Second Shovel | Nobody knows what happened to the first shovel. Bramble only ever said "the mountain kept it".
+helmet | Bramble's Lamp-Helm | The lamp went out three hundred metres down, and he walked home in the dark by counting his steps. He was off by one. He's never told anyone where the one went.
+boots | Bramble's Pit Boots | Steel toes, iron soles, and a secret compartment with a single emergency biscuit. The biscuit is older than you.
+axe | Bramble's Prop-Cutter | Used to cut the beams that held up the tunnels. The tunnels are still up. Bramble said that was the only part of mining that mattered.
+
+@ saltwife | The Saltwife's Kit
+rod | The Saltwife's Line | Old Nessa fished the cold bay every morning for forty years. She only ever caught enough for that day, and she never once went hungry.
+boots | Nessa's Tide Boots | She walked out at low tide to where the old harbour used to be. The harbour comes back at night, she said, and so do the ships.
+helmet | Nessa's Rain Hood | It has rained on this hood more than on most of the country. It's never let a drop through. Nessa never let anything through either.
+leggings | Nessa's Wading Breeches | Patched with sailcloth from three different ships. All three sank. She kept the sails anyway, out of respect.
+trident@fishing | What Nessa Pulled Up | On her last morning she hooked something heavy. It was this, and on it, her husband's initials. He'd gone out with it thirty years before.
+
+@ greenhood | The Greenhood Archers
+bow | Greenhood's Longbow | The Greenhood Archers robbed from the rich and gave to the poor. The poor mostly wanted bread. The archers mostly gave them arrows.
+crossbow | The Sheriff's Answer | Confiscated from the Greenhood by a very angry sheriff, then stolen back by the Greenhood, then confiscated again. It's been through a lot of paperwork.
+helmet | The Green Hood | It's not actually a hood. It's a helmet painted green. The Greenhood Archers had more style than budget.
+boots | Greenhood Treads | Soft enough to walk through a forest without breaking a twig. They broke a twig once. The whole forest heard. They've been embarrassed ever since.
+chestplate | The Quiver-Plate | A chestplate with a quiver welded to the back. The welding was done by an archer. You can tell.
+
+@ hollowfarm | Hollowmere Farm
+hoe | Grandpa Hollow's Hoe | The Hollows farmed the same field for nine generations. This hoe tilled it for six of them. The handle has been replaced eleven times; the blade never.
+shears | The Shearing Shears | Every spring the whole family sheared the sheep together, and every spring the sheep won at least once.
+boots | Muddy Boots | There is mud on these from every spring for sixty years. It's less mud than history at this point.
+axe | The Fence-Mender | Used to mend fences the cows had broken. The cows broke them again. It was a long, friendly war.
+helmet | The Scarecrow's Hat | Grandpa Hollow put this on the scarecrow. The crows stayed away for forty years. Then the scarecrow walked off one night, still wearing it.
+
+@ skyrider | Captain Talia's Sky Kit
+elytra | Talia's Wings | Captain Talia flew the mail between mountain villages. She never lost a letter. She lost a lot of altitude.
+helmet | The Flight Goggles | A helmet with goggles fixed on. The left lens is cracked from a very determined phantom.
+boots | The Landing Boots | Reinforced at the heel, because Talia's landings were "enthusiastic". Some villages still have the craters.
+crossbow | The Signal Bow | She fired fireworks from this to tell villages the mail had come. Some villages thought it was an attack. Some villages fired back.
+chestplate | Talia's Mailbag Plate | A chestplate with a satchel strap worn into it. Inside the satchel, still, one letter. It's addressed to her. It's never been opened.
+
+@ digsite | The Digsite at Dunmarrow
+brush | Professor Quill's Brush | Professor Quill brushed sand off a single pot for three weeks. It was the most important pot in history. It was also, technically, a chamber pot.
+shovel | The Dunmarrow Spade | Used to dig the first trench at Dunmarrow, where the Old Builders' town lay under the dunes. The town was there. So was something else.
+boots@desert | Desert Boots | The professor's boots, full of sand. When you shake them, sand comes out. When you stop, there's more sand.
+helmet | The Pith Helmet | Not a real pith helmet, an iron one painted white. The paint is mostly gone. The professor's dignity went at about the same speed.
+pickaxe@archaeology | The Last Trench | On the last day of the dig, someone found a door in the trench. Professor Quill told everyone to go home. He stayed.
+
+@ nethergold | The Golden Envoy
+helmet@bastion | The Envoy's Crown | The first human envoy to the piglins wore gold from head to toe so they wouldn't attack. It worked. They just kept trying to take his clothes.
+chestplate@nether | The Envoy's Breastplate | Solid gold, which is the softest armour there is. The envoy was safe from piglins and in danger from everything else.
+leggings@nether | The Envoy's Greaves | A piglin traded the envoy a single rotten flesh for these and thought it got a great deal. Diplomacy.
+boots@bastion | The Envoy's Golden Steps | The envoy walked out of the bastion with his life and without his shirt. These boots are the only part of the deal he's proud of.
+sword@nether | The Envoy's Ceremonial Blade | Gold, blunt and beautiful. Never drawn in anger. Drawn once to cut a cake. The piglins ate the cake and the sword.
+
+@ voidwarden | The Void Warden's Armour
+helmet@end | Visor of the Void Warden | The Void Wardens patrolled the edge of the End islands to stop anything from falling off. Or to stop anything from climbing on. The records disagree.
+chestplate@end_city | Plate of the Void Warden | Cold as the space around it. The Wardens' plates were forged so they wouldn't float away. It almost worked.
+leggings@end | Greaves of the Void Warden | One Warden stepped off the edge to see how far down it went. His leggings came back. He reported "far".
+boots@end_city | Boots of the Void Warden | Magnetised to end stone, so the Wardens could stand upside down under the islands. Nobody remembers why they wanted to.
+sword@end | Blade of the Void Warden | It hums a note so low only endermen can hear it. They hate it. That was the point.
+
+@ chef | The Royal Kitchen Brigade
+axe | The Head Chef's Cleaver | The head chef of the royal kitchen ran it like an army. This axe was his cleaver. The kitchen ran very well. The army was terrified of the kitchen.
+hoe | The Herb Garden Hoe | Used in the royal herb garden. The king never knew where the parsley came from. The gardener never told him; she liked the mystery.
+shears | The Pastry Shears | For trimming pie crust. And, once, the king's beard, after he complained about the pie.
+helmet | The Toque | A chef's hat, made of iron after an incident with a rolling pin and a jealous baker.
+sword | The Carving Sword | Used to carve the roast at the king's feast. The roast was a whole cow. The sword was the only knife big enough.
+
+@ wolfpack | The Wolf Mother's Pack
+helmet | Wolfhead Helm | The Wolf Mother lived in the taiga with nine wolves and no people. She wore this so the wolves would know she was one of them. They knew anyway.
+chestplate | The Fur-Lined Plate | Lined with fur the wolves shed in spring. She never killed a wolf. She said she never had to; she spoke their language.
+boots | Silent Paws | Wrapped in leather so she could hunt as quietly as her pack. The pack still thought she was loud.
+axe | The Den-Builder | She built the den with this. It's still there. The wolves still sleep in it. They leave a space by the fire for her.
+bow | The Pack's Howl | When she drew this bow, the wolves howled. When she let go, they went quiet. The arrow never missed. Neither did the wolves.
+
+@ courier | The Courier's Route
+boots | The Courier's Boots | The Courier carried one parcel across the whole world, through every biome, on foot. Nobody knows what was in it. These boots know.
+helmet | The Courier's Cap | A helmet painted with the courier service's sign: a boot with wings. The service only ever had one courier. She was very good.
+chestplate | The Parcel Plate | A chestplate with a strap worn into it from the parcel. The parcel was heavy. The parcel ticked. She delivered it anyway.
+elytra | The Shortcut | The Courier found these halfway through her route and finished the rest in an afternoon. The other couriers called it cheating. There were no other couriers.
+shield | The "Fragile" Shield | Painted with "FRAGILE - THIS WAY UP". She used it to protect the parcel. The parcel was delivered upside down. It was fine.
+
+@ beekeepers2 | The Honeyhollow Guard
+helmet | The Bee-Guard's Veil | After Agnes left, Honeyhollow raised a guard to protect the hives. The guard was mostly bees. This helmet belonged to the one human.
+chestplate | The Waxed Plate | Waxed with Honeyhollow's own beeswax. It smells of summer. Bees land on it to say hello.
+leggings | The Clover Greaves | The guard walked the clover fields every day, counting flowers. There were always more than the day before. Agnes's doing, they said.
+boots | The Hive Boots | Bees nested in the left boot one winter. The guard wore the right one all season and hopped. Nobody laughed. The bees were watching.
+sword | The Sting | The guard's sword. Used once, against a bear after the honey. The bear left. The bees took care of the rest.
+
+@ stormcaller | The Stormcaller's Regalia
+trident | The Stormcaller's Fork | The Stormcaller called lightning down on her enemies with this. Her enemies learned to stay indoors when it rained. So did everyone else.
+helmet | The Copper Crown | A crown with a copper spike on top, to draw the lightning to her instead of the village. She was very brave. Her hair was very tall.
+chestplate | The Lightning-Scarred Plate | Struck so many times the metal has patterns on it, like a tree's branches. Some say it's a map of every storm.
+boots | Grounded | Rubber-soled, as much as you can rubber-sole iron. She said they were the most important part of the job.
+leggings | The Rain-Runner Greaves | She ran into every storm while everyone else ran out. These are soaked through and always will be.
+
+@ deepdelver | The Deep Delvers' Kit
+pickaxe@ancient_city | The Quiet Pick | The Deep Delvers mined around the ancient cities without making a sound. This pick has felt pads wrapped around the head. It took them all day to break a block.
+boots@ancient_city | The Wool Boots | Wool-lined, wool-soled, wool everything. The Delvers walked on carpet they laid in front of them. It was very slow and very cosy.
+helmet | The Dark-Eye Helm | The Delvers worked without torches so the sculk wouldn't notice. They could see in the dark, they said. They could not. That explains a lot of the injuries.
+shears@ancient_city | The Sensor-Snips | For cutting sculk veins before they could carry a sound. The Delvers cut them all the way to the Warden once. Then they stopped.
+leggings | The Kneepad Greaves | Reinforced knees, because the Delvers spent most of their lives crawling. Some of them forgot how to stand up.
+
+@ hatstand | The Hat Merchant of Port Cog
+helmet | The Hat With a Hat on It | The hat merchant of Port Cog sold hats on top of helmets on top of hats. This helmet came with three hats. Two are lost. One is somewhere in the sea.
+chestplate | The Shopkeeper's Plate | He wore armour to work because customers can be violent about hats. They were violent about hats.
+boots | Delivery Boots | He delivered hats to every village on the coast. Villagers don't wear hats. He delivered them anyway, out of principle.
+shield | The Sign Shield | His shop sign, cut down to a shield after the shop burned. It says "HATS". It has deflected a lot of things that weren't hats.
+sword | The Price-Cutter | He called this sword the price-cutter. He used it to cut prices. And, once, a pirate's hat in half, after the pirate refused to pay.
+
+@ moonfarmer | The Moonlight Farmer
+hoe | The Moonlit Hoe | Old Wick only farmed by moonlight. He said the crops liked it. The zombies liked it more. He fought them off with the hoe and kept planting.
+boots | Night Boots | Never seen the sun. The farmer slept all day and the boots slept in a cupboard.
+helmet | Wick's Lantern Brim | A helmet with a lantern on the brim. The crops grew towards it, like sunflowers. Wick said that proved his point.
+shears | The Midnight Shears | For pumpkins, which Wick carved into faces so the monsters would think someone was watching. Someone was. Wick.
+axe | The Shed Axe | Used to build his shed, his fence and his small but deeply unsettling scarecrow army.
