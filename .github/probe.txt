@@ -1,2 +1,19 @@
 +net.minecraft.server.level.ServerPlayer$1
 !net.minecraft.network.protocol.game.ServerboundSetCreativeModeSlotPacket
+net.minecraft.world.item.component.ItemAttributeModifiers
+net.minecraft.world.item.component.ItemAttributeModifiers$Entry
+net.minecraft.world.item.component.ItemAttributeModifiers$Display
+net.minecraft.world.item.component.TooltipDisplay
+net.minecraft.world.item.component.ItemLore
+net.minecraft.world.item.enchantment.ItemEnchantments
+net.minecraft.world.item.enchantment.Enchantment
+net.minecraft.world.entity.ai.attributes.AttributeModifier
+net.minecraft.world.entity.ai.attributes.Attribute
+net.minecraft.world.entity.EquipmentSlotGroup
+net.fabricmc.fabric.api.loot.v3.LootTableEvents
+net.fabricmc.fabric.api.loot.v3.LootTableEvents$ModifyDrops
+net.minecraft.world.level.storage.loot.LootContext
+net.minecraft.world.level.storage.loot.parameters.LootContextParams
+net.minecraft.world.level.block.AnvilBlock
++net.minecraft.world.item.ItemStack
+? loot/v[0-9]/LootTableEvents

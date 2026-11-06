@@ -77,6 +77,10 @@ public final class EquipmentFx {
 	}
 
 	static void init() {
+		// your own worn armour (slots 5-8 of the inventory menu) as you should see it
+		nl.libreria.core.ItemView.add((viewer, menu, slot, stack) ->
+				menu instanceof net.minecraft.world.inventory.InventoryMenu && slot >= 5 && slot <= 8 ? forOwner(viewer, stack) : stack);
+		nl.libreria.core.ItemView.cleaner(EquipmentFx::clean);
 		ServerLifecycleEvents.SERVER_STARTED.register(s -> ops = RegistryOps.create(JsonOps.INSTANCE, s.registryAccess()));
 		ServerLifecycleEvents.SERVER_STOPPED.register(s -> {
 			ops = null;

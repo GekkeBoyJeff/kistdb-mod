@@ -3,8 +3,6 @@
 	"package": "nl.libreria.glint.mixin",
 	"compatibilityLevel": "JAVA_25",
 	"mixins": [
-		"ContainerSynchronizerMixin",
-		"CreativeSlotMixin",
 		"SetEquipmentPacketMixin"
 	],
 	"injectors": {

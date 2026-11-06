@@ -5,7 +5,9 @@
 	"mixins": [
 		"AdvancementMixin",
 		"ContainerClickMixin",
+		"ContainerSynchronizerMixin",
 		"CraftingTableTitleMixin",
+		"CreativeSlotMixin",
 		"CustomClickActionMixin",
 		"NameClickMixin",
 		"PlayerActionMixin",

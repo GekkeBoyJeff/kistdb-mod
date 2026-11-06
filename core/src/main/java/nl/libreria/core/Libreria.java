@@ -49,6 +49,7 @@ public final class Libreria implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		Pack.init();
+		ItemView.init();
 		Links.init();
 		Welcome.init();
 		Afk.init();
