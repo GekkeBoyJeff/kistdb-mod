@@ -98,7 +98,11 @@ final class Look {
 	}
 
 	/** Where the card floats. hud = shown at the top of the screen instead (blocks and things that aren't alive). */
-	record Target(Vec3 anchor, Card card, boolean hud) {
+	/** {@code size}: how big the card is (1 normally; smaller beside someone up close, so it stays the same size on screen). */
+	record Target(Vec3 anchor, Card card, boolean hud, float size) {
+		Target(Vec3 anchor, Card card, boolean hud) {
+			this(anchor, card, hud, 1f);
+		}
 	}
 
 	static final int BRONZE = 0xF2C36B;
@@ -112,6 +116,8 @@ final class Look {
 	private static final float ICON_TILT = 0.5f;
 
 	private static final class Tip {
+		/** The size the card is laid out at now (see {@link Target#size}). */
+		float size = 1f;
 		final ElementHolder holder = new ElementHolder();
 		final TextDisplayElement panel = new TextDisplayElement();
 		final TextDisplayElement text = new TextDisplayElement();
@@ -188,7 +194,8 @@ final class Look {
 		tip.anchor = t.anchor();
 		boolean pack = Pack.has(p);
 		Card c = t.card();
-		String key = pack + "|" + c.accent() + "|" + c.name().getString() + "|" + c.subtitle().getString() + "|" + rowsKey(c.rows())
+		tip.size = t.size();
+		String key = pack + "|" + Math.round(t.size() * 20) + "|" + c.accent() + "|" + c.name().getString() + "|" + c.subtitle().getString() + "|" + rowsKey(c.rows())
 				+ "|" + BuiltInRegistries.ITEM.getKey(c.icon().getItem()) + c.icon().getComponentsPatch();
 		if (!Objects.equals(key, tip.shown)) {
 			if (pack) layoutPack(tip, c);
@@ -206,6 +213,7 @@ final class Look {
 
 	/** With the resource pack: panel + gem + slot + rule + rows with pictures. */
 	private static void layoutPack(Tip tip, Card c) {
+		final float SCALE = Look.SCALE * tip.size;
 		boolean hasIcon = !c.icon().isEmpty();
 		int indent = hasIcon ? 24 : 0;
 		List<MutableComponent> rows = new ArrayList<>();
@@ -278,6 +286,7 @@ final class Look {
 
 	/** Without the pack: a plain dark card with a thin bronze (or grade coloured) frame. */
 	private static void layoutPlain(Tip tip, Card c) {
+		final float SCALE = Look.SCALE * tip.size;
 		boolean hasIcon = !c.icon().isEmpty();
 		List<Component> lines = new ArrayList<>();
 		lines.add(c.name());
@@ -380,7 +389,11 @@ final class Look {
 			// goes above that; players also get room for a scoreboard line under their name.
 			double up = e instanceof Player ? 1.25 : e.hasCustomName() ? 0.9 : 0.4;
 			Vec3 above = e.position().add(0, e.getBbHeight() + up, 0);
-			return new Target(fits(eye, dir, above) ? above : beside(eye, e), card, !(e instanceof LivingEntity));
+			if (fits(eye, dir, above)) return new Target(above, card, !(e instanceof LivingEntity));
+			// Up close: beside them, and smaller, so it's about as big on your screen as from a few steps back
+			Vec3 at = beside(eye, e);
+			float size = (float) Math.max(0.35, Math.min(1.0, at.distanceTo(eye) / 3.5));
+			return new Target(at, card, !(e instanceof LivingEntity), size);
 		}
 		if (bh.getType() != HitResult.Type.BLOCK) return null;
 		BlockPos pos = bh.getBlockPos();
@@ -406,7 +419,7 @@ final class Look {
 		double len = Math.max(1.0e-4, Math.sqrt(dx * dx + dz * dz));
 		// your right, as you face them
 		double rx = -dz / len, rz = dx / len;
-		double out = e.getBbWidth() / 2 + 0.45;
+		double out = e.getBbWidth() / 2 + 0.35;
 		return new Vec3(e.getX() + rx * out, e.getEyeY() - 0.2, e.getZ() + rz * out);
 	}
 
