@@ -65,6 +65,8 @@ def build(img, e):
             s, c = blade(*p)
             if s >= tip - drips.get(c, 0) or p in splat:
                 recolour(p, BLOOD)
+                if rk.get(img.getpixel(p)[:3], 0) >= 5:  # the wet shine: catches the light, so you see it at night too
+                    glow[p] = 'pulse'
         if lv >= 3:  # the drip ends shine wet
             for c, d in drips.items():
                 ends = [p for p in blade_px if blade(*p)[1] == c and blade(*p)[0] == tip - d]

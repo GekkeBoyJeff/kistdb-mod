@@ -467,6 +467,9 @@ final class Fx {
 	 */
 	private static void armourSet(ServerPlayer p, Wearer w, ServerLevel level, List<ServerPlayer> viewers, int tick, int g, List<P> ps) {
 		boolean frost = w.extras.contains("frost"), soul = w.extras.contains("soul");
+		// Particles that may never come between you and whoever looks at you (flames, smoke): each viewer gets them all
+		// except the ones on the side facing them, so they frame you instead of covering you
+		List<P> frame = new ArrayList<>();
 		double h = p.getBbHeight();
 		int feet = soul ? 0x5FE6FF : frost ? 0xBFE6FF : 0;
 		switch (w.set) {
@@ -484,31 +487,39 @@ final class Fx {
 				if (g >= 4 && every(tick, 8)) ps.add(pop("hex", pick(main, accent), onBody(p, 0.3f, 0.85f, 0.36f), rnd(0.3f, 0.4f), 10, 0));
 			}
 			case "fire" -> {
-				// Ember mantle: a ring of fire on a glow at your feet, flames licking up your legs, embers spiralling up
-				// round you with a tail (one stream, two from III), heat rising, and at IV flames on your shoulders
+				// Ember mantle: a ring of fire on a glow at your feet; flames licking up round your legs (never between you
+				// and whoever looks: see frame); embers streaming up round you with a tail, one stream per grade from II;
+				// at IV a mantle of flames on your shoulders and behind your neck, and heat rising off it
 				int[] fire = soul ? new int[]{0x5FE6FF, 0x3FC6E8, 0x9FF4FF} : frost ? new int[]{0xBFE6FF, 0x8FD0FF, 0xFFFFFF}
 						: new int[]{0xFF9A3C, 0xFFB64A, 0xFF6A1F};
 				int[] embers = soul ? new int[]{0x9FF4FF, 0x5FE6FF} : frost ? new int[]{0xFFFFFF, 0xBFE6FF}
 						: new int[]{0xFFE9A8, 0xFFB64A, 0xFF8A2E};
-				feetFlames(p, w, level, viewers, tick, "flames", 6 + g, 0.46, 0.3f + 0.05f * g, fire);
+				feetFlames(p, w, level, viewers, tick, "flames", 6 + g, 0.47, 0.3f + 0.05f * g, fire);
 				ground(p, w, level, viewers, tick, "pool", fire[0], 1.25f + 0.15f * g, 400);
-				if (g >= 2 && every(tick, g >= 4 ? 2 : 3)) ps.add(helix("flame", pick(fire), tick * 0.22 + R.nextDouble() * Math.PI * 2, 0.44, 0.3,
-						0.05, h * (g >= 3 ? 0.62 : 0.42), 0.35, 15, 0.3f + 0.04f * g, 0.08f));
-				if (every(tick, new int[]{0, 5, 3, 2, 2}[g])) {
-					for (int k = 0; k < (g >= 3 ? 2 : 1); k++) {
-						double a0 = tick * 0.22 + k * Math.PI;
-						int c = pick(embers);
-						ps.add(helix("ember", c, a0, 0.56, 0.3, 0.12, h * 1.25, 0.8, 30, 0.32f, 0.06f));
-						ps.add(helix("ember", c, a0 - 0.2, 0.56, 0.3, 0.06, h * 1.15, 0.8, 30, 0.2f, 0.04f));
-						ps.add(helix("ember", c, a0 - 0.4, 0.56, 0.3, 0.0, h * 1.05, 0.8, 30, 0.12f, 0.02f));
+				int lick = new int[]{0, 0, 2, 1, 1}[g];
+				if (lick > 0 && every(tick, lick)) {
+					for (int k = 0; k < (g >= 4 ? 2 : 1); k++) {
+						frame.add(helix("flame", pick(fire), R.nextDouble() * Math.PI * 2, 0.47, 0.36, 0.05, h * new double[]{0, 0, 0.45, 0.6, 0.75}[g],
+								0.3, 14, 0.38f + 0.04f * g, 0.1f));
 					}
 				}
-				if (g >= 3 && every(tick, 6)) {
-					Vec3 from = new Vec3(rnd(-0.12f, 0.12f), h * rnd(0.3f, 0.55f), rnd(-0.12f, 0.12f));
-					ps.add(line("haze", fire[0], from, from.add(0, 0.55, 0), 0.8f, 1.2f, 0, 0, 22));
+				int streams = new int[]{0, 1, 1, 2, 3}[g];
+				if (every(tick, new int[]{0, 5, 3, 2, 2}[g])) {
+					for (int k = 0; k < streams; k++) {
+						double a0 = tick * 0.22 + k * Math.PI * 2 / streams;
+						int c = pick(embers);
+						for (int t = 0; t < 4; t++) {
+							ps.add(helix("ember", c, a0 - t * 0.18, 0.58, 0.3, 0.12 - t * 0.05, h * (1.3 - t * 0.07), 0.8, 30,
+									new float[]{0.36f, 0.24f, 0.16f, 0.1f}[t], 0.03f));
+						}
+					}
 				}
-				if (g >= 4) shoulderFlames(p, w, level, viewers, tick, "shoulders", fire);
-				if (g >= 4 && every(tick, 4)) ps.add(pop("twinkle", soul ? 0xCFFAFF : frost ? 0xFFFFFF : 0xFFF1C2, onBody(p, 0.2f, 1.0f, 0.42f),
+				if (g >= 3 && every(tick, 5)) {
+					Vec3 from = new Vec3(rnd(-0.2f, 0.2f), h * rnd(0.55f, 0.8f), rnd(-0.2f, 0.2f));
+					frame.add(line("haze", fire[0], from, from.add(0, 0.6, 0), 0.7f, 1.1f, 0, 0, 20));
+				}
+				if (g >= 4) mantle(p, w, level, viewers, tick, "mantle", fire);
+				if (g >= 4 && every(tick, 4)) ps.add(pop("twinkle", soul ? 0xCFFAFF : frost ? 0xFFFFFF : 0xFFF1C2, onBody(p, 0.2f, 1.05f, 0.45f),
 						rnd(0.22f, 0.3f), 6, 0.8f));
 			}
 			case "blast" -> {
@@ -519,7 +530,7 @@ final class Fx {
 					double a = R.nextDouble() * Math.PI * 2;
 					Vec3 from = new Vec3(Math.cos(a) * 0.42, 0.08, Math.sin(a) * 0.42);
 					int smoke = feet != 0 ? feet : pick(0xA4A4B0, 0x8C8C98, 0xB8B8C2);
-					ps.add(new P("smoke", smoke, 10, List.of(new S(from, 0.35f, 0), new S(from.add(Math.cos(a) * 0.2, 0.2, Math.sin(a) * 0.2), 0.8f, 0.6f),
+					frame.add(new P("smoke", smoke, 10, List.of(new S(from, 0.35f, 0), new S(from.add(Math.cos(a) * 0.2, 0.2, Math.sin(a) * 0.2), 0.8f, 0.6f),
 							new S(from.add(Math.cos(a) * 0.34, 0.34, Math.sin(a) * 0.34), 1.05f, 1.2f), new S(from.add(Math.cos(a) * 0.42, 0.44, Math.sin(a) * 0.42), 0.02f, 1.6f)), null));
 				}
 				if (g >= 2) shards(p, w, level, viewers, tick, "shards", g >= 4 ? 6 : g >= 3 ? 4 : 3, 0.78, 0.47, new int[]{0x8E8E9A, 0xA8A8B4, 0x74747E});
@@ -556,6 +567,24 @@ final class Fx {
 				if (g >= 4) ground(p, w, level, viewers, tick, "windring", wind, 2.0f, 90);
 			}
 			default -> {
+			}
+		}
+		if (!frame.isEmpty()) {
+			for (ServerPlayer v : viewers) {
+				// your own camera: behind you (third person's usual view)
+				Vec3 d = v == p ? p.getLookAngle().scale(-1) : v.position().subtract(p.position());
+				double va = Math.atan2(d.z, d.x);
+				List<P> mine = new ArrayList<>();
+				for (P q : frame) {
+					Vec3 at = q.states().get(q.states().size() / 2).pos();
+					if (at.horizontalDistanceSqr() < 0.01) {
+						mine.add(q);
+						continue;
+					}
+					double diff = Math.abs(Mth.wrapDegrees((float) Math.toDegrees(Math.atan2(at.z, at.x) - va)));
+					if (diff > 55) mine.add(q);
+				}
+				emit(level, p.position(), List.of(v), mine);
 			}
 		}
 		// what the pieces add, in the same motion
@@ -655,40 +684,52 @@ final class Fx {
 		r.holder.tick();
 	}
 
-	/** Two small flames on your shoulders, following the way your body faces (the top of the ember mantle). */
-	private static void shoulderFlames(ServerPlayer p, Wearer w, ServerLevel level, List<ServerPlayer> viewers, int tick, String key, int[] colours) {
+	/**
+	 * The top of the ember mantle: flames on top of both shoulders and three behind your neck, rising and flickering,
+	 * turning with your body. From the front they rise round your head; from behind they sit on your shoulders.
+	 */
+	private static void mantle(ServerPlayer p, Wearer w, ServerLevel level, List<ServerPlayer> viewers, int tick, String key, int[] colours) {
+		double[][] spots = {{0.3, -0.02, 0}, {-0.3, -0.02, 0}, {0.13, 0.2, 0.07}, {-0.13, 0.2, 0.07}, {0, 0.24, 0.14}};
 		Ring r = w.rings.get(key);
 		if (r == null) {
 			r = new Ring();
-			for (int i = 0; i < 2; i++) {
+			for (int i = 0; i < spots.length; i++) {
 				ItemDisplayElement e = element("flame", colours[i % colours.length], false);
-				e.setScale(new Vector3f(0.34f));
+				e.setScale(new Vector3f(0.4f));
 				e.setTeleportDuration(2);
 				e.setInterpolationDuration(3);
-				e.setOffset(shoulder(p, i == 0 ? 1 : -1));
+				e.setOffset(onShoulders(p, spots[i]));
 				r.holder.addElement(e);
 				r.els.add(e);
 			}
+			ItemDisplayElement glow = element("haze", colours[0], false);
+			glow.setScale(new Vector3f(1.3f));
+			glow.setTeleportDuration(2);
+			glow.setOffset(onShoulders(p, new double[]{0, 0.18, 0.1}));
+			r.holder.addElement(glow);
+			r.els.add(glow);
 			show(p, w, level, viewers, key, r);
 		}
 		for (int i = 0; i < r.els.size(); i++) {
 			ItemDisplayElement e = r.els.get(i);
-			e.setOffset(shoulder(p, i == 0 ? 1 : -1));
-			if (tick % 3 == 0) {
-				float sc = rnd(0.28f, 0.42f);
+			boolean isGlow = i == spots.length;
+			e.setOffset(onShoulders(p, isGlow ? new double[]{0, 0.18, 0.1} : spots[i]));
+			if (!isGlow && tick % 3 == 0) {
+				float sc = rnd(0.32f, 0.5f) * (i >= 2 ? 1.1f : 1f);
 				e.setScale(new Vector3f(sc * 0.85f, sc, sc));
-				e.setTranslation(new Vector3f(0, sc * 0.35f, 0));
+				e.setTranslation(new Vector3f(0, sc * 0.4f, 0));
 				e.startInterpolation();
 			}
 		}
 		r.holder.tick();
 	}
 
-	private static Vec3 shoulder(ServerPlayer p, int side) {
+	/** A spot on your shoulders: {right, up from the top of the arms, back}, turning with your body. */
+	private static Vec3 onShoulders(ServerPlayer p, double[] at) {
 		float yaw = p.yBodyRot * Mth.DEG_TO_RAD;
 		Vec3 right = new Vec3(-Mth.cos(yaw), 0, -Mth.sin(yaw));
 		Vec3 back = new Vec3(Mth.sin(yaw), 0, -Mth.cos(yaw));
-		return right.scale(0.3 * side).add(back.scale(0.05)).add(0, p.getBbHeight() * 0.77, 0);
+		return right.scale(at[0]).add(back.scale(at[2])).add(0, p.getBbHeight() * 0.835 + at[1], 0);
 	}
 
 	/** Shards of stone circling your middle, bobbing and tumbling. */
