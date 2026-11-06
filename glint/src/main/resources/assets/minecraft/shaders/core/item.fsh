@@ -22,7 +22,7 @@ layout(location = 3) in vec4 lightMapColor;
 layout(location = 4) in vec4 overlayColor;
 #endif
 layout(location = 5) in vec2 texCoord0;
-layout(location = 7) in float libreriaDist;
+layout(location = 7) in vec3 libreriaPos;
 #ifdef GLINT
 layout(location = 6) in vec2 texCoordGlint;
 #endif
@@ -90,7 +90,8 @@ void main() {
     bool libreriaAura = !libreriaFx && libreriaCode > 0 && libreriaCode <= 241 && libreriaCode % 16 == 1;
     bool libreriaFar = !libreriaFx && libreriaCode > 0 && libreriaCode <= 242 && libreriaCode % 16 == 2;
     if (libreriaFar) {
-        color.a *= smoothstep(2.2, 3.0, libreriaDist);
+        // per pixel, not per corner: a big card (an armour set's aura) can pass right by the camera
+        color.a *= smoothstep(2.2, 3.0, length(libreriaPos));
         if (color.a < 0.004) discard;
     }
     if (libreriaFx) color.a = 1.0;

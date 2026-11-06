@@ -33,7 +33,7 @@ layout(location = 4) out vec4 overlayColor;
 layout(location = 5) out vec2 texCoord0;
 // Libreria: how far from the camera, in every pass (the fog distance is missing in the alpha-only pass), so a far-only
 // particle can fade out near the camera the same way in each pass
-layout(location = 7) out float libreriaDist;
+layout(location = 7) out vec3 libreriaPos;
 #ifdef GLINT
 layout(location = 6) out vec2 texCoordGlint;
 #endif
@@ -52,7 +52,7 @@ void main() {
     #endif
 
     texCoord0 = UV0;
-    libreriaDist = length(Position);
+    libreriaPos = Position;
     #ifdef GLINT
     #ifdef GLINT_SPECIAL
     texCoordGlint = (TextureMat * vec4(UV3, 0.0, 1.0)).xy;

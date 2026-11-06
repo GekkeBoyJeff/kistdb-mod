@@ -78,44 +78,66 @@ public final class Screens implements FabricClientGameTest {
 				ctx.takeScreenshot("nameplate_front");
 				camera(ctx, CameraType.FIRST_PERSON);
 			});
-			// Proof of concept, round 11: an armour set's light following its trim (a seam of light round the trim's
-			// lines; the trim itself stays as it is), every pattern; and the four new kinds of set again, moving
-			safe("fx_round11", () -> {
+			// Proof of concept, round 12: armour sets in the style of the weapon auras: an animated aura shaped round your
+			// outline (a card turning to face whoever looks), a few particles left as touches; moving, per grade, per
+			// material, with what the boots add, from behind, by day and in first person
+			safe("fx_round12", () -> {
 				ctx.getInput().lookAt(0, 0);
 				ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.HIDDEN));
 				server.runOnServer(sv -> nl.libreria.glint.GlintMod.AURA_THIRD.set(player, false));
 				run(server, "time set midnight", "clear @a");
 				camera(ctx, CameraType.THIRD_PERSON_FRONT);
-				String[][] more = {{"thorns", "3", "thorns:3"}, {"mending", "1", "mending:1"}, {"binding", "1", "binding_curse:1"},
-						{"vanishing", "1", "vanishing_curse:1"}};
-				for (String[] k : more) {
+				String[][] kinds = {{"protection", "4", "protection:4"}, {"fire", "4", "fire_protection:4"}, {"blast", "4", "blast_protection:4"},
+						{"projectile", "4", "projectile_protection:4"}, {"thorns", "3", "thorns:3"}, {"mending", "1", "mending:1"},
+						{"binding", "1", "binding_curse:1"}, {"vanishing", "1", "vanishing_curse:1"}};
+				for (String[] k : kinds) {
 					wearMaterial(server, "diamond", k[2]);
 					String spec = "set:" + k[0] + ":" + k[1];
 					server.runOnServer(sv -> nl.libreria.glint.GlintMod.debugFx(player, spec));
-					ctx.waitTicks(40);
-					for (int f = 0; f < 6; f++) {
-						ctx.takeScreenshot("fxkind_" + k[0] + "_" + f);
+					ctx.waitTicks(30);
+					for (int f = 0; f < 8; f++) {
+						ctx.takeScreenshot("fxbody_" + k[0] + "_" + f);
 						ctx.waitTicks(3);
 					}
 				}
-				String[] patterns = {"bolt", "coast", "dune", "eye", "flow", "host", "raiser", "rib", "sentry", "shaper", "silence", "snout",
-						"spire", "tide", "vex", "ward", "wayfinder", "wild"};
-				String[][] kinds = {{"fire", "gold"}, {"protection", "amethyst"}};
-				for (String[] k : kinds) {
+				for (String[] k : new String[][]{{"fire", "fire_protection"}, {"protection", "protection"}, {"blast", "blast_protection"},
+						{"projectile", "projectile_protection"}}) {
+					for (int g = 1; g <= 3; g++) {
+						wearMaterial(server, "diamond", k[1] + ":" + g);
+						String spec = "set:" + k[0] + ":" + g;
+						server.runOnServer(sv -> nl.libreria.glint.GlintMod.debugFx(player, spec));
+						ctx.waitTicks(25);
+						ctx.takeScreenshot("fxbody_" + k[0] + "_g" + g);
+					}
+				}
+				String[][] variants = {{"fire", "golden", "fire_protection:4", ""}, {"fire", "netherite", "fire_protection:4", ""},
+						{"protection", "golden", "protection:4", ""}, {"protection", "netherite", "protection:4", ""},
+						{"fire", "diamond", "fire_protection:4", "frost"}, {"fire", "diamond", "fire_protection:4", "soul"}};
+				for (String[] v : variants) {
+					wearMaterial(server, v[1], v[2]);
+					String spec = "set:" + v[0] + ":4:" + v[3] + ":" + v[1];
+					server.runOnServer(sv -> nl.libreria.glint.GlintMod.debugFx(player, spec));
+					ctx.waitTicks(25);
+					ctx.takeScreenshot("fxbody_v_" + v[0] + "_" + v[1] + "_" + (v[3].isEmpty() ? "x" : v[3]));
+				}
+				wearMaterial(server, "diamond", "fire_protection:4");
+				server.runOnServer(sv -> nl.libreria.glint.GlintMod.debugFx(player, "set:fire:4"));
+				camera(ctx, CameraType.THIRD_PERSON_BACK);
+				ctx.waitTicks(25);
+				ctx.takeScreenshot("fxbody_fire_back");
+				camera(ctx, CameraType.FIRST_PERSON);
+				ctx.getInput().lookAt(0, 40);
+				ctx.waitTicks(25);
+				ctx.takeScreenshot("fxbody_fire_first");
+				ctx.getInput().lookAt(0, 0);
+				run(server, "time set noon");
+				camera(ctx, CameraType.THIRD_PERSON_FRONT);
+				for (String[] k : new String[][]{{"fire", "fire_protection:4"}, {"protection", "protection:4"}}) {
+					wearMaterial(server, "diamond", k[1]);
 					String spec = "set:" + k[0] + ":4";
 					server.runOnServer(sv -> nl.libreria.glint.GlintMod.debugFx(player, spec));
-					wearTrim(server, "coast", k[1], null);
-					ctx.waitTicks(30);
-					ctx.takeScreenshot("fxtrim_" + k[0] + "_coast_plain");
-					for (String pat : patterns) {
-						wearTrim(server, pat, k[1], "libreria:fxtrim_" + k[0] + "_" + pat);
-						ctx.waitTicks(20);
-						ctx.takeScreenshot("fxtrim_" + k[0] + "_" + pat);
-					}
-					camera(ctx, CameraType.THIRD_PERSON_BACK);
-					ctx.waitTicks(20);
-					ctx.takeScreenshot("fxtrim_" + k[0] + "_back");
-					camera(ctx, CameraType.THIRD_PERSON_FRONT);
+					ctx.waitTicks(25);
+					ctx.takeScreenshot("fxbody_" + k[0] + "_day");
 				}
 				server.runOnServer(sv -> nl.libreria.glint.GlintMod.debugFx(player, "off"));
 				server.runOnServer(sv -> nl.libreria.glint.GlintMod.AURA_THIRD.set(player, true));
