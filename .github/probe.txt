@@ -1,4 +1,1 @@
-net.minecraft.world.attribute.BedRule$Rule
-net.minecraft.world.clock.ServerClockManager$MoveResult
-+net.minecraft.world.clock.ServerClockManager
-? ClockInstance
+!net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
