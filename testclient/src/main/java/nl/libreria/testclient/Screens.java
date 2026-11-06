@@ -83,7 +83,7 @@ public final class Screens implements FabricClientGameTest {
 				ctx.getInput().lookAt(0, 0);
 				camera(ctx, CameraType.THIRD_PERSON_FRONT);
 				ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.HIDDEN));
-				run(server, "item replace entity @a armor.chest with minecraft:diamond_chestplate[enchantments={binding_curse:1}]",
+				run(server, "item replace entity @a armor.chest with minecraft:diamond_chestplate[enchantment_glint_override=true]",
 						"item replace entity @a armor.head with minecraft:diamond_helmet", "item replace entity @a armor.legs with minecraft:diamond_leggings",
 						"item replace entity @a armor.feet with minecraft:diamond_boots");
 				for (String curse : new String[]{"curse", "vanish"}) {
