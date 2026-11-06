@@ -1,9 +1,13 @@
 package nl.libreria.testclient;
 
+import it.unimi.dsi.fastutil.booleans.BooleanConsumer;
+import java.lang.reflect.Field;
 import java.lang.reflect.Proxy;
+import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 import net.fabricmc.fabric.api.client.gametest.v1.context.TestDedicatedServerContext;
+import net.minecraft.client.gui.screens.ConfirmScreen;
 import net.minecraft.server.level.ServerPlayer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,10 +21,12 @@ import org.slf4j.LoggerFactory;
  */
 public final class NetworkTest implements FabricClientGameTest {
 	private static final Logger LOG = LoggerFactory.getLogger("Libreria network test");
+	private static boolean acceptPack;
 
 	@Override
 	public void runTest(ClientGameTestContext ctx) {
 		ctx.waitTicks(20);
+		acceptServerPack();
 		try (TestDedicatedServerContext server = ctx.worldBuilder().createServer()) {
 			var connection = server.connect();
 			connection.waitForChunksRender();
@@ -36,7 +42,34 @@ public final class NetworkTest implements FabricClientGameTest {
 			LOG.error("LIBRERIA-NETWORK FAILED to run", t);
 		} finally {
 			Screens.network = null;
+			acceptPack = false;
 		}
+	}
+
+	/**
+	 * Like a player would: "Yes" to the server's resource pack (Polymer's), so the client downloads and applies it.
+	 * Without this the client waits on that question and never gets into the world.
+	 */
+	private static void acceptServerPack() {
+		acceptPack = true;
+		ScreenEvents.AFTER_INIT.register((mc, screen, w, h) -> {
+			if (!acceptPack || !(screen instanceof ConfirmScreen) || !screen.getClass().getName().contains("Pack")) return;
+			mc.execute(() -> {
+				for (Class<?> c = screen.getClass(); c != null; c = c.getSuperclass()) {
+					for (Field f : c.getDeclaredFields()) {
+						if (!BooleanConsumer.class.isAssignableFrom(f.getType())) continue;
+						try {
+							f.setAccessible(true);
+							((BooleanConsumer) f.get(screen)).accept(true);
+							LOG.info("LIBRERIA-NETWORK accepted the server resource pack");
+						} catch (Throwable t) {
+							LOG.error("LIBRERIA-NETWORK could not accept the server resource pack", t);
+						}
+						return;
+					}
+				}
+			});
+		});
 	}
 
 	/** Called after every step: is the client still connected? */
