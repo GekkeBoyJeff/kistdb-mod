@@ -36,6 +36,10 @@ for j in $(find ~/.gradle/caches .gradle -name '*.jar' 2>/dev/null | grep -i min
   if unzip -l "$j" 'assets/minecraft/textures/gui/sprites/widget/button.png' >/dev/null 2>&1; then
     mkdir -p out/vanilla
     unzip -q -o "$j" 'assets/minecraft/textures/gui/*' 'assets/minecraft/shaders/*' 'assets/minecraft/font/*' -d out/vanilla
+    # trims and worn armour (for effects that follow a trim's lines)
+    unzip -q -o "$j" 'assets/minecraft/textures/trims/*' 'assets/minecraft/textures/entity/equipment/*' 'assets/minecraft/equipment/*' \
+      'assets/minecraft/atlases/*' -d out/vanilla || true
+    unzip -q -o "$j" 'data/minecraft/trim_pattern/*' 'data/minecraft/trim_material/*' -d out/vanilla || true
     echo "vanilla assets from $j" >> "$OUT"
     break
   fi

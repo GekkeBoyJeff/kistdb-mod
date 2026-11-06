@@ -101,7 +101,19 @@ final class Fx {
 	 */
 	static boolean far;
 
+	/** While set: the colour a set's sprites are pulled towards (its armour's material), and how far (0..1). */
+	static int tint = -1;
+	static float tintBy;
+
+	static int mixRgb(int a, int b, float t) {
+		int r = (int) (((a >> 16) & 255) * (1 - t) + ((b >> 16) & 255) * t);
+		int g = (int) (((a >> 8) & 255) * (1 - t) + ((b >> 8) & 255) * t);
+		int bl = (int) ((a & 255) * (1 - t) + (b & 255) * t);
+		return (r << 16) | (g << 8) | bl;
+	}
+
 	private static ItemDisplayElement element(String sprite, int rgb, boolean fixed) {
+		if (far && tint >= 0) rgb = mixRgb(rgb, tint, tintBy);
 		ItemDisplayElement e = new ItemDisplayElement(sprite(far ? "far_" + sprite : sprite, rgb));
 		e.setItemDisplayContext(ItemDisplayContext.FIXED);
 		e.setBillboardMode(fixed ? Display.BillboardConstraints.FIXED : Display.BillboardConstraints.CENTER);
@@ -145,6 +157,8 @@ final class Fx {
 		int grade;
 		/** For an armour set: protection, fire, blast or projectile, and what the pieces add (thorns, feather, frost, soul). */
 		String set = "";
+		/** The armour's material (leather … netherite): an accent of its own in the set's effect. */
+		String material = "diamond";
 		final java.util.Set<String> extras = new java.util.HashSet<>();
 		@Nullable BlockPos light;
 		int lightLevel;
@@ -165,6 +179,7 @@ final class Fx {
 			w.set = parts[1];
 			w.grade = Integer.parseInt(parts[2]);
 			if (parts.length > 3) for (String x : parts[3].split(",")) if (!x.isEmpty()) w.extras.add(x);
+			if (parts.length > 4) w.material = parts[4];
 			w.lightLevel = switch (w.set) {
 				case "fire" -> w.extras.contains("frost") ? 4 + w.grade : 4 + w.grade * 2;
 				case "protection" -> w.grade >= 3 ? 5 : 0;
@@ -295,11 +310,22 @@ final class Fx {
 			case "vanish" -> vanish(p, w, level, viewers, tick, ps);
 			case "set" -> {
 				far = true;
+				// the material pulls the colours its way: gold warmer and brighter, netherite dark and red, copper
+				// towards verdigris, leather earthy; iron, chainmail and diamond keep the set's own colours
+				switch (w.material) {
+					case "golden" -> { tint = 0xFFD45A; tintBy = 0.35f; }
+					case "netherite" -> { tint = 0x6A1E26; tintBy = 0.4f; }
+					case "copper" -> { tint = 0x4FC8A8; tintBy = 0.3f; }
+					case "leather" -> { tint = 0xC08A5A; tintBy = 0.3f; }
+					default -> tint = -1;
+				}
 				try {
 					armourSet(p, w, level, viewers, tick, g, ps);
+					materialTouch(p, w, tick, ps);
 					if (!ps.isEmpty()) emit(level, p.position(), viewers, ps);
 				} finally {
 					far = false;
+					tint = -1;
 				}
 				ps.clear();
 			}
@@ -566,6 +592,50 @@ final class Fx {
 				}
 				if (g >= 4) ground(p, w, level, viewers, tick, "windring", wind, 2.0f, 90);
 			}
+			case "thorns" -> {
+				// Briar (Thorns on all four): thorns climbing round you in a spiral, a red glint where one bites, a ring
+				// of bramble at your feet; per grade more of them
+				if (every(tick, new int[]{0, 6, 4, 3}[Math.min(3, g)])) {
+					int c = pick(0x5E8C3A, 0x3F6B2A, 0x9C2236);
+					ps.add(helix("thorn", c, tick * 0.27, 0.5, 0.42, 0.05, h * 1.0, 0.7, 33, 0.34f, 0.18f));
+				}
+				if (g >= 2) orbit(p, w, level, viewers, tick, "briar", g >= 3 ? 5 : 3, 0.6, 0.35, 0.3f, 120, new String[]{"thorn"},
+						new int[]{0x5E8C3A, 0x9C2236});
+				if (every(tick, 9)) ps.add(pop("twinkle", 0xFF5A5A, onBody(p, 0.15f, 0.9f, 0.45f), 0.26f, 6, 0.5f));
+				ground(p, w, level, viewers, tick, "bramble", 0x3F6B2A, 1.9f, 300);
+			}
+			case "mending" -> {
+				// Renewal (Mending on all four): green experience motes drifting in to you from all round and going in
+				// with a soft flash, a calm green glow under you
+				if (every(tick, 3)) {
+					double a = R.nextDouble() * Math.PI * 2;
+					double y = h * rnd(0.2f, 0.9f);
+					ps.add(helix("mote", pick(0xB8FF6A, 0x8CE84A, 0xE0FF9A), a, 1.3, 0.25, y, h * 0.55, -0.4, 24, 0.2f, 0.06f));
+				}
+				if (every(tick, 12)) ps.add(pop("glow", 0xA8F060, new Vec3(0, h * 0.55, 0), 0.9f, 10, 0));
+				ground(p, w, level, viewers, tick, "pool", 0x6AD040, 1.6f, 400);
+			}
+			case "binding" -> {
+				// Shackled (Binding on all four): chains circling round your legs, violet-black smoke seeping off you, a
+				// pool of shadow under you; nothing bright, a curse takes light away
+				orbit(p, w, level, viewers, tick, "chains", 4, 0.55, 0.25, 0.36f, 150, new String[]{"chain"}, new int[]{0xA77DF0, 0x7A5AB0});
+				if (every(tick, 3)) {
+					Vec3 from = onBody(p, 0.05f, 0.7f, 0.32f);
+					frame.add(line("smoke", pick(0x4A2A6B, 0x3A2150, 0x2A1838), from, from.add(rnd(-0.15f, 0.15f), rnd(0.4f, 0.6f), rnd(-0.15f, 0.15f)),
+							rnd(0.45f, 0.6f), 0.9f, 0, rnd(-0.5f, 0.5f), 28));
+				}
+				ground(p, w, level, viewers, tick, "shadow", 0x1A0F24, 2.0f, 400);
+			}
+			case "vanishing" -> {
+				// Fading (Vanishing on all four): you come apart at the edges, pale motes drifting off and winking out,
+				// a glint now and then that shrinks to nothing
+				if (every(tick, 1)) {
+					Vec3 from = onBody(p, 0.05f, 1.0f, 0.4f);
+					Vec3 away = new Vec3(from.x * 0.9, 0.25, from.z * 0.9);
+					ps.add(line("mote", pick(0xE8E0FF, 0xC8B8F0, 0xFFFFFF), from, from.add(away), rnd(0.16f, 0.22f), 0.01f, 0, 0, 20));
+				}
+				if (every(tick, 7)) ps.add(pop("twinkle", 0xF0E8FF, onBody(p, 0.1f, 1.0f, 0.4f), 0.32f, 10, 0.6f));
+			}
 			default -> {
 			}
 		}
@@ -606,6 +676,48 @@ final class Fx {
 		if (soul && every(tick, 8)) {
 			Vec3 from = onBody(p, 0.0f, 0.1f, 0.4f);
 			ps.add(line("wisp", pick(0x5FE6FF, 0x9FF4FF), from, from.add(rnd(-0.1f, 0.1f), rnd(0.6f, 0.9f), rnd(-0.1f, 0.1f)), 0.22f, 0.04f, 0, 0, 26));
+		}
+	}
+
+	/**
+	 * What the armour's material adds to its set: chainmail a chain link glinting, copper a green spark (it conducts),
+	 * iron a steel glint, gold golden motes rising, diamond a crisp sparkle, netherite dark smoke and red sparks at
+	 * your feet, leather a little warm dust.
+	 */
+	private static void materialTouch(ServerPlayer p, Wearer w, int tick, List<P> ps) {
+		switch (w.material) {
+			case "chainmail" -> {
+				if (every(tick, 9)) ps.add(pop("chain", 0xC8CCD6, onBody(p, 0.25f, 0.85f, 0.42f), 0.3f, 10, rnd(-0.5f, 0.5f)));
+			}
+			case "copper" -> {
+				if (every(tick, 8)) ps.add(pop("spark", pick(0x6FE8C0, 0xE8A060), onBody(p, 0.2f, 0.9f, 0.42f), 0.28f, 6, 0.6f));
+			}
+			case "iron" -> {
+				if (every(tick, 10)) ps.add(pop("twinkle", 0xE8ECF4, onBody(p, 0.2f, 0.9f, 0.4f), 0.26f, 8, 0.5f));
+			}
+			case "golden" -> {
+				if (every(tick, 4)) {
+					Vec3 from = onBody(p, 0.1f, 0.6f, 0.45f);
+					ps.add(line("mote", pick(0xFFE27A, 0xFFF2B0), from, from.add(0, rnd(0.6f, 0.9f), 0), 0.16f, 0.02f, 0, 0, 24));
+				}
+				if (every(tick, 7)) ps.add(pop("twinkle", 0xFFE9A0, onBody(p, 0.2f, 0.95f, 0.42f), 0.3f, 8, 0.6f));
+			}
+			case "diamond" -> {
+				if (every(tick, 8)) ps.add(pop("twinkle", pick(0xCFFAFF, 0xFFFFFF), onBody(p, 0.2f, 0.95f, 0.42f), 0.3f, 8, 0.8f));
+			}
+			case "netherite" -> {
+				if (every(tick, 4)) {
+					double a = R.nextDouble() * Math.PI * 2;
+					Vec3 from = new Vec3(Math.cos(a) * 0.4, 0.05, Math.sin(a) * 0.4);
+					ps.add(line("smoke", pick(0x2A2226, 0x3A2A2E), from, from.add(0, 0.35, 0), 0.4f, 0.8f, 0, 0.8f, 22));
+				}
+				if (every(tick, 6)) ps.add(pop("spark", 0xFF5030, onBody(p, 0.0f, 0.3f, 0.45f), 0.24f, 6, 0.6f));
+			}
+			case "leather" -> {
+				if (every(tick, 12)) ps.add(pop("mote", 0xD8B888, onBody(p, 0.05f, 0.5f, 0.4f), 0.16f, 10, 0));
+			}
+			default -> {
+			}
 		}
 	}
 
@@ -961,7 +1073,7 @@ final class Fx {
 		if (r == null) {
 			r = new Ring();
 			ItemDisplayElement e = element(key.equals("icering") ? "ring" : key.equals("shadow") ? "haze" : key.equals("pool") ? "glow"
-					: key.equals("crater") || key.equals("windring") ? "thinring" : "circle", rgb, true);
+					: key.equals("crater") || key.equals("windring") || key.equals("bramble") ? "thinring" : "circle", rgb, true);
 			e.setScale(new Vector3f(size));
 			e.setOffset(new Vec3(0, 0.04, 0));
 			e.setInterpolationDuration(10);
