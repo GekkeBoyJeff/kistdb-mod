@@ -41,4 +41,4 @@ for j in $(find ~/.gradle/caches .gradle -name '*.jar' 2>/dev/null | grep -i min
   fi
 done
 
-bash .github/modscan.sh
+exit 0

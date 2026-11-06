@@ -1,9 +1,1 @@
-!net.minecraft.world.entity.decoration.ItemFrame
-!net.minecraft.world.entity.decoration.HangingEntity
-!net.minecraft.world.entity.decoration.BlockAttachedEntity
-!net.minecraft.world.entity.Interaction
-!net.minecraft.world.entity.projectile.FireworkRocketEntity
-!net.minecraft.world.entity.AreaEffectCloud
-? /ItemFrame\.class
-? /BlockAttachedEntity\.class
-? /HangingEntity\.class
+net.minecraft.world.level.block.LightBlock
