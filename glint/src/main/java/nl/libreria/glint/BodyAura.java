@@ -26,6 +26,7 @@ import net.minecraft.world.entity.Pose;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 /**
@@ -51,6 +52,7 @@ final class BodyAura {
 		int entityId;
 		int age;
 		boolean linked;
+		float turned = Float.NaN;
 	}
 
 	private static final class State {
@@ -93,7 +95,7 @@ final class BodyAura {
 		if (!crouch) return "s" + step;
 		// which way the body leans as this viewer sees it: to their right or their left
 		double cross = fx * dz - fz * dx;
-		return "c" + step + (step > 0 && cross < 0 ? "m" : "");
+		return "c" + step + (step > 0 && cross > 0 ? "m" : "");
 	}
 
 	/**
@@ -108,8 +110,38 @@ final class BodyAura {
 			Map.entry("c5m", 0.422f));
 
 	private static Vector3f place(LivingEntity e, String view) {
-		// the card rides at the top of the body: its feet on the ground as the body's height changes, and behind you
+		// your own card faces your camera (billboard): it rides at the top of the body, its feet on the ground as the
+		// body's height changes, and behind you
 		return new Vector3f(0, (float) (0.70 - e.getBbHeight()), -DEPTH.getOrDefault(view, 0.3f));
+	}
+
+	/**
+	 * Someone else's card for one viewer is turned to face where that viewer stands (a billboard faces the way their
+	 * camera looks instead, so off to the side of their screen a card set behind the body would slide out from
+	 * behind it), and set behind the body along the line from them.
+	 */
+	private static void face(View vw, LivingEntity e, ServerPlayer v, String view) {
+		double dx = v.getX() - e.getX(), dz = v.getZ() - e.getZ();
+		double len = Math.sqrt(dx * dx + dz * dz);
+		if (len < 1e-3) {
+			float yaw = e.yBodyRot * Mth.DEG_TO_RAD;
+			dx = -Mth.sin(yaw);
+			dz = Mth.cos(yaw);
+			len = 1;
+		}
+		dx /= len;
+		dz /= len;
+		// the same turn a billboard makes for a camera looking from there at the body
+		float turn = (float) (Math.PI - Math.atan2(dx, -dz));
+		float back = DEPTH.getOrDefault(view, 0.3f);
+		Vector3f at = new Vector3f((float) (-dx * back), (float) (0.70 - e.getBbHeight()), (float) (-dz * back));
+		boolean moved = Float.isNaN(vw.turned) || Math.abs(Mth.wrapDegrees((turn - vw.turned) * Mth.RAD_TO_DEG)) > 1.5f;
+		if (moved) {
+			vw.el.setLeftRotation(new Quaternionf().rotationY(turn));
+			vw.turned = turn;
+		}
+		vw.el.setTranslation(at);
+		vw.el.startInterpolationIfDirty();
 	}
 
 	static boolean hidden(LivingEntity e) {
@@ -146,7 +178,8 @@ final class BodyAura {
 						vw.el.setItem(stack(model));
 						vw.model = model;
 					}
-					vw.el.setTranslation(place(e, look));
+					if (v == e) vw.el.setTranslation(place(e, look));
+					else face(vw, e, v, look);
 					if (!vw.linked && vw.age++ >= 1) {
 						ClientboundSetPassengersPacket link = new ClientboundSetPassengersPacket(e);
 						v.connection.send(link);
@@ -169,11 +202,14 @@ final class BodyAura {
 		vw.holder = new ElementHolder();
 		vw.el = new ItemDisplayElement(stack(model));
 		vw.el.setItemDisplayContext(ItemDisplayContext.FIXED);
-		vw.el.setBillboardMode(Display.BillboardConstraints.VERTICAL);
+		// your own card faces your camera (the server doesn't know where it is); others' are turned to face you (face)
+		vw.el.setBillboardMode(viewer == e ? Display.BillboardConstraints.VERTICAL : Display.BillboardConstraints.FIXED);
+		vw.el.setInterpolationDuration(viewer == e ? 0 : 2);
 		vw.el.setBrightness(new Brightness(15, 15));
 		vw.el.setViewRange(1.0f);
 		vw.el.setScale(new Vector3f(1.875f));
-		vw.el.setTranslation(place(e, model.substring(model.lastIndexOf("__") + 2)));
+		String look = model.substring(model.lastIndexOf("__") + 2);
+		if (viewer == e) vw.el.setTranslation(place(e, look));
 		vw.el.setSendPositionUpdates(false);
 		vw.holder.addPassengerElement(vw.el);
 		vw.attachment = new ViewerAttachment(vw.holder, e, viewer);
