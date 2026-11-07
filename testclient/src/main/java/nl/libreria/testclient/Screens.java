@@ -92,6 +92,11 @@ public final class Screens implements FabricClientGameTest {
 			ctx.waitTicks(30);
 			noToasts(ctx);
 			ctx.takeScreenshot("shaders_night");
+			// a few frames apart: does the glow move (pulse, flicker, run along) with shaders too?
+			for (int i = 0; i < 8; i++) {
+				ctx.waitTicks(3);
+				ctx.takeScreenshot("shaders_anim_" + i);
+			}
 			camera(ctx, CameraType.THIRD_PERSON_BACK);
 			ctx.waitTicks(20);
 			ctx.takeScreenshot("shaders_night_third");
