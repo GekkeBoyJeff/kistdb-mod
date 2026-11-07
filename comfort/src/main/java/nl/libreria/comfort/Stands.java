@@ -99,8 +99,10 @@ final class Stands {
 			if (world.isClientSide() || hand != InteractionHand.MAIN_HAND || !(player instanceof ServerPlayer sp) || sp.isSpectator()) {
 				return InteractionResult.PASS;
 			}
-			if (!sp.isShiftKeyDown() || !sp.getMainHandItem().isEmpty() || !EDIT.get(sp)) return InteractionResult.PASS;
 			if (!(entity instanceof ArmorStand) && !(entity instanceof ItemFrame)) return InteractionResult.PASS;
+			if (net.fabricmc.loader.api.FabricLoader.getInstance().isDevelopmentEnvironment()) nl.libreria.core.Libreria.LOG.info("Stands: {} sneak {} empty {} hit {}", entity.getType(),
+					sp.isShiftKeyDown(), sp.getMainHandItem().isEmpty(), hit != null);
+			if (!sp.isShiftKeyDown() || !sp.getMainHandItem().isEmpty() || !EDIT.get(sp)) return InteractionResult.PASS;
 			// someone else's land: let the land protection say no
 			if (!Services.mayBuild(sp, (ServerLevel) world, entity.blockPosition())) return InteractionResult.PASS;
 			long tick = sp.level().getServer().getTickCount();

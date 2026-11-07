@@ -29,7 +29,7 @@ public final class SelfTests {
 		if (!ok) throw new AssertionError(what);
 	}
 
-	static boolean enabled() {
+	public static boolean enabled() {
 		return Boolean.getBoolean("libreria.selftest");
 	}
 

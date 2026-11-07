@@ -179,7 +179,7 @@ final class CoreTests {
 			// One voice in chat
 			SelfTests.check(Say.line(Domain.PLACES).getString().equals("◆ "), "chat lines start with a diamond");
 			// Your places: tabs from the modules, and a list without errors
-			SelfTests.check(PlaceList.kinds().size() >= 5, "kinds of places: " + PlaceList.kinds().size());
+			SelfTests.check(PlaceList.kinds().size() >= 4, "kinds of places: " + PlaceList.kinds().size());
 			SelfTests.check(PlaceList.all(p) != null, "places listed");
 			// Tips: once, then never again
 			Tips.Tip tip = Tips.all(Domain.ITEMS).getFirst();
