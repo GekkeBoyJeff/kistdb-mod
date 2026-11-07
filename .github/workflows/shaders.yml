@@ -64,6 +64,7 @@ jobs:
           cp testclient/build/run/clientGameTest/shaderpacks/*.txt out/ 2>/dev/null || true
           ls -la testclient/build/run/clientGameTest/shaderpacks > out/shaderpacks.txt 2>&1 || true
           echo "${{ steps.shots.outcome }}" > out/shots.txt
+          bash .github/probe.sh || true
           echo "${GITHUB_SHA}" > out/commit.txt
       - name: publish to ci-shaders branch
         if: always()

@@ -19,3 +19,15 @@ net.minecraft.world.level.block.AnvilBlock
 ? loot/v[0-9]/LootTableEvents
 net.minecraft.world.item.enchantment.EnchantmentHelper
 net.minecraft.world.item.Item$TooltipContext
+net.minecraft.world.entity.decoration.ArmorStand
+net.minecraft.core.Rotations
+net.minecraft.world.entity.decoration.ItemFrame
+net.minecraft.network.protocol.game.ServerboundPickItemFromBlockPacket
+net.minecraft.network.protocol.game.ServerboundSwingPacket
+net.fabricmc.fabric.api.event.player.UseEntityCallback
+eu.pb4.polymer.virtualentity.api.elements.TextDisplayElement
+eu.pb4.polymer.virtualentity.api.elements.GenericEntityElement
+? decoration/ArmorStand
+? /Rotations\.class
+? decoration/ItemFrame
+? PickItem
