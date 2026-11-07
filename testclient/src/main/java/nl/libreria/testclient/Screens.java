@@ -719,8 +719,30 @@ public final class Screens implements FabricClientGameTest {
 					server.runOnServer(sv -> nl.libreria.info.InfoMod.debugLoreBook(player, page));
 					ctx.waitTicks(12);
 					ctx.takeScreenshot("lorebook_" + page);
+					if (page.equals("story")) {
+						// a part found, and one still missing
+						for (int to : new int[] {1, 2}) {
+							String screen = ctx.computeOnClient(mc -> {
+								if (mc.screen == null) return "none";
+								for (var m : mc.screen.getClass().getMethods()) {
+									if (m.getParameterCount() == 1 && m.getParameterTypes()[0] == int.class && m.getName().toLowerCase(java.util.Locale.ROOT).contains("page")) {
+										try {
+											m.invoke(mc.screen, to);
+											return mc.screen.getClass().getSimpleName() + "." + m.getName();
+										} catch (ReflectiveOperationException e) {
+											return "failed " + e;
+										}
+									}
+								}
+								return mc.screen.getClass().getSimpleName() + " (no page method)";
+							});
+							LOG.info("LIBRERIA-LOREBOOK page {}: {}", to, screen);
+							ctx.waitTicks(4);
+							ctx.takeScreenshot("lorebook_story_page" + (to + 1));
+						}
+					}
 				}
-				server.runOnServer(sv -> nl.libreria.core.dialog.Dialogs.close(player));
+				ctx.setScreen(() -> null);
 				ctx.waitTicks(5);
 			});
 

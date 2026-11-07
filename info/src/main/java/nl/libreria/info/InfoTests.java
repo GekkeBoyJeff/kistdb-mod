@@ -137,6 +137,40 @@ final class InfoTests {
 			SelfTests.check(Look.keepOnScreen(eye, new net.minecraft.world.phys.Vec3(0, 0, 1), new net.minecraft.world.phys.Vec3(-0.6, 1.4, 2), 0.3, Look.DOWN).y == 1.4,
 					"looking straight at it: stays");
 		});
+		SelfTests.register("info.lorebook", level -> {
+			// The lore book as a book: every page fits the book screen, the list of parts leads to each part's page
+			FakePlayer fp = FakePlayer.get(level, new com.mojang.authlib.GameProfile(java.util.UUID.nameUUIDFromBytes("lorebook".getBytes()), "Reader"));
+			Found.Seen seen = Found.SEEN.get(fp);
+			String story = Found.STORIES.keySet().iterator().next();
+			java.util.List<Found.Text> parts = new java.util.ArrayList<>();
+			for (Found.Text t : Found.PIECES) if (story.equals(t.story())) parts.add(t);
+			seen.parts.put(story, new java.util.HashSet<>(java.util.List.of(1, parts.size())));
+			seen.partInfo.put(story + ":1", "Found in a shipwreck|12|Reader");
+			int[] at = new int[parts.size()];
+			Found.Seen s2 = seen;
+			LoreBook.storyBook(s2, story, parts, seen.parts.get(story), at);
+			nl.libreria.core.gui.Book book = LoreBook.storyBook(s2, story, parts, seen.parts.get(story), at);
+			java.util.List<java.util.List<Component>> pages = book.layout();
+			for (int i = 0; i < parts.size(); i++) {
+				SelfTests.check(at[i] >= 2 && at[i] <= pages.size() && pages.get(at[i] - 1).get(0).getString().equals("Part " + (i + 1)),
+						"part " + (i + 1) + " on page " + at[i]);
+			}
+			int[] how = {1};
+			LoreBook.contents(fp, how);
+			java.util.List<java.util.List<java.util.List<Component>>> books = java.util.List.of(pages, LoreBook.contents(fp, how).layout());
+			for (var b : books) {
+				for (var page : b) {
+					SelfTests.check(page.size() <= nl.libreria.core.gui.Book.LINES, "a page of " + page.size() + " lines");
+					for (Component line : page) SelfTests.check(nl.libreria.core.gui.Glyphs.width(line) <= nl.libreria.core.gui.Book.WIDTH + 1,
+							"fits the page (" + nl.libreria.core.gui.Glyphs.width(line) + " px): " + line.getString());
+				}
+			}
+			SelfTests.check(how[0] >= 2 && LoreBook.contents(fp, how).layout().get(how[0] - 1).get(0).getString().contains("How it works"), "how it works on page " + how[0]);
+			org.slf4j.LoggerFactory.getLogger("Libreria found").info("LOREBOOK {} pages: {}", pages.size(),
+					String.join(" / ", pages.get(0).stream().map(Component::getString).toList()));
+			seen.parts.clear();
+			seen.partInfo.clear();
+		});
 		SelfTests.register("info.found.collect", level -> {
 			// A part of a story can be found by everyone (once each): a one-off text only once on the server
 			Found.Data d = Found.data();

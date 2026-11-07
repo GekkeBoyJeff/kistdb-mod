@@ -4,32 +4,34 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import net.minecraft.ChatFormatting;
 import net.minecraft.commands.Commands;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.nbt.CompoundTag;
 import nl.libreria.core.Domain;
-import nl.libreria.core.Ui;
-import nl.libreria.core.dialog.Window;
+import nl.libreria.core.dialog.Dialogs;
+import nl.libreria.core.gui.Book;
 
 /**
- * The lore book (Items › Lore book, /lore): every story you found a part of, to read in order (the parts you haven't
- * found as "???"), and everything you found yourself, newest first, with its text, where and when.
+ * The lore book (Items › Lore book, /lore), in the game's own book screen: the contents (every story you found a part
+ * of, a link each), a book per story (what it is, its parts, a page per part, the ones you haven't found as "???"), and
+ * a book of everything you found yourself, newest first, with its text, where and when.
  */
 final class LoreBook {
-	static final int PER_PAGE = 8;
-
 	private LoreBook() {
 	}
 
 	static void init() {
+		// The links in the book
+		Dialogs.on("lore_open", (p, v) -> open(p));
+		Dialogs.on("lore_finds", (p, v) -> finds(p));
+		Dialogs.on("lore_story", (p, v) -> story(p, v.text("story", "")));
 		InfoMod.MODULE.hubEntry(Domain.ITEMS, 85, Items.WRITTEN_BOOK, "Lore book", LoreBook::open,
 				"Every story you found a part of, and everything you found, to read again.");
 		InfoMod.MODULE.commands(Domain.ITEMS, "/lore – the lore book: stories and everything you found");
@@ -40,14 +42,22 @@ final class LoreBook {
 				})));
 	}
 
-	private static MutableComponent t(String s, int rgb) {
-		return Component.literal(s).withStyle(Style.EMPTY.withColor(rgb).withItalic(false));
+	private static Style st(int rgb) {
+		return Book.style(rgb);
 	}
 
-	/** The index: your finds, then the stories you know a part of. */
+	/** The contents: how far you got, a link per story you know a part of, your finds, how it works (its own page). */
 	static void open(ServerPlayer p) {
+		// (written twice: the second time the link to "how it works" knows its page)
+		int[] how = {1};
+		contents(p, how);
+		contents(p, how).open(p, "Lore book");
+	}
+
+	/** {@code how}: in, the page "how it works" is on; out, where it ended up. */
+	static Book contents(ServerPlayer p, int[] how) {
+		int howPage = how[0];
 		Found.Seen seen = Found.SEEN.get(p);
-		Window w = Window.of(Ui.text("Lore book", ChatFormatting.WHITE));
 		int known = 0, complete = 0;
 		for (var e : Found.STORIES.entrySet()) {
 			Set<Integer> got = seen.parts.get(e.getKey());
@@ -56,38 +66,49 @@ final class LoreBook {
 			if (got.size() >= e.getValue().parts()) complete++;
 		}
 		int total = Found.STORIES.size();
-		w.text(Ui.text("Every story you found a part of, and everything you found. Click a story to read it.", ChatFormatting.GRAY));
-		w.text(t(known + " of " + total + " stories known · " + complete + " complete · " + seen.finds.size() + " finds", 0x8A8A8A));
-		w.button(Ui.text("Your finds (" + seen.finds.size() + ")", ChatFormatting.WHITE), Ui.text("Everything you found, newest first", ChatFormatting.GRAY),
-				(pl, v) -> finds(pl, 0));
-		w.button(Ui.text("How it works", ChatFormatting.GRAY), null, (pl, v) -> help(pl));
+		Book b = Book.create();
+		b.centred("Lore book", st(Book.TITLE).withBold(true));
+		b.centred(known + " of " + total + " stories" + (complete > 0 ? ", " + complete + " complete" : ""), st(Book.MUTED));
+		b.centred(seen.finds.size() == 1 ? "1 thing found" : seen.finds.size() + " things found", st(Book.MUTED));
+		b.gap();
+		b.line(Component.literal("» Your finds").withStyle(Book.action(st(Book.BUTTON), "lore_finds", new CompoundTag())));
+		b.line(Component.literal("» How it works").withStyle(Book.toPage(st(Book.BUTTON), Math.max(1, howPage))));
+		b.gap();
 		for (var e : Found.STORIES.entrySet()) {
 			Set<Integer> got = seen.parts.get(e.getKey());
 			if (got == null || got.isEmpty()) continue;
 			int parts = e.getValue().parts();
-			boolean done = got.size() >= parts;
-			String story = e.getKey();
-			w.button(Component.empty().append(Ui.text(e.getValue().title(), done ? ChatFormatting.GOLD : ChatFormatting.WHITE))
-					.append(Ui.text("  " + got.size() + "/" + parts, done ? ChatFormatting.GOLD : ChatFormatting.GRAY)), null, (pl, v) -> story(pl, story));
+			CompoundTag which = new CompoundTag();
+			which.putString("story", e.getKey());
+			Style link = Book.action(st(Book.LINK), "lore_story", which);
+			List<String> title = Book.wrap("✦ " + e.getValue().title(), link);
+			b.keep(title.size() + 1);
+			for (int i = 0; i < title.size(); i++) b.line(Component.literal((i > 0 ? "   " : "") + title.get(i)).withStyle(link));
+			b.line(got.size() >= parts ? Component.literal("   complete ✔").withStyle(Book.action(st(Book.ACCENT), "lore_story", which))
+					: Component.literal("   " + got.size() + " of " + parts + " parts").withStyle(Book.action(st(Book.MUTED), "lore_story", which)));
 		}
 		if (known < total) {
-			w.text(t((total - known) + (known == 0 ? " stories wait to be found. Their parts are out there, on things in chests, in the sea and on monsters."
-					: " more stories you haven't found a part of yet."), 0x8A8A8A));
+			b.gap();
+			b.text(known == 0 ? total + " stories wait to be found. Their parts are out there, on things in chests, in the sea and on monsters."
+					: (total - known) + " more stories wait to be found.", st(Book.MUTED));
 		}
-		w.done();
-		w.show(p);
+		// How it works
+		b.newPage();
+		how[0] = b.pageNumber();
+		b.centred("How it works", st(Book.TITLE).withBold(true));
+		b.gap();
+		b.text("Gear you find in chests, vaults, the sea, the sand, from piglins or on monsters has a story of its own.", st(Book.INK));
+		b.gap();
+		b.text("Some are a part of a longer story. Hold every part once (trading counts) and you know it all.", st(Book.INK));
+		b.gap();
+		b.text("Everything you found stays in this book, even when the thing is long gone.", st(Book.INK));
+		b.gap();
+		b.line(Component.literal("« Contents").withStyle(Book.toPage(st(Book.BUTTON), 1)));
+		return b;
 	}
 
 	static void help(ServerPlayer p) {
-		Window w = Window.of(Ui.text("Lore book", ChatFormatting.WHITE));
-		w.text(Ui.text("Gear you find in chests, vaults, the sea, the sand, from piglins or on monsters gets a text of its own when you first "
-				+ "take it: never the same one twice on this server.", ChatFormatting.GRAY));
-		w.text(Ui.text("Some of those texts are a part of a longer story, about a person, a place or a whole set of gear. Such a part has a "
-				+ "name, and its tooltip says which story and which part it is. Hold every part of a story once (trading counts) and you "
-				+ "know the whole story; that's an achievement too.", ChatFormatting.GRAY));
-		w.text(Ui.text("Everything you found yourself stays in this book, even when the item is long gone.", ChatFormatting.GRAY));
-		w.back(LoreBook::open);
-		w.show(p);
+		open(p);
 	}
 
 	/** An item that stands for a kind of thing ("a bow, somewhere"). */
@@ -161,7 +182,7 @@ final class LoreBook {
 		};
 	}
 
-	/** One story, its parts in order. */
+	/** One story: what it is, its parts (a link to each), then a page per part, the missing ones too. */
 	static void story(ServerPlayer p, String story) {
 		Found.Seen seen = Found.SEEN.get(p);
 		Set<Integer> got = seen.parts.getOrDefault(story, Set.of());
@@ -171,62 +192,94 @@ final class LoreBook {
 			open(p);
 			return;
 		}
-		Found.Text first = parts.get(0);
-		Window w = Window.of(Component.empty().append(Ui.text(first.title(), ChatFormatting.WHITE))
-				.append(Ui.text(" · " + got.size() + " of " + first.parts() + " parts", ChatFormatting.GRAY)));
-		for (Found.Text t : parts) {
-			String kinds = String.join(",", t.kinds());
-			if (got.contains(t.part())) {
-				String info = seen.partInfo.getOrDefault(story + ":" + t.part(), "");
-				String[] i = info.split("\\|", -1);
-				MutableComponent d = Component.empty().append(t("Part " + t.part() + " · " + t.name(), Found.HEAD)).append("\n")
-						.append(Component.literal(t.text().replace("{item}", "thing")).withStyle(Style.EMPTY.withColor(Found.TEXT).withItalic(true)));
-				if (i.length == 3 && !i[0].isEmpty()) {
-					d.append("\n").append(t(i[0] + (i[1].equals("0") ? "" : " · day " + i[1]) + (i[2].isEmpty() ? "" : " · " + i[2]), Found.WHERE));
-				}
-				w.item(icon(kinds), d);
-			} else {
-				w.item(icon(kinds), Component.empty().append(t("Part " + t.part() + " · ???", 0x6E6E6E)).append("\n")
-						.append(t(Lore.cap(noun(kinds)) + ", " + hint(t.where()) + ".", 0x6E6E6E)));
-			}
-		}
-		w.back(LoreBook::open);
-		w.show(p);
+		// (written twice: the second time the list knows on which page each part starts)
+		int[] at = new int[parts.size()];
+		storyBook(seen, story, parts, got, at);
+		storyBook(seen, story, parts, got, at).open(p, parts.get(0).title());
 	}
 
-	/** Everything you found, newest first, a page at a time. */
-	static void finds(ServerPlayer p, int page) {
-		List<Found.Find> all = Found.SEEN.get(p).finds;
-		int pages = Math.max(1, (all.size() + PER_PAGE - 1) / PER_PAGE);
-		int at = Math.max(0, Math.min(page, pages - 1));
-		Window w = Window.of(Component.empty().append(Ui.text("Your finds", ChatFormatting.WHITE))
-				.append(Ui.text(" · page " + (at + 1) + " of " + pages, ChatFormatting.GRAY)));
-		if (all.isEmpty()) {
-			w.text(Ui.text("Nothing yet. Gear from chests, vaults, the sea, the sand, piglins and monsters gets a story when you take it.",
-					ChatFormatting.GRAY));
+	static Book storyBook(Found.Seen seen, String story, List<Found.Text> parts, Set<Integer> got, int[] at) {
+		Found.Text first = parts.get(0);
+		Book b = Book.create();
+		b.centred(first.title(), st(Book.TITLE).withBold(true));
+		b.centred("a story in " + first.parts() + " parts", st(Book.MUTED));
+		b.centred(got.size() >= first.parts() ? "You have all of them!" : "You have " + got.size() + " of them.",
+				st(got.size() >= first.parts() ? Book.ACCENT : Book.INK));
+		b.gap();
+		for (int i = 0; i < parts.size(); i++) {
+			Found.Text t = parts.get(i);
+			boolean have = got.contains(t.part());
+			Style link = Book.toPage(st(have ? Book.LINK : Book.MUTED), Math.max(1, at[i]));
+			List<String> name = Book.wrap(t.part() + "  " + (have ? t.name() : "???"), link);
+			for (int k = 0; k < name.size(); k++) b.line(Component.literal((k > 0 ? "    " : "") + name.get(k)).withStyle(link));
 		}
-		for (int i = 0; i < PER_PAGE; i++) {
-			int idx = all.size() - 1 - (at * PER_PAGE + i);
-			if (idx < 0) break;
-			Found.Find f = all.get(idx);
+		b.gap();
+		b.line(Component.literal("« Contents").withStyle(Book.action(st(Book.BUTTON), "lore_open", new CompoundTag())));
+		for (int i = 0; i < parts.size(); i++) {
+			Found.Text t = parts.get(i);
+			b.newPage();
+			at[i] = b.pageNumber();
+			if (got.contains(t.part())) {
+				b.line(Component.literal("Part " + t.part()).withStyle(st(Book.ACCENT).withBold(true)));
+				b.text(t.name(), st(Book.ACCENT).withBold(true));
+				b.gap();
+				b.text(t.text().replace("{item}", "thing"), st(Book.INK));
+				String[] info = seen.partInfo.getOrDefault(story + ":" + t.part(), "").split("\\|", -1);
+				if (info.length == 3 && !info[0].isEmpty()) {
+					b.gap();
+					b.text(info[0], st(Book.MUTED));
+					String when = (info[1].equals("0") ? "" : "day " + info[1]) + (info[2].isEmpty() ? "" : (info[1].equals("0") ? "" : " · ") + info[2]);
+					if (!when.isEmpty()) b.text(when, st(Book.MUTED));
+				}
+			} else {
+				String kinds = String.join(",", t.kinds());
+				b.line(Component.literal("Part " + t.part()).withStyle(st(Book.MUTED).withBold(true)));
+				b.line(Component.literal("???").withStyle(st(Book.MUTED).withBold(true)));
+				b.gap();
+				b.text("Not found yet.", st(Book.INK));
+				b.gap();
+				b.text(Lore.cap(noun(kinds)) + ", " + hint(t.where()) + ".", st(Book.INK));
+			}
+		}
+		return b;
+	}
+
+	/** Everything you found, newest first: what it is, its story (and of which longer story it's a part), where and when. */
+	static void finds(ServerPlayer p, int page) {
+		finds(p);
+	}
+
+	static void finds(ServerPlayer p) {
+		List<Found.Find> all = Found.SEEN.get(p).finds;
+		Book b = Book.create();
+		b.centred("Your finds", st(Book.TITLE).withBold(true));
+		b.centred(all.isEmpty() ? "nothing yet" : (all.size() == 1 ? "1 thing" : all.size() + " things") + ", newest first", st(Book.MUTED));
+		b.line(Book.centre(Component.literal("« Contents").withStyle(Book.action(st(Book.BUTTON), "lore_open", new CompoundTag()))));
+		b.gap();
+		if (all.isEmpty()) {
+			b.text("Gear from chests, vaults, the sea, the sand, piglins and monsters gets a story when you take it. It shows up here.", st(Book.INK));
+		}
+		for (int i = all.size() - 1; i >= 0 && b.pageNumber() < Book.MAX_PAGES; i--) {
+			Found.Find f = all.get(i);
 			Item item = BuiltInRegistries.ITEM.getOptional(Identifier.tryParse(f.item)).orElse(Items.WRITTEN_BOOK);
 			ItemStack stack = new ItemStack(item);
 			Found.Text t = Found.byId(f.id);
 			String kind = Found.kindOf(stack);
 			String text = t == null ? "(a text this server doesn't have any more)" : t.text().replace("{item}", kind == null ? "thing" : Found.noun(kind, stack));
 			String name = f.name.isEmpty() ? stack.getHoverName().getString() : f.name;
-			MutableComponent d = Component.empty().append(t(name, f.name.isEmpty() ? 0xFFFFFF : Found.HEAD))
-					.append(t("  " + f.where + " · day " + f.day, Found.WHERE));
-			if (t != null && t.story() != null) d.append("\n").append(t("✦ " + t.title() + " · part " + t.part() + " of " + t.parts(), Found.HEAD));
-			d.append("\n").append(Component.literal(text).withStyle(Style.EMPTY.withColor(Found.TEXT).withItalic(true)));
-			w.item(stack, d);
+			List<String> lines = Book.wrap(text, st(Book.INK));
+			b.keep(Math.min(Book.LINES, lines.size() + 3 + (t != null && t.story() != null ? 1 : 0)));
+			b.text(name, st(f.name.isEmpty() ? Book.INK : Book.ACCENT).withBold(true));
+			if (t != null && t.story() != null) {
+				CompoundTag which = new CompoundTag();
+				which.putString("story", t.story());
+				b.text("✦ " + t.title() + ", part " + t.part(), Book.action(st(Book.LINK), "lore_story", which));
+			}
+			for (String l : lines) b.line(Component.literal(l).withStyle(st(Book.INK)));
+			b.text(f.where + ", day " + f.day, st(Book.MUTED));
+			b.gap();
 		}
-		if (pages > 1) {
-			w.button(Ui.text("◀ Newer", at > 0 ? ChatFormatting.WHITE : ChatFormatting.DARK_GRAY), null, (pl, v) -> finds(pl, at - 1));
-			w.button(Ui.text("Older ▶", at < pages - 1 ? ChatFormatting.WHITE : ChatFormatting.DARK_GRAY), null, (pl, v) -> finds(pl, at + 1));
-		}
-		w.back(LoreBook::open);
-		w.show(p);
+		b.open(p, "Your finds");
 	}
 
 	/** For the self-test: how many stories this player knows a part of. */

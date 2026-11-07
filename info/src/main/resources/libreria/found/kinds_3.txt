@@ -1,0 +1,314 @@
+# More texts about one kind of thing each: what a pair of shears, a hoe or a pair of boots has been through. These come
+# first for that kind (a line that fits anything only now and then). Format as in any_1.txt.
+
+# ---------------------------------------------------------------- shears
+shears|These shears gave a sheep the worst haircut in village history. The sheep has not been seen in public since.
+shears|Sharpened every morning, used every afternoon, apologised to every evening.
+shears|They once cut a cobweb with a spider still in it. The spider has a long memory and eight legs to remember with.
+shears|A shepherd's shears. Somewhere a flock of very cold sheep is plotting.
+shears|Snip. Snip. Snip. That's the whole story. It was a very relaxing life.
+shears|These shears trimmed the hedge maze at a mansion. The maze is now a straight line. The owner wept.
+shears|Used to cut the tripwire on a jungle temple. The arrows went off anyway. The shears felt very bad about it.
+shears|They have cut wool, vines, leaves, string and one very long beard. The beard still wants them back.
+shears|A pair of shears that has only ever cut in a straight line. It considers this a personality.
+shears|The left blade and the right blade don't get along. They meet in the middle anyway, every single time.
+shears|Someone engraved "SNIP" on one blade and "SNAP" on the other. Snap is the troublemaker.
+shears|Taken from a sheep farm where every sheep was dyed a different colour. Nobody would say why. The rainbow sheep know.
+shears|These cut the first leaf of the first tree of a village. The tree is still a bit upset about it.
+shears|A collector of vines. Has cut enough of them to swing all the way across a jungle.
+shears|The tag says "Do not run with these." Somebody ran with these. There's a second tag now.
+shears|Used to carve a pumpkin into a face so ugly the zombies turned around.
+shears|Used to trim a mooshroom. The mooshroom was a regular cow again by lunch. Nobody was happy.
+shears|They went through a pirate phase. Every cut came with an "arr". Every single one.
+shears|These shears survived a shearing contest with a hundred sheep in an hour. The shepherd did not. Well, he did, but he lies down a lot now.
+shears|There's a bit of wool stuck in the hinge. It's been there so long it has a name. The name is Kevin.
+shears|Its owner tried to cut a deal with a piglin using these. Wrong kind of cutting.
+shears|Cuts beehives without stinging anyone. The bees signed a peace treaty. These shears were the witness.
+shears|These shears snipped the lead of a llama caravan. The llamas spat at them for a year.
+shears|Every snip sounds slightly off-key, like someone humming a song from a cave you shouldn't go back into.
+shears|They used to belong to a barber who cut hair for skeletons. Easy work. Short appointments.
+shears|Once cut a carpet into the shape of a creeper as a prank. The cat sat on it. Nobody walked into that room for a month.
+shears|These shears and a sheep went on a long journey together. Only one of them came back with wool.
+shears@village|From a shepherd's chest. The shepherd counts his shears at night instead of sheep. He's one short now.
+shears@mansion|From a mansion, where they trimmed the tapestries. The faces in the tapestries were never quite the same.
+
+# ---------------------------------------------------------------- flint and steel
+flint|Lit a campfire, a candle, a portal and, accidentally, its owner's eyebrows. In that order.
+flint|Its owner kept a list of everything it set on fire. The list was also on fire.
+flint|There's a tiny scorch mark shaped like a smiley face. The flint is proud of it.
+flint|Used to light a cake's candles. The cake exploded. It was a TNT cake. It was a joke. It wasn't funny.
+flint|Strike it once: sparks. Strike it twice: more sparks. Strike it three times: your house is gone.
+flint|It lit the portal to the Nether. It was not invited back.
+flint|The flint is chipped where someone kept trying it in the rain. Nothing burns in the rain. They know that now.
+flint|Fire insurance in a village went up three times the week this arrived.
+flint|A strider tried to eat it once. Striders don't eat flint. This strider found out the hard way.
+flint|Its owner lit a beacon of hope with it. Then a beacon of netherrack. Then the forest. Hope is complicated.
+flint|Has never been used for evil. Has been used for "science" a lot. The village says that's worse.
+flint|Somebody used this to light a jack o'lantern every night for a hundred nights. The pumpkin got tired.
+flint|Once lit a fire on top of a netherrack block and left it burning forever. A hundred years later it's still burning. Still not sorry.
+flint|The steel half says "fire". The flint half says "maybe not". They argue all the way to every campfire.
+flint|Used by a ghast hunter to light the dark. The ghasts lit it for him most of the time.
+flint|It sparked once in the End. The endermen looked at it. It looked at the endermen. Nobody looked at anyone after that.
+flint|It's been struck so often the steel is shaped like the owner's thumb.
+flint|Kept in a pocket next to a stick of gunpowder for three years. Nothing happened. That's the real treasure.
+flint|Its owner wanted to watch the world burn. The world was mostly stone. He watched a tree burn and went home.
+flint|This lit the torches in a stronghold library. The books never forgave it.
+flint@ruined_portal|By a ruined portal: the last thing that ever lit it. It sparked one more time when you picked it up.
+flint@nether|Brought to the Nether, where everything is already on fire. Its whole career, made pointless in a day.
+
+# ---------------------------------------------------------------- hoe
+hoe|This hoe tilled a field so straight that a surveyor cried.
+hoe|Used for forty years by a farmer who never once planted anything. He just liked the sound.
+hoe|The best weapon against a zombie is a diamond sword. The second best is a farmer who's been angry since dawn with this.
+hoe|Has turned more dirt into farmland than any hoe alive. It's tired. Let it rest a bit.
+hoe|A hoe that tilled a pumpkin patch for the biggest pumpkin contest in the plains. It came second. It still talks about it.
+hoe|Its owner trampled his own crops jumping for joy. The hoe saw everything. It said nothing.
+hoe|The handle is carved with a list of crops. The last word is "regret".
+hoe|Hoed a field of wheat so big it had its own weather.
+hoe|Some people call it a scythe. It isn't. Don't tell it.
+hoe|It was used to fight off a ravager once. It didn't win. It did make the ravager rethink some things.
+hoe|Its owner grew potatoes. Only potatoes. Always potatoes. He said it was a lifestyle.
+hoe|Has a little notch for every harvest. There are no notches left. Somebody started a second hoe.
+hoe|Used to clear the moss of a lush cave for a farm. The cave grew it all back overnight, out of spite.
+hoe|A villager farmer refused to give it back. Took three days and twelve emeralds.
+hoe|Tilled dirt on a floating island in the sky. The crops were great. The fall wasn't.
+hoe|Hoes leaves faster than shears. Nobody knows why. Nobody wants to ask.
+hoe|Made with love, by a farmer, for a farmer. Lost by a farmer's very bored son.
+hoe|This hoe broke the seasons record for carrots. The rabbits broke the record for stealing them.
+hoe|There's dried mud on the blade from a swamp farm. The swamp keeps calling.
+hoe|Its owner tried to till the Nether. The Nether tilled him.
+hoe@village|From a farmhouse in a village. The farmer is still looking. He's looking in the wrong field.
+
+# ---------------------------------------------------------------- shovel
+shovel|Dug a hole to the bottom of the world. Stopped one block short. Smart shovel.
+shovel|This shovel dug a moat around a dirt hut. It was a very small moat. It was a very proud hut.
+shovel|Its owner never dug straight down. Then one day he did. The shovel came back alone.
+shovel|Moved an entire beach, one block at a time, to make a bigger beach somewhere else.
+shovel|Has dug up three bones, one emerald and a wolf's favourite stick. The wolf has not forgotten.
+shovel|Used to make paths. Hundreds of paths. Nobody walked on any of them. Grass is softer.
+shovel|Dug for buried treasure for a whole summer. Found the map was upside down.
+shovel|A gravel specialist. Flint, flint, flint, flint. It's seen enough flint for a lifetime.
+shovel|There's snow packed into the hinge from making a snow golem army. The army melted. The dream didn't.
+shovel|This shovel dug a grave for a pet wolf. Then it dug the flowers in around it. It's a gentle shovel.
+shovel|Soul sand clings to it. You can hear the soul sand when it's quiet. You don't want to.
+shovel|A clay digger. Every pot in a village came from its work. It got no credit.
+shovel|Dug a tunnel under a village wall to rescue a cat. The cat was on the other side of the wall, sitting. It went back.
+shovel|Shovels are mostly for digging. This one is mostly for leaning on. Its owner was a supervisor.
+shovel|It was used to put out a campfire. Then to dig up the campfire. Then to start a new campfire. Busy day.
+shovel|The best digger in the mine. Stole the miners' thunder. They never forgave it.
+shovel|A treasure hunter's shovel, still in its prime. The X on the map was marked in the wrong biome.
+shovel|Its owner swore he'd dig to China. There's no China. He found a geode and called it even.
+shovel@buried|Dug up from the same hole as the chest. Somebody buried the shovel with the treasure. Rookie mistake.
+shovel@desert|From the desert, where it dug through ten thousand blocks of sand and found more sand.
+
+# ---------------------------------------------------------------- brush
+brush|A brush that brushed a pot that held a brush. It's brushes all the way down.
+brush|It uncovered a pottery sherd shaped like a skull. Then it put it back. Some things want to stay buried.
+brush|Used gently, patiently, for weeks. Then the owner got bored and used a pickaxe.
+brush|The bristles are worn on one side. Its owner was very left-handed.
+brush|Has dusted off more history than a library. Sneezes a lot.
+brush|Brushed suspicious sand for a whole day. Found suspicious gravel under it. Suspicion all the way down.
+brush|An archaeologist's brush. The archaeologist was wanted for questioning about a very old egg.
+brush|It brushed a sniffer egg free once. The sniffer follows its owner everywhere now. Everywhere.
+brush|Somebody used it to paint. The painting was bad. The brush has asked never to talk about it.
+brush|It brushed the dust off a trail ruin and the ruin brushed back. Mostly with arrows.
+brush|This brush found a lost city. Then it lost it again. Archaeology is hard.
+brush@archaeology|Found with what it was brushing. Its owner stopped for lunch a long, long time ago.
+
+# ---------------------------------------------------------------- carrot or fungus on a stick
+stick|Pigs follow it anywhere. So does one very confused villager.
+stick|Steered a pig into a lava pool once. The pig remembers. Pork chops remember.
+stick|The fish line is tied in a knot only sailors know. The sailor was a pig.
+stick|Its owner rode a pig across the whole continent. The pig asked for a raise at the end.
+stick|Striders love the fungus. The fungus doesn't love the striders. The stick just wants a holiday.
+stick|A pig racing trophy, unofficial. Officially, pig racing doesn't exist.
+stick|There's a tooth mark on it. The pig got tired of waiting.
+stick@nether|Rode a strider across a lava lake with this. The strider was cold the whole way. It said so.
+
+# ---------------------------------------------------------------- fishing rod
+rod|Caught a fish, a boot, a saddle, a name tag and one very old enchanted book. In that order, in one afternoon.
+rod|Its owner fished for six hours and caught one lily pad. He framed it.
+rod|The line has been mended so often it's more knot than line.
+rod|Somebody caught a pufferfish with this and ate it on a dare. The rod saw everything.
+rod|Fished up a guardian once. The guardian fished back.
+rod|This rod pulled a drowned out of the water by its boot. The drowned kept the rod's bobber as a trophy.
+rod|Used to pull an enderman into the water. A dangerous joke. A very short joke.
+rod|Its owner said the big one got away. The big one was a boat. The boat had people in it.
+rod|The bobber is a tiny carved creeper. It's never gone off. Probably.
+rod|A pirate's rod. Caught nothing but treasure. Then gave up treasure and caught salmon. Much happier.
+rod|It caught the same cod three times. The cod has learned nothing. The rod respects it.
+rod|Used to reel in a friend who fell off a cliff. Mostly reeled in their boots.
+rod|The handle is worn smooth from someone pretending to be patient.
+rod|Fished under a full moon by a fisher who was sure the moon was fishing back.
+rod@fishing|Pulled up with another rod. Fishing rods find each other. It's how they make little rods.
+
+# ---------------------------------------------------------------- shield
+shield|Stopped four hundred arrows, one trident and an awkward conversation.
+shield|There's a dent shaped exactly like a ravager's head. The ravager got the worse end of that.
+shield|Its owner held it up so long his arm stayed that way. He waves like this now.
+shield|Has been used as a sled, a tray, a table and a door. Also as a shield, once.
+shield|The banner on the front was painted by a child. Raiders ran from it. It's really that ugly.
+shield|Blocked a creeper. The creeper didn't take it well. The shield doesn't talk about it.
+shield|An axe hit it so hard it stopped blocking for five seconds. It's thought about those five seconds every day since.
+shield|A skeleton's arrow is still stuck in the back. Nobody knows how it got in the back.
+shield|This shield and its owner held the gate of a village alone for a night. In the morning they were both very tired and very famous.
+shield|Has a little scratch for every arrow it stopped. The scratches have scratches.
+shield|Its owner hid behind it during a raid. The raid passed by. The owner wasn't brave. He was lucky. The shield was both.
+shield|The paint says "BEWARE". The shield beneath it says "please".
+
+# ---------------------------------------------------------------- elytra
+elytra|Has flown over every ocean once. Has fallen into every ocean once.
+elytra|Its owner forgot to bring rockets. The view was great on the way down.
+elytra|There's a patch on the left wing from an argument with a mountain.
+elytra|Glided from the End city tower all the way back to the island. The dragon watched, impressed and hungry.
+elytra|The wings smell like phantom. Don't sleep in them.
+elytra|A shulker's bullet left a hole near the shoulder. Its owner floated for an hour. He calls it "the good hour".
+elytra|Flown by a pilot who didn't trust anything with wings that wasn't wearing these.
+elytra|These wings have kissed the bedrock ceiling of the Nether. It wasn't a nice kiss.
+elytra|Somebody used it as a cape for a costume party. Then had to fly home from the party. Very fast.
+elytra|Its owner's last words before the flight were "I've got this". He did, mostly.
+elytra|The wings creak a little in the cold. They miss the End. It's cold there too, but it's home.
+elytra|The previous owner loved the wind so much he never wore a helmet. That's why it's the previous owner.
+elytra@end_city|Hung on the wall of an End ship, where it waited for someone brave or reckless. Usually both.
+
+# ---------------------------------------------------------------- spear
+spear|Long enough to poke a creeper from a safe distance. Not long enough to be safe from the result.
+spear|Its owner charged at everything on horseback with this. Mostly at trees. He had bad eyes.
+spear|A spear that went on a long hunt and came back with one rabbit. A very big rabbit.
+spear|The tip is bent. Something tough was on the other end. It's not on the other end anymore.
+spear|Used to keep a line of zombies at arm's length. A very long arm.
+spear|There are grip marks halfway up. Its owner never learned which end was the pointy one.
+spear|Thrown once in anger, then walked to and picked up in embarrassment.
+spear|A knight's spear from the days before knights. Back then they were just people with spears.
+spear|Has a ribbon tied to it. The ribbon says "first place". The spear placed last.
+spear|Its owner jabbed a ghast with it from a cliff. The ghast didn't notice. The cliff did.
+
+# ---------------------------------------------------------------- mace
+mace|Its owner jumped from a tower with this and landed on a warden. There's a song about it now. Nobody sings it near the deep dark.
+mace|The heavy end has a little dent. Something even heavier was underneath.
+mace|Swung once and it made a sound like a door in a temple closing.
+mace|Its owner fell from very high, very often, on purpose. The mace was his only friend. Gravity was his second.
+mace|The handle is wrapped with breeze rod. It whistles when it's swung, like a kettle of doom.
+mace|Has flattened a golem, three ravagers and a sandcastle. The sandcastle hurt the most.
+mace|A mace for people who think "jump attack" is a whole strategy. It is. It works.
+mace|The vault spat it out with a little cough, like it was glad to be rid of it.
+mace@trial|From a trial chamber vault. Breezes used to play catch with it. Now you get to play.
+
+# ---------------------------------------------------------------- trident
+trident|Thrown so many times it comes back before you throw it.
+trident|Its owner called lightning down with this during a storm, on purpose, on a creeper. Charged creeper. Bad day.
+trident|There's seaweed tangled in the prongs. It's been there for generations. It's family now.
+trident|Pried from the hands of a drowned who had held it for a hundred years. It cried. The drowned, not the trident.
+trident|The middle prong is a little longer than the others. It thinks it's the leader.
+trident|A fork for a giant who had very big spaghetti.
+trident|Its owner rode the rain with this from one end of the coast to the other. He didn't get a single shopping trip in.
+trident|Has a crab carved on the shaft. The crab looks unimpressed.
+trident|Pulled out of a shipwreck where it had been holding the captain's door closed. From the inside.
+trident@shipwreck|In a shipwreck, stuck in the mast. The mast is still standing because of it.
+
+# ---------------------------------------------------------------- crossbow
+crossbow|Loaded with a firework, aimed at a party, fired at a pillager. Best party ever.
+crossbow|It has a pillager's mark on the stock. The pillager wants it back. The pillager can try.
+crossbow|The string was replaced with something from a spider that was very big and very unhappy about it.
+crossbow|Its owner always kept it loaded. He had a lot of accidents. The ceiling has a lot of arrows.
+crossbow|Fires three arrows at once, which is two more than most people need and one less than its owner wanted.
+crossbow|Used in the great Siege of the Turnip Fields. The turnips lost.
+crossbow|A crossbow that has only ever missed once. It still thinks about that skeleton.
+crossbow|The trigger sticks a little. You have to really mean it.
+crossbow@outpost|From an outpost's armoury, where the pillagers argued about who got to use it. They don't need to argue now.
+
+# ---------------------------------------------------------------- bow
+bow|The string sings a little when drawn. Its owner sang along. The skeletons got the worst of both.
+bow|Its owner could split an arrow with an arrow. Then a third arrow split his budget.
+bow|A gift from a skeleton who had no more use for it. The skeleton is now a pile of bones. It was a big gift.
+bow|Shot an arrow straight up once, just to see. Found out.
+bow|Has never hit a target on purpose. Hit plenty by accident. Its owner called it "aiming creatively".
+bow|The grip is wrapped in leather from a very old saddle. The horse is fine. The horse was not consulted.
+bow|Arrows from this bow have pinned three pieces of paper to a wall: a wanted poster, a shopping list and a love letter.
+bow|Its owner practised on a target block every morning for ten years. The target block is the best in the world now.
+bow@stronghold|In a stronghold, by a pile of bones and a single arrow, still aimed at the door.
+
+# ---------------------------------------------------------------- sword
+sword|Its owner named every swing. There were a lot of names. Most of them were "Gerald".
+sword|Sharp enough to cut through wool, wood, wheat and a long argument.
+sword|It has been sheathed in a zombie, a spider and an especially rude chicken.
+sword|The blade has a tiny notch from the time its owner tried to open a chest with it.
+sword|A sword that was pulled from a stone. The stone is still a bit sore.
+sword|It glowed once, for no reason, during a thunderstorm. Its owner has been waiting for it to do it again for years.
+sword|Its owner practised on a scarecrow every day. The scarecrow lasted longer than the owner.
+sword|Two swords were made from the same iron. This is the one that didn't get lost. Well. Until now.
+sword|The hilt is wrapped in red string, for luck, from a grandmother who was terrifying with a sword herself.
+sword|Used in a duel at dawn. Both duellists overslept. The sword showed up and waited all morning.
+sword|Has the name of a woman scratched on the blade. Then crossed out. Then written again, bigger.
+sword|Its owner held it up to the sun and shouted. The sun did not answer. The skeletons did.
+
+# ---------------------------------------------------------------- axe
+axe|Cut down a forest, built a house, felled a pillager and chopped the firewood for the winter. In one week.
+axe|Its owner was a woodcutter by day and a woodcutter by night. He was a very focused man.
+axe|The blade has a wavy edge from a fight with a shield. The shield lost. The edge remembers.
+axe|Has a tiny carving of a tree on the handle. The tree looks scared.
+axe|This axe took down a jungle tree so big it had its own village on top. The villagers were not told in advance.
+axe|Stripped every log in a village. The village looks very modern now.
+axe|Used to scrape the wax off a copper roof. The roof turned green in protest.
+axe|The handle is cracked and taped and cracked and taped again. It's more tape than handle, but it's the right tape.
+axe|Its owner swung it at a door to get in. It was a pull door.
+
+# ---------------------------------------------------------------- pickaxe
+pickaxe|Mined a diamond on its first swing. Has been chasing that feeling ever since.
+pickaxe|Its owner mined straight down. Nobody tells you not to. Everybody tells you not to.
+pickaxe|There's a chip on the tip from hitting bedrock on purpose, just to check.
+pickaxe|Mined through a whole mountain to save walking around it. The mountain had a tunnel already.
+pickaxe|Has broken a million blocks and one heart. The miner it belonged to was in love with a cave.
+pickaxe|It was used to dig out a trapped villager. The villager charged it twelve emeralds for the trouble.
+pickaxe|Its owner heard a sound in the mine and swung at the dark. The dark swung back.
+pickaxe|This pick found a geode and stared at it for an hour. Sometimes you just need a moment.
+pickaxe|Mined obsidian for a portal for ten minutes per block, nine blocks short. It didn't know about lava and water yet.
+pickaxe|The miner who owned it whistled while he worked. The cave whistled back. He worked faster.
+pickaxe@mineshaft|Left in a mineshaft beside a rail that goes nowhere. It went nowhere too, for a very long time.
+
+# ---------------------------------------------------------------- helmet
+helmet|A creeper went off next to its owner. The helmet held. The hair didn't.
+helmet|There's a little dent from a falling anvil. Its owner says he saw it coming. He didn't.
+helmet|Worn by a guard who stood at the gate for twenty years and saw nothing interesting. Then one day he did. He doesn't talk about it.
+helmet|Sunlight doesn't bother it. The zombies who wore it before did not have that luck.
+helmet|Has a feather stuck in the top. It came from a chicken that died a hero.
+helmet|Its owner wore it to bed. Every night. Just in case. He had good reasons.
+helmet|There's a scratch shaped like a phantom's wing. Should've slept more.
+helmet|Taken off a skeleton who wore it at a jaunty angle. It looked good on him. It might look good on you.
+helmet|Its owner kept snacks in it. The helmet still smells of bread on warm days.
+helmet|A turtle once wore it for a joke. The turtle lived two hundred years. It's a lucky helmet.
+
+# ---------------------------------------------------------------- chestplate
+chestplate|Took an arrow for its owner. Then a sword. Then a fireball. Then a long holiday.
+chestplate|It fits a little tight. Its last owner ate a lot of cake.
+chestplate|There's a pocket sewn on the inside with a pressed flower in it. Leave the flower.
+chestplate|Its owner jumped into lava wearing it, to see what would happen. The chestplate knows what happened.
+chestplate|Polished every day by a squire who later became a knight. The knight never polished anything again.
+chestplate|Has a hole over the heart, very neatly patched. The patch is a love letter, folded small.
+chestplate|Its owner's family has worn it for five generations. Every one of them said "it doesn't fit" and wore it anyway.
+chestplate|A warden hit it once. It's still in one piece. Its owner isn't sure he is.
+chestplate|The inside says "Property of the Village Guard". The village guard was an iron golem. It wore this as a hat.
+
+# ---------------------------------------------------------------- leggings
+leggings|Its owner walked to the End and back in these. His legs are very strong. His sense of direction isn't.
+leggings|One leg is longer than the other. So was its owner.
+leggings|These have climbed every ladder in a stronghold. There are a lot of ladders.
+leggings|Worn on a long sprint from a ravager. The ravager gave up first.
+leggings|Its owner sat on a cactus in these. The leggings won. The cactus is still upset.
+leggings|Has a stain from crawling through a swamp hut. Don't sniff it. Why are you sniffing it?
+leggings|The left knee squeaks. It squeaked every time its owner tried to sneak. He never sneaked anywhere.
+leggings|Has walked through powder snow and never once frozen. The boots did all the work. The leggings take the credit.
+leggings|Its owner danced at every village wedding in these. He was not invited to most of them.
+leggings|They've been patched with wool from seven different sheep. Every colour. It's very cheerful armour.
+
+# ---------------------------------------------------------------- boots
+boots|Walked across a whole desert and complained the whole way. Boots can't talk. These found a way.
+boots|Its owner ran from a creeper so fast he left these behind. Then came back for them. Brave. Stupid. Same thing.
+boots|There's sand in the left one. There will always be sand in the left one.
+boots|Kicked a slime once. The slime split in two. The boots have regretted it twice.
+boots|These boots took their owner up every mountain he could find. He never looked at the view. He looked at the boots.
+boots|Soaked through in a swamp, dried by a campfire, burned a little, still the best boots he ever had.
+boots|Its owner walked on soul sand for a week in these. He moves very slowly now, even on grass.
+boots|The soles have little ridges for ice. Its owner fell on the ice anyway. Every time. With style.
+boots|They squelch. They've always squelched. Nobody knows why. They've been dry for years.
+boots|Worn by a mailman who delivered to every village on the map. The letters never arrived. The boots did.

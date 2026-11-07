@@ -162,10 +162,6 @@ final class Found {
 				|| kinds.contains("tool") && TOOL.contains(kind);
 	}
 
-	private static boolean specific(Set<String> kinds, String kind) {
-		return kinds.contains(kind);
-	}
-
 	// ---------------------------------------------------------------- loading
 
 	static void load() {
@@ -319,7 +315,8 @@ final class Found {
 		double roll = r.nextDouble();
 		Text t = null;
 		if (roll < 0.14) t = piece(kind, from, d, r, have);
-		if (t == null && roll < 0.28) t = family(kind, from, d, r);
+		// (a sentence family fits anything, so not too often: the thing's own texts first)
+		if (t == null && roll < 0.19) t = family(kind, from, d, r);
 		if (t == null) t = line(kind, from, d, r);
 		if (t == null) t = piece(kind, from, d, r, have);
 		if (t == null) t = family(kind, from, d, r);
@@ -330,18 +327,39 @@ final class Found {
 		return t;
 	}
 
+	/** How close a text is to this kind of thing: its own (about shears), its group's (any tool), or anything's. */
+	static final int OWN = 0, GROUP = 1, ANY = 2;
+
+	static int tier(Set<String> kinds, String kind) {
+		if (kinds.contains(kind)) return OWN;
+		if (kinds.contains("*")) return ANY;
+		return GROUP;
+	}
+
+	/**
+	 * A one-off text: mostly one about this very kind of thing (shears get a story about shears), now and then one about
+	 * its group (a weapon, armour, a tool), and only sometimes one that fits anything. Texts about where it was found
+	 * come first within each.
+	 */
 	private static @Nullable Text line(String kind, Origin from, Data d, Random r) {
-		List<Text> pool = new ArrayList<>();
-		List<Double> weights = new ArrayList<>();
-		double total = 0;
-		for (Text t : LINES) {
-			if (d.used.contains(t.id()) || !fits(t.kinds(), kind) || !from.matches(t.where())) continue;
-			double w = (t.where().isEmpty() ? 1 : 6) * (specific(t.kinds(), kind) ? 2.5 : 1);
-			pool.add(t);
-			weights.add(w);
-			total += w;
+		double roll = r.nextDouble();
+		int[] order = roll < 0.72 ? new int[] {OWN, GROUP, ANY} : roll < 0.84 ? new int[] {GROUP, OWN, ANY} : new int[] {ANY, OWN, GROUP};
+		for (int tier : order) {
+			List<Text> pool = new ArrayList<>();
+			List<Double> weights = new ArrayList<>();
+			double total = 0;
+			for (Text t : LINES) {
+				if (d.used.contains(t.id()) || !fits(t.kinds(), kind) || !from.matches(t.where()) || tier(t.kinds(), kind) != tier) continue;
+				// a text that names the thing ("this {item}") fits it a little better than one that doesn't
+				double w = (t.where().isEmpty() ? 1 : 6) * (t.text().contains("{item}") ? 1.5 : 1);
+				pool.add(t);
+				weights.add(w);
+				total += w;
+			}
+			Text t = weighted(pool, weights, total, r);
+			if (t != null) return t;
 		}
-		return weighted(pool, weights, total, r);
+		return null;
 	}
 
 	/** The story parts ("a:story:part") a player has: held once, or handed to them. */
