@@ -474,10 +474,10 @@ final class Found {
 
 	/** Who made this loot happen: the player who opened or brushed, or whose hook it was. */
 	static @Nullable ServerPlayer finder(LootContext context) {
-		var e = context.getOptionalParameter(net.minecraft.world.level.storage.loot.parameters.LootContextParams.THIS_ENTITY);
+		var e = context.getOptional(net.minecraft.world.level.storage.loot.parameters.LootContextParams.THIS_ENTITY);
 		if (e instanceof ServerPlayer p && !(p instanceof net.fabricmc.fabric.api.entity.FakePlayer)) return p;
 		if (e instanceof net.minecraft.world.entity.projectile.FishingHook hook && hook.getPlayerOwner() instanceof ServerPlayer p) return p;
-		var killer = context.getOptionalParameter(net.minecraft.world.level.storage.loot.parameters.LootContextParams.LAST_DAMAGE_PLAYER);
+		var killer = context.getOptional(net.minecraft.world.level.storage.loot.parameters.LootContextParams.LAST_DAMAGE_PLAYER);
 		return killer instanceof ServerPlayer p && !(p instanceof net.fabricmc.fabric.api.entity.FakePlayer) ? p : null;
 	}
 
