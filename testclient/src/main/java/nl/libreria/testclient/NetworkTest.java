@@ -25,7 +25,6 @@ public final class NetworkTest implements FabricClientGameTest {
 
 	@Override
 	public void runTest(ClientGameTestContext ctx) {
-		if (Screens.SHADERS) return;
 		ctx.waitTicks(20);
 		acceptServerPack();
 		try (TestDedicatedServerContext server = ctx.worldBuilder().createServer()) {
@@ -36,8 +35,14 @@ public final class NetworkTest implements FabricClientGameTest {
 			Screens.network = ctx;
 			Screens.lostAfter = null;
 			check(ctx, "joining");
-			if (Screens.lostAfter == null) Screens.scene(withoutScreenshots(ctx), server, player);
-			LOG.info("LIBRERIA-NETWORK {}", Screens.lostAfter == null ? "OK: still connected after the whole walk" : "DISCONNECTED after " + Screens.lostAfter);
+			if (Screens.SHADERS) {
+				// the shader run: only the shader walk, with its screenshots
+				ctx.getInput().resizeWindow(1280, 720);
+				Screens.shaders(ctx, server, player);
+			} else {
+				if (Screens.lostAfter == null) Screens.scene(withoutScreenshots(ctx), server, player);
+				LOG.info("LIBRERIA-NETWORK {}", Screens.lostAfter == null ? "OK: still connected after the whole walk" : "DISCONNECTED after " + Screens.lostAfter);
+			}
 			if (connection instanceof AutoCloseable c) c.close();
 		} catch (Throwable t) {
 			LOG.error("LIBRERIA-NETWORK FAILED to run", t);
