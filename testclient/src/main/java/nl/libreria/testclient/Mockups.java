@@ -107,7 +107,7 @@ final class Mockups {
 				String[] p = m.split(" ");
 				Vec3 at = new Vec3(Integer.parseInt(p[0]) + 0.5, Integer.parseInt(p[1]) + 0.005, Integer.parseInt(p[2]) + 0.5);
 				var e = new eu.pb4.polymer.virtualentity.api.elements.BlockDisplayElement(
-						(p[3].equals("sky") ? net.minecraft.world.level.block.Blocks.YELLOW_STAINED_GLASS : net.minecraft.world.level.block.Blocks.RED_STAINED_GLASS).defaultBlockState());
+						Ui.block(p[3].equals("sky") ? "yellow_stained_glass" : "red_stained_glass"));
 				e.setTranslation(new org.joml.Vector3f(-0.22f, 0f, -0.22f));
 				e.setScale(new org.joml.Vector3f(0.44f, 0.03f, 0.44f));
 				e.setBrightness(new net.minecraft.util.Brightness(15, 15));
