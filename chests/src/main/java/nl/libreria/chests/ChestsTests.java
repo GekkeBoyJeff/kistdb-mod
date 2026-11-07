@@ -69,6 +69,8 @@ final class ChestsTests {
 			SelfTests.check(Wanted.of(fp) == null, "the chest with them closes: found");
 			Wanted.start(fp, new ItemStack(Items.DIAMOND));
 			Wanted.HUNTS.get(fp.getUUID()).until = 0;
+			// (no way shown: that would hold the minute)
+			nl.libreria.core.Guide.clear(fp);
 			Wanted.tick(fp);
 			SelfTests.check(Wanted.of(fp) == null, "after a minute: over");
 		});

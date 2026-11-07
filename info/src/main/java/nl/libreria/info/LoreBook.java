@@ -220,17 +220,22 @@ final class LoreBook {
 			b.newPage();
 			at[i] = b.pageNumber();
 			if (got.contains(t.part())) {
-				b.line(Component.literal("Part " + t.part()).withStyle(st(Book.ACCENT).withBold(true)));
-				b.text(t.name(), st(Book.ACCENT).withBold(true));
-				b.gap();
-				b.text(t.text().replace("{item}", "thing"), st(Book.INK));
+				// A part on one page: the empty lines go first when it's long
+				List<Component> head = new ArrayList<>(), body = new ArrayList<>(), foot = new ArrayList<>();
+				head.add(Component.literal("Part " + t.part()).withStyle(st(Book.ACCENT).withBold(true)));
+				for (String l : Book.wrap(t.name(), st(Book.ACCENT).withBold(true))) head.add(Component.literal(l).withStyle(st(Book.ACCENT).withBold(true)));
+				for (String l : Book.wrap(t.text().replace("{item}", "thing"), st(Book.INK))) body.add(Component.literal(l).withStyle(st(Book.INK)));
 				String[] info = seen.partInfo.getOrDefault(story + ":" + t.part(), "").split("\\|", -1);
 				if (info.length == 3 && !info[0].isEmpty()) {
-					b.gap();
-					b.text(info[0], st(Book.MUTED));
-					String when = (info[1].equals("0") ? "" : "day " + info[1]) + (info[2].isEmpty() ? "" : (info[1].equals("0") ? "" : " · ") + info[2]);
-					if (!when.isEmpty()) b.text(when, st(Book.MUTED));
+					String where = info[0] + (info[1].equals("0") ? "" : " · day " + info[1]) + (info[2].isEmpty() ? "" : " · " + info[2]);
+					for (String l : Book.wrap(where, st(Book.MUTED))) foot.add(Component.literal(l).withStyle(st(Book.MUTED)));
 				}
+				int lines = head.size() + body.size() + foot.size();
+				head.forEach(b::line);
+				if (lines + 2 <= Book.LINES) b.gap();
+				body.forEach(b::line);
+				if (!foot.isEmpty() && lines + 1 <= Book.LINES) b.gap();
+				foot.forEach(b::line);
 			} else {
 				String kinds = String.join(",", t.kinds());
 				b.line(Component.literal("Part " + t.part()).withStyle(st(Book.MUTED).withBold(true)));

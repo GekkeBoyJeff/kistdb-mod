@@ -803,7 +803,8 @@ def wanted_textures():
     for y in range(16):
         for x in range(16):
             d = math.hypot(x - 7.5, y - 7.5) / 10.6
-            glow.putpixel((x, y), (255, 226, 140, int(255 * max(0.0, 0.92 - 0.38 * d))))
+            # a warm gold that white stack counts still read on
+            glow.putpixel((x, y), (250, 196, 84, int(255 * max(0.0, 0.78 - 0.34 * d))))
     border = Image.new('RGBA', (16, 16 * WANTED_FRAMES), (0, 0, 0, 0))
     for f in range(WANTED_FRAMES):
         t = 0.5 + 0.5 * math.cos(2 * math.pi * f / WANTED_FRAMES)
