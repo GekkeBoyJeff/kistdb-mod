@@ -723,18 +723,19 @@ public final class Screens implements FabricClientGameTest {
 						// a part found, and one still missing
 						for (int to : new int[] {1, 2}) {
 							String screen = ctx.computeOnClient(mc -> {
-								if (mc.screen == null) return "none";
-								for (var m : mc.screen.getClass().getMethods()) {
+								var open = mc.gui.screen();
+								if (open == null) return "none";
+								for (var m : open.getClass().getMethods()) {
 									if (m.getParameterCount() == 1 && m.getParameterTypes()[0] == int.class && m.getName().toLowerCase(java.util.Locale.ROOT).contains("page")) {
 										try {
-											m.invoke(mc.screen, to);
-											return mc.screen.getClass().getSimpleName() + "." + m.getName();
+											m.invoke(open, to);
+											return open.getClass().getSimpleName() + "." + m.getName();
 										} catch (ReflectiveOperationException e) {
 											return "failed " + e;
 										}
 									}
 								}
-								return mc.screen.getClass().getSimpleName() + " (no page method)";
+								return open.getClass().getSimpleName() + " (no page method)";
 							});
 							LOG.info("LIBRERIA-LOREBOOK page {}: {}", to, screen);
 							ctx.waitTicks(4);
