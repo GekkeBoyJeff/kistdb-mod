@@ -62,6 +62,7 @@ public final class Screens implements FabricClientGameTest {
 		// no armour, plain diamond (the game's own look), then armour with effects
 		String[][] row = {{"", "", ""}, {"diamond", "", ""}, {"diamond", "fire_protection:4", ""}, {"golden", "blast_protection:4", ""},
 				{"netherite", "protection:4", "ward"}};
+		// (left to right as you look: effects with a trim, gold, diamond with fire, plain diamond, no armour)
 		String[] slots = {"head", "chest", "legs", "feet"};
 		String[] pieces = {"helmet", "chestplate", "leggings", "boots"};
 		for (int i = 0; i < row.length; i++) {

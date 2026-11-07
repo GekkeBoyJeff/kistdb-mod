@@ -27,7 +27,7 @@ public final class NetworkTest implements FabricClientGameTest {
 	public void runTest(ClientGameTestContext ctx) {
 		ctx.waitTicks(20);
 		acceptServerPack();
-		try (TestDedicatedServerContext server = ctx.worldBuilder().createServer()) {
+		try (TestDedicatedServerContext server = createServer(ctx)) {
 			var connection = server.connect();
 			connection.waitForChunksRender();
 			ctx.waitTicks(40);
@@ -50,6 +50,24 @@ public final class NetworkTest implements FabricClientGameTest {
 			Screens.network = null;
 			acceptPack = false;
 		}
+	}
+
+	/**
+	 * The dedicated server. In the shader run frames take seconds (a software GPU compiling a shader pack), and the server
+	 * would think it hangs: no watchdog there.
+	 */
+	private static TestDedicatedServerContext createServer(ClientGameTestContext ctx) {
+		var builder = ctx.worldBuilder();
+		if (Screens.SHADERS) {
+			java.util.Properties props = new java.util.Properties();
+			props.setProperty("max-tick-time", "-1");
+			try {
+				return (TestDedicatedServerContext) builder.getClass().getMethod("createServer", java.util.Properties.class).invoke(builder, props);
+			} catch (ReflectiveOperationException | RuntimeException e) {
+				LOG.warn("LIBRERIA-NETWORK could not pass server properties: {}", e.toString());
+			}
+		}
+		return builder.createServer();
 	}
 
 	/**
