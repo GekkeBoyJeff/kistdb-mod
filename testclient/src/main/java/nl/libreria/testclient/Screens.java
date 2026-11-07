@@ -599,7 +599,8 @@ public final class Screens implements FabricClientGameTest {
 					server.runOnServer(sv -> ((ServerLevel) player.level()).getEntitiesOfClass(net.minecraft.world.entity.decoration.ItemFrame.class,
 							player.getBoundingBox().inflate(8)).forEach(fr -> fr.setInvisible(true)));
 				}
-				run(server, f("setblock %d %d %d minecraft:chest[facing=north]", x, y + 1, z + 3));
+				// (a chest under a solid block doesn't open: room above it)
+				run(server, f("setblock %d %d %d minecraft:chest[facing=north]", x, y + 1, z + 3), f("setblock %d %d %d minecraft:air", x, y + 2, z + 3));
 				ctx.waitTicks(5);
 				ctx.getInput().lookAt(new BlockPos(x, y + 1, z + 2));
 				ctx.waitTicks(3);

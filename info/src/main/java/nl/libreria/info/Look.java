@@ -264,7 +264,7 @@ final class Look {
 		tip.panel.setBackground(0);
 		tip.panel.setTextOpacity((byte) -1);
 		tip.panel.setScale(new Vector3f(SCALE));
-		tip.panel.setTranslation(new Vector3f(dx, 0, -0.012f));
+		tip.panel.setTranslation(new Vector3f(dx, 0, -0.012f * tip.size));
 
 		if (hasIcon) {
 			// The slot spans the first two lines; the text box is centred: its left edge is at 1 - innerW/2
@@ -277,7 +277,7 @@ final class Look {
 			// Tilted back a little so the light from above reaches it (a flat icon facing you looks dark otherwise)
 			tip.icon.setLeftRotation(new Quaternionf().rotateX(-ICON_TILT));
 			tip.icon.setScale(new Vector3f(size, size / (float) Math.cos(ICON_TILT), 0.001f));
-			tip.icon.setTranslation(new Vector3f(dx + x, y, 0.06f));
+			tip.icon.setTranslation(new Vector3f(dx + x, y, 0.06f * tip.size));
 		} else {
 			tip.icon.setItem(ItemStack.EMPTY);
 		}
@@ -335,13 +335,13 @@ final class Look {
 		tip.panel.setTextOpacity((byte) 8);
 		tip.panel.setBackground(0xFF000000 | (c.accent() < 0 ? 0xA8803C : c.accent()));
 		tip.panel.setScale(new Vector3f(SCALE * (w + 2 * border) / w, SCALE * (h + 2 * border) / h, SCALE));
-		tip.panel.setTranslation(new Vector3f(dx, -border, -0.012f));
+		tip.panel.setTranslation(new Vector3f(dx, -border, -0.012f * tip.size));
 
 		if (hasIcon) {
 			float iconSize = 16 * PX * SCALE * 1.25f;
 			tip.icon.setItem(c.icon());
 			tip.icon.setScale(new Vector3f(iconSize, iconSize, 0.001f));
-			tip.icon.setTranslation(new Vector3f(dx - w / 2 + iconPx * PX * SCALE / 2 + PX * SCALE, h - Math.min(h / 2, 6 * PX * SCALE * 1.6f), 0.012f));
+			tip.icon.setTranslation(new Vector3f(dx - w / 2 + iconPx * PX * SCALE / 2 + PX * SCALE, h - Math.min(h / 2, 6 * PX * SCALE * 1.6f), 0.012f * tip.size));
 		} else {
 			tip.icon.setItem(ItemStack.EMPTY);
 		}
