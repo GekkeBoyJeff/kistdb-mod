@@ -281,6 +281,25 @@ public final class ComfortMod implements ModInitializer {
 			Stands.setSmall(s, false);
 			SelfTests.check(!s.isSmall(), "big again");
 			SelfTests.check(Stands.wrap(350f) == -10f && Stands.wrap(-200f) == 160f && Stands.wrap(90f) == 90f, "angles -180..180");
+			// an item frame: sneak + right-click with an empty hand hides the frame
+			BlockPos wall = new BlockPos(48, 121, 44);
+			level.setBlock(wall, nl.libreria.core.Ui.block("stone"), 3);
+			var frame = new net.minecraft.world.entity.decoration.ItemFrame(level, wall.north(), net.minecraft.core.Direction.NORTH);
+			frame.setItem(new ItemStack(Items.DIAMOND_SWORD));
+			level.addFreshEntity(frame);
+			var fp = net.fabricmc.fabric.api.entity.FakePlayer.get(level);
+			fp.getInventory().clearContent();
+			fp.setPos(48.5, 121, 41.5);
+			fp.setShiftKeyDown(true);
+			try {
+				var r = net.fabricmc.fabric.api.event.player.UseEntityCallback.EVENT.invoker().interact(fp, level, InteractionHand.MAIN_HAND, frame, null);
+				SelfTests.check(r.consumesAction() && frame.isInvisible(), "sneak + right-click hides the frame: " + r);
+				frame.setItem(ItemStack.EMPTY);
+				fp.setShiftKeyDown(false);
+			} finally {
+				frame.discard();
+				level.setBlock(wall, net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), 3);
+			}
 		});
 		SelfTests.register("comfort.sleep", level -> {
 			SelfTests.check("06:00".equals(Sleep.clockText(0)), "tick 0 is six in the morning");
