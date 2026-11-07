@@ -27,11 +27,18 @@ jobs:
           echo 'preferredGraphicsBackend:"opengl"' > testclient/build/run/clientGameTest/options.txt
           echo 'renderDistance:4' >> testclient/build/run/clientGameTest/options.txt
           bash .github/shaders.sh
-          # Iris needs OpenGL; in Xvfb SDL finds no GLX visual for it (the normal run falls back to Vulkan), so EGL
+          # Iris needs OpenGL; in Xvfb SDL finds no GLX visual for it (the normal run falls back to Vulkan): EGL on X11
+          # first (SDL3's hint), else SDL's offscreen driver (EGL without a window system)
           xvfb-run -a -s "-screen 0 1280x720x24 +extension GLX" glxinfo -B > out/glxinfo.txt 2>&1 || true
-          export SDL_VIDEO_X11_FORCE_EGL=1 LIBGL_ALWAYS_SOFTWARE=1
-          timeout 2700 xvfb-run -a -s "-screen 0 1280x720x24 +extension GLX" ./gradlew :testclient:runClientGameTest --no-daemon > client.log 2>&1 || true
+          xvfb-run -a -s "-screen 0 1280x720x24 +extension GLX" glxinfo -t 2>&1 | head -60 >> out/glxinfo.txt || true
+          export LIBGL_ALWAYS_SOFTWARE=1
+          SDL_VIDEO_FORCE_EGL=1 SDL_VIDEO_X11_FORCE_EGL=1 timeout 2700 xvfb-run -a -s "-screen 0 1280x720x24 +extension GLX" ./gradlew :testclient:runClientGameTest --no-daemon > client.log 2>&1 || true
           grep -E 'graphics backend|Failed to create backend|GLX|EGL' client.log | head -10
+          if grep -q 'Failed to create backend OpenGL' client.log; then
+            mv client.log client-egl-x11.log
+            SDL_VIDEO_DRIVER=offscreen SDL_VIDEO_FORCE_EGL=1 timeout 2700 ./gradlew :testclient:runClientGameTest --no-daemon > client.log 2>&1 || true
+            grep -E 'graphics backend|Failed to create backend|GLX|EGL' client.log | head -10
+          fi
           grep -E 'LIBRERIA-SHADERS|Iris|iris|Sodium|ERROR|Exception|Caused by' client.log | head -80
           grep -q 'LIBRERIA-SHADERS DONE' client.log
       - name: collect output
@@ -39,7 +46,7 @@ jobs:
         run: |
           mkdir -p out/screenshots
           cp testclient/build/run/clientGameTest/screenshots/*.png out/screenshots/ 2>/dev/null || true
-          cp client.log out/ 2>/dev/null || true
+          cp client.log client-egl-x11.log out/ 2>/dev/null || true
           cp testclient/build/run/clientGameTest/logs/latest.log out/client-latest.log 2>/dev/null || true
           cp testclient/build/run/clientGameTest/shaderpacks/*.txt out/ 2>/dev/null || true
           echo "${{ steps.shots.outcome }}" > out/shots.txt
