@@ -87,7 +87,7 @@ final class Mockups {
 			int color = p[3].equals("sky") ? 0xFFE066 : 0xFF4D4D;
 			run(server, String.format(Locale.ROOT,
 					"summon minecraft:text_display %s.5 %s.02 %s.5 {text:{text:\"×\",color:\"#%06X\"},background:0,brightness:{sky:15,block:15},"
-							+ "transformation:{left_rotation:[-0.7071f,0f,0f,0.7071f],right_rotation:[0f,0f,0f,1f],translation:[0f,0f,-0.32f],scale:[2.6f,2.6f,2.6f]},Tags:[\"mock\"]}",
+							+ "transformation:{left_rotation:[0.7071f,0f,0f,0.7071f],right_rotation:[0f,0f,0f,1f],translation:[0f,0f,-0.32f],scale:[2.6f,2.6f,2.6f]},Tags:[\"mock\"]}",
 					p[0], p[1], p[2], color));
 		}
 		LOG.info("LIBRERIA-MOCKUPS spawn spots: {}", marks.size());
@@ -131,29 +131,40 @@ final class Mockups {
 					+ "{Rotation:[180f,0f],ShowArms:1b,NoBasePlate:1b,Pose:{" + stands[i][1] + "},equipment:{head:{id:\"minecraft:iron_helmet\"},"
 					+ "chest:{id:\"minecraft:diamond_chestplate\"},mainhand:{id:\"minecraft:iron_sword\"}},CustomName:\"" + stands[i][0] + "\",CustomNameVisible:1b}");
 		}
-		// item frames on a wall: as they are, and invisible (only the item)
-		run(server, f("fill %d %d %d %d %d %d minecraft:spruce_planks", x - 4, y, z + 8, x + 4, y + 3, z + 8));
-		String[] items = {"diamond_sword", "golden_apple", "compass", "nether_star"};
+		ctx.waitTicks(30);
+		Screens.shot(ctx, "mock_stands");
+		// item frames on a wall: left as they are now, right invisible (only the item shows)
+		run(server, "kill @e[type=minecraft:armor_stand]", f("fill %d %d %d %d %d %d minecraft:spruce_planks", x - 5, y, z + 6, x + 5, y + 3, z + 6),
+				f("tp @a %d %d %d 0 5", x, y, z + 1));
+		String[] items = {"diamond_sword", "golden_apple", "clock", "diamond_sword", "golden_apple", "clock"};
 		for (int i = 0; i < items.length; i++) {
-			run(server, f("summon minecraft:item_frame %d %d %d ", x - 3 + i * 2, y + 2, z + 7)
-					+ "{Facing:2b,Fixed:1b,Invisible:" + (i >= 2 ? "1b" : "0b") + ",Item:{id:\"minecraft:" + items[i] + "\",count:1}}");
+			int fx = i < 3 ? x + 4 - i : x - 2 - (i - 3);
+			run(server, f("summon minecraft:item_frame %d %d %d ", fx, y + 1, z + 5)
+					+ "{Facing:2b,Fixed:1b,Invisible:" + (i >= 3 ? "1b" : "0b") + ",Item:{id:\"minecraft:" + items[i] + "\",count:1}}");
 		}
 		ctx.waitTicks(30);
-		Screens.shot(ctx, "mock_stands_and_frames");
+		Screens.shot(ctx, "mock_frames");
+		run(server, "kill @e[type=minecraft:item_frame]", f("fill %d %d %d %d %d %d minecraft:air", x - 5, y, z + 6, x + 5, y + 3, z + 6),
+				f("tp @a %d %d %d 0 10", x, y, z - 1));
+		for (int i = 0; i < stands.length; i++) {
+			run(server, f("summon minecraft:armor_stand %d %d %d ", x - 3 + i * 2, y, z + 4)
+					+ "{Rotation:[180f,0f],ShowArms:1b,NoBasePlate:1b,Pose:{" + stands[i][1] + "},equipment:{head:{id:\"minecraft:iron_helmet\"},"
+					+ "chest:{id:\"minecraft:diamond_chestplate\"},mainhand:{id:\"minecraft:iron_sword\"}}}");
+		}
+		ctx.waitTicks(10);
 
 		// The window: presets (they apply at once, the stand behind it changes), the switches, and fine-tuning
 		server.runOnServer(s -> {
 			Window w = Window.of(nl.libreria.core.Domain.ITEMS, "Armour stand");
-			w.item(new ItemStack(Items.ARMOR_STAND), Ui.text("Pick a pose: the stand takes it at once. Fine-tune each part, "
-					+ "or copy this pose to another stand.", ChatFormatting.GRAY));
-			w.toggle("arms", Ui.text("Arms", ChatFormatting.WHITE), true);
-			w.toggle("plate", Ui.text("Base plate", ChatFormatting.WHITE), false);
-			w.toggle("small", Ui.text("Small", ChatFormatting.WHITE), false);
-			w.toggle("invisible", Ui.text("Invisible (only its gear shows)", ChatFormatting.WHITE), false);
-			w.toggle("name", Ui.text("Name above it", ChatFormatting.WHITE), true);
+			w.item(new ItemStack(Items.ARMOR_STAND), Ui.text("Every click shows at once on the stand. Fine-tune each part, "
+					+ "or copy this pose and give it to another stand.", ChatFormatting.GRAY));
 			w.columns(2);
 			for (String pose : new String[] {"Standing", "Waving", "Pointing", "Saluting", "Thinking", "Cheering", "Walking", "Sitting"})
 				w.button(Ui.text(pose, ChatFormatting.WHITE), null, (p, v) -> {
+				});
+			String[][] sw = {{"Arms", "on"}, {"Base plate", "off"}, {"Small", "off"}, {"Invisible", "off"}};
+			for (String[] t : sw)
+				w.button(Ui.text(t[0] + ": ", ChatFormatting.WHITE).append(Ui.text(t[1], t[1].equals("on") ? ChatFormatting.GREEN : ChatFormatting.GRAY)), null, (p, v) -> {
 				});
 			w.button(Ui.text("Fine-tune ▸", ChatFormatting.AQUA), Ui.text("Head, arms, legs and body, one by one", ChatFormatting.GRAY), (p, v) -> {
 			});
