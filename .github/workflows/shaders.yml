@@ -1,0 +1,52 @@
+name: shaders
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# The test client with Iris + Sodium and a shader pack: screenshots of the effects with "Glow with shaders" off and on
+jobs:
+  shaders:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: 'microsoft'
+      - name: shaders (a real 26.3 client with Iris)
+        id: shots
+        continue-on-error: true
+        timeout-minutes: 50
+        run: |
+          chmod +x ./gradlew
+          sudo apt-get update -q > /dev/null
+          sudo apt-get install -y -q xvfb mesa-vulkan-drivers libgl1-mesa-dri libegl1 jq unzip > /dev/null
+          mkdir -p testclient/build/run/clientGameTest out
+          echo 'preferredGraphicsBackend:"opengl"' > testclient/build/run/clientGameTest/options.txt
+          echo 'renderDistance:4' >> testclient/build/run/clientGameTest/options.txt
+          bash .github/shaders.sh
+          timeout 2700 xvfb-run -a -s "-screen 0 1280x720x24" ./gradlew :testclient:runClientGameTest --no-daemon > client.log 2>&1 || true
+          grep -E 'LIBRERIA-SHADERS|Iris|iris|Sodium|ERROR|Exception|Caused by' client.log | head -80
+          grep -q 'LIBRERIA-SHADERS DONE' client.log
+      - name: collect output
+        if: always()
+        run: |
+          mkdir -p out/screenshots
+          cp testclient/build/run/clientGameTest/screenshots/*.png out/screenshots/ 2>/dev/null || true
+          cp client.log out/ 2>/dev/null || true
+          cp testclient/build/run/clientGameTest/logs/latest.log out/client-latest.log 2>/dev/null || true
+          cp testclient/build/run/clientGameTest/shaderpacks/*.txt out/ 2>/dev/null || true
+          echo "${{ steps.shots.outcome }}" > out/shots.txt
+          echo "${GITHUB_SHA}" > out/commit.txt
+      - name: publish to ci-shaders branch
+        if: always()
+        run: |
+          cd out
+          git init -q -b ci-shaders
+          git config user.name "libreria-ci"
+          git config user.email "libreria-ci@users.noreply.github.com"
+          git add -A
+          git commit -q -m "shaders ${GITHUB_SHA} (${{ steps.shots.outcome }})"
+          git push -q -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git" ci-shaders

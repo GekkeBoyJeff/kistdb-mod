@@ -25,6 +25,7 @@ public final class NetworkTest implements FabricClientGameTest {
 
 	@Override
 	public void runTest(ClientGameTestContext ctx) {
+		if (Screens.SHADERS) return;
 		ctx.waitTicks(20);
 		acceptServerPack();
 		try (TestDedicatedServerContext server = ctx.worldBuilder().createServer()) {

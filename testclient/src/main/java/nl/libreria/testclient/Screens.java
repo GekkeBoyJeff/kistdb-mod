@@ -35,9 +35,88 @@ public final class Screens implements FabricClientGameTest {
 			TestServerContext server = sp.getServer();
 			sp.getConnection().waitForChunksRender();
 			ServerPlayer player = server.computeOnServer(s -> sp.getConnection().getServerPlayer());
-			scene(ctx, server, player);
+			if (SHADERS) shaders(ctx, server, player);
+			else scene(ctx, server, player);
 		}
-		LOG.info("LIBRERIA-SCREENSHOTS DONE");
+		LOG.info(SHADERS ? "LIBRERIA-SHADERS DONE" : "LIBRERIA-SCREENSHOTS DONE");
+	}
+
+	/** The shader run (the "shaders" workflow puts Iris, Sodium and a shader pack in): only the shader walk. */
+	static final boolean SHADERS = net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("iris");
+
+	/**
+	 * With a shader pack (Iris): the effects on a sword in your hand and on armour at night, with "Glow with shaders"
+	 * off and then on (the glow maps' pack is sent, the shader pack reads them as LabPBR emission).
+	 */
+	static void shaders(ClientGameTestContext ctx, TestServerContext server, ServerPlayer player) {
+		BlockPos o = server.computeOnServer(s -> player.blockPosition());
+		int x = o.getX(), y = o.getY(), z = o.getZ();
+		LOG.info("LIBRERIA-SHADERS shader pack in use: {}", irisInUse());
+		run(server, "time set midnight", "weather clear",
+				f("fill %d %d %d %d %d %d minecraft:grass_block", x - 8, y - 1, z - 8, x + 8, y - 1, z + 8),
+				f("fill %d %d %d %d %d %d minecraft:air", x - 8, y, z - 8, x + 8, y + 6, z + 8),
+				f("tp @a %d %d %d 0 0", x, y, z), "clear @a",
+				"item replace entity @a weapon.mainhand with minecraft:diamond_sword[enchantments={sharpness:5,fire_aspect:2,looting:3}]");
+		ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.HIDDEN));
+		String[][] row = {{"diamond", "fire_protection:4", ""}, {"iron", "protection:4", ""}, {"golden", "blast_protection:4", ""},
+				{"netherite", "projectile_protection:4", "ward"}, {"diamond", "thorns:3", "coast"}};
+		String[] slots = {"head", "chest", "legs", "feet"};
+		String[] pieces = {"helmet", "chestplate", "leggings", "boots"};
+		for (int i = 0; i < row.length; i++) {
+			StringBuilder eq = new StringBuilder();
+			for (int k = 0; k < 4; k++) {
+				String trim = row[i][2].isEmpty() ? "" : ",\"minecraft:trim\":{pattern:\"minecraft:" + row[i][2] + "\",material:\"minecraft:gold\"}";
+				eq.append(k == 0 ? "" : ",").append(slots[k]).append(":{id:\"minecraft:").append(row[i][0]).append("_").append(pieces[k])
+						.append("\",components:{\"minecraft:enchantments\":{").append(row[i][1]).append("}").append(trim).append("}}");
+			}
+			run(server, "summon minecraft:mannequin " + (x - 4 + i * 2) + " " + y + " " + (z + 4) + " {Rotation:[180f,0f],hide_description:1b,immovable:1b,equipment:{" + eq + "}}");
+		}
+		String[] probe = {"libreria:textures/entity/equipment/humanoid/fx/chainmail_arrowguard_1_s.png", "libreria:textures/item/glint/empty_s.png"};
+		safe("shaders_off", () -> {
+			camera(ctx, CameraType.FIRST_PERSON);
+			ctx.getInput().lookAt(0, 12);
+			ctx.waitTicks(80);
+			noToasts(ctx);
+			ctx.takeScreenshot("shaders_glow_off");
+			camera(ctx, CameraType.THIRD_PERSON_FRONT);
+			ctx.waitTicks(20);
+			ctx.takeScreenshot("shaders_glow_off_third");
+			camera(ctx, CameraType.FIRST_PERSON);
+			LOG.info("LIBRERIA-SHADERS off: glow maps loaded {}", ctx.computeOnClient(mc -> hasAll(mc, probe)));
+		});
+		safe("shaders_on", () -> {
+			NetworkTest.acceptServerPack();
+			server.runOnServer(sv -> nl.libreria.glint.GlintMod.SHADER_GLOW.set(player, true));
+			ctx.waitTicks(240);
+			LOG.info("LIBRERIA-SHADERS on: glow maps loaded {} · packs {} · shader pack in use {}", ctx.computeOnClient(mc -> hasAll(mc, probe)),
+					ctx.computeOnClient(mc -> String.join(", ", mc.getResourcePackRepository().getSelectedIds())), irisInUse());
+			run(server, "time set midnight");
+			ctx.getInput().lookAt(0, 12);
+			ctx.waitTicks(20);
+			noToasts(ctx);
+			ctx.takeScreenshot("shaders_glow_on");
+			camera(ctx, CameraType.THIRD_PERSON_FRONT);
+			ctx.waitTicks(20);
+			ctx.takeScreenshot("shaders_glow_on_third");
+			camera(ctx, CameraType.FIRST_PERSON);
+			NetworkTest.stopAccepting();
+		});
+	}
+
+	private static String hasAll(net.minecraft.client.Minecraft mc, String[] ids) {
+		StringBuilder b = new StringBuilder();
+		for (String id : ids) b.append(mc.getResourceManager().getResource(net.minecraft.resources.Identifier.parse(id)).isPresent() ? "Y" : "n");
+		return b.toString();
+	}
+
+	private static String irisInUse() {
+		try {
+			Class<?> api = Class.forName("net.irisshaders.iris.api.v0.IrisApi");
+			Object inst = api.getMethod("getInstance").invoke(null);
+			return String.valueOf(api.getMethod("isShaderPackInUse").invoke(inst));
+		} catch (ReflectiveOperationException | RuntimeException e) {
+			return "? " + e;
+		}
 	}
 
 	/**
