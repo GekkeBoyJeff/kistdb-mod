@@ -102,7 +102,7 @@ final class Mockups {
 			String[] p = m.split(" ");
 			String glass = p[3].equals("sky") ? "yellow_stained_glass" : "red_stained_glass";
 			run(server, String.format(Locale.ROOT,
-					"summon minecraft:block_display %.2f %.3f %.2f {block_state:{Name:\"minecraft:%s\"},brightness:{sky:15,block:15},"
+					"summon minecraft:block_display %.2f %.3f %.2f {block_state:{Name:\"minecraft:%s\"},brightness:{sky:15,block:15},width:1.5f,height:1f,"
 							+ "transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[-0.22f,0f,-0.22f],scale:[0.44f,0.03f,0.44f]},Tags:[\"mock\"]}",
 					Integer.parseInt(p[0]) + 0.5, Integer.parseInt(p[1]) + 0.005, Integer.parseInt(p[2]) + 0.5, glass));
 		}
