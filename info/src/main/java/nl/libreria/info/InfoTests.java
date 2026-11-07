@@ -115,8 +115,8 @@ final class InfoTests {
 			// A step away: smaller, so the whole card still fits on the screen
 			stand.setPos(0, 0, 1.0);
 			Look.Target close = Stand.target(eye, new net.minecraft.world.phys.Vec3(0, -0.6, 1).normalize(), stand, five, true);
-			double high = Look.dims(five, true)[1] * close.size() / close.anchor().distanceTo(eye);
-			SelfTests.check(close.size() < t.size() && high < 0.8, "up close: size " + close.size() + ", " + Math.round(Math.toDegrees(Math.atan(high))) + "° tall");
+			double angle = Look.dims(five, true)[1] * close.size() / close.anchor().distanceTo(eye);
+			SelfTests.check(close.size() < t.size() && angle < 0.8, "up close: size " + close.size() + ", " + Math.round(Math.toDegrees(Math.atan(angle))) + "° tall");
 			float[] d = Look.dims(five, true);
 			SelfTests.check(d[0] > 0.5 && d[1] > 0.5, "card size " + d[0] + " x " + d[1]);
 			// Looking steeply down at something right in front of you: the card comes down into the screen
