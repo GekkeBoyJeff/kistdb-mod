@@ -210,6 +210,14 @@ final class Details {
 		return ours(Component.literal("  " + text).withStyle(Style.EMPTY.withColor(EXPLAIN)));
 	}
 
+	/** About this many characters on an explanation line: a tooltip doesn't wrap, and a long line runs off the screen. */
+	static final int WIDTH = 46;
+
+	/** An explanation as lines of at most {@link #WIDTH} characters. */
+	private static void explainInto(List<Component> out, String text) {
+		for (String l : Lore.wrap(text, WIDTH)) out.add(explain(l));
+	}
+
 	/** The enchantments in the order the game shows them: the tooltip order first, then the rest. */
 	static List<Object[]> ordered(ItemEnchantments ench, RegistryAccess access) {
 		List<Object[]> out = new ArrayList<>();
@@ -245,8 +253,15 @@ final class Details {
 			for (var fx : effects) {
 				String what = effect(fx.getEffect().unwrapKey().map(k -> k.identifier().getPath()).orElse(""));
 				if (what == null) continue;
-				extra.add(effects.size() > 1 ? ours(Component.empty().append(Component.literal("  ").append(Component.translatable(
-						fx.getEffect().value().getDescriptionId())).append(": " + what).withStyle(Style.EMPTY.withColor(EXPLAIN)))) : explain(what));
+				if (effects.size() == 1) {
+					explainInto(extra, what);
+					continue;
+				}
+				// "  Slowness: you walk slower." (the effect's name, then its text; longer texts go on under it)
+				List<String> lines = Lore.wrap(what, WIDTH - 12);
+				extra.add(ours(Component.empty().append(Component.literal("  ").append(Component.translatable(
+						fx.getEffect().value().getDescriptionId())).append(": " + lines.getFirst()).withStyle(Style.EMPTY.withColor(EXPLAIN)))));
+				for (String l : lines.subList(1, lines.size())) extra.add(ours(Component.literal("    " + l).withStyle(Style.EMPTY.withColor(EXPLAIN))));
 			}
 		}
 		// An ominous bottle: the game writes its Bad Omen line after the lore, so it's hidden and written here, above
@@ -258,7 +273,7 @@ final class Details {
 			net.minecraft.world.item.alchemy.PotionContents.addPotionTooltip(List.of(fx), c -> extra.add(ours(c)), 1.0F,
 					viewer.level().tickRateManager().tickrate());
 			String what = effect("bad_omen");
-			if (what != null) extra.add(explain(what));
+			if (what != null) explainInto(extra, what);
 		}
 		List<String> tip = doOmen ? null : tip(net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath());
 		if (tip != null) for (String t : tip) extra.add(ours(Component.literal(t).withStyle(Style.EMPTY.withColor(EXPLAIN))));

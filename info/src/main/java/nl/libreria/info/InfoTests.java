@@ -341,6 +341,7 @@ final class InfoTests {
 			SelfTests.check(ol.contains("Bad Omen") && ol.contains("raid") && !omenView.getOrDefault(DataComponents.TOOLTIP_DISPLAY,
 					net.minecraft.world.item.component.TooltipDisplay.DEFAULT).shows(DataComponents.OMINOUS_BOTTLE_AMPLIFIER)
 					&& ItemStack.isSameItemSameComponents(Details.clean(omenView), omen), "an ominous bottle: Bad Omen, then what it does: " + ol);
+			SelfTests.check(java.util.Arrays.stream(ol.split("\n")).allMatch(l -> l.length() <= Details.WIDTH + 4), "no line runs off the screen: " + ol);
 			SelfTests.check(Details.view(p, new ItemStack(Items.STONE)).getOrDefault(DataComponents.LORE, ItemLore.EMPTY).lines().isEmpty(), "stone: nothing to say");
 		});
 		SelfTests.register("info.pets", level -> {
