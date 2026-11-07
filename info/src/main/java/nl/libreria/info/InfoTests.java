@@ -211,6 +211,37 @@ final class InfoTests {
 			SelfTests.check(names.size() == 300, "300 weapons, 300 names: " + names.size() + ", e.g. " + names.iterator().next());
 			Names.data().weaponsTaken.clear();
 		});
+		// Real loot from the three worlds: gear in it gets a story of that world (here stamped by hand: a fake player
+		// isn't a finder, a real one gets it the moment the chest opens)
+		SelfTests.register("info.found.loot", level -> {
+			var server = level.getServer();
+			String[][] tables = {{"overworld", "chests/ruined_portal"}, {"nether", "chests/bastion_treasure"}, {"end", "chests/end_city_treasure"}};
+			for (String[] t : tables) {
+				var dim = t[0].equals("nether") ? net.minecraft.world.level.Level.NETHER : t[0].equals("end") ? net.minecraft.world.level.Level.END
+						: net.minecraft.world.level.Level.OVERWORLD;
+				net.minecraft.server.level.ServerLevel lv = server.getLevel(dim);
+				var table = server.reloadableRegistries().getLootTable(net.minecraft.resources.ResourceKey.create(
+						net.minecraft.core.registries.Registries.LOOT_TABLE, net.minecraft.resources.Identifier.withDefaultNamespace(t[1])));
+				FakePlayer fp = FakePlayer.get(lv);
+				int samples = 0;
+				for (int i = 0; i < 60 && samples < 2; i++) {
+					var params = new net.minecraft.world.level.storage.loot.LootParams.Builder(lv)
+							.withParameter(net.minecraft.world.level.storage.loot.parameters.LootContextParams.ORIGIN, net.minecraft.world.phys.Vec3.ZERO)
+							.create(net.minecraft.world.level.storage.loot.parameters.LootContextParamSets.CHEST);
+					for (ItemStack st : table.getRandomItems(params)) {
+						if (Found.kindOf(st) == null) continue;
+						SelfTests.check(Found.has(st, Found.PENDING), t[1] + ": gear from loot remembers where it's from");
+						Found.stamp(fp, st);
+						SelfTests.check(Found.has(st, Found.STAMP) && !Lore.get(st, Lore.FOUND).isEmpty(), t[1] + ": and gets a story");
+						String text = String.join(" / ", Lore.get(st, Lore.FOUND).stream().map(Component::getString).toList());
+						org.slf4j.LoggerFactory.getLogger("Libreria found").info("FOUND-SAMPLE {} {} {}: {}", t[0], st.getItem(),
+								st.get(DataComponents.CUSTOM_NAME) == null ? "" : "\"" + st.get(DataComponents.CUSTOM_NAME).getString() + "\"", text);
+						samples++;
+					}
+				}
+				SelfTests.check(samples > 0, t[1] + ": gear found in 60 chests");
+			}
+		});
 		SelfTests.register("info.found", level -> {
 			// The texts: many, every kind and place known, every story at least three parts, no stray {slots}
 			SelfTests.check(Found.LINES.size() >= 1000, "found texts: " + Found.summary());

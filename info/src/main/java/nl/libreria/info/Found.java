@@ -48,8 +48,8 @@ import org.jetbrains.annotations.Nullable;
  * on which day, by whom.
  *
  * <p>The texts live in {@code libreria/found/*.txt} (see the header of those files). What was found where is known
- * when the loot is made (the loot table, the dimension); the text is chosen when it reaches a player's inventory, so
- * nothing is used up for loot nobody takes.
+ * when the loot is made (the loot table, the dimension); the text is chosen then too when a player made the loot
+ * happen (so it can be read in the chest already), else when it reaches a player's inventory.
  */
 final class Found {
 	static final ServerSetting.Toggle ENABLED = InfoMod.MODULE.serverToggle("found_stories", "Stories on found gear", net.minecraft.world.item.Items.CHEST,
@@ -455,23 +455,43 @@ final class Found {
 
 	// ---------------------------------------------------------------- marking loot, and stories when it's taken
 
-	/** Loot was made: everything in it that gets a story remembers where it came from. */
+	/**
+	 * Loot was made: everything in it that gets a story gets it now when a player made it happen (opened the chest,
+	 * fished, brushed, opened the vault), so it's there to read in the chest already. Without a player (a piglin's
+	 * barter, a hopper) it remembers where it came from and gets its story when a player takes it.
+	 */
 	static void onLoot(String table, LootContext context, List<ItemStack> drops) {
 		if (!ENABLED.get()) return;
 		Origin from = origin(table, context.getLevel());
 		if (from == null) return;
-		for (ItemStack s : drops) if (kindOf(s) != null && !has(s, STAMP)) pend(s, from);
+		ServerPlayer finder = finder(context);
+		for (ItemStack s : drops) {
+			if (kindOf(s) == null || has(s, STAMP)) continue;
+			pend(s, from);
+			if (finder != null) stamp(finder, s);
+		}
 	}
 
-	/** A monster dies (killed by a player): what it might drop remembers it came off that monster. */
-	static void onDeath(LivingEntity entity) {
+	/** Who made this loot happen: the player who opened or brushed, or whose hook it was. */
+	static @Nullable ServerPlayer finder(LootContext context) {
+		var e = context.getOptionalParameter(net.minecraft.world.level.storage.loot.parameters.LootContextParams.THIS_ENTITY);
+		if (e instanceof ServerPlayer p && !(p instanceof net.fabricmc.fabric.api.entity.FakePlayer)) return p;
+		if (e instanceof net.minecraft.world.entity.projectile.FishingHook hook && hook.getPlayerOwner() instanceof ServerPlayer p) return p;
+		var killer = context.getOptionalParameter(net.minecraft.world.level.storage.loot.parameters.LootContextParams.LAST_DAMAGE_PLAYER);
+		return killer instanceof ServerPlayer p && !(p instanceof net.fabricmc.fabric.api.entity.FakePlayer) ? p : null;
+	}
+
+	/** A monster dies, killed by a player: what it might drop gets its story now, as found by that player. */
+	static void onDeath(LivingEntity entity, @Nullable ServerPlayer killer) {
 		if (!ENABLED.get() || !(entity instanceof Mob mob) || entity instanceof Player) return;
 		String mobName = entity.getType().getDescription().getString().toLowerCase(Locale.ROOT);
 		String article = "aeiou".indexOf(mobName.isEmpty() ? 'x' : mobName.charAt(0)) >= 0 ? "an " : "a ";
 		Origin from = new Origin(realm(entity.level()), "mob", "Dropped by " + article + mobName);
 		for (EquipmentSlot slot : EquipmentSlot.values()) {
 			ItemStack s = mob.getItemBySlot(slot);
-			if (kindOf(s) != null && !has(s, STAMP) && !has(s, PENDING)) pend(s, from);
+			if (kindOf(s) == null || has(s, STAMP) || has(s, PENDING)) continue;
+			pend(s, from);
+			if (killer != null && !(killer instanceof net.fabricmc.fabric.api.entity.FakePlayer)) stamp(killer, s);
 		}
 	}
 
@@ -630,7 +650,7 @@ final class Found {
 		});
 		net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.ALLOW_DEATH.register((entity, source, amount) -> {
 			try {
-				if (source.getEntity() instanceof ServerPlayer) onDeath(entity);
+				if (source.getEntity() instanceof ServerPlayer killer) onDeath(entity, killer);
 			} catch (RuntimeException e) {
 				Libreria.LOG.debug("Found: death failed", e);
 			}

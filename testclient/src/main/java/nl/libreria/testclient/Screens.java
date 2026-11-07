@@ -422,6 +422,46 @@ public final class Screens implements FabricClientGameTest {
 						"item replace entity @a armor.legs with minecraft:air", "item replace entity @a armor.feet with minecraft:air");
 			});
 
+			// Found gear: a village weaponsmith's chest, opened by the player (in survival): the gear in it has its story
+			// already, readable in the chest
+			safe("found_chest", () -> {
+				run(server, "clear @a", "time set noon", "gamemode survival @a");
+				int slot = -1;
+				for (int attempt = 0; attempt < 10 && slot < 0; attempt++) {
+					run(server, f("setblock %d %d %d minecraft:air", x + 1, y, z + 2),
+							f("setblock %d %d %d minecraft:chest[facing=north]{LootTable:\"minecraft:chests/village/village_weaponsmith\",LootTableSeed:%dL}",
+									x + 1, y, z + 2, 4242 + attempt));
+					ctx.waitTicks(3);
+					ctx.getInput().lookAt(new BlockPos(x + 1, y, z + 2));
+					ctx.waitTicks(2);
+					key(ctx, "pressKey", ctx.computeOnClient(mc -> mc.options.keyUse));
+					ctx.waitTicks(12);
+					slot = server.computeOnServer(sv -> {
+						if (!(player.containerMenu instanceof net.minecraft.world.inventory.ChestMenu m)) return -1;
+						for (int i = 0; i < m.getContainer().getContainerSize(); i++) {
+							var cd = m.getContainer().getItem(i).get(net.minecraft.core.component.DataComponents.CUSTOM_DATA);
+							if (cd != null && cd.copyTag().contains("libreria_found")) return i;
+						}
+						return -1;
+					});
+					LOG.info("LIBRERIA-FOUND chest {}: gear with a story in slot {}", attempt, slot);
+					if (slot < 0) close(ctx, server, player);
+				}
+				if (slot >= 0) {
+					double scale = ctx.computeOnClient(mc -> (double) mc.getWindow().getGuiScale());
+					int w = ctx.computeOnClient(mc -> mc.getWindow().getGuiScaledWidth());
+					int h = ctx.computeOnClient(mc -> mc.getWindow().getGuiScaledHeight());
+					int left = (w - 176) / 2, top = (h - 168) / 2;
+					ctx.getInput().setCursorPos((left + 16 + 18 * (slot % 9)) * scale, (top + 26 + 18 * (slot / 9)) * scale);
+					ctx.waitTicks(6);
+					noToasts(ctx);
+					ctx.takeScreenshot("found_in_chest");
+					close(ctx, server, player);
+				}
+				run(server, f("setblock %d %d %d minecraft:air", x + 1, y, z + 2), "kill @e[type=minecraft:item]", "clear @a");
+				ctx.getInput().lookAt(0, 0);
+			});
+
 			// Light levels: a torch right-clicked into the air (nothing gets placed) shows the light level on every floor
 			// around you, red and yellow tiles where monsters can spawn; the same click again hides them
 			safe("light_levels", () -> {
