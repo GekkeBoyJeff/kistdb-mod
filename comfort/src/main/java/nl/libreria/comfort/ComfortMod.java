@@ -269,7 +269,7 @@ public final class ComfortMod implements ModInitializer {
 					&& !Spawns.isTorch(Items.STICK), "torches count, sticks don't");
 		});
 		SelfTests.register("comfort.stands", level -> {
-			var s = new net.minecraft.world.entity.decoration.ArmorStand(net.minecraft.world.entity.EntityType.ARMOR_STAND, level);
+			var s = net.minecraft.world.entity.EntityTypes.ARMOR_STAND.create(level, net.minecraft.world.entity.EntitySpawnReason.COMMAND);
 			SelfTests.check(Stands.POSES.size() == 8 && Stands.POSES.containsKey("Standing"), "eight poses: " + Stands.POSES.keySet());
 			Stands.POSES.get("Waving").applyTo(s);
 			SelfTests.check(s.getRightArmPose().x() == -160f, "waving: the right arm up");

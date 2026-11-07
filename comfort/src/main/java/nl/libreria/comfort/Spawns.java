@@ -22,7 +22,6 @@ import net.minecraft.util.Brightness;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Display;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -139,7 +138,7 @@ final class Spawns {
 		int light = level.getBrightness(LightLayer.BLOCK, feet);
 		if (light > 0) return new Spot(Kind.LIT, light);
 		// glass, leaves, slabs on the bottom…: no monster spawns on them, so no tile (the number still shows)
-		if (!floor.isValidSpawn(level, below, EntityType.ZOMBIE)) return new Spot(Kind.LIT, 0);
+		if (!floor.isValidSpawn(level, below, net.minecraft.world.entity.EntityTypes.ZOMBIE)) return new Spot(Kind.LIT, 0);
 		return new Spot(level.getBrightness(LightLayer.SKY, feet) > 0 ? Kind.NIGHT : Kind.ALWAYS, 0);
 	}
 

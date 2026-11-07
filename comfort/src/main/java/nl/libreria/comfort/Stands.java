@@ -115,8 +115,8 @@ final class Stands {
 			if (frame.getItem().isEmpty()) return InteractionResult.PASS;
 			frame.setInvisible(!frame.isInvisible());
 			Ui.sound(sp, SoundEvents.ITEM_FRAME_ROTATE_ITEM, 0.6f, frame.isInvisible() ? 1.4f : 0.9f);
-			sp.displayClientMessage(Ui.text(frame.isInvisible() ? "Frame hidden: only the item shows" : "Frame shown again",
-					ChatFormatting.GRAY), true);
+			nl.libreria.core.Hud.flash(sp, Ui.text(frame.isInvisible() ? "Frame hidden: only the item shows" : "Frame shown again",
+					ChatFormatting.GRAY));
 			return InteractionResult.SUCCESS;
 		});
 		// A hidden frame that loses its item shows again (else it's an invisible thing on the wall nobody finds)

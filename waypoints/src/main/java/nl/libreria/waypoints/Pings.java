@@ -135,7 +135,7 @@ final class Pings {
 			showTo(viewer, ping, true);
 		}
 		nl.libreria.core.Tips.once(p, WaypointsMod.TIP_PING);
-		if (seen > 0) p.displayClientMessage(Ui.text("Pinged · " + seen + (seen == 1 ? " player sees it" : " players see it"), ChatFormatting.GRAY), true);
+		if (seen > 0) nl.libreria.core.Hud.flash(p, Ui.text("Pinged · " + seen + (seen == 1 ? " player sees it" : " players see it"), ChatFormatting.GRAY));
 		return true;
 	}
 
