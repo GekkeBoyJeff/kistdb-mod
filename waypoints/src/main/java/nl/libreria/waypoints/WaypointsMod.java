@@ -45,9 +45,9 @@ public final class WaypointsMod implements ModInitializer {
 	public static final Setting.Choice PING_KEY = MODULE.choice("ping_key", "Ping with", Items.SPYGLASS, 0,
 			new int[] {0, 1, 2, 3}, new String[] {"{sneak} + {drop} or {pick}", "{sneak} + {drop}", "{sneak} + {pick}", "Off"},
 			"Look at a spot and ping it: everyone", "near you sees it for 30 seconds.", "{drop} works at any distance, {pick}",
-			"(pick block) within reach.").in(Domain.PLACES, "Pings");
+			"(pick block) within reach.").in(Domain.PLACES, "Pinging");
 	public static final Setting.Toggle SEE_PINGS = MODULE.toggle("pings_see", "Pings from others", true, Items.ENDER_EYE,
-			"See where others ping (a card, and", "the way there if you're not following", "one already).").in(Domain.PLACES, "Pings");
+			"See where others ping (a card, and", "the way there if you're not following", "one already).").in(Domain.PLACES, "Pinging");
 	public static final Setting.Toggle DEATH_BEAM = MODULE.toggle("sterfplek", "Show the way back after dying", true, Items.SKELETON_SKULL,
 			"After respawning, a beam shows you", "the way back to where you died.").in(Domain.PLACES, "When you die");
 	public static final Setting.Toggle DEATH_MESSAGE = MODULE.toggle("bericht", "Coordinates in chat after dying", true, Items.PAPER,

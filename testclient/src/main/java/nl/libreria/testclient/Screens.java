@@ -490,10 +490,10 @@ public final class Screens implements FabricClientGameTest {
 				ctx.takeScreenshot("stand_window");
 				close(ctx, server, player);
 				run(server, "kill @e[type=minecraft:armor_stand]",
-						f("fill %d %d %d %d %d %d minecraft:spruce_planks", x - 2, y, z + 4, x + 2, y + 2, z + 4),
-						f("summon minecraft:item_frame %d %d %d {Facing:2b,Item:{id:\"minecraft:diamond_sword\",count:1}}", x, y + 1, z + 3));
+						f("fill %d %d %d %d %d %d minecraft:spruce_planks", x - 2, y, z + 3, x + 2, y + 2, z + 3),
+						f("summon minecraft:item_frame %d %d %d {Facing:2b,Item:{id:\"minecraft:diamond_sword\",count:1}}", x, y + 1, z + 2));
 				ctx.waitTicks(10);
-				ctx.getInput().lookAt(new BlockPos(x, y + 1, z + 3));
+				ctx.getInput().lookAt(new BlockPos(x, y + 1, z + 2));
 				ctx.waitTicks(3);
 				key(ctx, "holdKey", ctx.computeOnClient(mc -> mc.options.keyShift));
 				ctx.waitTicks(2);
@@ -505,7 +505,7 @@ public final class Screens implements FabricClientGameTest {
 						net.minecraft.world.entity.decoration.ItemFrame.class, player.getBoundingBox().inflate(8), fr -> fr.isInvisible()).isEmpty());
 				LOG.info("LIBRERIA-FRAMES hidden: {}", hidden);
 				ctx.takeScreenshot("frame_hidden");
-				run(server, "kill @e[type=minecraft:item_frame]", f("fill %d %d %d %d %d %d minecraft:air", x - 2, y, z + 4, x + 2, y + 2, z + 4));
+				run(server, "kill @e[type=minecraft:item_frame]", f("fill %d %d %d %d %d %d minecraft:air", x - 2, y, z + 3, x + 2, y + 2, z + 3));
 				ctx.getInput().lookAt(0, 0);
 			});
 
