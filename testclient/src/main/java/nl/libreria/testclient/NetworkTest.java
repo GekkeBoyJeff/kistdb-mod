@@ -39,6 +39,7 @@ public final class NetworkTest implements FabricClientGameTest {
 				// the shader run: only the shader walk, with its screenshots
 				ctx.getInput().resizeWindow(1280, 720);
 				Screens.shaders(ctx, server, player);
+				Mockups.all(ctx, server, player);
 			} else {
 				if (Screens.lostAfter == null) Screens.scene(withoutScreenshots(ctx), server, player);
 				LOG.info("LIBRERIA-NETWORK {}", Screens.lostAfter == null ? "OK: still connected after the whole walk" : "DISCONNECTED after " + Screens.lostAfter);

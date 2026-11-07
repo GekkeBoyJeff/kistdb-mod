@@ -13,14 +13,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Complementary Unbound as it comes
-          - name: unbound-default
-            pack: complementary-unbound
-            options: "# as it comes"
-          # Unbound, only IPBR+ Emissive Mode on "labPBR > IPBR+"
-          - name: unbound-ipbr
-            pack: complementary-unbound
-            options: "IPBR_EMISSIVE_MODE=3"
           # Unbound + Euphoria Patches (made at launch by its patcher mod), the same setting
           - name: unbound-euphoria
             pack: complementary-unbound

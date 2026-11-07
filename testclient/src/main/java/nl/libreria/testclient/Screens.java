@@ -118,6 +118,18 @@ public final class Screens implements FabricClientGameTest {
 		LOG.info("LIBRERIA-SHADERS DONE");
 	}
 
+	/** A screenshot without toasts in the way (for {@link Mockups}). */
+	static void shot(ClientGameTestContext ctx, String name) {
+		noToasts(ctx);
+		ctx.waitTicks(2);
+		ctx.takeScreenshot(name);
+	}
+
+	/** Closes whatever window is open (for {@link Mockups}). */
+	static void closeAll(ClientGameTestContext ctx, TestServerContext server, ServerPlayer player) {
+		close(ctx, server, player);
+	}
+
 	private static String hasAll(net.minecraft.client.Minecraft mc, String[] ids) {
 		StringBuilder b = new StringBuilder();
 		for (String id : ids) b.append(mc.getResourceManager().getResource(net.minecraft.resources.Identifier.parse(id)).isPresent() ? "Y" : "n");
