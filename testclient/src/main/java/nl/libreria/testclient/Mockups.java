@@ -66,7 +66,8 @@ final class Mockups {
 				"item replace entity @a weapon.mainhand with minecraft:torch 16");
 		marks(ctx, server, player, x, y, z, -1, 17, -1, 17);
 		Screens.shot(ctx, "mock_spawn_spots_inside");
-		run(server, "kill @e[tag=mock]", f("fill %d %d %d %d %d %d minecraft:air", x - 2, y, z - 2, x + 17, y + 4, z + 17),
+		clearTiles(server);
+		run(server, f("fill %d %d %d %d %d %d minecraft:air", x - 2, y, z - 2, x + 17, y + 4, z + 17),
 				f("fill %d %d %d %d %d %d minecraft:grass_block", x - 2, y - 1, z - 2, x + 17, y - 1, z + 17));
 		// Outside at night: yellow where monsters can spawn once it's dark; a redstone torch (weaker light) keeps a
 		// patch round it free
@@ -74,7 +75,8 @@ final class Mockups {
 				f("tp @a %.1f %d %.1f 0 38", x + 0.5, y + 4, z - 2.5));
 		marks(ctx, server, player, x, y, z, -12, 12, -4, 22);
 		Screens.shot(ctx, "mock_spawn_spots_outside");
-		run(server, "kill @e[tag=mock]", f("setblock %d %d %d minecraft:air", x + 1, y, z + 7),
+		clearTiles(server);
+		run(server, f("setblock %d %d %d minecraft:air", x + 1, y, z + 7),
 				"item replace entity @a weapon.mainhand with minecraft:air");
 	}
 
@@ -98,14 +100,25 @@ final class Mockups {
 			}
 			return out;
 		});
-		for (String m : marks) {
-			String[] p = m.split(" ");
-			String glass = p[3].equals("sky") ? "yellow_stained_glass" : "red_stained_glass";
-			run(server, String.format(Locale.ROOT,
-					"summon minecraft:block_display %.2f %.3f %.2f {block_state:{Name:\"minecraft:%s\"},brightness:{sky:15,block:15},width:1.5f,height:1f,"
-							+ "transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[-0.22f,0f,-0.22f],scale:[0.44f,0.03f,0.44f]},Tags:[\"mock\"]}",
-					Integer.parseInt(p[0]) + 0.5, Integer.parseInt(p[1]) + 0.005, Integer.parseInt(p[2]) + 0.5, glass));
-		}
+		// per viewer, as the real thing would be: virtual tiles (Polymer elements) only this player sees
+		server.runOnServer(sv -> {
+			ServerLevel level = (ServerLevel) player.level();
+			for (String m : marks) {
+				String[] p = m.split(" ");
+				Vec3 at = new Vec3(Integer.parseInt(p[0]) + 0.5, Integer.parseInt(p[1]) + 0.005, Integer.parseInt(p[2]) + 0.5);
+				var e = new eu.pb4.polymer.virtualentity.api.elements.BlockDisplayElement(
+						(p[3].equals("sky") ? net.minecraft.world.level.block.Blocks.YELLOW_STAINED_GLASS : net.minecraft.world.level.block.Blocks.RED_STAINED_GLASS).defaultBlockState());
+				e.setTranslation(new org.joml.Vector3f(-0.22f, 0f, -0.22f));
+				e.setScale(new org.joml.Vector3f(0.44f, 0.03f, 0.44f));
+				e.setBrightness(new net.minecraft.util.Brightness(15, 15));
+				e.setDisplaySize(1.5f, 1f);
+				var holder = new eu.pb4.polymer.virtualentity.api.ElementHolder();
+				holder.addElement(e);
+				new eu.pb4.polymer.virtualentity.api.attachment.ManualAttachment(holder, level, () -> at);
+				holder.startWatching(player);
+				TILES.add(holder);
+			}
+		});
 		LOG.info("LIBRERIA-MOCKUPS spawn spots: {}", marks.size());
 		ctx.waitTicks(40);
 	}
@@ -209,6 +222,15 @@ final class Mockups {
 		ctx.getInput().setCursorPos(2, 2);
 		Screens.shot(ctx, "mock_stand_finetune");
 		Screens.closeAll(ctx, server, player);
+	}
+
+	private static final List<eu.pb4.polymer.virtualentity.api.ElementHolder> TILES = new ArrayList<>();
+
+	private static void clearTiles(TestServerContext server) {
+		server.runOnServer(sv -> {
+			for (var h : TILES) h.destroy();
+			TILES.clear();
+		});
 	}
 
 	private static String f(String fmt, Object... args) {
