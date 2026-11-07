@@ -84,11 +84,11 @@ final class Mockups {
 		});
 		for (String m : marks) {
 			String[] p = m.split(" ");
-			int color = p[3].equals("sky") ? 0xFFE066 : 0xFF4D4D;
+			String glass = p[3].equals("sky") ? "yellow_stained_glass" : "red_stained_glass";
 			run(server, String.format(Locale.ROOT,
-					"summon minecraft:text_display %.2f %.2f %.2f {text:{text:\"×\",color:\"#%06X\"},background:0,brightness:{sky:15,block:15},"
-							+ "transformation:{left_rotation:[0.7071f,0f,0f,0.7071f],right_rotation:[0f,0f,0f,1f],translation:[0f,0f,-0.32f],scale:[2.6f,2.6f,2.6f]},Tags:[\"mock\"]}",
-					Integer.parseInt(p[0]) + 0.5, Integer.parseInt(p[1]) + 0.02, Integer.parseInt(p[2]) + 0.5, color));
+					"summon minecraft:block_display %.2f %.3f %.2f {block_state:{Name:\"minecraft:%s\"},brightness:{sky:15,block:15},"
+							+ "transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[-0.22f,0f,-0.22f],scale:[0.44f,0.03f,0.44f]},Tags:[\"mock\"]}",
+					Integer.parseInt(p[0]) + 0.5, Integer.parseInt(p[1]) + 0.005, Integer.parseInt(p[2]) + 0.5, glass));
 		}
 		LOG.info("LIBRERIA-MOCKUPS spawn spots: {}", marks.size());
 		ctx.waitTicks(30);
