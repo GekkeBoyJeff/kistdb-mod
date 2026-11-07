@@ -59,17 +59,33 @@ final class Mockups {
 	 * can spawn at any time (no light at all), a yellow × where it can at night (under the sky).
 	 */
 	private static void spawnSpots(ClientGameTestContext ctx, TestServerContext server, ServerPlayer player, int x, int y, int z) {
-		run(server, f("fill %d %d %d %d %d %d minecraft:stone_bricks hollow", x - 5, y - 1, z + 4, x + 5, y + 3, z + 12),
-				f("fill %d %d %d %d %d %d minecraft:air", x - 4, y, z + 4, x + 4, y + 2, z + 4),
-				f("setblock %d %d %d minecraft:torch", x + 3, y, z + 10),
-				f("tp @a %d %d %d 0 22", x, y, z - 1),
+		// Inside: a closed stone room with one torch in a corner (no sky: red where it's dark enough)
+		run(server, f("fill %d %d %d %d %d %d minecraft:stone_bricks hollow", x - 2, y - 1, z - 2, x + 17, y + 4, z + 17),
+				f("setblock %d %d %d minecraft:torch", x - 1, y, z - 1),
+				f("tp @a %.1f %d %.1f -45 28", x + 0.5, y, z + 0.5),
 				"item replace entity @a weapon.mainhand with minecraft:torch 16");
-		ctx.waitTicks(40);
+		marks(ctx, server, player, x, y, z, -1, 17, -1, 17);
+		Screens.shot(ctx, "mock_spawn_spots_inside");
+		run(server, "kill @e[tag=mock]", f("fill %d %d %d %d %d %d minecraft:air", x - 2, y, z - 2, x + 17, y + 4, z + 17),
+				f("fill %d %d %d %d %d %d minecraft:grass_block", x - 2, y - 1, z - 2, x + 17, y - 1, z + 17));
+		// Outside at night: yellow where monsters can spawn once it's dark; a redstone torch (weaker light) keeps a
+		// patch round it free
+		run(server, "time set midnight", f("setblock %d %d %d minecraft:redstone_torch", x + 1, y, z + 7),
+				f("tp @a %.1f %d %.1f 0 38", x + 0.5, y + 4, z - 2.5));
+		marks(ctx, server, player, x, y, z, -12, 12, -4, 22);
+		Screens.shot(ctx, "mock_spawn_spots_outside");
+		run(server, "kill @e[tag=mock]", f("setblock %d %d %d minecraft:air", x + 1, y, z + 7),
+				"item replace entity @a weapon.mainhand with minecraft:air");
+	}
+
+	/** Small glowing tiles where a monster could spawn: red always (no sky), yellow at night (under the sky). */
+	private static void marks(ClientGameTestContext ctx, TestServerContext server, ServerPlayer player, int x, int y, int z, int x0, int x1, int z0, int z1) {
+		ctx.waitTicks(30);
 		List<String> marks = server.computeOnServer(s -> {
 			ServerLevel level = (ServerLevel) player.level();
 			List<String> out = new ArrayList<>();
-			for (int dx = -12; dx <= 12; dx++) {
-				for (int dz = -2; dz <= 16; dz++) {
+			for (int dx = x0; dx <= x1; dx++) {
+				for (int dz = z0; dz <= z1; dz++) {
 					for (int dy = -2; dy <= 2; dy++) {
 						BlockPos feet = new BlockPos(x + dx, y + dy, z + dz);
 						if (!level.getBlockState(feet.below()).isFaceSturdy(level, feet.below(), net.minecraft.core.Direction.UP)) continue;
@@ -91,11 +107,7 @@ final class Mockups {
 					Integer.parseInt(p[0]) + 0.5, Integer.parseInt(p[1]) + 0.005, Integer.parseInt(p[2]) + 0.5, glass));
 		}
 		LOG.info("LIBRERIA-MOCKUPS spawn spots: {}", marks.size());
-		ctx.waitTicks(30);
-		Screens.shot(ctx, "mock_spawn_spots");
-		run(server, "kill @e[tag=mock]");
-		run(server, "item replace entity @a weapon.mainhand with minecraft:air");
-		// how the switch says it (a card at the top)
+		ctx.waitTicks(40);
 	}
 
 	/** A ping: someone looked at a spot and pinged it; their friends are shown the way, with who and how far. */
