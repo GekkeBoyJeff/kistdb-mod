@@ -810,10 +810,11 @@ def wanted_textures():
         t = 0.5 + 0.5 * math.cos(2 * math.pi * f / WANTED_FRAMES)
         for i in range(16):
             for (x, y) in ((i, 0), (i, 15), (0, i), (15, i)):
-                border.putpixel((x, 16 * f + y), (232, 160, 40, int(200 + 55 * t)))
+                border.putpixel((x, 16 * f + y), (232, 160, 40, int(190 + 58 * t)))
         for i in range(1, 15):
             for (x, y) in ((i, 1), (i, 14), (1, i), (14, i)):
-                border.putpixel((x, 16 * f + y), (255, 250, 220, int(150 + 105 * t)))
+                border.putpixel((x, 16 * f + y), (255, 250, 220, int(140 + 108 * t)))
+    # (alpha 249-254 is a code for the glint shader: never in these)
     dim = Image.new('RGBA', (16, 16), (8, 8, 12, 150))
     return {'wanted_glow': (glow, None), 'wanted': (border, 2), 'dim': (dim, None)}
 
