@@ -75,7 +75,7 @@ public final class Screens implements FabricClientGameTest {
 			}
 			run(server, "summon minecraft:mannequin " + (x - 4 + i * 2) + " " + y + " " + (z + 5) + " {Rotation:[180f,0f],hide_description:1b,immovable:1b,equipment:{" + eq + "}}");
 		}
-		String[] probe = {"libreria:textures/entity/equipment/humanoid/fx/diamond_fireguard_1_s.png", "libreria:textures/item/glint/empty_s.png"};
+		String[] probe = {"libreria:textures/entity/equipment/humanoid/fx/diamond_fireguard_1_s.png", "libreria:textures/item/fx/sword/diamond/sword/fire2_glow_s.png"};
 		safe("shaders_off", () -> {
 			camera(ctx, CameraType.FIRST_PERSON);
 			ctx.getInput().lookAt(0, 10);
@@ -103,6 +103,15 @@ public final class Screens implements FabricClientGameTest {
 			run(server, "time set noon");
 			ctx.waitTicks(30);
 			ctx.takeScreenshot("shaders_day_on");
+		});
+		// Without Libreria's packs (with the shader pack still on): is the plain armour still drawn the same?
+		safe("shaders_nopack", () -> {
+			server.runOnServer(sv -> player.connection.send(new net.minecraft.network.protocol.common.ClientboundResourcePackPopPacket(java.util.Optional.empty())));
+			ctx.waitTicks(200);
+			run(server, "time set noon");
+			ctx.waitTicks(30);
+			noToasts(ctx);
+			ctx.takeScreenshot("shaders_day_nopack");
 		});
 		LOG.info("LIBRERIA-SHADERS DONE");
 	}

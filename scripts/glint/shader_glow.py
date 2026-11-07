@@ -1,6 +1,7 @@
 """Glow maps for shader packs (LabPBR): glint/off/shaderglow.zip, a pack sent only to players who turn on "Glow with
 shaders". For every effect texture (tools' texture parts and auras, worn armour's glows and seams) a "<name>_s.png" whose
-alpha says how much each pixel lights up (LabPBR: 1-254 = emission, 0 = none). Shader packs that read resource pack PBR
+alpha says how much each pixel lights up (LabPBR: 1-254 = emission, 0 = none), the same pixels that light up without
+shaders. Shader packs that read resource pack PBR
 (Complementary, BSL and others, with that option on) then make the effects glow. Without shaders nothing reads these.
 
 Usage: python3 shader_glow.py [glint/src/main/resources]  (generate.py runs it at the end)
@@ -17,6 +18,9 @@ DIRS = ['assets/libreria/textures/item/glint', 'assets/libreria/textures/item/fx
 
 
 def glow_map(img, armour):
+    """What glows with shaders is what glows without them: the pixels marked 249-254 (the core shaders light those up),
+    and the auras and glow planes (alpha below 255: they light themselves). Pixels at 255 are painted parts, lit like
+    the item they're on (a gold hilt from Looting): no light of their own."""
     img = img.convert('RGBA')
     out = Image.new('RGBA', img.size, (0, 0, 0, 0))
     src, dst = img.load(), out.load()
@@ -26,14 +30,14 @@ def glow_map(img, armour):
             if a == 0:
                 continue
             lum = (0.3 * r + 0.59 * g + 0.11 * b) / 255
-            if 249 <= a <= 254:
-                e = int(254 * (0.7 + 0.3 * lum))      # the pixels that glow without shaders too
-            elif armour:
-                e = int(30 + 110 * lum)               # seams and marks on worn armour: a soft light
+            if a == 255:
+                e = 0                                 # painted, lit like the item: no light of its own
+            elif 249 <= a <= 254:
+                e = int(254 * (0.75 + 0.25 * lum))    # the pixels that glow without shaders
             else:
-                e = int(70 + 170 * lum)               # an effect on a tool: it's light, mostly
-            # smoothness low, a dull dielectric, emission in alpha
-            dst[x, y] = (40, 20, 0, max(1, min(254, e)))
+                e = int(110 + 144 * lum)              # an aura's pixel (alpha 17-241): it lights itself
+            # smoothness low, a dull dielectric, emission in alpha (0: none)
+            dst[x, y] = (40, 20, 0, max(0, min(254, e)))
     return out
 
 
@@ -54,8 +58,11 @@ def build(out_dir, pack_format=97):
                         continue
                     full = os.path.join(dirpath, f)
                     rel = os.path.relpath(full, out_dir).replace(os.sep, '/')
+                    glow = glow_map(Image.open(full), 'entity/equipment' in rel)
+                    if not glow.getchannel('A').getbbox():
+                        continue                      # nothing on it lights up (a painted part): no map
                     buf = io.BytesIO()
-                    glow_map(Image.open(full), 'entity/equipment' in rel).save(buf, 'PNG', optimize=True)
+                    glow.save(buf, 'PNG', optimize=True)
                     z.writestr(rel[:-4] + '_s.png', buf.getvalue())
                     if os.path.exists(full + '.mcmeta'):
                         z.write(full + '.mcmeta', rel[:-4] + '_s.png.mcmeta')
