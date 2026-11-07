@@ -23,8 +23,10 @@ get() {
 }
 get iris fabric "$RUN/mods" > /dev/null
 get sodium fabric "$RUN/mods" > /dev/null
-PACK=$(get complementary-reimagined iris "$RUN/shaderpacks" || get complementary-reimagined iris "$RUN/shaderpacks" off)
-BSL=$(get bsl-shaders iris "$RUN/shaderpacks" || get bsl-shaders iris "$RUN/shaderpacks" off)
+# The shader pack (PACK_SLUG on Modrinth) and its options (PACK_OPTIONS, "NAME=value" lines; empty: the option
+# whose value is labPBR in the pack's own names)
+SLUG=${PACK_SLUG:-complementary-reimagined}
+PACK=$(get "$SLUG" iris "$RUN/shaderpacks" || get "$SLUG" iris "$RUN/shaderpacks" off)
 
 # The options that read resource pack PBR: the value whose label says "lab" (LabPBR) in the pack's English names
 opts() {
@@ -36,10 +38,10 @@ opts() {
 }
 if [ -n "$PACK" ]; then
   O=$(opts "$PACK")
+  [ -n "${PACK_OPTIONS:-}" ] && O=$(printf '%b' "$PACK_OPTIONS")
   echo "$O" > "$RUN/shaderpacks/$PACK.txt"
   echo "set in $PACK: $O" >> "$OUT/shader-setup.txt"
   printf 'enableShaders=true\nshaderPack=%s\ndisableUpdateMessage=true\n' "$PACK" > "$RUN/config/iris.properties"
 fi
-[ -n "$BSL" ] && opts "$BSL" > /dev/null
 ls -la "$RUN/mods" "$RUN/shaderpacks" >> "$OUT/shader-setup.txt"
 cat "$OUT/shader-setup.txt"
