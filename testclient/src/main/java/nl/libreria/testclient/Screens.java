@@ -46,13 +46,15 @@ public final class Screens implements FabricClientGameTest {
 	static final boolean SHADERS = net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("iris");
 
 	/**
-	 * With a shader pack (Iris): the effects on a sword in your hand and on armour at night, with "Glow with shaders"
-	 * off and then on (the glow maps' pack is sent, the shader pack reads them as LabPBR emission).
+	 * With a shader pack (Iris): the effects on a sword in your hand and on armour, by day and at night (the glow maps
+	 * are read as LabPBR emission when the shader pack is set to).
 	 */
 	static void shaders(ClientGameTestContext ctx, TestServerContext server, ServerPlayer player) {
 		BlockPos o = server.computeOnServer(s -> player.blockPosition());
 		int x = o.getX(), y = o.getY(), z = o.getZ();
-		LOG.info("LIBRERIA-SHADERS shader pack in use: {}", irisInUse());
+		if ("1".equals(System.getenv("EUPHORIA"))) ctx.runOnClient(mc -> useEuphoria());
+		ctx.waitTicks(40);
+		LOG.info("LIBRERIA-SHADERS shader pack in use: {} ({})", irisInUse(), irisPack());
 		run(server, "time set noon", "weather clear",
 				f("fill %d %d %d %d %d %d minecraft:grass_block", x - 8, y - 1, z - 8, x + 8, y - 1, z + 8),
 				f("fill %d %d %d %d %d %d minecraft:air", x - 8, y, z - 8, x + 8, y + 6, z + 8),
@@ -76,42 +78,24 @@ public final class Screens implements FabricClientGameTest {
 			run(server, "summon minecraft:mannequin " + (x - 4 + i * 2) + " " + y + " " + (z + 5) + " {Rotation:[180f,0f],hide_description:1b,immovable:1b,equipment:{" + eq + "}}");
 		}
 		String[] probe = {"libreria:textures/entity/equipment/humanoid/fx/diamond_fireguard_1_s.png", "libreria:textures/item/fx/sword/diamond/sword/fire2_glow_s.png"};
-		safe("shaders_off", () -> {
+		// The glow maps are in the main pack: what you see depends only on the shader pack's own settings (the
+		// shaders workflow runs this with several)
+		safe("shaders", () -> {
 			camera(ctx, CameraType.FIRST_PERSON);
 			ctx.getInput().lookAt(0, 10);
 			ctx.waitTicks(60);
-			noToasts(ctx);
-			ctx.takeScreenshot("shaders_day_off");
-			run(server, "time set midnight");
-			ctx.waitTicks(30);
-			ctx.takeScreenshot("shaders_night_off");
 			String loaded = ctx.computeOnClient(mc -> hasAll(mc, probe));
-			LOG.info("LIBRERIA-SHADERS off: glow maps loaded {}", loaded);
-		});
-		safe("shaders_on", () -> {
-			server.runOnServer(sv -> nl.libreria.glint.GlintMod.SHADER_GLOW.set(player, true));
-			String loaded = "";
-			for (int i = 0; i < 40 && !(loaded = ctx.computeOnClient(mc -> hasAll(mc, probe))).equals("YY"); i++) ctx.waitTicks(10);
-			ctx.waitTicks(40);
-			String packs = ctx.computeOnClient(mc -> String.join(", ", mc.getResourcePackRepository().getSelectedIds()));
-			LOG.info("LIBRERIA-SHADERS on: glow maps loaded {} · packs {} · shader pack in use {}", loaded, packs, irisInUse());
+			LOG.info("LIBRERIA-SHADERS glow maps loaded {} · shader pack in use {}", loaded, irisInUse());
+			noToasts(ctx);
+			ctx.takeScreenshot("shaders_day");
 			run(server, "time set midnight");
-			ctx.getInput().lookAt(0, 10);
 			ctx.waitTicks(30);
 			noToasts(ctx);
-			ctx.takeScreenshot("shaders_night_on");
-			run(server, "time set noon");
-			ctx.waitTicks(30);
-			ctx.takeScreenshot("shaders_day_on");
-		});
-		// Without Libreria's packs (with the shader pack still on): is the plain armour still drawn the same?
-		safe("shaders_nopack", () -> {
-			server.runOnServer(sv -> player.connection.send(new net.minecraft.network.protocol.common.ClientboundResourcePackPopPacket(java.util.Optional.empty())));
-			ctx.waitTicks(200);
-			run(server, "time set noon");
-			ctx.waitTicks(30);
-			noToasts(ctx);
-			ctx.takeScreenshot("shaders_day_nopack");
+			ctx.takeScreenshot("shaders_night");
+			camera(ctx, CameraType.THIRD_PERSON_BACK);
+			ctx.waitTicks(20);
+			ctx.takeScreenshot("shaders_night_third");
+			camera(ctx, CameraType.FIRST_PERSON);
 		});
 		LOG.info("LIBRERIA-SHADERS DONE");
 	}
@@ -120,6 +104,47 @@ public final class Screens implements FabricClientGameTest {
 		StringBuilder b = new StringBuilder();
 		for (String id : ids) b.append(mc.getResourceManager().getResource(net.minecraft.resources.Identifier.parse(id)).isPresent() ? "Y" : "n");
 		return b.toString();
+	}
+
+	/**
+	 * The Euphoria Patcher makes "<pack> + EuphoriaPatches_<version>" in shaderpacks at launch: that pack, with the
+	 * options the workflow wrote for it, through Iris' own config (looked up by name: no Iris at compile time).
+	 */
+	private static void useEuphoria() {
+		try {
+			java.nio.file.Path dir = net.fabricmc.loader.api.FabricLoader.getInstance().getGameDir().resolve("shaderpacks");
+			java.nio.file.Path patched = null, opts = null;
+			try (var files = java.nio.file.Files.list(dir)) {
+				for (java.nio.file.Path f : files.toList()) {
+					String n = f.getFileName().toString();
+					if (!n.contains("EuphoriaPatches")) continue;
+					if (n.endsWith(".txt")) opts = f;
+					else patched = f;
+				}
+			}
+			LOG.info("LIBRERIA-SHADERS euphoria: {} (options {})", patched, opts);
+			if (patched == null) return;
+			String name = patched.getFileName().toString();
+			java.nio.file.Path want = dir.resolve(name + ".txt");
+			if (opts != null && !opts.equals(want)) java.nio.file.Files.copy(opts, want, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+			Class<?> iris = Class.forName("net.irisshaders.iris.Iris");
+			Object cfg = iris.getMethod("getIrisConfig").invoke(null);
+			cfg.getClass().getMethod("setShaderPackName", String.class).invoke(cfg, name);
+			cfg.getClass().getMethod("save").invoke(cfg);
+			iris.getMethod("reload").invoke(null);
+		} catch (Throwable t) {
+			LOG.warn("LIBRERIA-SHADERS could not switch to Euphoria Patches", t);
+		}
+	}
+
+	private static String irisPack() {
+		try {
+			Class<?> iris = Class.forName("net.irisshaders.iris.Iris");
+			Object cfg = iris.getMethod("getIrisConfig").invoke(null);
+			return String.valueOf(cfg.getClass().getMethod("getShaderPackName").invoke(cfg));
+		} catch (Throwable t) {
+			return "? " + t;
+		}
 	}
 
 	private static String irisInUse() {

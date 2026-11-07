@@ -1,16 +1,16 @@
-"""Glow maps for shader packs (LabPBR): glint/off/shaderglow.zip, a pack sent only to players who turn on "Glow with
-shaders". For every effect texture (tools' texture parts and auras, worn armour's glows and seams) a "<name>_s.png" whose
-alpha says how much each pixel lights up (LabPBR: 1-254 = emission, 0 = none), the same pixels that light up without
-shaders. Shader packs that read resource pack PBR
-(Complementary, BSL and others, with that option on) then make the effects glow. Without shaders nothing reads these.
+"""Glow maps for shader packs (LabPBR), in the main resource pack: for every effect texture (tools' texture parts and
+auras, worn armour's glows and seams) a "<name>_s.png" next to it, whose alpha says how much each pixel lights up
+(LabPBR: 1-254 = emission, 0 = none): the same pixels that light up without shaders. Shader packs that read resource
+pack PBR (Complementary: IPBR+ Emissive Mode "labPBR > IPBR+" or RP Support labPBR; BSL: Advanced Materials) make the
+effects glow. Without shaders nothing reads them, and an atlas filter keeps them out of the item atlas (the game
+would otherwise stitch them in as sprites of their own).
 
 Usage: python3 shader_glow.py [glint/src/main/resources]  (generate.py runs it at the end)
 """
-import io
+import shutil
 import json
 import os
 import sys
-import zipfile
 
 from PIL import Image
 
@@ -41,33 +41,40 @@ def glow_map(img, armour):
     return out
 
 
-def build(out_dir, pack_format=97):
-    path = os.path.join(out_dir, 'glint/off/shaderglow.zip')
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    n = 0
-    with zipfile.ZipFile(path, 'w', zipfile.ZIP_DEFLATED) as z:
-        z.writestr('pack.mcmeta', json.dumps({'pack': {'description': 'Libreria Glint – glow maps for shader packs (LabPBR)',
-                                                       'min_format': pack_format, 'max_format': 1000}}))
-        for d in DIRS:
-            root = os.path.join(out_dir, d)
-            if not os.path.isdir(root):
-                continue
-            for dirpath, _, files in sorted(os.walk(root)):
-                for f in sorted(files):
-                    if not f.endswith('.png') or f.endswith('_s.png') or f.endswith('_n.png'):
-                        continue
-                    full = os.path.join(dirpath, f)
-                    rel = os.path.relpath(full, out_dir).replace(os.sep, '/')
-                    glow = glow_map(Image.open(full), 'entity/equipment' in rel)
-                    if not glow.getchannel('A').getbbox():
-                        continue                      # nothing on it lights up (a painted part): no map
-                    buf = io.BytesIO()
-                    glow.save(buf, 'PNG', optimize=True)
-                    z.writestr(rel[:-4] + '_s.png', buf.getvalue())
-                    if os.path.exists(full + '.mcmeta'):
-                        z.write(full + '.mcmeta', rel[:-4] + '_s.png.mcmeta')
-                    n += 1
-    return n, os.path.getsize(path)
+def build(out_dir, pack_format=None):
+    n = size = 0
+    for d in DIRS:
+        root = os.path.join(out_dir, d)
+        if not os.path.isdir(root):
+            continue
+        # the maps of an earlier run go first (a texture that no longer glows keeps none)
+        for dirpath, _, files in os.walk(root):
+            for f in files:
+                if f.endswith('_s.png') or f.endswith('_s.png.mcmeta'):
+                    os.remove(os.path.join(dirpath, f))
+        for dirpath, _, files in sorted(os.walk(root)):
+            for f in sorted(files):
+                if not f.endswith('.png') or f.endswith('_n.png'):
+                    continue
+                full = os.path.join(dirpath, f)
+                glow = glow_map(Image.open(full), 'entity/equipment' in full.replace(os.sep, '/'))
+                if not glow.getchannel('A').getbbox():
+                    continue                      # nothing on it lights up (a painted part): no map
+                dst = full[:-4] + '_s.png'
+                glow.save(dst, 'PNG', optimize=True)
+                size += os.path.getsize(dst)
+                if os.path.exists(full + '.mcmeta'):
+                    shutil.copyfile(full + '.mcmeta', dst + '.mcmeta')
+                n += 1
+    # The item atlas takes every texture under item/, so without this the maps would be sprites of their own
+    atlas = os.path.join(out_dir, 'assets/minecraft/atlases/items.json')
+    os.makedirs(os.path.dirname(atlas), exist_ok=True)
+    with open(atlas, 'w') as fh:
+        json.dump({'sources': [{'type': 'minecraft:filter', 'pattern': {'namespace': 'libreria', 'path': '_s$'}}]}, fh)
+    old = os.path.join(out_dir, 'glint/off/shaderglow.zip')
+    if os.path.exists(old):
+        os.remove(old)
+    return n, size
 
 
 if __name__ == '__main__':

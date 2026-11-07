@@ -68,8 +68,6 @@ public final class GlintMod implements ModInitializer {
 			"Your armour set and particles, only", "visible in third person (F5): they", "never fill your own view.");
 	public static final Setting.Toggle SHADER_SAFE = MODULE.toggle("shader_safe", "Own set behind you (shaders)", true, Items.SPYGLASS,
 			"With shaders (Iris, OptiFine) your own", "set stays behind you and on the", "ground, never in your first-person view.");
-	public static final Setting.Toggle SHADER_GLOW = MODULE.toggle("shader_glow", "Glow with shaders", false, Items.GLOWSTONE,
-			"With shaders the effects light up,", "once the shader pack reads them:", "Complementary: IPBR+ Emissive Mode", "on labPBR > IPBR+ (or RP Support on", "labPBR). BSL: Advanced Materials on.");
 	public static final Setting.Toggle AURA = MODULE.toggle("particles", "On other players", true, Items.BLAZE_POWDER,
 			"Glowing armour, armour sets and", "particles on other players.");
 
@@ -122,8 +120,6 @@ public final class GlintMod implements ModInitializer {
 		BOOKS.onChange(p -> setOffPack(p, "books", !BOOKS.get(p)));
 		FRAMES.onChange(p -> setOffPack(p, "frames", !FRAMES.get(p)));
 		GLASS.onChange(p -> setOffPack(p, "glass", !GLASS.get(p)));
-		// (not an "off" pack: the glow maps for shader packs, only for who asks for them)
-		SHADER_GLOW.onChange(p -> setOffPack(p, "shaderglow", SHADER_GLOW.get(p)));
 
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
 			if (server.getTickCount() % Aura.RUN == 0) Aura.tick(server);
@@ -224,7 +220,6 @@ public final class GlintMod implements ModInitializer {
 		packs.add("books");
 		packs.add("frames");
 		packs.add("glass");
-		packs.add("shaderglow");
 		try {
 			Files.createDirectories(dir);
 			for (String pack : packs) {
@@ -260,7 +255,6 @@ public final class GlintMod implements ModInitializer {
 		if (!BOOKS.get(player) && OFF_PACKS.containsKey("books")) out.add("books");
 		if (!FRAMES.get(player) && OFF_PACKS.containsKey("frames")) out.add("frames");
 		if (!GLASS.get(player) && OFF_PACKS.containsKey("glass")) out.add("glass");
-		if (SHADER_GLOW.get(player) && OFF_PACKS.containsKey("shaderglow")) out.add("shaderglow");
 		return out;
 	}
 

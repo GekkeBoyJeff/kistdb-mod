@@ -29,15 +29,15 @@ final class EffectsWindow {
 				+ "particles. Higher enchantment levels give more, up to your maximum.", ChatFormatting.GRAY));
 		w.text(Ui.text("First person shows the item in your hand; your armour only shows in third person (F5), so it never "
 				+ "fills your view. Playing with shaders? Keep \"own set behind you\" on: a shader pack can't hide it near "
-				+ "your camera. Turn on \"glow with shaders\" too, and in your shader pack its resource pack PBR (LabPBR): then the "
-				+ "effects light up.", ChatFormatting.DARK_GRAY));
+				+ "your camera. The effects light up with shaders too, once your shader pack reads a resource pack's light: "
+				+ "Complementary: Materials › IPBR+ Emissive Mode on \"labPBR > IPBR+\". BSL: Material › Advanced Materials on.",
+				ChatFormatting.DARK_GRAY));
 		w.choice("intensity", Ui.text("Intensity", ChatFormatting.WHITE), List.of("1", "2", "3"),
 				List.of(Ui.text("Subtle", ChatFormatting.AQUA), Ui.text("Normal", ChatFormatting.AQUA), Ui.text("Rich", ChatFormatting.AQUA)),
 				Integer.toString(GlintMod.INTENSITY.get(p)));
 		w.toggle("first", Ui.text("First person: your weapon", ChatFormatting.WHITE), GlintMod.AURA_FIRST.get(p));
 		w.toggle("third", Ui.text("Third person: your armour", ChatFormatting.WHITE), GlintMod.AURA_THIRD.get(p));
 		w.toggle("shaders", Ui.text("Own set behind you (shaders)", ChatFormatting.WHITE), GlintMod.SHADER_SAFE.get(p));
-		w.toggle("glow", Ui.text("Glow with shaders (PBR)", ChatFormatting.WHITE), GlintMod.SHADER_GLOW.get(p));
 		w.toggle("others", Ui.text("On other players", ChatFormatting.WHITE), GlintMod.AURA.get(p));
 		w.button(Ui.text("✔ Save", ChatFormatting.GREEN), Ui.text("Keep these settings", ChatFormatting.GRAY), (pl, v) -> {
 			save(pl, v);
@@ -65,16 +65,14 @@ final class EffectsWindow {
 			level = GlintMod.INTENSITY.get(pl);
 		}
 		boolean first = v.bool("first", GlintMod.AURA_FIRST.get(pl)), third = v.bool("third", GlintMod.AURA_THIRD.get(pl)),
-				others = v.bool("others", GlintMod.AURA.get(pl)), shaders = v.bool("shaders", GlintMod.SHADER_SAFE.get(pl)),
-				glow = v.bool("glow", GlintMod.SHADER_GLOW.get(pl));
+				others = v.bool("others", GlintMod.AURA.get(pl)), shaders = v.bool("shaders", GlintMod.SHADER_SAFE.get(pl));
 		boolean changed = level != GlintMod.INTENSITY.get(pl) || first != GlintMod.AURA_FIRST.get(pl) || third != GlintMod.AURA_THIRD.get(pl)
-				|| others != GlintMod.AURA.get(pl) || shaders != GlintMod.SHADER_SAFE.get(pl) || glow != GlintMod.SHADER_GLOW.get(pl);
+				|| others != GlintMod.AURA.get(pl) || shaders != GlintMod.SHADER_SAFE.get(pl);
 		GlintMod.INTENSITY.set(pl, level);
 		GlintMod.AURA_FIRST.set(pl, first);
 		GlintMod.AURA_THIRD.set(pl, third);
 		GlintMod.AURA.set(pl, others);
 		GlintMod.SHADER_SAFE.set(pl, shaders);
-		GlintMod.SHADER_GLOW.set(pl, glow);
 		return changed;
 	}
 

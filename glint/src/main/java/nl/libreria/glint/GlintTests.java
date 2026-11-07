@@ -37,6 +37,11 @@ final class GlintTests {
 			}
 			SelfTests.check(GlintMod.OFF_PACKS.containsKey("fire") && GlintMod.OFF_PACKS.containsKey("books") && GlintMod.OFF_PACKS.containsKey("glass"),
 					"off-packs ready: " + GlintMod.OFF_PACKS.keySet());
+			// Glow maps for shader packs (LabPBR) next to the effect textures, kept out of the item atlas
+			var mod = net.fabricmc.loader.api.FabricLoader.getInstance().getModContainer("libreria_glint").orElseThrow();
+			SelfTests.check(mod.findPath("assets/libreria/textures/item/fx/sword/diamond/sword/fire2_glow_s.png").isPresent()
+					&& mod.findPath("assets/libreria/textures/entity/equipment/humanoid/fx/diamond_fireguard_1_s.png").isPresent(), "glow maps in the pack");
+			SelfTests.check(mod.findPath("assets/minecraft/atlases/items.json").isPresent(), "glow maps kept out of the item atlas");
 		});
 		SelfTests.register("glint.toggle-and-particles", level -> {
 			FakePlayer p = FakePlayer.get(level);

@@ -13,21 +13,23 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Complementary with resource pack PBR (RP Support: labPBR)
-          - name: complementary-labpbr
-            pack: complementary-reimagined
-            options: "RP_MODE=3"
-          # Complementary as it comes (Integrated PBR+), only resource pack emission let through
-          - name: complementary-ipbr
-            pack: complementary-reimagined
+          # Complementary Unbound as it comes
+          - name: unbound-default
+            pack: complementary-unbound
+            options: "# as it comes"
+          # Unbound, only IPBR+ Emissive Mode on "labPBR > IPBR+"
+          - name: unbound-ipbr
+            pack: complementary-unbound
             options: "IPBR_EMISSIVE_MODE=3"
-          # BSL with Advanced Materials, labPBR
-          - name: bsl
-            pack: bsl-shaders
-            options: "ADVANCED_MATERIALS=true\\nMATERIAL_FORMAT=1"
+          # Unbound + Euphoria Patches (made at launch by its patcher mod), the same setting
+          - name: unbound-euphoria
+            pack: complementary-unbound
+            options: "IPBR_EMISSIVE_MODE=3"
+            euphoria: "1"
     env:
       PACK_SLUG: ${{ matrix.pack }}
       PACK_OPTIONS: ${{ matrix.options }}
+      EUPHORIA: ${{ matrix.euphoria || '0' }}
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-java@v5
@@ -68,6 +70,7 @@ jobs:
           cp client.log client-egl-x11.log out/ 2>/dev/null || true
           cp testclient/build/run/clientGameTest/logs/latest.log out/client-latest.log 2>/dev/null || true
           cp testclient/build/run/clientGameTest/shaderpacks/*.txt out/ 2>/dev/null || true
+          ls -la testclient/build/run/clientGameTest/shaderpacks > out/shaderpacks.txt 2>&1 || true
           echo "${{ steps.shots.outcome }}" > out/shots.txt
           echo "${GITHUB_SHA}" > out/commit.txt
       - name: publish to ci-shaders branch
