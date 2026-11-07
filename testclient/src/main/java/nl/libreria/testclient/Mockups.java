@@ -92,9 +92,9 @@ final class Mockups {
 						BlockPos feet = new BlockPos(x + dx, y + dy, z + dz);
 						if (!level.getBlockState(feet.below()).isFaceSturdy(level, feet.below(), net.minecraft.core.Direction.UP)) continue;
 						if (!level.getBlockState(feet).isAir() || !level.getBlockState(feet.above()).isAir()) continue;
-						if (level.getBrightness(LightLayer.BLOCK, feet) > 0) continue;
+						int light = level.getBrightness(LightLayer.BLOCK, feet);
 						boolean sky = level.getBrightness(LightLayer.SKY, feet) > 0;
-						out.add(String.format(Locale.ROOT, "%d %d %d %s", feet.getX(), feet.getY(), feet.getZ(), sky ? "sky" : "dark"));
+						out.add(String.format(Locale.ROOT, "%d %d %d %s %d", feet.getX(), feet.getY(), feet.getZ(), light > 0 ? "lit" : sky ? "sky" : "dark", light));
 					}
 				}
 			}
@@ -106,14 +106,29 @@ final class Mockups {
 			for (String m : marks) {
 				String[] p = m.split(" ");
 				Vec3 at = new Vec3(Integer.parseInt(p[0]) + 0.5, Integer.parseInt(p[1]) + 0.005, Integer.parseInt(p[2]) + 0.5);
-				var e = new eu.pb4.polymer.virtualentity.api.elements.BlockDisplayElement(
-						Ui.block(p[3].equals("sky") ? "yellow_stained_glass" : "red_stained_glass"));
-				e.setTranslation(new org.joml.Vector3f(-0.22f, 0f, -0.22f));
-				e.setScale(new org.joml.Vector3f(0.44f, 0.03f, 0.44f));
-				e.setBrightness(new net.minecraft.util.Brightness(15, 15));
-				e.setDisplaySize(1.5f, 1f);
 				var holder = new eu.pb4.polymer.virtualentity.api.ElementHolder();
-				holder.addElement(e);
+				boolean dark = !p[3].equals("lit");
+				if (dark) {
+					var e = new eu.pb4.polymer.virtualentity.api.elements.BlockDisplayElement(
+							Ui.block(p[3].equals("sky") ? "yellow_stained_glass" : "red_stained_glass"));
+					e.setTranslation(new org.joml.Vector3f(-0.3f, 0f, -0.3f));
+					e.setScale(new org.joml.Vector3f(0.6f, 0.02f, 0.6f));
+					e.setBrightness(new net.minecraft.util.Brightness(15, 15));
+					e.setDisplaySize(1.5f, 1f);
+					holder.addElement(e);
+				}
+				// the block light level, lying on the block: white on a tile, pale green where it's lit
+				for (float sign : new float[] {1f, -1f}) {
+					var t = new eu.pb4.polymer.virtualentity.api.elements.TextDisplayElement(
+							Ui.text(p[4], dark ? 0xFFFFFF : 0x9FE29F));
+					t.setBackground(0);
+					t.setLeftRotation(new org.joml.Quaternionf().rotateX(sign * (float) Math.PI / 2));
+					t.setTranslation(new org.joml.Vector3f(0f, 0.03f, sign * -0.12f));
+					t.setScale(new org.joml.Vector3f(1.1f, 1.1f, 1.1f));
+					t.setBrightness(new net.minecraft.util.Brightness(15, 15));
+					t.setDisplaySize(1.5f, 1f);
+					holder.addElement(t);
+				}
 				new eu.pb4.polymer.virtualentity.api.attachment.ManualAttachment(holder, level, () -> at);
 				holder.startWatching(player);
 				TILES.add(holder);
