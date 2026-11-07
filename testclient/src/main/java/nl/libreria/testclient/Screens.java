@@ -542,6 +542,45 @@ public final class Screens implements FabricClientGameTest {
 				server.runOnServer(sv -> nl.libreria.core.Guide.clear(player));
 				ctx.getInput().lookAt(0, 0);
 			});
+			// A search lights up what you looked for: in the chest it lies in (the rest dims) and in your inventory
+			safe("search_highlight", () -> {
+				run(server, "clear @a", "gamemode survival @a", f("setblock %d %d %d minecraft:air", x + 1, y, z + 2),
+						f("setblock %d %d %d minecraft:chest[facing=north]", x + 1, y, z + 2),
+						f("item replace block %d %d %d container.0 with minecraft:diamond 20", x + 1, y, z + 2),
+						f("item replace block %d %d %d container.1 with minecraft:oak_log 64", x + 1, y, z + 2),
+						f("item replace block %d %d %d container.2 with minecraft:cobblestone 40", x + 1, y, z + 2),
+						f("item replace block %d %d %d container.10 with minecraft:diamond 7", x + 1, y, z + 2),
+						f("item replace block %d %d %d container.12 with minecraft:iron_ingot 30", x + 1, y, z + 2),
+						f("item replace block %d %d %d container.20 with minecraft:golden_apple 3", x + 1, y, z + 2),
+						"give @a minecraft:bread 12", "give @a minecraft:diamond 3", "give @a minecraft:torch 32");
+				server.runOnServer(sv -> nl.libreria.chests.Wanted.start(player, new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.DIAMOND)));
+				ctx.waitTicks(5);
+				ctx.getInput().lookAt(new BlockPos(x + 1, y, z + 2));
+				ctx.waitTicks(3);
+				key(ctx, "pressKey", ctx.computeOnClient(mc -> mc.options.keyUse));
+				ctx.waitTicks(12);
+				ctx.getInput().setCursorPos(2, 2);
+				noToasts(ctx);
+				ctx.takeScreenshot("search_chest");
+				close(ctx, server, player);
+				ctx.waitTicks(5);
+				net.minecraft.world.item.Item stillChest = server.computeOnServer(sv -> nl.libreria.chests.Wanted.of(player));
+				LOG.info("LIBRERIA-WANTED after closing the chest: {}", String.valueOf(stillChest));
+				// Looked for something you carry: your inventory
+				server.runOnServer(sv -> nl.libreria.chests.Wanted.start(player, new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.DIAMOND)));
+				ctx.waitTicks(5);
+				key(ctx, "pressKey", ctx.computeOnClient(mc -> mc.options.keyInventory));
+				ctx.waitTicks(10);
+				ctx.getInput().setCursorPos(2, 2);
+				noToasts(ctx);
+				ctx.takeScreenshot("search_inventory");
+				key(ctx, "pressKey", ctx.computeOnClient(mc -> mc.options.keyInventory));
+				ctx.waitTicks(5);
+				net.minecraft.world.item.Item stillInventory = server.computeOnServer(sv -> nl.libreria.chests.Wanted.of(player));
+				LOG.info("LIBRERIA-WANTED after closing the inventory: {}", String.valueOf(stillInventory));
+				run(server, "clear @a", f("setblock %d %d %d minecraft:air", x + 1, y, z + 2));
+				ctx.getInput().lookAt(0, 0);
+			});
 			// Armour stands: sneak + right-click with an empty hand opens the window; item frames: sneak + right-click hides
 			// the frame (only the item shows)
 			safe("stands", () -> {

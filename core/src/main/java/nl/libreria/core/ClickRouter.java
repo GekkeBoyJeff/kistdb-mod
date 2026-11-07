@@ -15,7 +15,28 @@ public final class ClickRouter {
 		boolean onClick(ServerPlayer player, AbstractContainerMenu menu, int slot, ContainerInput input, int button);
 	}
 
+	/** A module that wants to know when a menu closes (a chest, or the player's own inventory screen). */
+	public interface CloseHook {
+		void onClose(ServerPlayer player, AbstractContainerMenu menu);
+	}
+
 	private static final List<Hook> HOOKS = new ArrayList<>();
+	private static final List<CloseHook> CLOSE_HOOKS = new ArrayList<>();
+
+	public static void registerClose(CloseHook hook) {
+		CLOSE_HOOKS.add(hook);
+	}
+
+	/** Called from the mixin when a menu is closed (and so taken away), just before. */
+	public static void closed(ServerPlayer player, AbstractContainerMenu menu) {
+		for (CloseHook h : CLOSE_HOOKS) {
+			try {
+				h.onClose(player, menu);
+			} catch (RuntimeException e) {
+				Libreria.LOG.warn("Close hook failed", e);
+			}
+		}
+	}
 
 	private ClickRouter() {
 	}

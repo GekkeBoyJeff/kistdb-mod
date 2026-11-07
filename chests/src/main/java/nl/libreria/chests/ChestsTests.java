@@ -39,6 +39,39 @@ final class ChestsTests {
 	}
 
 	static void register() {
+		SelfTests.register("chests.wanted", level -> {
+			// What you searched for lights up; the rest of that chest dims; your own inventory below it doesn't
+			FakePlayer fp = FakePlayer.get(level);
+			SimpleContainer box = new SimpleContainer(27);
+			box.setItem(0, new ItemStack(Items.DIAMOND, 5));
+			box.setItem(1, new ItemStack(Items.STONE, 10));
+			ChestMenu menu = ChestMenu.threeRows(1, fp.getInventory(), box);
+			var cmd = net.minecraft.core.component.DataComponents.CUSTOM_MODEL_DATA;
+			ItemStack lit = Wanted.view(box.getItem(0), Items.DIAMOND, menu, 0, true);
+			SelfTests.check(lit.get(cmd) != null && lit.get(cmd).flags().equals(Wanted.LIT) && box.getItem(0).get(cmd) == null, "lit, the item itself untouched");
+			ItemStack dim = Wanted.view(box.getItem(1), Items.DIAMOND, menu, 1, true);
+			SelfTests.check(dim.get(cmd) != null && dim.get(cmd).flags().equals(Wanted.DIMMED), "the rest of the chest dims");
+			ItemStack own = new ItemStack(Items.STONE);
+			SelfTests.check(Wanted.view(own, Items.DIAMOND, menu, 27 + 3, true) == own, "your own inventory below: as it is");
+			SelfTests.check(Boolean.TRUE.equals(Wanted.view(box.getItem(0), Items.DIAMOND, menu, 0, false).get(net.minecraft.core.component.DataComponents.ENCHANTMENT_GLINT_OVERRIDE))
+					&& Wanted.view(box.getItem(1), Items.DIAMOND, menu, 1, false) == box.getItem(1), "without the pack: it shimmers, nothing dims");
+			SimpleContainer other = new SimpleContainer(27);
+			other.setItem(0, new ItemStack(Items.STONE));
+			ChestMenu otherMenu = ChestMenu.threeRows(2, fp.getInventory(), other);
+			SelfTests.check(Wanted.view(other.getItem(0), Items.DIAMOND, otherMenu, 0, true) == other.getItem(0), "a chest without it: nothing dims");
+			SelfTests.check(Wanted.clean(lit).get(cmd) == null && Wanted.clean(dim).get(cmd) == null, "taken out again for a creative client");
+			// Over once you've seen it: the chest it was in closes; or after its minute
+			Wanted.start(fp, new ItemStack(Items.DIAMOND));
+			SelfTests.check(Wanted.of(fp) == Items.DIAMOND, "looking for diamonds");
+			Wanted.closed(fp, otherMenu);
+			SelfTests.check(Wanted.of(fp) == Items.DIAMOND, "a chest without them closes: still looking");
+			Wanted.closed(fp, menu);
+			SelfTests.check(Wanted.of(fp) == null, "the chest with them closes: found");
+			Wanted.start(fp, new ItemStack(Items.DIAMOND));
+			Wanted.HUNTS.get(fp.getUUID()).until = 0;
+			Wanted.tick(fp);
+			SelfTests.check(Wanted.of(fp) == null, "after a minute: over");
+		});
 		SelfTests.register("chests.labels", level -> {
 			// Labels on for all: every chest but the ones you took it from; off for all: only the ones you gave one
 			Store.Entry e = new Store.Entry();

@@ -765,11 +765,56 @@ def frame_node(item, rarity):
             'value': [{}], 'on_true': by_rarity(True), 'on_false': by_rarity(False)}
 
 
+# Flags the server sets on an item, only in what one player's client sees (custom_model_data flags): the thing they
+# searched for lights up (a glow behind it, a pulsing border instead of its grade frame), the rest of the chest it lies
+# in dims
+WANTED_FLAG, DIM_FLAG = 0, 1
+
+
+def placed(model, z):
+    return {'type': 'minecraft:model', 'model': model,
+            'transformation': {'translation': [0, 0, z], 'left_rotation': [0, 0, 0, 1], 'right_rotation': [0, 0, 0, 1], 'scale': [1, 1, 1]}}
+
+
+def flag(index, on_true, on_false=None):
+    return {'type': 'minecraft:condition', 'property': 'minecraft:custom_model_data', 'index': index,
+            'on_true': on_true, 'on_false': on_false or {'type': 'minecraft:empty'}}
+
+
 def with_frame(model, item, rarity):
     """Only in inventories and the hotbar (display context gui) the border is drawn on top of the item."""
-    return {'type': 'minecraft:select', 'property': 'minecraft:display_context',
-            'cases': [{'when': 'gui', 'model': {'type': 'minecraft:composite', 'models': [model, frame_node(item, rarity)]}}],
+    gui = {'type': 'minecraft:composite', 'models': [
+        flag(WANTED_FLAG, placed(f'{NS}:item/frame/wanted_glow', -0.6)),
+        model,
+        flag(WANTED_FLAG, placed(f'{NS}:item/frame/wanted', 0.12), frame_node(item, rarity)),
+        flag(DIM_FLAG, placed(f'{NS}:item/frame/dim', 0.6)),
+    ]}
+    return {'type': 'minecraft:select', 'property': 'minecraft:display_context', 'cases': [{'when': 'gui', 'model': gui}],
             'fallback': model}
+
+
+WANTED_FRAMES = 16
+
+
+def wanted_textures():
+    """The glow behind a searched item (still), its border (gold outside, white inside, slowly pulsing) and the dark
+    square over everything else in that chest."""
+    glow = Image.new('RGBA', (16, 16), (0, 0, 0, 0))
+    for y in range(16):
+        for x in range(16):
+            d = math.hypot(x - 7.5, y - 7.5) / 10.6
+            glow.putpixel((x, y), (255, 226, 140, int(255 * max(0.0, 0.92 - 0.38 * d))))
+    border = Image.new('RGBA', (16, 16 * WANTED_FRAMES), (0, 0, 0, 0))
+    for f in range(WANTED_FRAMES):
+        t = 0.5 + 0.5 * math.cos(2 * math.pi * f / WANTED_FRAMES)
+        for i in range(16):
+            for (x, y) in ((i, 0), (i, 15), (0, i), (15, i)):
+                border.putpixel((x, 16 * f + y), (232, 160, 40, int(200 + 55 * t)))
+        for i in range(1, 15):
+            for (x, y) in ((i, 1), (i, 14), (1, i), (14, i)):
+                border.putpixel((x, 16 * f + y), (255, 250, 220, int(150 + 105 * t)))
+    dim = Image.new('RGBA', (16, 16), (8, 8, 12, 150))
+    return {'wanted_glow': (glow, None), 'wanted': (border, 2), 'dim': (dim, None)}
 
 
 # ------------------------------------------------------------------ uitvoer
@@ -910,6 +955,14 @@ def main():
         write_json(os.path.join(assets, NS, f'models/item/frame/{grade}.json'),
                    {'parent': 'minecraft:item/generated', 'textures': {'layer0': f'{NS}:item/frame/{grade}'}})
         frame_paths.append(f'assets/{NS}/models/item/frame/{grade}.json')
+    # (not in the "frames off" pack: a search lights up also for who turned the grade frames off)
+    for name, (img, frametime) in wanted_textures().items():
+        path = os.path.join(assets, NS, f'textures/item/frame/{name}.png')
+        img.save(path, optimize=True)
+        if frametime:
+            write_json(path + '.mcmeta', {'animation': {'frametime': frametime, 'interpolate': True}})
+        write_json(os.path.join(assets, NS, f'models/item/frame/{name}.json'),
+                   {'parent': 'minecraft:item/generated', 'textures': {'layer0': f'{NS}:item/frame/{name}'}})
     written = set()
 
     overlay_models = {f: [] for f in FAMILIES}

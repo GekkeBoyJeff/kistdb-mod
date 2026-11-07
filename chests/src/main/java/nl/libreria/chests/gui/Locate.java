@@ -21,6 +21,8 @@ public final class Locate {
 
 	public static void go(ServerPlayer player, ItemStack item, List<Search.Hit> hits) {
 		if (hits.isEmpty()) {
+			// None in your chests: what you carry of it still lights up
+			nl.libreria.chests.Wanted.start(player, item);
 			Toast.show(player, item, Toast.BAD, Component.empty().append(Ui.text("No ", ChatFormatting.WHITE))
 							.append(item.getHoverName().copy().withStyle(ChatFormatting.WHITE)).append(Ui.text(" in your chests", ChatFormatting.WHITE)),
 					Ui.text("Within " + (int) Search.radius() + " m. Open a chest once and Libreria remembers it.", ChatFormatting.GRAY));

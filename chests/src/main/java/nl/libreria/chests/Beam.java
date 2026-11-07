@@ -16,6 +16,8 @@ public final class Beam {
 	/** Straal naar de container op {@code key}; {@code item} mag null zijn. */
 	public static void to(ServerPlayer player, ServerLevel level, BlockPos key, @Nullable ItemStack item, int count) {
 		Component what = item != null ? item.getHoverName() : Component.literal(kindAt(level, key));
+		// What you look for lights up in that chest, and wherever you carry it
+		if (item != null) Wanted.start(player, item);
 		Guide.toBox(player, level, Containers.boxOf(level, key), item, what, count, 0);
 	}
 

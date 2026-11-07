@@ -75,6 +75,7 @@ public final class ChestsMod implements ModInitializer {
 			SortButton.forget(handler.player);
 			Labels.forget(handler.player.getUUID());
 			Refill.forget(handler.player.getUUID());
+			Wanted.forget(handler.player);
 			Store.unload(handler.player.getUUID());
 		});
 		ServerTickEvents.END_SERVER_TICK.register(ChestsMod::tick);
@@ -117,6 +118,7 @@ public final class ChestsMod implements ModInitializer {
 				"/chest stop – stop showing the way");
 
 		ClickRouter.register(ChestsMod::onClick);
+		Wanted.init();
 		// Voor andere modules: "waar ligt dit item?" en het zoekmenu
 		Services.provideItemFinder((player, item) -> {
 			var hits = Search.find(player, item.getItem());
@@ -160,7 +162,10 @@ public final class ChestsMod implements ModInitializer {
 			Tracker.tick(player, tick);
 			SortButton.tick(player);
 			Refill.tick(player);
-			if ((tick + player.getId()) % 20 == 0) Labels.tick(player);
+			if ((tick + player.getId()) % 20 == 0) {
+				Labels.tick(player);
+				Wanted.tick(player);
+			}
 		}
 		if (tick % 1200 == 0) Store.saveDirty();
 	}
