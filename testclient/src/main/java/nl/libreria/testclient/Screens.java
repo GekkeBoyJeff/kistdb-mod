@@ -583,7 +583,7 @@ public final class Screens implements FabricClientGameTest {
 				boolean hidden = server.computeOnServer(sv -> !((ServerLevel) player.level()).getEntitiesOfClass(
 						net.minecraft.world.entity.decoration.ItemFrame.class, player.getBoundingBox().inflate(8), fr -> fr.isInvisible()).isEmpty());
 				LOG.info("LIBRERIA-FRAMES hidden: {}", hidden);
-				LOG.info("LIBRERIA-FRAMES client: {}", ctx.computeOnClient(mc -> {
+				String seen = ctx.computeOnClient(mc -> {
 					StringBuilder b = new StringBuilder("eye " + mc.player.getEyePosition() + " look " + mc.player.getViewVector(1f));
 					if (mc.hitResult != null) b.append(" hit ").append(mc.hitResult.getType()).append(" at ").append(mc.hitResult.getLocation());
 					for (var en : mc.level.entitiesForRendering()) {
@@ -591,7 +591,8 @@ public final class Screens implements FabricClientGameTest {
 								.append(" pickable ").append(fr.isPickable());
 					}
 					return b.toString();
-				}));
+				});
+				LOG.info("LIBRERIA-FRAMES client: {}", seen);
 				ctx.takeScreenshot("frame_hidden");
 				// Hidden, it's locked: a right-click on it opens the chest it hangs on (a label on a chest)
 				if (!hidden) {
