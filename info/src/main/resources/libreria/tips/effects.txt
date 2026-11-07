@@ -1,0 +1,42 @@
+# What a potion effect does, under it in a tooltip (potions, splash and lingering potions, tipped arrows, stews).
+# <effect>|<text>
+absorption|Extra golden hearts that take damage first.
+bad_omen|Walk into a village: a raid starts. Near a trial spawner: an ominous trial. Milk takes it away.
+blindness|You can hardly see, and you can't sprint.
+breath_of_the_nautilus|You don't run out of air underwater.
+conduit_power|Breathe, see and mine underwater as on land.
+darkness|Your sight pulses dark (a Warden is near).
+dolphins_grace|You swim much faster.
+fire_resistance|No damage from fire or lava.
+glowing|Everyone sees your outline, even through walls.
+haste|You mine and attack faster.
+health_boost|More hearts, while it lasts.
+hero_of_the_village|Villagers give you better prices, some give gifts.
+hunger|You get hungry much faster.
+infested|When you're hit, silverfish may crawl out of you.
+instant_damage|Hurts at once (heals the undead).
+instant_health|Heals at once (hurts the undead).
+invisibility|Mobs and players can't see you (your armour still shows).
+jump_boost|You jump higher and take less fall damage.
+levitation|You float up, whether you want to or not.
+luck|Better loot from chests and fishing.
+mining_fatigue|You mine and attack much slower.
+nausea|Your view wobbles.
+night_vision|You see in the dark, and clearly underwater.
+oozing|When you die, slimes come out of you.
+poison|Hurts over time, but never below half a heart.
+raid_omen|A raid starts here in a moment.
+regeneration|Heals you over time.
+resistance|You take less damage from everything.
+saturation|Fills your hunger at once.
+slow_falling|You fall slowly and take no fall damage.
+slowness|You walk slower.
+speed|You walk faster.
+strength|Your melee hits do more damage.
+trial_omen|Trial spawners near you turn ominous: harder, and better loot.
+unluck|Worse loot from chests and fishing.
+water_breathing|You can breathe underwater.
+weakness|Your melee hits do less damage.
+weaving|When you die, cobwebs grow around you; webs barely slow you.
+wind_charged|When you die, you burst like a wind charge.
+wither|Hurts over time and can kill; your hearts turn black.

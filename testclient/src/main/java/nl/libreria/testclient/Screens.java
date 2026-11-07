@@ -287,7 +287,7 @@ public final class Screens implements FabricClientGameTest {
 				int w = ctx.computeOnClient(mc -> mc.getWindow().getGuiScaledWidth());
 				int h = ctx.computeOnClient(mc -> mc.getWindow().getGuiScaledHeight());
 				int left = (w - 176) / 2, top = (h - 166) / 2;
-				String[] names = {"sword", "mace", "boots", "book", "pickaxe"};
+				String[] names = {"sword", "mace", "boots", "book", "pickaxe", "magma", "potion", "ominous"};
 				for (int i = 0; i < names.length; i++) {
 					ctx.getInput().setCursorPos((left + 16 + 18 * i) * scale, (top + 150) * scale);
 					ctx.waitTicks(4);

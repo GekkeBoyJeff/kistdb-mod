@@ -38,14 +38,16 @@ import nl.libreria.core.Setting;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * What enchantments do, in the tooltip: under every enchantment a short line ("Every hit does 3 more damage"), and next
+ * What things do, in the tooltip. What a potion's effects do ("Bad Omen: walk into a village…"), what a block or item is
+ * for when that isn't obvious (a magma block on land and underwater; libreria/tips/), and what enchantments do: under
+ * every enchantment a short line ("Every hit does 3 more damage"), and next
  * to the attack damage what the enchantments add to it, in yellow ("(+3)", "(+12.5 vs undead)"); an enchantment that
  * gives an attribute of its own (Depth Strider, Efficiency…) gets a line of its own there. Only in what the player's own
  * client sees (see {@link ItemView}): the items stay as they are. A setting per player, on by default.
  */
 final class Details {
-	static final Setting.Toggle ON = InfoMod.MODULE.toggle("enchant_details", "Enchantment details", true, Items.ENCHANTED_BOOK,
-			"Under every enchantment in a tooltip,", "what it does; next to the attack", "damage, what they add to it.");
+	static final Setting.Toggle ON = InfoMod.MODULE.toggle("enchant_details", "Tooltip details", true, Items.ENCHANTED_BOOK,
+			"In tooltips: what every enchantment", "and potion effect does, what enchant-", "ments add to the damage, and what", "many blocks and items are for.");
 	/** Marks the tooltip lines that are only for one player's eyes (taken out again when creative mode sends an item back). */
 	static final String MARK = "libreria:view";
 	static final int EXPLAIN = 0x7A7A7A, BONUS = 0xFFFF55;
@@ -123,7 +125,74 @@ final class Details {
 		return f == null ? null : f.apply(level);
 	}
 
+	/** What a thing is for (libreria/tips/items.txt): exact ids, and patterns ("*_bed") longest first. */
+	private static final Map<String, List<String>> TIPS = new HashMap<>();
+	private static final List<Map.Entry<java.util.regex.Pattern, List<String>>> TIP_PATTERNS = new ArrayList<>();
+	/** What a potion effect does (libreria/tips/effects.txt). */
+	private static final Map<String, String> EFFECTS = new HashMap<>();
+
+	static void loadTips() {
+		TIPS.clear();
+		TIP_PATTERNS.clear();
+		EFFECTS.clear();
+		var mod = net.fabricmc.loader.api.FabricLoader.getInstance().getModContainer("libreria_info");
+		if (mod.isEmpty()) return;
+		List<Object[]> patterns = new ArrayList<>();
+		for (String line : read(mod.get(), "libreria/tips/items.txt")) {
+			String[] p = line.split("\\|");
+			if (p.length < 2) continue;
+			List<String> lines = List.of(p).subList(1, p.length);
+			for (String id : p[0].split(",")) {
+				id = id.trim();
+				if (id.contains("*")) patterns.add(new Object[] {id, lines});
+				else TIPS.put(id, lines);
+			}
+		}
+		patterns.sort((a, b) -> Integer.compare(((String) b[0]).length(), ((String) a[0]).length()));
+		for (Object[] p : patterns) {
+			@SuppressWarnings("unchecked")
+			List<String> lines = (List<String>) p[1];
+			TIP_PATTERNS.add(Map.entry(java.util.regex.Pattern.compile(java.util.regex.Pattern.quote((String) p[0]).replace("*", "\\E.*\\Q")), lines));
+		}
+		for (String line : read(mod.get(), "libreria/tips/effects.txt")) {
+			int bar = line.indexOf('|');
+			if (bar > 0) EFFECTS.put(line.substring(0, bar).trim(), line.substring(bar + 1).trim());
+		}
+	}
+
+	private static List<String> read(net.fabricmc.loader.api.ModContainer mod, String path) {
+		List<String> out = new ArrayList<>();
+		mod.findPath(path).ifPresent(p -> {
+			try {
+				for (String l : java.nio.file.Files.readAllLines(p, java.nio.charset.StandardCharsets.UTF_8)) {
+					if (!l.isBlank() && !l.startsWith("#")) out.add(l.strip());
+				}
+			} catch (java.io.IOException e) {
+				nl.libreria.core.Libreria.LOG.warn("Details: could not read {}", path, e);
+			}
+		});
+		return out;
+	}
+
+	/** What an item is for, or null. */
+	static @Nullable List<String> tip(String itemPath) {
+		List<String> t = TIPS.get(itemPath);
+		if (t != null) return t;
+		for (var e : TIP_PATTERNS) if (e.getKey().matcher(itemPath).matches()) return e.getValue();
+		return null;
+	}
+
+	/** What a potion effect does ("bad_omen" → "Walk into a village…"), or null. */
+	static @Nullable String effect(String id) {
+		return EFFECTS.get(id);
+	}
+
+	static int tipCount() {
+		return TIPS.size() + TIP_PATTERNS.size();
+	}
+
 	static void init() {
+		loadTips();
 		ItemView.add((viewer, menu, slot, stack) -> view(viewer, stack));
 		ItemView.cleaner(Details::clean);
 		ON.onChange(ItemView::resend);
@@ -167,7 +236,22 @@ final class Details {
 		ItemEnchantments stored = stack.getOrDefault(DataComponents.STORED_ENCHANTMENTS, ItemEnchantments.EMPTY);
 		boolean doEnch = !ench.isEmpty() && display.shows(DataComponents.ENCHANTMENTS);
 		boolean doStored = !stored.isEmpty() && display.shows(DataComponents.STORED_ENCHANTMENTS);
-		if (!doEnch && !doStored) return stack;
+		// What the potion's effects do, and what the thing is for
+		List<Component> extra = new ArrayList<>();
+		var potion = stack.get(DataComponents.POTION_CONTENTS);
+		if (potion != null && display.shows(DataComponents.POTION_CONTENTS)) {
+			List<net.minecraft.world.effect.MobEffectInstance> effects = new ArrayList<>();
+			potion.getAllEffects().forEach(effects::add);
+			for (var fx : effects) {
+				String what = effect(fx.getEffect().unwrapKey().map(k -> k.identifier().getPath()).orElse(""));
+				if (what == null) continue;
+				extra.add(effects.size() > 1 ? ours(Component.empty().append(Component.literal("  ").append(Component.translatable(
+						fx.getEffect().value().getDescriptionId())).append(": " + what).withStyle(Style.EMPTY.withColor(EXPLAIN)))) : explain(what));
+			}
+		}
+		List<String> tip = tip(net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath());
+		if (tip != null) for (String t : tip) extra.add(ours(Component.literal(t).withStyle(Style.EMPTY.withColor(EXPLAIN))));
+		if (!doEnch && !doStored && extra.isEmpty()) return stack;
 		RegistryAccess access = viewer.level().registryAccess();
 		List<Component> before = new ArrayList<>();
 		for (ItemEnchantments list : new ItemEnchantments[] {doStored ? stored : ItemEnchantments.EMPTY, doEnch ? ench : ItemEnchantments.EMPTY}) {
@@ -180,6 +264,7 @@ final class Details {
 				if (what != null) before.add(explain(what));
 			}
 		}
+		before.addAll(extra);
 		List<Component> after = doEnch && display.shows(DataComponents.ATTRIBUTE_MODIFIERS) ? attributes(viewer, stack, ench, access) : null;
 		ItemStack out = stack.copy();
 		List<Component> lore = new ArrayList<>(before);

@@ -114,6 +114,12 @@ public final class InfoMod implements ModInitializer {
 		inv.setItem(2, boots);
 		inv.setItem(3, book);
 		inv.setItem(4, pick);
+		inv.setItem(5, new net.minecraft.world.item.ItemStack(Items.MAGMA_BLOCK));
+		var potion = new net.minecraft.world.item.ItemStack(Items.POTION);
+		potion.set(net.minecraft.core.component.DataComponents.POTION_CONTENTS,
+				new net.minecraft.world.item.alchemy.PotionContents(net.minecraft.world.item.alchemy.Potions.TURTLE_MASTER));
+		inv.setItem(6, potion);
+		inv.setItem(7, new net.minecraft.world.item.ItemStack(Items.OMINOUS_BOTTLE));
 	}
 
 	/** For the screenshots: the lore book, a story in it, or your finds. */

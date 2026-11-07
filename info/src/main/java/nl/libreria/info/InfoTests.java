@@ -322,6 +322,20 @@ final class InfoTests {
 			EnchantmentHelper.updateEnchantments(boots, m -> m.set(ench.apply("depth_strider"), 3));
 			String b = String.join("\n", Details.view(p, boots).get(DataComponents.LORE).lines().stream().map(Component::getString).toList());
 			SelfTests.check(b.contains("Depth Strider") && b.contains("(Depth Strider)"), "an enchantment's own attribute: " + b);
+			// What blocks, items and potion effects are for
+			SelfTests.check(Details.tipCount() >= 150, "item tips: " + Details.tipCount());
+			SelfTests.check(Details.tip("magma_block") != null && Details.tip("magma_block").size() == 2, "a magma block, on land and underwater");
+			SelfTests.check(Details.tip("red_bed") != null && Details.tip("waxed_cut_copper") != null && Details.tip("stone") == null, "tips by pattern");
+			net.minecraft.core.registries.BuiltInRegistries.MOB_EFFECT.keySet().forEach(id ->
+					SelfTests.check(Details.effect(id.getPath()) != null, "effect explained: " + id));
+			ItemStack potion = new ItemStack(Items.POTION);
+			potion.set(DataComponents.POTION_CONTENTS, new net.minecraft.world.item.alchemy.PotionContents(net.minecraft.world.item.alchemy.Potions.SWIFTNESS));
+			String pl = String.join("\n", Details.view(p, potion).get(DataComponents.LORE).lines().stream().map(Component::getString).toList());
+			SelfTests.check(pl.contains("You walk faster."), "a potion says what it does: " + pl);
+			ItemStack magma = new ItemStack(Items.MAGMA_BLOCK);
+			String ml = String.join("\n", Details.view(p, magma).get(DataComponents.LORE).lines().stream().map(Component::getString).toList());
+			SelfTests.check(ml.contains("Underwater") && ItemStack.isSameItemSameComponents(Details.clean(Details.view(p, magma)), magma), "a magma block, and back: " + ml);
+			SelfTests.check(Details.view(p, new ItemStack(Items.STONE)).getOrDefault(DataComponents.LORE, ItemLore.EMPTY).lines().isEmpty(), "stone: nothing to say");
 		});
 		SelfTests.register("info.pets", level -> {
 			java.util.Set<String> pets = new java.util.HashSet<>();

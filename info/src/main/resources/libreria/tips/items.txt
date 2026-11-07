@@ -1,0 +1,187 @@
+# What a thing is for, under its name in a tooltip, when that isn't obvious. One per line:
+# <item ids, comma-separated; * matches anything>|<line>[|<line>]
+# The most specific id wins (an exact id before a pattern). Keep lines short: they're tooltip lines.
+magma_block|On land: burns what stands on it, unless you sneak.|Underwater: a bubble column that pulls down.
+soul_sand|Slows whatever walks on it; grows nether wart.|Underwater: a bubble column that pushes up.
+soul_soil|Soul fire burns on it; Soul Speed runs fast on it.
+honey_block|Sticky: slows you, stops jumps, softens falls.|Pistons drag the blocks stuck to it along.
+slime_block|Bounces you back up: no fall damage.|Pistons drag the blocks stuck to it along.
+ice|Slippery; melts near light. Boats glide on it.
+packed_ice|Slippery and never melts. Boats glide on it.
+blue_ice|The most slippery: boats are fastest on it.
+powder_snow_bucket|You sink into powder snow and freeze;|leather boots let you walk on top.
+respawn_anchor|Charge it with glowstone: respawn here in|the Nether. Anywhere else it explodes.
+lodestone|Use a compass on it: that compass points here.
+recovery_compass|Points to where you last died.
+compass|Points to the world spawn (or a lodestone).
+clock|Shows the time of day (and night).
+spyglass|Zoom in on far things.
+echo_shard|Eight around a compass: a recovery compass.
+heart_of_the_sea|Eight nautilus shells around it: a conduit.
+nautilus_shell|Eight around a heart of the sea: a conduit.
+conduit|In a prismarine frame underwater: breathe, see|and mine fast nearby; it attacks hostile mobs.
+totem_of_undying|In your hand when you'd die: you don't, once.
+ender_pearl|Throw it to teleport there (costs a little health).
+ender_eye|Thrown, it flies towards the nearest stronghold.|Twelve fill an end portal.
+nether_star|Makes a beacon.
+beacon|On a pyramid of iron, gold, emerald, diamond or|netherite blocks: powers you up nearby.
+enchanted_golden_apple|Regeneration, Absorption, Resistance and Fire|Resistance, all at once.
+golden_apple|Regeneration and Absorption. Feed one to a|weakened zombie villager to cure it.
+milk_bucket|Drink it: every effect on you is gone.
+honey_bottle|Cures Poison.
+glow_berries|Glow on cave vines; plant them under a block.
+glow_ink_sac|On a sign: the text glows.
+ink_sac|On a glowing sign: back to normal text.
+honeycomb|Wax copper (it stops aging) or a sign (nobody|can edit it any more).
+lightning_rod|Lightning strikes it instead of what's nearby,|and it sends a redstone signal.
+target|Hit it with an arrow: a redstone signal,|stronger nearer the middle.
+observer|Sends a pulse when the block in front changes.
+note_block|Its sound depends on the block under it.
+jukebox|Plays music discs; a comparator can tell which.
+bell|Ringing it during a raid makes raiders glow.
+campfire|Cooks food on top. With hay below, its smoke|rises high: a signal.
+soul_campfire|Cooks food; piglins keep away from soul fire.
+hay_block|Breaks falls (most of the damage);|under a campfire: tall smoke.
+composter|Turns plants and food into bone meal.|Villagers: the farmer's workstation.
+scaffolding|Climb up by jumping, down by sneaking.
+cobweb|Slows everything caught in it. Cut it with|shears or a sword.
+sponge|Soaks up the water around it.
+wet_sponge|Dry it in a furnace (or place it in the Nether).
+sniffer_egg|Hatches faster on moss.
+armadillo_scute|Brush armadillos for it; makes wolf armour.
+turtle_helmet|Breathe 10 seconds longer after you dive.
+goat_horn|Blow it: everyone far around hears it.
+trial_key|Opens a vault in a trial chamber (once each).
+ominous_trial_key|Opens an ominous vault.
+ominous_bottle|Drink it: Bad Omen (a raid in a village, or an|ominous trial near a trial spawner).
+heavy_core|With a breeze rod: a mace.
+wind_charge|A gust that knocks things back: throw it at your|feet to launch yourself.
+fire_charge|Lights fires; from a dispenser it flies.
+firework_rocket|With an elytra: a boost. From a crossbow:|a blast.
+saddle|Ride a pig, strider, horse, donkey or camel.
+lead|Lead animals along; tie them to a fence.
+name_tag|Name it at an anvil: a named mob never despawns.
+*_harness|Put it on a happy ghast to ride it.
+dried_ghast|Place it in water: in time, a little ghast.
+bundle,*_bundle|Holds a stack's worth of different things.
+shulker_box,*_shulker_box|Keeps everything inside when you break it.
+ender_chest|The same chest everywhere, only for you.
+hopper|Moves items down or sideways; redstone stops it.
+dispenser|Fires or uses what's inside when powered.
+dropper|Drops what's inside when powered.
+crafter|Crafts its pattern when powered.
+piston|Pushes blocks when powered.
+sticky_piston|Pushes blocks, and pulls them back.
+comparator|Reads how full a container is; compares signals.
+repeater|Delays a signal and makes it full strength.
+daylight_detector|A signal in daylight; click it: in the dark.
+tripwire_hook|Two with string between: a tripwire.
+sculk_sensor|Hears vibrations and sends a signal.
+calibrated_sculk_sensor|Listens to one kind of vibration only.
+sculk_shrieker|Placed by you it's harmless; in the deep dark|it calls the Warden.
+sculk_catalyst|Spreads sculk where mobs die near it.
+tinted_glass|Glass that lets no light through.
+amethyst_shard|For a spyglass, tinted glass or a calibrated|sculk sensor.
+brush|Brush suspicious sand and gravel; brush|armadillos for scutes.
+suspicious_sand,suspicious_gravel|Brush it carefully: something's inside.
+end_crystal|Four on the exit portal bring the dragon back.|It explodes when hit.
+dragon_breath|Turns splash potions into lingering ones.
+fermented_spider_eye|Brewing: turns a potion into its opposite.
+glistering_melon_slice|Brewing: healing.
+blaze_powder|Fuels a brewing stand; brewing: strength.
+nether_wart|Brewing: the start of nearly every potion.
+phantom_membrane|Repairs an elytra; brewing: slow falling.
+rabbit_foot|Brewing: leaping.
+pufferfish|Brewing: water breathing. Eating it poisons you.
+spider_eye|Brewing: poison.
+ghast_tear|Brewing: regeneration. Makes end crystals.
+magma_cream|Brewing: fire resistance.
+sugar|Brewing: swiftness.
+golden_carrot|Food that fills you up the longest.|Brewing: night vision.
+turtle_scute|Five make a turtle shell.|Brewing: the turtle master.
+breeze_rod|Four wind charges; with a heavy core, a mace.|Brewing: wind charging.
+gunpowder|Brewing: a splash potion. Also TNT, fireworks.
+redstone|Brewing: makes a potion last longer.
+glowstone_dust|Brewing: makes a potion stronger (shorter).
+experience_bottle|Throw it: experience.
+enchanted_book|On an anvil, puts its enchantments on gear.
+book|Enchant it: an enchanted book to keep.
+lapis_lazuli|The enchanting table needs it.
+bookshelf|Around an enchanting table (a block away):|better enchantments, fifteen at most.
+chiseled_bookshelf|Holds six books; a comparator reads the last one.
+grindstone|Takes enchantments off (some XP back) and|repairs. Villagers: the weaponsmith's.
+anvil,chipped_anvil,damaged_anvil|Repair, rename, combine enchantments. Sneak and|right-click it with something: write on it.
+smithing_table|Netherite upgrades and armour trims.|Villagers: the toolsmith's workstation.
+netherite_upgrade_smithing_template|At a smithing table: diamond gear to netherite.
+*_armor_trim_smithing_template|At a smithing table: a trim on armour. Copy it|with diamonds and its own stone.
+stonecutter|Cuts stone into stairs, slabs and more, one|to one. Villagers: the mason's.
+loom|Patterns on banners. Villagers: the shepherd's.
+cartography_table|Copy, enlarge and lock maps. Villagers: the|cartographer's.
+fletching_table|Villagers: the fletcher's workstation.
+smoker|Cooks food twice as fast (only food).|Villagers: the butcher's.
+blast_furnace|Smelts ores and metal twice as fast.|Villagers: the armorer's.
+lectern|A book on it for everyone to read; a comparator|reads the page. Villagers: the librarian's.
+cauldron|Holds water, lava or snow; washes dye off.|Villagers: the leatherworker's.
+barrel|Villagers: the fisherman's workstation.
+brewing_stand|Brews potions (blaze powder as fuel).|Villagers: the cleric's.
+*_bed|Sleep: skip the night, set your spawn. In the|Nether or the End it explodes.
+crying_obsidian|Six with glowstone: a respawn anchor.
+obsidian|A frame of it (at least 4 by 5): a nether portal.
+glowstone|Charges a respawn anchor.
+tnt|Explodes when lit or powered.
+sea_pickle|Light underwater, more of them together.
+dried_kelp_block|Furnace fuel: smelts twenty things.
+coal_block|Furnace fuel: smelts eighty things.
+lava_bucket|Furnace fuel: smelts a hundred things.
+bone_meal|Makes plants grow at once.
+snowball|Hurts blazes; knocks things back.
+egg|Throw it: sometimes a chick hatches.
+armor_stand|Shows armour off; it can hold some too.
+item_frame,glow_item_frame|Shows an item; a comparator reads how it's turned.
+water_bucket|Place it right before you land: no fall damage.
+writable_book|Write in it; sign it to make a book.
+chorus_fruit|Eat it: you teleport a short way.
+popped_chorus_fruit|Makes purpur blocks and end rods.
+shulker_shell|Two around a chest: a shulker box.
+wither_skeleton_skull|Three on soul sand in a T: the Wither.
+carved_pumpkin|Wear it: endermen don't mind your look. On|snow or iron in a T: a golem.
+pumpkin|Shear it to carve it.
+jack_o_lantern|Light, also underwater.
+emerald|What villagers trade in.
+gold_ingot|Piglins trade for it.
+golden_helmet,golden_chestplate,golden_leggings,golden_boots|Wear gold and piglins leave you be.
+netherite_scrap|Four with four gold: a netherite ingot.
+ancient_debris|Doesn't burn; smelt it for netherite scrap.
+dragon_egg|A trophy. Click it and it teleports away.
+cake|Place it, eat it a slice at a time (seven).
+candle,*_candle|Up to four on a block; light them.
+beehive,bee_nest|Shears for honeycomb, a bottle for honey (a|campfire below keeps the bees calm).
+warped_fungus|Hoglins keep away from it; striders love it.
+crimson_fungus|Feed it to hoglins to breed them.
+moss_block|Bone meal spreads moss and plants around it.
+mud|Above pointed dripstone it dries to clay.
+pointed_dripstone|Drips water or lava into a cauldron below.|Falling on it hurts more.
+copper_chest,*_copper_chest|A copper golem takes things out of it and puts|them in chests nearby.
+copper_golem_statue,*_copper_golem_statue|A copper golem that turned to stone.
+*_shelf|Holds three things on show; with redstone, swaps|them with your hotbar.
+*_nautilus_armor|Armour for a nautilus you ride.
+copper_block,cut_copper,chiseled_copper,copper_grate,copper_bulb,copper_door,copper_trapdoor|Turns green over time; wax it with honeycomb,|scrape it back with an axe.
+exposed_*,weathered_*,oxidized_*|Copper that aged; scrape it back with an axe.
+waxed_*|Waxed: it stays like this (an axe takes the wax off).
+music_disc_*|Play it in a jukebox.
+filled_map|Hold it to see the land; a cartography table|copies it.
+map|Use it to start mapping where you stand.
+string|With sticks: a bow; between two hooks: a tripwire.
+slime_ball|Sticky pistons, leads, magma cream.
+shield|Held up, it blocks attacks; an axe can knock|it down for a moment.
+fishing_rod|Fish with it; it also pulls mobs to you.
+carrot_on_a_stick|Steers a saddled pig.
+warped_fungus_on_a_stick|Steers a saddled strider.
+flint_and_steel|Lights fires, portals, TNT and candles.
+shears|Cobwebs, leaves, wool, vines; carve pumpkins.
+bucket|Water, lava, milk, powder snow, fish.
+elytra|Glide from up high; fireworks keep you up.|Repair it with phantom membranes.
+spectral_arrow|What it hits glows for a while.
+tipped_arrow|What it hits gets the potion's effect.
+trident|Thrown, or in your hand; it hits harder in rain.
+mace|Hits harder the further you fell first.
