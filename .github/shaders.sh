@@ -51,6 +51,8 @@ if [ -n "$NAME" ]; then
   printf 'enableShaders=true\nshaderPack=%s\ndisableUpdateMessage=true\n' "$NAME" > "$RUN/config/iris.properties"
   # what the pack calls its emission options
   unzip -p "$RUN/shaderpacks/$PACK" 'shaders/lang/en_[Uu][Ss].lang' 2>/dev/null | tr -d '\r' | grep -E 'RP_MODE|IPBR_EMISSIVE_MODE' >> "$OUT/shader-setup.txt"
+  python3 .github/shader_path.py "$RUN/shaderpacks/$PACK" IPBR_EMISSIVE_MODE >> "$OUT/shader-setup.txt" 2>&1 || true
+  python3 .github/shader_path.py "$RUN/shaderpacks/$PACK" RP_MODE >> "$OUT/shader-setup.txt" 2>&1 || true
 fi
 ls -la "$RUN/mods" "$RUN/shaderpacks" >> "$OUT/shader-setup.txt"
 cat "$OUT/shader-setup.txt"
