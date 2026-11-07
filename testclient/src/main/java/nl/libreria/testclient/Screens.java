@@ -97,6 +97,19 @@ public final class Screens implements FabricClientGameTest {
 				ctx.waitTicks(3);
 				ctx.takeScreenshot("shaders_anim_" + i);
 			}
+			// the same sword standing still before you (as in a menu: only its texture parts, no aura), frames apart
+			run(server, "item replace entity @a weapon.mainhand with minecraft:air",
+					f("summon minecraft:item_display %d %.1f %d {billboard:\"center\",item_display:\"gui\",brightness:{sky:0,block:0},"
+							+ "transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[0f,0f,0f],scale:[1.6f,1.6f,1.6f]},"
+							+ "item:{id:\"minecraft:diamond_sword\",components:{\"minecraft:enchantments\":{sharpness:5,fire_aspect:2,looting:3}}}}",
+							x, y + 1.6, z + 2));
+			ctx.getInput().lookAt(new BlockPos(x, y + 1, z + 2));
+			ctx.waitTicks(20);
+			for (int i = 0; i < 8; i++) {
+				ctx.waitTicks(3);
+				ctx.takeScreenshot("shaders_still_" + i);
+			}
+			run(server, "kill @e[type=minecraft:item_display]");
 			camera(ctx, CameraType.THIRD_PERSON_BACK);
 			ctx.waitTicks(20);
 			ctx.takeScreenshot("shaders_night_third");
