@@ -490,8 +490,14 @@ public final class Screens implements FabricClientGameTest {
 				ctx.takeScreenshot("stand_window");
 				close(ctx, server, player);
 				run(server, "kill @e[type=minecraft:armor_stand]",
-						f("fill %d %d %d %d %d %d minecraft:spruce_planks", x - 2, y, z + 3, x + 2, y + 2, z + 3),
-						f("summon minecraft:item_frame %d %d %d {Facing:2b,Item:{id:\"minecraft:diamond_sword\",count:1}}", x, y + 1, z + 2));
+						f("fill %d %d %d %d %d %d minecraft:spruce_planks", x - 2, y, z + 3, x + 2, y + 2, z + 3));
+				// hung as a player would (a summoned frame has no wall block in 26.3)
+				server.runOnServer(sv -> {
+					ServerLevel lv = (ServerLevel) player.level();
+					var frame = new net.minecraft.world.entity.decoration.ItemFrame(lv, new BlockPos(x, y + 1, z + 2), net.minecraft.core.Direction.NORTH);
+					frame.setItem(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.DIAMOND_SWORD));
+					lv.addFreshEntity(frame);
+				});
 				ctx.waitTicks(10);
 				ctx.getInput().lookAt(new BlockPos(x, y + 1, z + 2));
 				ctx.waitTicks(3);
