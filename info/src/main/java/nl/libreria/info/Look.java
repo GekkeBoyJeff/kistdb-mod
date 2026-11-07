@@ -31,6 +31,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.animal.equine.AbstractHorse;
+import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
@@ -98,10 +99,14 @@ final class Look {
 	}
 
 	/** Where the card floats. hud = shown at the top of the screen instead (blocks and things that aren't alive). */
-	/** {@code size}: how big the card is (1 normally; smaller beside someone up close, so it stays the same size on screen). */
-	record Target(Vec3 anchor, Card card, boolean hud, float size) {
+	/**
+	 * {@code size}: how big the card is (1 normally; smaller beside someone up close, so it stays the same size on screen).
+	 * {@code side}: 0 = the card is centred on the anchor; 1 = it hangs to the right of it (its left edge at the anchor), so
+	 * a card beside someone is really beside them, not half in front of them.
+	 */
+	record Target(Vec3 anchor, Card card, boolean hud, float size, int side) {
 		Target(Vec3 anchor, Card card, boolean hud) {
-			this(anchor, card, hud, 1f);
+			this(anchor, card, hud, 1f, 0);
 		}
 	}
 
@@ -116,8 +121,9 @@ final class Look {
 	private static final float ICON_TILT = 0.5f;
 
 	private static final class Tip {
-		/** The size the card is laid out at now (see {@link Target#size}). */
+		/** The size the card is laid out at now (see {@link Target#size}), and to which side (see {@link Target#side}). */
 		float size = 1f;
+		int side;
 		final ElementHolder holder = new ElementHolder();
 		final TextDisplayElement panel = new TextDisplayElement();
 		final TextDisplayElement text = new TextDisplayElement();
@@ -195,7 +201,8 @@ final class Look {
 		boolean pack = Pack.has(p);
 		Card c = t.card();
 		tip.size = t.size();
-		String key = pack + "|" + Math.round(t.size() * 20) + "|" + c.accent() + "|" + c.name().getString() + "|" + c.subtitle().getString() + "|" + rowsKey(c.rows())
+		tip.side = t.side();
+		String key = pack + "|" + Math.round(t.size() * 20) + "|" + t.side() + "|" + c.accent() + "|" + c.name().getString() + "|" + c.subtitle().getString() + "|" + rowsKey(c.rows())
 				+ "|" + BuiltInRegistries.ITEM.getKey(c.icon().getItem()) + c.icon().getComponentsPatch();
 		if (!Objects.equals(key, tip.shown)) {
 			if (pack) layoutPack(tip, c);
@@ -240,6 +247,8 @@ final class Look {
 			lines.addAll(rows);
 		}
 		int n = lines.size();
+		// Hanging to the right of the anchor: everything moves over by half the card (the panel is the widest part)
+		float dx = tip.side * (innerW + 2 * Glyphs.padX) / 2f * PX * SCALE;
 
 		tip.text.setText(join(lines));
 		tip.text.setTextAlignment(Display.TextDisplay.Align.LEFT);
@@ -247,7 +256,7 @@ final class Look {
 		tip.text.setBackground(0);
 		tip.text.setTextOpacity((byte) -1);
 		tip.text.setScale(new Vector3f(SCALE));
-		tip.text.setTranslation(new Vector3f(0, 0, 0));
+		tip.text.setTranslation(new Vector3f(dx, 0, 0));
 
 		tip.panel.setText(Glyphs.panel(n, innerW));
 		tip.panel.setTextAlignment(Display.TextDisplay.Align.CENTER);
@@ -255,7 +264,7 @@ final class Look {
 		tip.panel.setBackground(0);
 		tip.panel.setTextOpacity((byte) -1);
 		tip.panel.setScale(new Vector3f(SCALE));
-		tip.panel.setTranslation(new Vector3f(0, 0, -0.012f));
+		tip.panel.setTranslation(new Vector3f(dx, 0, -0.012f));
 
 		if (hasIcon) {
 			// The slot spans the first two lines; the text box is centred: its left edge is at 1 - innerW/2
@@ -268,14 +277,18 @@ final class Look {
 			// Tilted back a little so the light from above reaches it (a flat icon facing you looks dark otherwise)
 			tip.icon.setLeftRotation(new Quaternionf().rotateX(-ICON_TILT));
 			tip.icon.setScale(new Vector3f(size, size / (float) Math.cos(ICON_TILT), 0.001f));
-			tip.icon.setTranslation(new Vector3f(x, y, 0.06f));
+			tip.icon.setTranslation(new Vector3f(dx + x, y, 0.06f));
 		} else {
 			tip.icon.setItem(ItemStack.EMPTY);
 		}
 	}
 
+	/** A row without a picture of its own, lined up under the text of the rows that have one. */
+	static final String INDENT = "indent";
+
 	private static MutableComponent packRow(Row r) {
-		MutableComponent out = Component.empty().append(Glyphs.icon(r.icon()));
+		MutableComponent out = Component.empty().append(r.icon().equals(INDENT)
+				? Glyphs.ui(Glyphs.space(Glyphs.advance("icon.star") + 2)) : Glyphs.icon(r.icon()));
 		if (!r.label().isEmpty()) out.append(Component.literal(r.label() + " ").withStyle(ChatFormatting.GRAY));
 		if (r.fraction() >= 0) {
 			int full = (int) Math.round(Math.max(0, Math.min(1, r.fraction())) * r.segments());
@@ -304,6 +317,8 @@ final class Look {
 		int heightPx = lines.size() * Glyphs.lineHeight + 1;
 		float w = (widthPx + 2) * PX * SCALE, h = heightPx * PX * SCALE;
 		Component padded = hasIcon ? indent(lines, iconPx) : join(lines);
+		float border = 2 * PX * SCALE;
+		float dx = tip.side * (w / 2 + border);
 
 		tip.text.setText(padded);
 		tip.text.setTextAlignment(Display.TextDisplay.Align.LEFT);
@@ -311,23 +326,22 @@ final class Look {
 		tip.text.setBackground(0xF0201510);
 		tip.text.setTextOpacity((byte) -1);
 		tip.text.setScale(new Vector3f(SCALE));
-		tip.text.setTranslation(new Vector3f(0, 0, 0));
+		tip.text.setTranslation(new Vector3f(dx, 0, 0));
 
 		// Frame: same text, invisible, on a slightly larger coloured background behind the card
-		float border = 2 * PX * SCALE;
 		tip.panel.setText(padded);
 		tip.panel.setTextAlignment(Display.TextDisplay.Align.LEFT);
 		tip.panel.setShadow(false);
 		tip.panel.setTextOpacity((byte) 8);
 		tip.panel.setBackground(0xFF000000 | (c.accent() < 0 ? 0xA8803C : c.accent()));
 		tip.panel.setScale(new Vector3f(SCALE * (w + 2 * border) / w, SCALE * (h + 2 * border) / h, SCALE));
-		tip.panel.setTranslation(new Vector3f(0, -border, -0.012f));
+		tip.panel.setTranslation(new Vector3f(dx, -border, -0.012f));
 
 		if (hasIcon) {
 			float iconSize = 16 * PX * SCALE * 1.25f;
 			tip.icon.setItem(c.icon());
 			tip.icon.setScale(new Vector3f(iconSize, iconSize, 0.001f));
-			tip.icon.setTranslation(new Vector3f(-w / 2 + iconPx * PX * SCALE / 2 + PX * SCALE, h - Math.min(h / 2, 6 * PX * SCALE * 1.6f), 0.012f));
+			tip.icon.setTranslation(new Vector3f(dx - w / 2 + iconPx * PX * SCALE / 2 + PX * SCALE, h - Math.min(h / 2, 6 * PX * SCALE * 1.6f), 0.012f));
 		} else {
 			tip.icon.setItem(ItemStack.EMPTY);
 		}
@@ -378,12 +392,14 @@ final class Look {
 		BlockHitResult bh = level.clip(new ClipContext(eye, eye.add(dir.scale(range)), ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, p));
 		double blockDistSq = bh.getType() == HitResult.Type.MISS ? range * range : bh.getLocation().distanceToSqr(eye);
 		AABB box = p.getBoundingBox().expandTowards(dir.scale(range)).inflate(1.0);
+		// An invisible armour stand still counts when it wears something: that's how gear is shown off
 		EntityHitResult eh = ProjectileUtil.getEntityHitResult(p, eye, eye.add(dir.scale(range)), box,
-				e -> !e.isSpectator() && e.isPickable() && !e.isInvisible(), blockDistSq);
+				e -> !e.isSpectator() && e.isPickable() && (!e.isInvisible() || e instanceof ArmorStand st && Stand.dressed(st)), blockDistSq);
 		if (eh != null) {
 			Entity e = eh.getEntity();
 			Card card = describeEntity(p, e, all);
 			if (card == null) return null;
+			if (e instanceof ArmorStand) return Stand.target(eye, e, card, Pack.has(p));
 			// Above the head. The vanilla name tag (players, and any mob with its own name such as a
 			// named villager) floats half a block above the head while you look at it, so the card
 			// goes above that; players also get room for a scoreboard line under their name.
@@ -395,7 +411,7 @@ final class Look {
 			// shoulders never hide part of it
 			Vec3 at = inFront(eye, beside(eye, e), e.getBbWidth() / 2 + 0.45);
 			float size = (float) Math.max(0.35, Math.min(1.0, at.distanceTo(eye) / 3.5));
-			return new Target(at, card, !(e instanceof LivingEntity), size);
+			return new Target(at, card, !(e instanceof LivingEntity), size, 1);
 		}
 		if (bh.getType() != HitResult.Type.BLOCK) return null;
 		BlockPos pos = bh.getBlockPos();
@@ -415,14 +431,40 @@ final class Look {
 		return Math.abs(Math.toDegrees(there - look)) <= 26;
 	}
 
-	/** Beside someone, at head height, on your right: for when the spot above their head is off your screen. */
+	/**
+	 * Beside someone, at head height, just past their right edge as you face them: for when the spot above their head is
+	 * off your screen. The card hangs to the right of this spot ({@link Target#side}), so it never covers them.
+	 */
 	static Vec3 beside(Vec3 eye, Entity e) {
+		return beside(eye, e, e.getEyeY() - 0.2);
+	}
+
+	static Vec3 beside(Vec3 eye, Entity e, double y) {
 		double dx = e.getX() - eye.x, dz = e.getZ() - eye.z;
 		double len = Math.max(1.0e-4, Math.sqrt(dx * dx + dz * dz));
 		// your right, as you face them
 		double rx = -dz / len, rz = dx / len;
-		double out = e.getBbWidth() / 2 + 0.35;
-		return new Vec3(e.getX() + rx * out, e.getEyeY() - 0.2, e.getZ() + rz * out);
+		double out = e.getBbWidth() / 2 + 0.1;
+		return new Vec3(e.getX() + rx * out, y, e.getZ() + rz * out);
+	}
+
+	/** How big a card is, in blocks at size 1: {width, height} (the same sums as the layouts below). */
+	static float[] dims(Card c, boolean pack) {
+		boolean hasIcon = !c.icon().isEmpty();
+		if (pack) {
+			int indent = hasIcon ? 24 : 0;
+			List<MutableComponent> rows = new ArrayList<>();
+			for (Row r : c.rows()) rows.add(packRow(r));
+			int innerW = Math.max(Math.max(indent + Glyphs.width(c.name()), indent + Glyphs.width(c.subtitle())), Glyphs.width(rows)) + 2;
+			innerW = Math.max(innerW, 64);
+			int n = 2 + (c.rows().isEmpty() ? 0 : 1 + c.rows().size());
+			return new float[] {(innerW + 2 * Glyphs.padX) * PX * SCALE, (n * Glyphs.lineHeight + Glyphs.padTop + Glyphs.padBottom) * PX * SCALE};
+		}
+		int widthPx = Math.max(Glyphs.width(c.name()), Glyphs.width(c.subtitle()));
+		for (Row r : c.rows()) widthPx = Math.max(widthPx, Glyphs.width(Component.literal(r.symbol() + " " + r.label() + " ").append(r.value())) + (r.fraction() >= 0 ? 60 : 0));
+		widthPx += hasIcon ? 22 : 0;
+		int heightPx = (2 + c.rows().size()) * Glyphs.lineHeight + 1;
+		return new float[] {(widthPx + 6) * PX * SCALE, (heightPx + 4) * PX * SCALE};
 	}
 
 	/** A spot moved this far towards your eye along the line to it (at least half a block from your eye). */
@@ -457,6 +499,7 @@ final class Look {
 	// ---------------------------------------------------------------- players and animals
 
 	static @Nullable Card describeEntity(ServerPlayer viewer, Entity e, boolean all) {
+		if (e instanceof ArmorStand stand) return Stand.card(stand, all);
 		List<Row> rows = new ArrayList<>();
 		if (e instanceof ServerPlayer other) {
 			// Players: who they are and how far they got (no health)

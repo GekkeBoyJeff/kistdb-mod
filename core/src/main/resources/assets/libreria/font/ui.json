@@ -144,11 +144,101 @@
   },
   {
    "type": "bitmap",
+   "file": "libreria:font/ui/panel_15.png",
+   "height": 161,
+   "ascent": 153,
+   "chars": [
+    "\ue089\ue08a\ue08b\ue08c\ue08d\ue08e\ue08f\ue090\ue091"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "libreria:font/ui/panel_16.png",
+   "height": 171,
+   "ascent": 163,
+   "chars": [
+    "\ue092\ue093\ue094\ue095\ue096\ue097\ue098\ue099\ue09a"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "libreria:font/ui/panel_17.png",
+   "height": 181,
+   "ascent": 173,
+   "chars": [
+    "\ue09b\ue09c\ue09d\ue09e\ue09f\ue0a0\ue0a1\ue0a2\ue0a3"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "libreria:font/ui/panel_18.png",
+   "height": 191,
+   "ascent": 183,
+   "chars": [
+    "\ue0a4\ue0a5\ue0a6\ue0a7\ue0a8\ue0a9\ue0aa\ue0ab\ue0ac"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "libreria:font/ui/panel_19.png",
+   "height": 201,
+   "ascent": 193,
+   "chars": [
+    "\ue0ad\ue0ae\ue0af\ue0b0\ue0b1\ue0b2\ue0b3\ue0b4\ue0b5"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "libreria:font/ui/panel_20.png",
+   "height": 211,
+   "ascent": 203,
+   "chars": [
+    "\ue0b6\ue0b7\ue0b8\ue0b9\ue0ba\ue0bb\ue0bc\ue0bd\ue0be"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "libreria:font/ui/panel_21.png",
+   "height": 221,
+   "ascent": 213,
+   "chars": [
+    "\ue0bf\ue0c0\ue0c1\ue0c2\ue0c3\ue0c4\ue0c5\ue0c6\ue0c7"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "libreria:font/ui/panel_22.png",
+   "height": 231,
+   "ascent": 223,
+   "chars": [
+    "\ue0c8\ue0c9\ue0ca\ue0cb\ue0cc\ue0cd\ue0ce\ue0cf\ue0d0"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "libreria:font/ui/panel_23.png",
+   "height": 241,
+   "ascent": 233,
+   "chars": [
+    "\ue0d1\ue0d2\ue0d3\ue0d4\ue0d5\ue0d6\ue0d7\ue0d8\ue0d9"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "libreria:font/ui/panel_24.png",
+   "height": 251,
+   "ascent": 243,
+   "chars": [
+    "\ue0da\ue0db\ue0dc\ue0dd\ue0de\ue0df\ue0e0\ue0e1\ue0e2"
+   ]
+  },
+  {
+   "type": "bitmap",
    "file": "libreria:font/ui/gem.png",
    "height": 15,
    "ascent": 15,
    "chars": [
-    "\ue089"
+    "\ue0e3"
    ]
   },
   {
@@ -157,7 +247,7 @@
    "height": 20,
    "ascent": 8,
    "chars": [
-    "\ue08a"
+    "\ue0e4"
    ]
   },
   {
@@ -166,7 +256,7 @@
    "height": 5,
    "ascent": 4,
    "chars": [
-    "\ue08b\ue08c\ue08d\ue08e\ue08f\ue090\ue091\ue092\ue093\ue094"
+    "\ue0e5\ue0e6\ue0e7\ue0e8\ue0e9\ue0ea\ue0eb\ue0ec\ue0ed\ue0ee"
    ]
   },
   {
@@ -175,7 +265,7 @@
    "height": 6,
    "ascent": 6,
    "chars": [
-    "\ue095\ue096"
+    "\ue0ef\ue0f0"
    ]
   },
   {
@@ -184,7 +274,7 @@
    "height": 8,
    "ascent": 7,
    "chars": [
-    "\ue097\ue098\ue099\ue09a\ue09b\ue09c\ue09d\ue09e\ue09f\ue0a0\ue0a1\ue0a2\ue0a3\ue0a4\ue0a5\ue0a6\ue0a7\ue0a8\ue0a9"
+    "\ue0f1\ue0f2\ue0f3\ue0f4\ue0f5\ue0f6\ue0f7\ue0f8\ue0f9\ue0fa\ue0fb\ue0fc\ue0fd\ue0fe\ue0ff\ue100\ue101\ue102\ue103"
    ]
   },
   {
@@ -193,7 +283,7 @@
    "height": 132,
    "ascent": 13,
    "chars": [
-    "\ue0aa\ue0ab\ue0ac\ue0ad\ue0ae"
+    "\ue104\ue105\ue106\ue107\ue108"
    ]
   },
   {
@@ -202,7 +292,7 @@
    "height": 150,
    "ascent": 13,
    "chars": [
-    "\ue0af\ue0b0\ue0b1\ue0b2\ue0b3"
+    "\ue109\ue10a\ue10b\ue10c\ue10d"
    ]
   },
   {
@@ -211,7 +301,7 @@
    "height": 168,
    "ascent": 13,
    "chars": [
-    "\ue0b4\ue0b5\ue0b6\ue0b7\ue0b8"
+    "\ue10e\ue10f\ue110\ue111\ue112"
    ]
   },
   {
@@ -220,7 +310,7 @@
    "height": 186,
    "ascent": 13,
    "chars": [
-    "\ue0b9\ue0ba\ue0bb\ue0bc\ue0bd"
+    "\ue113\ue114\ue115\ue116\ue117"
    ]
   },
   {
@@ -229,7 +319,7 @@
    "height": 204,
    "ascent": 13,
    "chars": [
-    "\ue0be\ue0bf\ue0c0\ue0c1\ue0c2"
+    "\ue118\ue119\ue11a\ue11b\ue11c"
    ]
   },
   {
@@ -238,7 +328,7 @@
    "height": 222,
    "ascent": 13,
    "chars": [
-    "\ue0c3\ue0c4\ue0c5\ue0c6\ue0c7"
+    "\ue11d\ue11e\ue11f\ue120\ue121"
    ]
   },
   {
@@ -247,7 +337,7 @@
    "height": 222,
    "ascent": 13,
    "chars": [
-    "\ue134"
+    "\ue18e"
    ]
   },
   {
@@ -256,7 +346,7 @@
    "height": 178,
    "ascent": 19,
    "chars": [
-    "\ue135"
+    "\ue18f"
    ]
   },
   {
@@ -265,7 +355,7 @@
    "height": 7,
    "ascent": 7,
    "chars": [
-    "\ue136\ue137\ue138\ue139\ue13a\ue13b\ue13c"
+    "\ue190\ue191\ue192\ue193\ue194\ue195\ue196"
    ]
   }
  ]

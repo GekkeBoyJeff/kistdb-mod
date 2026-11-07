@@ -1,0 +1,190 @@
+package nl.libreria.info;
+
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.decoration.ArmorStand;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.phys.Vec3;
+import nl.libreria.core.gui.Glyphs;
+import org.jetbrains.annotations.Nullable;
+
+/**
+ * The look card of an armour stand: the stories of everything it wears, read from the gear itself (so a set put on show
+ * tells its whole story, like a player's card tells how far they got). An invisible stand counts too, as long as it
+ * wears something.
+ */
+final class Stand {
+	/** Top to bottom, then what it holds. */
+	static final EquipmentSlot[] SLOTS = {EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET,
+			EquipmentSlot.MAINHAND, EquipmentSlot.OFFHAND};
+
+	private Stand() {
+	}
+
+	static boolean dressed(ArmorStand st) {
+		for (EquipmentSlot slot : SLOTS) if (!st.getItemBySlot(slot).isEmpty()) return true;
+		return false;
+	}
+
+	/** Has words of its own: a found story, or what a player wrote on it. */
+	static boolean told(ItemStack s) {
+		return !Lore.get(s, Lore.FOUND).isEmpty() || !Lore.get(s, Lore.OWN).isEmpty();
+	}
+
+	static @Nullable Look.Card card(ArmorStand st, boolean all) {
+		List<ItemStack> told = new ArrayList<>();
+		for (EquipmentSlot slot : SLOTS) {
+			ItemStack s = st.getItemBySlot(slot);
+			if (!s.isEmpty() && told(s)) told.add(s);
+		}
+		Component own = st.hasCustomName() ? st.getCustomName() : null;
+		if (told.isEmpty()) {
+			if (!all) return null;
+			return new Look.Card(new ItemStack(Items.ARMOR_STAND), -1,
+					Component.literal(st.getDisplayName().getString()).withStyle(ChatFormatting.WHITE, ChatFormatting.BOLD),
+					Component.literal(dressed(st) ? "Nothing on it has a story" : "Entity").withStyle(ChatFormatting.GRAY), List.of());
+		}
+		// One story all over (a set put together): the story is the name of the card
+		Set<String> stories = new LinkedHashSet<>();
+		boolean allParts = true;
+		for (ItemStack s : told) {
+			String story = stamp(s).getStringOr("story", "");
+			if (story.isEmpty()) allParts = false;
+			else stories.add(story);
+		}
+		boolean oneStory = allParts && stories.size() == 1;
+		Component name, sub;
+		if (oneStory) {
+			String story = stories.iterator().next();
+			Found.Text info = Found.STORIES.get(story);
+			name = Component.literal("✦ " + (info == null ? story : info.title())).withStyle(s -> s.withColor(Found.HEAD).withBold(true));
+			String parts = told.size() + (info == null ? "" : " of " + info.parts()) + " parts";
+			sub = Component.literal((own == null ? "" : own.getString() + " · ") + parts).withStyle(ChatFormatting.GRAY);
+		} else {
+			name = own != null ? own.copy().withStyle(ChatFormatting.WHITE, ChatFormatting.BOLD)
+					: Component.literal("Armour stand").withStyle(ChatFormatting.WHITE, ChatFormatting.BOLD);
+			sub = Component.literal(told.size() == 1 ? "1 thing with a story" : told.size() + " things with a story").withStyle(ChatFormatting.GRAY);
+		}
+		return new Look.Card(new ItemStack(Items.ARMOR_STAND), Found.HEAD, name, sub, fit(told, oneStory));
+	}
+
+	/** As many rows as the card can hold: first everything, then without where, then wider lines, then shorter texts. */
+	static List<Look.Row> fit(List<ItemStack> told, boolean oneStory) {
+		int budget = Math.max(6, Glyphs.maxPanel - 3);
+		int[][] tries = {{40, 1, 99}, {40, 0, 99}, {50, 0, 99}, {50, 0, 3}, {50, 0, 2}, {50, 0, 1}};
+		List<Look.Row> rows = List.of();
+		for (int[] t : tries) {
+			rows = rows(told, oneStory, t[0], t[1] == 1, t[2]);
+			if (rows.size() <= budget) return rows;
+		}
+		return new ArrayList<>(rows.subList(0, budget));
+	}
+
+	static List<Look.Row> rows(List<ItemStack> told, boolean oneStory, int wrap, boolean where, int maxText) {
+		List<Look.Row> out = new ArrayList<>();
+		for (ItemStack s : told) {
+			CompoundTag stamp = stamp(s);
+			String story = stamp.getStringOr("story", "");
+			int part = stamp.getIntOr("part", 0);
+			MutableComponent head = s.getHoverName().copy();
+			if (head.getStyle().getColor() == null) head = head.withStyle(ChatFormatting.WHITE);
+			head = Component.empty().append(head.withStyle(st -> st.withItalic(false)));
+			if (!story.isEmpty()) {
+				Found.Text info = Found.STORIES.get(story);
+				String what = oneStory ? "part " + part : (info == null ? story : info.title()) + " · part " + part;
+				head.append(Component.literal("  " + what).withStyle(st -> st.withColor(Found.HEAD)));
+			}
+			out.add(Look.Row.text(story.isEmpty() ? "chest" : "star", story.isEmpty() ? "▪" : "✦", "", head));
+			List<String> text = text(s, wrap);
+			if (text.size() > maxText) {
+				text = new ArrayList<>(text.subList(0, maxText));
+				text.set(maxText - 1, text.get(maxText - 1).replaceAll("[\\s,.;:!?]+$", "") + "…");
+			}
+			for (String l : text) out.add(Look.Row.text(Look.INDENT, " ", "", Lore.line(l, Found.TEXT, true)));
+			for (Component w : Lore.get(s, Lore.OWN)) out.add(Look.Row.text(Look.INDENT, " ", "", w.copy()));
+			String at = stamp.getStringOr("where", "");
+			if (where && !at.isEmpty()) {
+				String line = at + " · day " + stamp.getIntOr("day", 0) + (stamp.getStringOr("by", "").isEmpty() ? "" : " · " + stamp.getStringOr("by", ""));
+				out.add(Look.Row.text(Look.INDENT, " ", "", Lore.line(line, Found.WHERE, false)));
+			}
+		}
+		return out;
+	}
+
+	/** The found story of an item, wrapped again; from what's written on it if the text itself is gone. */
+	static List<String> text(ItemStack s, int wrap) {
+		CompoundTag stamp = stamp(s);
+		String id = stamp.getStringOr("id", "");
+		Found.Text t = id.isEmpty() ? null : Found.byId(id);
+		if (t != null) {
+			String kind = Found.kindOf(s);
+			return Lore.wrap(t.text().replace("{item}", kind == null ? "thing" : Found.noun(kind, s)), wrap);
+		}
+		List<Component> lines = Lore.get(s, Lore.FOUND);
+		List<String> out = new ArrayList<>();
+		for (int i = 0; i < lines.size(); i++) {
+			String l = lines.get(i).getString();
+			if (i == 0 && l.startsWith("✦ ")) continue;
+			if (i == lines.size() - 1 && l.contains(" · day ")) continue;
+			out.add(l);
+		}
+		return out;
+	}
+
+	static CompoundTag stamp(ItemStack s) {
+		CustomData cd = s.get(DataComponents.CUSTOM_DATA);
+		return cd == null ? new CompoundTag() : cd.copyTag().getCompoundOrEmpty(Found.STAMP);
+	}
+
+	/**
+	 * Where the card goes: always beside the stand (the card is tall), its middle at the stand's middle but never into
+	 * the floor, pulled in front of the stand (its arms and gear never poke through), and small enough to fit on your
+	 * screen from up close.
+	 */
+	static Look.Target target(Vec3 eye, Entity e, Look.Card card, boolean pack) {
+		float[] d = Look.dims(card, pack);
+		double mid = e.getY() + e.getBbHeight() * 0.55;
+		double dist = Math.max(0.8, eye.distanceTo(new Vec3(e.getX(), mid, e.getZ())));
+		double by = e.getBbWidth() / 2 + 0.3;
+		double near = Math.max(0.6, dist - by);
+		float size = (float) Math.max(0.3, Math.min(1.0, Math.min(0.72 * near / d[1], 0.75 * near / d[0])));
+		// How tall it looks, measured at the stand
+		double tall = d[1] * size * dist / near;
+		double bottom = Math.max(e.getY() + 0.02, mid - tall / 2);
+		return new Look.Target(Look.inFront(eye, Look.beside(eye, e, bottom), by), card, false, size, 1);
+	}
+
+	/** For the screenshots and the self-test: a stand wearing four parts of one story. */
+	static void showcase(ArmorStand st) {
+		String story = null;
+		for (var e : Found.STORIES.entrySet()) {
+			if (e.getValue().parts() >= 4) {
+				story = e.getKey();
+				break;
+			}
+		}
+		if (story == null) return;
+		ItemStack[] gear = {new ItemStack(Items.IRON_HELMET), new ItemStack(Items.CHAINMAIL_CHESTPLATE), new ItemStack(Items.GOLDEN_LEGGINGS),
+				new ItemStack(Items.DIAMOND_BOOTS)};
+		EquipmentSlot[] slots = {EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET};
+		String[] where = {"in a bastion", "in a shipwreck", "in a stronghold", "Fished up"};
+		int k = 0;
+		for (Found.Text t : Found.PIECES) {
+			if (!story.equals(t.story()) || k >= gear.length) continue;
+			Found.write(gear[k], t, where[k], 3 + 4 * k, k % 2 == 0 ? "Anna" : "Jeff", st.level().registryAccess());
+			st.setItemSlot(slots[k], gear[k]);
+			k++;
+		}
+	}
+}

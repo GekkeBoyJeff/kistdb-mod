@@ -29,7 +29,7 @@ LH = 10
 PAD_X = 6
 PAD_TOP = 6
 PAD_BOTTOM = 5
-PANEL_LINES = range(2, 15)
+PANEL_LINES = range(2, 25)
 
 # ------------------------------------------------------------------ palette (warm "adventure" wood, bronze, parchment)
 OUTLINE = (18, 11, 7, 255)

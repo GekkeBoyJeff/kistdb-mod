@@ -305,13 +305,23 @@ final class Found {
 
 	/** A text for this kind of thing from there, not handed out before (and now handed out). */
 	static @Nullable Text pick(String kind, Origin from, Random r) {
+		return pick(kind, from, r, null);
+	}
+
+	/**
+	 * The same, for a finder: a one-off text is never handed out twice on the server, but a part of a story can be
+	 * found by everyone (so everyone can collect a whole story): only the parts this finder already has are left out,
+	 * and stories they've started come first.
+	 */
+	static @Nullable Text pick(String kind, Origin from, Random r, @Nullable ServerPlayer finder) {
 		Data d = data();
+		Set<String> have = finder == null ? null : partsOf(finder);
 		double roll = r.nextDouble();
 		Text t = null;
-		if (roll < 0.14) t = piece(kind, from, d, r);
+		if (roll < 0.14) t = piece(kind, from, d, r, have);
 		if (t == null && roll < 0.28) t = family(kind, from, d, r);
 		if (t == null) t = line(kind, from, d, r);
-		if (t == null) t = piece(kind, from, d, r);
+		if (t == null) t = piece(kind, from, d, r, have);
 		if (t == null) t = family(kind, from, d, r);
 		if (t != null) {
 			d.used.add(t.id());
@@ -334,16 +344,32 @@ final class Found {
 		return weighted(pool, weights, total, r);
 	}
 
-	private static @Nullable Text piece(String kind, Origin from, Data d, Random r) {
-		// Stories that already started on this server come first: the parts should find each other
-		Set<String> started = new HashSet<>();
+	/** The story parts ("a:story:part") a player has: held once, or handed to them. */
+	static Set<String> partsOf(ServerPlayer p) {
+		Seen seen = SEEN.get(p);
+		Set<String> out = new HashSet<>();
+		for (var e : seen.parts.entrySet()) for (int part : e.getValue()) out.add("a:" + e.getKey() + ":" + part);
+		for (Find f : seen.finds) if (f.id != null && f.id.startsWith("a:")) out.add(f.id);
+		return out;
+	}
+
+	/** May this part be handed out: without a finder once per server, with one once per finder. */
+	static boolean allowed(Text t, Data d, @Nullable Set<String> have) {
+		return have == null ? !d.used.contains(t.id()) : !have.contains(t.id());
+	}
+
+	private static @Nullable Text piece(String kind, Origin from, Data d, Random r, @Nullable Set<String> have) {
+		// Stories that already started on this server come first: the parts should find each other; the finder's own
+		// stories even more
+		Set<String> started = new HashSet<>(), mine = new HashSet<>();
 		for (String u : d.used) if (u.startsWith("a:")) started.add(u.substring(2, u.lastIndexOf(':')));
+		if (have != null) for (String u : have) mine.add(u.substring(2, u.lastIndexOf(':')));
 		List<Text> pool = new ArrayList<>();
 		List<Double> weights = new ArrayList<>();
 		double total = 0;
 		for (Text t : PIECES) {
-			if (d.used.contains(t.id()) || !fits(t.kinds(), kind) || !from.matches(t.where())) continue;
-			double w = (started.contains(t.story()) ? 3 : 1) * (t.where().isEmpty() ? 1 : 4);
+			if (!allowed(t, d, have) || !fits(t.kinds(), kind) || !from.matches(t.where())) continue;
+			double w = (mine.contains(t.story()) ? 6 : started.contains(t.story()) ? 3 : 1) * (t.where().isEmpty() ? 1 : 4);
 			pool.add(t);
 			weights.add(w);
 			total += w;
@@ -532,7 +558,7 @@ final class Found {
 		if (kind == null || has(s, STAMP)) return;
 		Origin from = new Origin(pending.getStringOr("realm", "overworld"), pending.getStringOr("place", ""), pending.getStringOr("label", "Found"));
 		Random r = new Random(p.getRandom().nextLong() ^ System.nanoTime());
-		Text t = pick(kind, from, r);
+		Text t = pick(kind, from, r, p);
 		if (t == null) return;
 		int day = Chronicle.day(p.level().getServer());
 		write(s, t, from.label(), day, p.getName().getString(), p.level().registryAccess());

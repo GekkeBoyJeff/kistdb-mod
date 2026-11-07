@@ -78,6 +78,72 @@ final class InfoTests {
 				SelfTests.check(Look.fits(eye, dir, at), "and that's on the screen");
 			}
 		});
+		SelfTests.register("info.look-stand", level -> {
+			// An armour stand wearing a story: the card tells all of it, and hangs beside the stand, not in front of it
+			var stand = net.minecraft.world.entity.EntityTypes.ARMOR_STAND.create(level, net.minecraft.world.entity.EntitySpawnReason.COMMAND);
+			SelfTests.check(stand != null, "an armour stand");
+			if (stand == null) return;
+			SelfTests.check(Stand.card(stand, false) == null && !Stand.dressed(stand), "a bare stand: no card");
+			stand.setItemSlot(net.minecraft.world.entity.EquipmentSlot.HEAD, new ItemStack(Items.IRON_HELMET));
+			SelfTests.check(Stand.dressed(stand) && Stand.card(stand, false) == null && Stand.card(stand, true) != null, "plain gear: a card only with everything on");
+			Stand.showcase(stand);
+			Look.Card card = Stand.card(stand, false);
+			SelfTests.check(card != null && card.name().getString().startsWith("✦ ") && card.subtitle().getString().startsWith("4 of "),
+					"a set of one story: " + (card == null ? null : card.name().getString() + " / " + card.subtitle().getString()));
+			if (card != null) {
+				String all = String.join("\n", card.rows().stream().map(r -> r.value().getString()).toList());
+				String first = Stand.text(stand.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.HEAD), 40).get(0);
+				SelfTests.check(all.contains(first) && all.contains("day 3"), "the whole story on the card: " + all);
+				SelfTests.check(card.rows().size() <= Math.max(6, nl.libreria.core.gui.Glyphs.maxPanel - 3), "fits its panel: " + card.rows().size());
+				org.slf4j.LoggerFactory.getLogger("Libreria found").info("STAND-CARD {} rows:\n{}", card.rows().size(), all);
+			}
+			// A sword with a one-off story too: still one card, still fits
+			ItemStack sword = new ItemStack(Items.IRON_SWORD);
+			Found.write(sword, Found.LINES.get(0), "in a dungeon", 7, "Anna", level.registryAccess());
+			stand.setItemSlot(net.minecraft.world.entity.EquipmentSlot.MAINHAND, sword);
+			Look.Card five = Stand.card(stand, false);
+			SelfTests.check(five != null && five.name().getString().equals("Armour stand") && five.rows().size() <= Math.max(6, nl.libreria.core.gui.Glyphs.maxPanel - 3),
+					"five things: " + (five == null ? null : five.subtitle().getString() + ", " + five.rows().size() + " rows"));
+			stand.setInvisible(true);
+			SelfTests.check(Stand.dressed(stand), "an invisible stand wearing something can be looked at");
+			// Placement: a stand 2.5 blocks south of you, looking at it: right of it (west), bottom not in the floor, smaller
+			stand.setPos(0, 0, 2.5);
+			net.minecraft.world.phys.Vec3 eye = new net.minecraft.world.phys.Vec3(0, 1.62, 0);
+			Look.Target t = Stand.target(eye, stand, five, true);
+			SelfTests.check(t.side() == 1 && t.anchor().x < 0 && t.anchor().y > 0 && t.size() <= 1 && t.size() >= 0.3, "beside the stand: " + t.anchor() + " size " + t.size());
+			float[] d = Look.dims(five, true);
+			SelfTests.check(d[0] > 0.5 && d[1] > 0.5, "card size " + d[0] + " x " + d[1]);
+		});
+		SelfTests.register("info.found.collect", level -> {
+			// A part of a story can be found by everyone (once each): a one-off text only once on the server
+			Found.Data d = Found.data();
+			Found.Text part = Found.PIECES.get(1);
+			boolean had = d.used.contains(part.id());
+			d.used.add(part.id());
+			SelfTests.check(!Found.allowed(part, d, null), "without a finder: once per server");
+			SelfTests.check(Found.allowed(part, d, java.util.Set.of()), "someone else can still find the same part");
+			SelfTests.check(!Found.allowed(part, d, java.util.Set.of(part.id())), "but not who has it already");
+			if (!had) d.used.remove(part.id());
+			FakePlayer a = FakePlayer.get(level, new com.mojang.authlib.GameProfile(java.util.UUID.nameUUIDFromBytes("collect-a".getBytes()), "CollectA"));
+			Found.SEEN.get(a).parts.computeIfAbsent(part.story(), k -> new java.util.HashSet<>()).add(part.part());
+			SelfTests.check(Found.partsOf(a).contains(part.id()), "parts held count as had: " + Found.partsOf(a));
+			// Many finds for one finder: never a part twice (the server's list of handed out texts is put back after)
+			java.util.Set<String> before = new java.util.HashSet<>(d.used);
+			java.util.Random r = new java.util.Random(9);
+			java.util.Set<String> parts = new java.util.HashSet<>();
+			int dup = 0;
+			Found.Origin ow = new Found.Origin("overworld", "dungeon", "in a dungeon");
+			for (int i = 0; i < 200; i++) {
+				Found.Text t = Found.pick("chestplate", ow, r, a);
+				if (t == null || t.story() == null) continue;
+				if (!parts.add(t.id()) || part.id().equals(t.id())) dup++;
+				Found.SEEN.get(a).parts.computeIfAbsent(t.story(), k -> new java.util.HashSet<>()).add(t.part());
+			}
+			SelfTests.check(dup == 0 && !parts.isEmpty(), "one finder, " + parts.size() + " parts, " + dup + " twice");
+			Found.SEEN.get(a).parts.clear();
+			d.used.clear();
+			d.used.addAll(before);
+		});
 		SelfTests.register("info.discoveries", level -> {
 			FakePlayer p = FakePlayer.get(level);
 			String mine = "test|disc|mine", theirs = "test|disc|theirs";

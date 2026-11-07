@@ -225,6 +225,16 @@ public final class Screens implements FabricClientGameTest {
 			look(ctx, "tooltip_chest", new BlockPos(x - 2, y, z + 2));
 			look(ctx, "tooltip_cow", new BlockPos(x + 3, y, z - 2));
 			look(ctx, "tooltip_creeper", new BlockPos(x - 3, y, z - 2));
+			// Up close (a block away): the card hangs beside the cow, not through it
+			safe("tooltip_cow_close", () -> {
+				run(server, f("tp @a %d %d %d", x + 3, y, z - 1));
+				ctx.waitTicks(5);
+				ctx.getInput().lookAt(new BlockPos(x + 3, y, z - 2));
+				ctx.waitTicks(16);
+				ctx.takeScreenshot("tooltip_cow_close");
+				run(server, f("tp @a %d %d %d", x, y, z));
+				ctx.waitTicks(5);
+			});
 
 			// Own name tag in third person
 			safe("nameplate", () -> {
@@ -434,8 +444,29 @@ public final class Screens implements FabricClientGameTest {
 					ctx.waitTicks(3);
 					ctx.getInput().lookAt(new BlockPos(x + 1, y, z + 2));
 					ctx.waitTicks(2);
+					String hit = ctx.computeOnClient(mc -> String.valueOf(mc.hitResult == null ? null : mc.hitResult.getType()));
 					key(ctx, "pressKey", ctx.computeOnClient(mc -> mc.options.keyUse));
 					ctx.waitTicks(12);
+					final int cx = x + 1, cy = y, cz = z + 2;
+					String menu = server.computeOnServer(sv -> {
+						String open = player.containerMenu.getClass().getSimpleName();
+						// Not opened by the click (the crosshair missed?): opened as the game does when you click it
+						if (!(player.containerMenu instanceof net.minecraft.world.inventory.ChestMenu)
+								&& player.level().getBlockEntity(new BlockPos(cx, cy, cz)) instanceof net.minecraft.world.MenuProvider mp) player.openMenu(mp);
+						return open + " → " + player.containerMenu.getClass().getSimpleName() + " · " + player.gameMode.getGameModeForPlayer();
+					});
+					ctx.waitTicks(6);
+					String items = server.computeOnServer(sv -> {
+						if (!(player.containerMenu instanceof net.minecraft.world.inventory.ChestMenu m)) return "-";
+						StringBuilder b = new StringBuilder();
+						for (int i = 0; i < m.getContainer().getContainerSize(); i++) {
+							var it = m.getContainer().getItem(i);
+							if (!it.isEmpty()) b.append(i).append('=').append(net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(it.getItem()).getPath())
+									.append(it.get(net.minecraft.core.component.DataComponents.CUSTOM_DATA) == null ? "" : "*").append(' ');
+						}
+						return b.toString();
+					});
+					LOG.info("LIBRERIA-FOUND chest {}: crosshair {}, menu {}, items {}", attempt, hit, menu, items);
 					slot = server.computeOnServer(sv -> {
 						if (!(player.containerMenu instanceof net.minecraft.world.inventory.ChestMenu m)) return -1;
 						for (int i = 0; i < m.getContainer().getContainerSize(); i++) {
@@ -554,6 +585,29 @@ public final class Screens implements FabricClientGameTest {
 				LOG.info("LIBRERIA-FRAMES hidden: {}", hidden);
 				ctx.takeScreenshot("frame_hidden");
 				run(server, "kill @e[type=minecraft:item_frame]", f("fill %d %d %d %d %d %d minecraft:air", x - 2, y, z + 3, x + 2, y + 2, z + 3));
+				ctx.getInput().lookAt(0, 0);
+			});
+			// A stand wearing four parts of one story: looking at it shows the whole story beside it, from a few steps and
+			// from up close
+			safe("stand_lore", () -> {
+				run(server, "kill @e[type=minecraft:armor_stand]", f("summon minecraft:armor_stand %d %d %d {Rotation:[180f,0f],ShowArms:1b}", x, y, z + 3));
+				ctx.waitTicks(5);
+				server.runOnServer(sv -> {
+					for (var st : ((ServerLevel) player.level()).getEntitiesOfClass(net.minecraft.world.entity.decoration.ArmorStand.class,
+							player.getBoundingBox().inflate(8))) nl.libreria.info.InfoMod.debugStand(st);
+				});
+				ctx.waitTicks(10);
+				ctx.getInput().lookAt(new BlockPos(x, y + 1, z + 3));
+				ctx.waitTicks(16);
+				noToasts(ctx);
+				ctx.takeScreenshot("stand_lore");
+				run(server, f("tp @a %d %d %d", x, y, z + 2));
+				ctx.waitTicks(5);
+				ctx.getInput().lookAt(new BlockPos(x, y + 1, z + 3));
+				ctx.waitTicks(16);
+				ctx.takeScreenshot("stand_lore_close");
+				run(server, "kill @e[type=minecraft:armor_stand]", f("tp @a %d %d %d", x, y, z));
+				ctx.waitTicks(5);
 				ctx.getInput().lookAt(0, 0);
 			});
 
