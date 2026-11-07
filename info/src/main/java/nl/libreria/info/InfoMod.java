@@ -74,7 +74,7 @@ public final class InfoMod implements ModInitializer {
 			});
 			return s;
 		};
-		var sword = make.apply(Items.DIAMOND_SWORD, new Object[] {"sharpness", 5, "fire_aspect", 2, "looting", 3, "unbreaking", 3, "mending", 1});
+		var sword = make.apply(Items.IRON_SWORD, new Object[] {"sharpness", 5, "fire_aspect", 2, "looting", 3, "unbreaking", 3, "mending", 1});
 		Found.Text piece = Found.PIECES.stream().filter(t -> "lantern".equals(t.story()) && t.part() == 1).findFirst().orElse(null);
 		if (piece != null) {
 			Found.write(sword, piece, "in a shipwreck", 312, p.getName().getString(), access);
@@ -83,7 +83,7 @@ public final class InfoMod implements ModInitializer {
 		// a second part of the same story, as if it was found earlier and given away
 		Found.Text third = Found.PIECES.stream().filter(t -> "lantern".equals(t.story()) && t.part() == 3).findFirst().orElse(null);
 		if (third != null) {
-			var axe = new net.minecraft.world.item.ItemStack(Items.GOLDEN_AXE);
+			var axe = new net.minecraft.world.item.ItemStack(Items.IRON_AXE);
 			Found.write(axe, third, "in a village", 330, p.getName().getString(), access);
 			Found.remember(p, axe, third, "in a village", 330);
 			Found.saw(p, "lantern:3", axe);

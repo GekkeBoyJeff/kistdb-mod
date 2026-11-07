@@ -41,8 +41,12 @@ public final class NetworkTest implements FabricClientGameTest {
 				Screens.shaders(ctx, server, player);
 				Mockups.all(ctx, server, player);
 			} else {
-				if (Screens.lostAfter == null) Screens.scene(withoutScreenshots(ctx), server, player);
+				// The whole walk with its screenshots (once, here: on a real connection)
+				ctx.getInput().resizeWindow(1280, 720);
+				boolean singleplayerToo = "1".equals(System.getenv("LIBRERIA_SINGLEPLAYER"));
+				if (Screens.lostAfter == null) Screens.scene(singleplayerToo ? withoutScreenshots(ctx) : ctx, server, player);
 				LOG.info("LIBRERIA-NETWORK {}", Screens.lostAfter == null ? "OK: still connected after the whole walk" : "DISCONNECTED after " + Screens.lostAfter);
+				if (!singleplayerToo) LOG.info("LIBRERIA-SCREENSHOTS DONE");
 			}
 			if (connection instanceof AutoCloseable c) c.close();
 		} catch (Throwable t) {

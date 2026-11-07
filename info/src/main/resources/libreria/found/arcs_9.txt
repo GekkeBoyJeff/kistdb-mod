@@ -1,0 +1,69 @@
+# Stories, ninth book. Format as in arcs_1.txt.
+
+@ spearmaidens | The Four Spears of the Shallows
+stone_spear | Ninna's Spear | Hear now of the four sisters of the shallows, who fished with spears and feared no tide. The youngest, Ninna, bore stone, for she said a spear should be as patient as the sea floor.
+copper_spear | Ada's Spear | The second, Ada, bore copper, which greeneth in the salt like weed upon a wreck. She said that a spear should belong to the sea, and the sea should know its own.
+iron_spear | Ylva's Spear | The third, Ylva, bore iron, and she alone of the four was ever wounded, guarding her sisters from the drowned on the night the moon went dark. She spoke of it to no one.
+diamond_spear | Hedda's Spear | The eldest, Hedda, bore diamond, a gift from a lord who loved her and was refused. When the great guardian rose from the deep, it was Hedda who stood before it. She did not come back up.
+iron_spear | The Spear Left on the Shore | Three sisters came home. They drove Ylva's spear into the sand where Hedda went down, and every year, on the dark of the moon, they sit by it and say her name to the water.
+
+@ charlie | Chainmail Charlie, Actor
+chainmail_helmet | The Helm of Many Roles | Charlie the travelling actor played every knight in every play in every village. He owned exactly one helmet. "Costume," he said, "is a state of mind."
+chainmail_chestplate | The Coat That Jingled | It jingled during every dramatic pause. Audiences thought it was intentional. Critics called it "a bold choice". Charlie took the credit and the jingle stayed in every show.
+chainmail_leggings | The Understudy's Leggings | Charlie's understudy wore these the one night Charlie was ill. The understudy was brilliant. Charlie was never ill again. Out of principle.
+chainmail_boots | The Final Bow | His last performance was in a village that had just survived a raid. Nobody had laughed in weeks. He played the clumsiest knight in history, and the whole village laughed until morning.
+
+@ lastletter | The Letters of Private Gale
+leather_helmet | The First Letter | "Dear Mum, they gave me a helmet that's too big, so it falls over my eyes when I salute. Sergeant says I'll grow into it. I've told him I'm done growing. He says that's what he's afraid of."
+leather_chestplate | The Second Letter | "Dear Mum, we march all day and sing so we don't think about the marching. I'm learning all the songs. When I'm home I'll sing them at you until you beg me to stop. Love, Tobin."
+leather_leggings | The Third Letter | "Dear Mum, it's quiet tonight. The others are asleep. I keep your letter in my trousers pocket because it's the only pocket with a button. It's soft now from reading."
+leather_boots | The Fourth Letter | "Dear Mum, tomorrow we go into the pass. I'm not scared, mostly. If I'm late writing, it's because there's no post up there. Don't worry. Make the pie. I'll be home for the pie."
+iron_sword | The Letter That Came Back | A sword, sent home with a short note from the Sergeant: "He sang the whole way up. He was a good lad. He was not done growing." She baked the pie anyway, every year, on the day.
+
+@ ostra | Granny Ostra's Three Hoes
+wooden_hoe@archaeology | The Wooden One | Granny Ostra's grandmother's hoe, dug up from the old garden after the village moved down the valley. Ostra was a girl then. She cried for the garden. Her grandmother handed her this and said: "Then start a new one."
+golden_hoe@ruined_portal | The Golden One | Ostra's husband brought it back from his travels, a hoe of solid gold, completely useless for farming. She used it every day for forty years. Out of stubbornness and love, in about equal amounts.
+diamond_hoe | The Diamond One | Her granddaughter's, bought with her first wages and tested in the old woman's garden. Granny Ostra looked at it, looked at the girl, and said: "Fancy. Now start a new garden." So she did.
+
+@ ashmoor | The Rival Archers of Ashmoor
+bow | Elric's Bow | Elric and Edda of Ashmoor were the best archers in the valley and had not said a kind word to each other since they were six, over a dispute about a rabbit.
+bow | Edda's Bow | Every year at the summer fair they shot for the silver apple, and every year they tied, because each of them, privately, missed the last shot on purpose. Neither knew the other did it.
+crossbow | The Judge's Crossbow | The fair judge, who had judged the contest for thirty years, finally fired a bolt into the target between them and said: "For goodness' sake, just get married." They did. They argued about the rabbit at the wedding.
+crossbow | The Children's Crossbow | Their daughter refused to learn the bow, out of spite, and became the best crossbow shot in the north. At the fair she beat both of them in one round. They have never been prouder or more annoyed.
+
+@ notdiamond | The Fable of the Greedy Delver
+diamond_pickaxe | The Pick of Wanting | There was once a delver who found a diamond, and made of it a pick, and with the pick dug for more diamonds, for one is never enough to a delver who has one.
+diamond_shovel | The Shovel of More | With his diamonds he made a shovel, to dig faster, so as to find more diamonds, to make more tools, to dig faster still. He forgot what the diamonds were for. He forgot to eat lunch.
+diamond_axe | The Axe of Alone | He cut down the trees around his house, so that no one could see his diamonds. Then there was no one to see them at all. He showed them to his own reflection. It was not impressed.
+diamond_sword | The Sword of Enough | At the end he made a sword, to guard his diamonds, and sat with it at the bottom of his mine, guarding, until he was old. What is the moral? Have lunch. Show your friends your diamonds. Go outside.
+
+@ apprentice | The Apprentice's Pieces
+iron_sword | Practice Piece One | Wenna's first sword. Her master looked at it for a long time and said, "Well, it is certainly sharp at one end." It was, in fact, sharp at both ends. She learned to hold it carefully.
+iron_axe | Practice Piece Two | "The head's on crooked," said her master. "It's on at a jaunty angle," said Wenna. He laughed so hard he burned his beard on the forge. He kept the axe. It chops wood just fine.
+iron_pickaxe | Practice Piece Three | Her first pick that the miners actually wanted to buy. She sold it for three emeralds and then followed the miner to the mountain to watch it work. He let her watch for an hour.
+iron_shovel | Practice Piece Four | She hid her mark on the inside of the socket, a tiny bird, where nobody would look. Her master found it at once. He said nothing. He added his own mark next to hers, an even tinier bird.
+iron_spear | Her Master's Piece | Made the year her master's hands got too shaky for the hammer. She made it to his design while he talked her through every strike. It's the best thing either of them ever made.
+
+@ ysolde | Queen Ysolde of the Ember Throne
+golden_helmet@nether | The Ember Crown | In the age before the bastions fell, there reigned in the deep of the Nether a queen of the overworld, Ysolde, who had come through fire for love and found that love had not waited.
+golden_chestplate@nether | The Mourning Plate | She wore this gold so that the piglins would bow, and they bowed, and she sat upon a throne of blackstone and ruled a kingdom that was not hers, because the way back had closed behind her.
+golden_leggings@nether | The Throne-Greaves | Each year she sent a messenger through the last portal to ask whether her love yet lived. Each year the messenger came back with nothing. Each year she sent him again.
+golden_boots@nether | The Last Walk of the Queen | At the end she walked to the portal herself, through the lava fields, in these. The portal lit for her, the first time in fifty years. What she found on the other side, no song tells.
+golden_sword@nether | The Sword of Ysolde | It is said she left her sword on the throne, so that whoever came after would know a queen had been there, and had been brave, and had gone home.
+
+@ mapson | The Cartographer's Son
+leather_boots | Bram's Boots | Bram Vorn was nine when his mother, Ilse, the Pale Cartographer, flew off to map the world from above. He waited a year. Then he put on his good boots and went to find her.
+leather_chestplate | Bram's Coat | He followed her maps, every pin hole, every ruin. In every village someone remembered her: a tall woman with ink on her fingers, who asked about the shape of the coast.
+fishing_rod | The Rod for Lonely Nights | He fished when he was lonely, because she used to. He was not good at it. Once, he caught a bottle with a scrap of map inside, in his mother's hand. He keeps it in this coat.
+bow | Bram's Bow | He grew up on the road. He learned the bow, the sea, the stars. In time he could read a coastline like a letter. People started asking him about the shape of the coast.
+iron_shovel | The Spade at the Edge | He found her last map at the edge of the world, under a cairn, finished at last. On the back: "For Bram, when he comes. I knew you would. Draw the next one with me." He's still drawing.
+
+@ tridentkings | The Three Kings Beneath
+trident | The King of the Kelp | Three kings rule the sea beneath the sea, and the first is the King of the Kelp, who is slow and green and old, and who bore this, and who has forgotten everything but the tide.
+trident | The King of the Coral | The second is the King of the Coral, bright and proud, who wanted the whole reef for a crown. He bore this. The reef is dying now, grey and quiet, and the King sits on it alone.
+trident | The King of the Deep | The third is the King of the Deep, whom nobody has seen, whose trident this was before a drowned dragged it up into the light. It is very cold. It hums. Do not throw it at night.
+
+@ flintkeepers | The Keepers of the Small Flame
+flint_and_steel | The First Keeper's Flint | Before the torches, before the lanterns, the villages had the Keepers, who walked the roads with flint and steel and lit the evening fires in every hearth that had gone cold.
+flint_and_steel | The Keeper Who Stayed | One Keeper stopped in a village where an old man lived alone, and lit his fire, and stayed to talk, and came back the next night, and the next, until the old man died warm.
+flint_and_steel | The Last Keeper's Flint | The Keepers are gone. Everybody has torches. But in some villages, on the longest night, someone still walks door to door with a flint, and asks: "Is your fire lit? Do you want company?"

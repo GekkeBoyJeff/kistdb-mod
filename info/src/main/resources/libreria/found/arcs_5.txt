@@ -1,79 +1,79 @@
 # Sets with a wink: heroes from the games a lot of us grew up with. Never named.
 
 @ knee | The Guard With the Bad Knee
-helmet | The Gate Guard's Helm | He was an adventurer like you, once. Every traveller who passed his gate heard about it. Every single one.
-chestplate | The Gate Guard's Plate | He wore it to guard the same gate for thirty years. He told everyone about the dragons. Everyone had heard about the dragons.
-leggings | The Bad Knee | The left knee is patched, padded and reinforced. You know why. He'll tell you why. He'll tell you twice.
-boots | The Patrol Boots | Worn walking back and forth in front of the same gate, three steps left, three steps right, for thirty years. The boots know the way by heart.
+iron_helmet | The Gate Guard's Helm | He was an adventurer like you, once. Every traveller who passed his gate heard about it. Every single one.
+iron_chestplate | The Gate Guard's Plate | He wore it to guard the same gate for thirty years. He told everyone about the dragons. Everyone had heard about the dragons.
+iron_leggings | The Bad Knee | The left knee is patched, padded and reinforced. You know why. He'll tell you why. He'll tell you twice.
+iron_boots | The Patrol Boots | Worn walking back and forth in front of the same gate, three steps left, three steps right, for thirty years. The boots know the way by heart.
 bow | The One That Got Him | Not his. The bow of the bandit who shot the famous arrow. He kept it. Out of respect, he says. Out of spite, everyone knows.
 shield | The Sweet Roll Shield | He used it to guard his lunch. Someone stole his sweet roll anyway. He never found out who. He's still asking.
 
 @ greenhero | The Hero in Green Who Never Spoke
-sword | The Old Man's Gift | Given to a boy in a cave by an old man who said it was dangerous to go alone. The boy never said a word. He just nodded and took it.
+iron_sword | The Old Man's Gift | Given to a boy in a cave by an old man who said it was dangerous to go alone. The boy never said a word. He just nodded and took it.
 shield | The Hero's Shield | The boy blocked everything with this: arrows, fireballs, a chicken he'd hit once by accident and the very angry flock that followed.
 bow | The Hero's Bow | He used it to hit switches nobody else could reach. Every switch opened a door. Every door had a key behind it. He was very good at keys.
-boots | The Iron Boots | So heavy he walked along the bottom of lakes in them. He said nothing about it. He never said anything about anything.
-helmet | The Green Cap | Not technically a cap. He wore it anyway. Somewhere, a fairy is still shouting at him to listen.
+iron_boots | The Iron Boots | So heavy he walked along the bottom of lakes in them. He said nothing about it. He never said anything about anything.
+leather_helmet | The Green Cap | Not technically a cap. He wore it anyway. Somewhere, a fairy is still shouting at him to listen.
 
 @ testsubject | The Test Subject
-boots | The Long-Fall Boots | Strange springs at the heels. You can fall from anywhere in these and walk away. They do not help with getting cake.
-helmet | The Test Visor | The visor has a crack and a sticker: "Testing is mandatory. Cake is not guaranteed."
-chestplate | The Test Suit | Orange and white, so the cameras could always find her. She hid from the cameras in every vent anyway.
+iron_boots | The Long-Fall Boots | Strange springs at the heels. You can fall from anywhere in these and walk away. They do not help with getting cake.
+iron_helmet | The Test Visor | The visor has a crack and a sticker: "Testing is mandatory. Cake is not guaranteed."
+leather_chestplate | The Test Suit | Orange and white, so the cameras could always find her. She hid from the cameras in every vent anyway.
 shield | The Companion Shield | It has a little heart painted on it. She carried it through every test and then had to leave it behind. She still thinks about it.
-pickaxe | The Way Out | She dug her way out of the testing facility with this. The facility kept saying it was proud of her. It was lying.
+iron_pickaxe | The Way Out | She dug her way out of the testing facility with this. The facility kept saying it was proud of her. It was lying.
 
 @ greensoldier | The Soldier Who Never Took His Helmet Off
-helmet | The Mirror Visor | Gold-tinted. Nobody ever saw the face behind it. When asked, the soldier only said he'd finish the fight.
-chestplate | The Green Plate | Heavy, green and unbeatable. The soldier wore it for so long that some say there's nothing inside anymore.
-sword | The Glowing Blade | It shouldn't be possible to make a blade that glows like this from iron. He didn't ask questions. He just held the button.
+golden_helmet | The Mirror Visor | Gold-tinted. Nobody ever saw the face behind it. When asked, the soldier only said he'd finish the fight.
+iron_chestplate | The Green Plate | Heavy, green and unbeatable. The soldier wore it for so long that some say there's nothing inside anymore.
+diamond_sword | The Glowing Blade | It shouldn't be possible to make a blade that glows like this from iron. He didn't ask questions. He just held the button.
 crossbow | The Sidearm | Fires faster than it should and hits harder than it should. He loved it more than any other weapon. Everyone did.
-boots | Wake Me When You Need Me | Left neatly beside a sleeping capsule. The soldier went to sleep in it. Nobody has woken him up yet.
+iron_boots | Wake Me When You Need Me | Left neatly beside a sleeping capsule. The soldier went to sleep in it. Nobody has woken him up yet.
 
 @ ashen | The Ashen One
-sword | The Unkindled Blade | Its owner died more times than anyone can count and stood back up every time, a little more tired, a little more stubborn.
+iron_sword | The Unkindled Blade | Its owner died more times than anyone can count and stood back up every time, a little more tired, a little more stubborn.
 shield | The Sun Shield | Painted with a sun. The owner raised both arms to the sun every time she won. She won a lot, eventually.
-helmet | The Ashen Helm | Covered in soot from a bonfire that never goes out. She sat by it after every death and stared at the flames.
-chestplate | The Rolling Plate | Light enough to roll in. She rolled through everything: fires, swords, a giant's foot and once, by accident, off a bridge.
-boots | The Messages | Scratched into the soles, in a hundred handwritings: "try jumping", "treasure ahead", "be wary of right". Don't trust any of them.
+iron_helmet | The Ashen Helm | Covered in soot from a bonfire that never goes out. She sat by it after every death and stared at the flames.
+iron_chestplate | The Rolling Plate | Light enough to roll in. She rolled through everything: fires, swords, a giant's foot and once, by accident, off a bridge.
+leather_boots | The Messages | Scratched into the soles, in a hundred handwritings: "try jumping", "treasure ahead", "be wary of right". Don't trust any of them.
 
 @ vaultdweller | The Wanderer From the Vault
-helmet | The Vault Helm | Its owner came out of a vault under the ground after two hundred years and found the world had moved on without him.
-chestplate | The Jumpsuit Plate | Blue and yellow, with a big number on the back. He never found out what the number meant. Neither will you.
-boots | The Wasteland Boots | Walked across a whole ruined world collecting bottle caps, which turned out to be money. Don't ask. He didn't.
+iron_helmet | The Vault Helm | Its owner came out of a vault under the ground after two hundred years and found the world had moved on without him.
+leather_chestplate | The Jumpsuit Plate | Blue and yellow, with a big number on the back. He never found out what the number meant. Neither will you.
+leather_boots | The Wasteland Boots | Walked across a whole ruined world collecting bottle caps, which turned out to be money. Don't ask. He didn't.
 crossbow | The Pip | Not a pip-anything. A crossbow with a tiny screen glued on. He said it helped. It did not help.
 shield | War Never Changes | Scratched on the front in tiny letters: "War. War never changes." Under it, in bigger letters: "but the snacks do".
 
 @ hood | The Hooded One
-helmet | The White Hood | Its owner hid in plain sight by standing next to three villagers. It worked every time. Nobody understands why.
-boots | The Leap of Faith | She jumped from the highest church in the land into a cart of hay. The hay held. She never thanked the hay.
-sword | The Hidden Blade | Hidden in her sleeve. She had to give up a finger for it, the story goes. Read the rest of the stories. She had all ten.
-chestplate | The Climbing Plate | She climbed every tower in every city to see the view. The view was a map. It was the same map. She climbed anyway.
-leggings | The Rooftop Runner | Worn across a thousand rooftops. She never once used a door. Doors were for other people.
+leather_helmet | The White Hood | Its owner hid in plain sight by standing next to three villagers. It worked every time. Nobody understands why.
+leather_boots | The Leap of Faith | She jumped from the highest church in the land into a cart of hay. The hay held. She never thanked the hay.
+iron_sword | The Hidden Blade | Hidden in her sleeve. She had to give up a finger for it, the story goes. Read the rest of the stories. She had all ten.
+leather_chestplate | The Climbing Plate | She climbed every tower in every city to see the view. The view was a map. It was the same map. She climbed anyway.
+leather_leggings | The Rooftop Runner | Worn across a thousand rooftops. She never once used a door. Doors were for other people.
 
 @ witcher | The Monster Hunter of the Wolf School
-sword | The Steel Sword | For people. Its owner said "hmm" before every fight and after. That was most of his conversation.
-axe | The Silver One | It was meant to be a silver sword, for monsters. The smith ran out of silver and made an axe. The hunter made it work.
-helmet | The Wolf Medallion Helm | It vibrates when something magic is near. It vibrates near everything. He wore it anyway. "Hmm," he said.
-chestplate | The Hunter's Coat | Stitched and restitched after every contract. The contracts paid in coin. He gave most of it to a bard who sang about him badly.
-boots | Wind's Howling | Worn on a thousand roads, always walking into the wind. "Wind's howling," he'd say. It was always howling.
+iron_sword | The Steel Sword | For people. Its owner said "hmm" before every fight and after. That was most of his conversation.
+iron_axe | The Silver One | It was meant to be a silver sword, for monsters. The smith ran out of silver and made an axe. The hunter made it work.
+iron_helmet | The Wolf Medallion Helm | It vibrates when something magic is near. It vibrates near everything. He wore it anyway. "Hmm," he said.
+leather_chestplate | The Hunter's Coat | Stitched and restitched after every contract. The contracts paid in coin. He gave most of it to a bard who sang about him badly.
+leather_boots | Wind's Howling | Worn on a thousand roads, always walking into the wind. "Wind's howling," he'd say. It was always howling.
 
 @ plan | The Gang's Last Plan
 crossbow | The Leader's Revolver | Not a revolver; there are no revolvers here. A crossbow its owner called his revolver. He had a plan. He always had a plan.
-helmet | The Wide Hat | An iron helmet with a brim welded on, for a cowboy who never saw a cow. He said one more job, then the islands. He meant it every time.
-boots | The Clinking Spurs | Clink clink clink. You could hear him coming across the whole camp. Nobody ever had to ask where he was.
-chestplate | The Vest | Its owner was loyal to the gang until the gang wasn't loyal to him. The vest has a hole in the back that tells that story.
-rod | The Fishing Trip | The only quiet day the gang ever had, out on a lake with a rod. He caught nothing. He said it was the best day of his life.
+leather_helmet | The Wide Hat | An iron helmet with a brim welded on, for a cowboy who never saw a cow. He said one more job, then the islands. He meant it every time.
+leather_boots | The Clinking Spurs | Clink clink clink. You could hear him coming across the whole camp. Nobody ever had to ask where he was.
+leather_chestplate | The Vest | Its owner was loyal to the gang until the gang wasn't loyal to him. The vest has a hole in the back that tells that story.
+fishing_rod | The Fishing Trip | The only quiet day the gang ever had, out on a lake with a rod. He caught nothing. He said it was the best day of his life.
 
 @ leeroy | The Raider Who Shouted His Name
-helmet | The Raid Helm | The party spent twenty minutes making a perfect plan. He came back from the kitchen, shouted his own name and ran in.
-chestplate | The Raid Plate | Covered in scorch marks from a nest of very small, very angry dragons. He survived for nine seconds. They were the best nine seconds of his life.
-sword | The Charge Blade | He charged with it, shouting. The rest of the party did not charge. They watched. Then they charged, because what else could they do.
+iron_helmet | The Raid Helm | The party spent twenty minutes making a perfect plan. He came back from the kitchen, shouted his own name and ran in.
+iron_chestplate | The Raid Plate | Covered in scorch marks from a nest of very small, very angry dragons. He survived for nine seconds. They were the best nine seconds of his life.
+iron_sword | The Charge Blade | He charged with it, shouting. The rest of the party did not charge. They watched. Then they charged, because what else could they do.
 shield | The Plan Shield | It has the plan painted on the back, in detail, with arrows. Nobody ever read it. Least of all him.
-boots | At Least I Have Chicken | Worn on the run back from the kitchen. He had chicken. That was the only part of the plan that worked.
+iron_boots | At Least I Have Chicken | Worn on the run back from the kitchen. He had chicken. That was the only part of the plan that worked.
 
 @ crowbar | The Scientist With the Crowbar
-axe | The Crowbar | Not a crowbar. An axe its owner used as a crowbar, because there are no crowbars here. He was a scientist. He solved everything with it anyway.
-chestplate | The Hazard Suit | Orange, padded, full of beeps. It told him his health every time he got hurt, which was constantly.
-helmet | The Glasses Helm | A helmet with a pair of glasses scratched on the front. He never said a word, not once, in two whole adventures.
-boots | Episode Two | The second part of his story ended on a terrible cliffhanger. He walked away from it in these boots.
-leggings | Episode Three | You found it. This part was never supposed to exist. Please tell no one. The rest of the world has been waiting for it for a very long time.
+iron_axe | The Crowbar | Not a crowbar. An axe its owner used as a crowbar, because there are no crowbars here. He was a scientist. He solved everything with it anyway.
+copper_chestplate | The Hazard Suit | Orange, padded, full of beeps. It told him his health every time he got hurt, which was constantly.
+leather_helmet | The Glasses Helm | A helmet with a pair of glasses scratched on the front. He never said a word, not once, in two whole adventures.
+copper_boots | Episode Two | The second part of his story ended on a terrible cliffhanger. He walked away from it in these boots.
+copper_leggings | Episode Three | You found it. This part was never supposed to exist. Please tell no one. The rest of the world has been waiting for it for a very long time.

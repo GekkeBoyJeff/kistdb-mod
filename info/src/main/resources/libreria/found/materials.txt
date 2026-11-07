@@ -1,0 +1,92 @@
+# Texts about one exact kind of thing ("golden_boots", or several: "golden_helmet,golden_boots"): what being made of
+# gold, copper, chain, leather, stone or wood is like. These come first for those items. Format as in any_1.txt.
+
+# ---------------------------------------------------------------- gold
+golden_helmet,golden_chestplate,golden_leggings,golden_boots|Gold armour: it stops an arrow about as well as a strongly worded letter. But piglins will hold the door for you.
+golden_helmet|A golden helmet. Ask any piglin: this is the height of fashion. Ask anyone else: this is a very shiny bucket.
+golden_helmet|It was a king's, or a fool's, or a king who was a fool. The dent in the back suggests the last one.
+golden_helmet|Somebody wore this to a bastion and walked out again. That doesn't happen often. Wear it with that kind of luck.
+golden_chestplate|Soft gold, scratched all over by piglin hands that wanted to touch it. They aren't very good at not touching things.
+golden_chestplate|Polished until you can see your face in it. Your face looks worried. That's the bastion's fault, not the plate's.
+golden_leggings|Golden trousers. Nobody has ever worn golden trousers quietly. Nobody has ever worn them modestly either.
+golden_leggings|The piglins argued about who got to keep these for three days. In the end they agreed: nobody. They threw them in a chest out of spite.
+golden_boots|Golden boots: they make you walk taller, slower and much louder, like a very rich duck.
+golden_boots|Walked out of the Nether on their own, it seems. Nobody was in them. The piglins say they "wanted to see the sky". Piglins say a lot of things.
+golden_sword|A golden sword. It breaks if you look at it wrong, so look at it right. Look at it with love. It might last a week.
+golden_sword|Piglins carry these for fear of being mistaken for someone poor. It works. Nobody holding a golden sword has ever been mistaken for someone sensible.
+golden_sword|Taken from a zombified piglin who had carried it for a hundred years, forgetting why, but never once letting go.
+golden_axe|A golden axe. Good for chopping exactly one tree, majestically. Then it's a golden stick.
+golden_axe|The brute who carried this had a name. Something like Grub, or Gruff, or Graaaagh. He was very proud of all three.
+golden_pickaxe|Fast as anything and soft as butter. It digs like a rabbit in a hurry and wears out like one too.
+golden_pickaxe|Somebody mined gold with a golden pickaxe and made another golden pickaxe. Then another. The economy of it does not bear thinking about.
+golden_shovel|A golden shovel, for digging up the money you buried with the other golden shovel.
+golden_hoe|A golden hoe. The most expensive way ever invented of planting potatoes.
+golden_hoe|Found by a portal, still covered in the soil of a farm that didn't exist yet. Don't think about that too much.
+
+# ---------------------------------------------------------------- diamond
+diamond_helmet,diamond_chestplate,diamond_leggings,diamond_boots|Diamond armour, the kind people dream of in their first night in a dirt hut. Someone woke up from that dream. Now it's yours.
+diamond_helmet|Whoever had this didn't need it any more, which, with a diamond helmet, is a sentence that should worry you a little.
+diamond_helmet|The visor has a tiny scratch where a skeleton's arrow almost found its way in. Almost is a big word in a diamond helmet.
+diamond_chestplate|They say diamond armour makes you brave. It doesn't. It makes you stupid in a very well-protected way.
+diamond_chestplate|Heavy, bright and cold. Its last owner used to tap it twice before every fight, for luck. It worked every time but one.
+diamond_leggings|Diamond leggings. Every step sounds like money. Every crouch sounds like a lot of money.
+diamond_boots|Diamond boots: proof that someone, somewhere, had more diamonds than sense, and put them on their feet.
+diamond_boots|Someone walked a very long way in these, and never once got a blister, and never once stopped bragging about it.
+diamond_sword|A diamond sword. It's the first thing everyone makes, and the last thing everyone hands back.
+diamond_sword|The edge has never been sharpened. It has never needed to be. Its owners always assumed someone else had done it.
+diamond_pickaxe|A diamond pickaxe. It has mined more diamonds than it's made of. That's what we call a good investment.
+diamond_pickaxe|Obsidian dust in the grooves. Somebody built a portal with this, and went through, and didn't take it along. Bold.
+diamond_shovel|A diamond shovel. For when you absolutely, definitely, must dig through gravel with style.
+diamond_axe|A diamond axe. The trees whisper about it at night. The trees have good reason.
+diamond_hoe|A diamond hoe. A farmer who could afford a diamond hoe should probably have hired a farmer.
+diamond_spear|A diamond spear. Long, sharp, and so precious that most people who own one never dare to throw it.
+
+# ---------------------------------------------------------------- copper
+copper_chestplate,copper_leggings,copper_boots|Copper armour: shiny in the morning, brown by lunch, green by supper, and it's done its best at every one of them.
+copper_chestplate|It has gone green in the shape of a handprint, where someone kept their hand on their heart for a long time.
+copper_leggings|They squeak a little in the rain. Copper doesn't like rain. Copper doesn't like most things. It puts up with them.
+copper_boots|Green to the ankle. These boots have walked through enough rain to grow their own little forest of rust.
+copper_sword|A copper sword. Cheap, cheerful and absolutely convinced it's as good as an iron one. Let it believe.
+copper_axe|Copper axe: chops wood, turns green, chops more wood, stays green. A simple life. An honest one.
+copper_spear|A copper spear, a bit bent at the tip from a fish that fought harder than anyone expected.
+
+# ---------------------------------------------------------------- chainmail
+chainmail_helmet,chainmail_chestplate,chainmail_leggings,chainmail_boots|Chainmail. Nobody can make it, nobody knows where it comes from, and everybody who wears it says the same thing: draughty.
+chainmail_helmet|Chain on your head: keeps the arrows out and lets the breeze in. The breeze has never been grateful.
+chainmail_chestplate|A thousand little rings, and every one of them has a story. Most of the stories are "I held on".
+chainmail_chestplate|Its last owner said chainmail was like being hugged by a very cold, very loyal fishing net.
+chainmail_leggings|Chain leggings. They jingle when you sneak, which is a lesson in itself.
+chainmail_boots|Chainmail boots: they let in exactly as much water as there is outside, which is fair.
+
+# ---------------------------------------------------------------- leather
+leather_helmet,leather_chestplate,leather_leggings,leather_boots|Leather: soft, warm and a little bit cow. It won't stop much, but it'll stop the cold, and sometimes that's what matters.
+leather_helmet|A leather cap, shaped by years of one particular head. It fits that head perfectly. It fits yours with a little patience.
+leather_helmet|Smells of rain, hay and somebody's shampoo. The shampoo smells of apples. It was a good head.
+leather_chestplate|A leather tunic, patched at both elbows. Somebody leaned on fences a lot, and watched things grow.
+leather_chestplate|The leather has gone soft as a glove from years of wear. Its owner put it on every morning like saying good morning.
+leather_leggings|Leather trousers, worn through at the knees by somebody who knelt a lot: to plant, to pray, or to look under beds.
+leather_boots|Leather boots, broken in by a long life of walking to the same places: the well, the fields, the pub.
+leather_boots|There is a pebble in the left boot. There has always been a pebble in the left boot. Leave it. It's family.
+leather_boots|Dyed red once, faded pink now. Its owner insisted they were still red. Nobody argued with her.
+
+# ---------------------------------------------------------------- stone and wood
+stone_sword|A stone sword. Blunt, heavy, honest. Wither skeletons carry them because nobody ever told them about iron.
+stone_sword|Charred black, still warm. It was carried a long time by something that never put it down, not even to rest.
+stone_axe|A stone axe. The first tool anyone was ever proud of. Somebody was proud of this one.
+stone_pickaxe|A stone pickaxe: the step after wood and before iron, the bit of the story nobody tells, where most of the work gets done.
+stone_spear|A stone spear, bound with old string. Older than the village that lost it, and the village was very old.
+wooden_axe|A wooden axe. Made of the very thing it chops, which is either poetry or a cry for help.
+wooden_pickaxe|A wooden pickaxe: the first tool in every story. It has never broken more than a few blocks. It started everything.
+wooden_hoe|A wooden hoe, worn smooth by the sand. Somebody planted wheat with this before the village had a name.
+
+# ---------------------------------------------------------------- iron
+iron_helmet,iron_chestplate,iron_leggings,iron_boots|Iron: not shiny, not special, never fashionable. It has saved more lives than all the diamonds in the world.
+iron_helmet|An iron helmet with a little dent at the front, where its owner always walked into the same low doorway.
+iron_chestplate|Plain iron, hammered by a village smith who signed every piece with a thumbprint pressed into the hot metal.
+iron_leggings|Iron leggings. Heavy, cold in the morning, warm by noon. They have walked a guard's path ten thousand times.
+iron_boots|Iron boots. Clank, clank, clank. Every iron golem in the village turns to look. They think you're one of them.
+iron_sword|An iron sword. Not legendary, not cursed, not named. It just did its job, every day, for somebody who needed it.
+iron_axe|An iron axe, the vindicators' favourite. Every one of them shouts the same name when they swing it. Nobody knows who Johnny is.
+iron_pickaxe|An iron pickaxe, the kind every miner has. It found the first diamonds of somebody's life. Somebody remembers this pickaxe forever.
+iron_shovel|An iron shovel, taken off a zombie. It had been digging, slowly, at nothing, for a long time. Old habits.
+iron_spear|An iron spear: the soldier's friend, the fisher's tool, the most reliable stick ever made.

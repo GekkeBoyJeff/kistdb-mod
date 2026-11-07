@@ -46,7 +46,10 @@ final class Stand {
 		List<ItemStack> told = new ArrayList<>();
 		for (EquipmentSlot slot : SLOTS) {
 			ItemStack s = st.getItemBySlot(slot);
-			if (!s.isEmpty() && told(s)) told.add(s);
+			if (s.isEmpty()) continue;
+			// (a story part from before stories were tied to their items gets its right text first)
+			if (Found.has(s, Found.STAMP)) Found.fix(null, s, st.level().registryAccess());
+			if (told(s)) told.add(s);
 		}
 		Component own = st.hasCustomName() ? st.getCustomName() : null;
 		if (told.isEmpty()) {
@@ -180,25 +183,31 @@ final class Stand {
 		return new Look.Target(at, card, false, size, 1);
 	}
 
-	/** For the screenshots and the self-test: a stand wearing four parts of one story. */
+	/** For the screenshots and the self-test: a stand wearing the armour of one story (a knight's). */
 	static void showcase(ArmorStand st) {
-		String story = null;
-		for (var e : Found.STORIES.entrySet()) {
-			if (e.getValue().parts() >= 4) {
-				story = e.getKey();
-				break;
+		String story = Found.STORIES.containsKey("odric") ? "odric" : null;
+		if (story == null) {
+			for (var e : Found.STORIES.entrySet()) {
+				if (e.getValue().parts() >= 4) {
+					story = e.getKey();
+					break;
+				}
 			}
 		}
 		if (story == null) return;
-		ItemStack[] gear = {new ItemStack(Items.IRON_HELMET), new ItemStack(Items.CHAINMAIL_CHESTPLATE), new ItemStack(Items.GOLDEN_LEGGINGS),
-				new ItemStack(Items.DIAMOND_BOOTS)};
-		EquipmentSlot[] slots = {EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET};
-		String[] where = {"in a bastion", "in a shipwreck", "in a stronghold", "Fished up"};
+		String[] where = {"in a stronghold", "in a village", "Dropped by a zombie", "in an End city", "in a trial chamber", "in a village"};
 		int k = 0;
 		for (Found.Text t : Found.PIECES) {
-			if (!story.equals(t.story()) || k >= gear.length) continue;
-			Found.write(gear[k], t, where[k], 3 + 4 * k, k % 2 == 0 ? "Anna" : "Jeff", st.level().registryAccess());
-			st.setItemSlot(slots[k], gear[k]);
+			if (!story.equals(t.story())) continue;
+			String id = t.kinds().iterator().next();
+			EquipmentSlot slot = id.endsWith("helmet") ? EquipmentSlot.HEAD : id.endsWith("chestplate") ? EquipmentSlot.CHEST
+					: id.endsWith("leggings") ? EquipmentSlot.LEGS : id.endsWith("boots") ? EquipmentSlot.FEET : null;
+			// (the armour: four parts fit one card in full)
+			if (slot == null || !st.getItemBySlot(slot).isEmpty()) continue;
+			ItemStack gear = new ItemStack(net.minecraft.core.registries.BuiltInRegistries.ITEM.getOptional(
+					net.minecraft.resources.Identifier.withDefaultNamespace(id)).orElse(Items.LEATHER_BOOTS));
+			Found.write(gear, t, where[k % where.length], 3 + 4 * k, k % 2 == 0 ? "Anna" : "Jeff", st.level().registryAccess());
+			st.setItemSlot(slot, gear);
 			k++;
 		}
 	}

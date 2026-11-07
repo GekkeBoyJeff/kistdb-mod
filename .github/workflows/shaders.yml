@@ -70,9 +70,9 @@ jobs:
         if: always()
         run: |
           cd out
-          git init -q -b ci-shaders-${{ matrix.name }}
+          git init -q -b ci-shaders
           git config user.name "libreria-ci"
           git config user.email "libreria-ci@users.noreply.github.com"
           git add -A
           git commit -q -m "shaders ${{ matrix.name }} ${GITHUB_SHA} (${{ steps.shots.outcome }})"
-          git push -q -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git" ci-shaders-${{ matrix.name }}
+          git push -q -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git" ci-shaders

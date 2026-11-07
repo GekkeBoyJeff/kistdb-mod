@@ -76,8 +76,10 @@ final class Found {
 	}
 
 	static final class Data {
-		/** Text ids handed out on this server. */
+		/** One-off text ids handed out on this server (story parts can be found again and again). */
 		public Set<String> used = new HashSet<>();
+		/** Stories a part of has been found of on this server. */
+		public Set<String> stories = new HashSet<>();
 	}
 
 	static final WorldStore<Data> STORE = WorldStore.create("libreria/found.json", Data.class, Data::new);
@@ -114,6 +116,22 @@ final class Found {
 	static final List<Family> FAMILIES = new ArrayList<>();
 	/** Story id → title and number of parts. */
 	static final Map<String, Text> STORIES = new LinkedHashMap<>();
+
+	/**
+	 * The things that are really found (in loot, or on monsters): a story part is always one of these, so every part can
+	 * be found. Must match scripts/found/check.py.
+	 */
+	static final Set<String> FINDABLE = Set.of("leather_helmet", "leather_chestplate", "leather_leggings", "leather_boots", "chainmail_helmet",
+			"chainmail_chestplate", "chainmail_leggings", "chainmail_boots", "copper_chestplate", "copper_leggings", "copper_boots", "iron_helmet",
+			"iron_chestplate", "iron_leggings", "iron_boots", "golden_helmet", "golden_chestplate", "golden_leggings", "golden_boots", "diamond_helmet",
+			"diamond_chestplate", "diamond_leggings", "diamond_boots", "wooden_axe", "wooden_pickaxe", "wooden_hoe", "stone_axe", "stone_pickaxe",
+			"stone_sword", "stone_spear", "copper_axe", "copper_sword", "copper_spear", "iron_axe", "iron_pickaxe", "iron_shovel", "iron_sword",
+			"iron_spear", "golden_axe", "golden_pickaxe", "golden_shovel", "golden_hoe", "golden_sword", "diamond_axe", "diamond_pickaxe",
+			"diamond_shovel", "diamond_hoe", "diamond_sword", "diamond_spear", "bow", "crossbow", "trident", "fishing_rod", "flint_and_steel",
+			"shears", "shield");
+
+	/** How often a find is a part of a story (when there is a story for that very thing). */
+	static final double PIECE_CHANCE = 0.22;
 
 	static final Set<String> WEAPON = Set.of("sword", "axe", "bow", "crossbow", "trident", "mace", "spear");
 	static final Set<String> ARMOUR = Set.of("helmet", "chestplate", "leggings", "boots");
@@ -299,38 +317,43 @@ final class Found {
 		}
 	}
 
-	/** A text for this kind of thing from there, not handed out before (and now handed out). */
+	/** A text for this kind of thing from there (without knowing the exact item: no story part). */
 	static @Nullable Text pick(String kind, Origin from, Random r) {
-		return pick(kind, from, r, null);
+		return pick(kind, null, from, r, null);
 	}
 
 	/**
-	 * The same, for a finder: a one-off text is never handed out twice on the server, but a part of a story can be
-	 * found by everyone (so everyone can collect a whole story): only the parts this finder already has are left out,
-	 * and stories they've started come first.
+	 * A text for this thing ({@code item}: its id, "leather_boots"), found there by this finder. Sometimes a part of a
+	 * story told on exactly this item; anyone can find any part, again too, but the parts this finder doesn't have yet
+	 * come first, and the stories they started even more. Otherwise a one-off text, never handed out twice on the server.
 	 */
-	static @Nullable Text pick(String kind, Origin from, Random r, @Nullable ServerPlayer finder) {
+	static @Nullable Text pick(String kind, @Nullable String item, Origin from, Random r, @Nullable ServerPlayer finder) {
 		Data d = data();
-		Set<String> have = finder == null ? null : partsOf(finder);
+		Set<String> have = finder == null ? Set.of() : partsOf(finder);
 		double roll = r.nextDouble();
 		Text t = null;
-		if (roll < 0.14) t = piece(kind, from, d, r, have);
+		if (roll < PIECE_CHANCE) t = piece(item, from, d, r, have);
 		// (a sentence family fits anything, so not too often: the thing's own texts first)
-		if (t == null && roll < 0.19) t = family(kind, from, d, r);
-		if (t == null) t = line(kind, from, d, r);
-		if (t == null) t = piece(kind, from, d, r, have);
+		if (t == null && roll < PIECE_CHANCE + 0.05) t = family(kind, from, d, r);
+		if (t == null) t = line(kind, item, from, d, r);
+		if (t == null) t = piece(item, from, d, r, have);
 		if (t == null) t = family(kind, from, d, r);
 		if (t != null) {
-			d.used.add(t.id());
+			if (t.story() == null) d.used.add(t.id());
+			else d.stories.add(t.story());
 			STORE.markDirty();
 		}
 		return t;
 	}
 
-	/** How close a text is to this kind of thing: its own (about shears), its group's (any tool), or anything's. */
-	static final int OWN = 0, GROUP = 1, ANY = 2;
+	/**
+	 * How close a text is to this thing: about exactly this item (golden boots), its kind (any boots), its group (any
+	 * armour), or anything at all.
+	 */
+	static final int ITEM = 0, OWN = 1, GROUP = 2, ANY = 3;
 
-	static int tier(Set<String> kinds, String kind) {
+	static int tier(Set<String> kinds, String kind, @Nullable String item) {
+		if (item != null && kinds.contains(item)) return ITEM;
 		if (kinds.contains(kind)) return OWN;
 		if (kinds.contains("*")) return ANY;
 		return GROUP;
@@ -341,15 +364,16 @@ final class Found {
 	 * its group (a weapon, armour, a tool), and only sometimes one that fits anything. Texts about where it was found
 	 * come first within each.
 	 */
-	private static @Nullable Text line(String kind, Origin from, Data d, Random r) {
+	private static @Nullable Text line(String kind, @Nullable String item, Origin from, Data d, Random r) {
 		double roll = r.nextDouble();
-		int[] order = roll < 0.72 ? new int[] {OWN, GROUP, ANY} : roll < 0.84 ? new int[] {GROUP, OWN, ANY} : new int[] {ANY, OWN, GROUP};
+		int[] order = roll < 0.72 ? new int[] {ITEM, OWN, GROUP, ANY} : roll < 0.84 ? new int[] {GROUP, ITEM, OWN, ANY} : new int[] {ANY, ITEM, OWN, GROUP};
 		for (int tier : order) {
 			List<Text> pool = new ArrayList<>();
 			List<Double> weights = new ArrayList<>();
 			double total = 0;
 			for (Text t : LINES) {
-				if (d.used.contains(t.id()) || !fits(t.kinds(), kind) || !from.matches(t.where()) || tier(t.kinds(), kind) != tier) continue;
+				boolean fits = fits(t.kinds(), kind) || item != null && t.kinds().contains(item);
+				if (d.used.contains(t.id()) || !fits || !from.matches(t.where()) || tier(t.kinds(), kind, item) != tier) continue;
 				// a text that names the thing ("this {item}") fits it a little better than one that doesn't
 				double w = (t.where().isEmpty() ? 1 : 6) * (t.text().contains("{item}") ? 1.5 : 1);
 				pool.add(t);
@@ -371,23 +395,23 @@ final class Found {
 		return out;
 	}
 
-	/** May this part be handed out: without a finder once per server, with one once per finder. */
-	static boolean allowed(Text t, Data d, @Nullable Set<String> have) {
-		return have == null ? !d.used.contains(t.id()) : !have.contains(t.id());
+	/** Is this text told on exactly this item (a story part names its item: "leather_boots")? */
+	static boolean on(Text t, @Nullable String item) {
+		return item != null && t.kinds().contains(item);
 	}
 
-	private static @Nullable Text piece(String kind, Origin from, Data d, Random r, @Nullable Set<String> have) {
-		// Stories that already started on this server come first: the parts should find each other; the finder's own
-		// stories even more
-		Set<String> started = new HashSet<>(), mine = new HashSet<>();
-		for (String u : d.used) if (u.startsWith("a:")) started.add(u.substring(2, u.lastIndexOf(':')));
-		if (have != null) for (String u : have) mine.add(u.substring(2, u.lastIndexOf(':')));
+	private static @Nullable Text piece(@Nullable String item, Origin from, Data d, Random r, Set<String> have) {
+		if (item == null) return null;
+		// The finder's own stories first, then stories found on this server; a part they have already rarely
+		Set<String> mine = new HashSet<>();
+		for (String u : have) mine.add(u.substring(2, u.lastIndexOf(':')));
 		List<Text> pool = new ArrayList<>();
 		List<Double> weights = new ArrayList<>();
 		double total = 0;
 		for (Text t : PIECES) {
-			if (!allowed(t, d, have) || !fits(t.kinds(), kind) || !from.matches(t.where())) continue;
-			double w = (mine.contains(t.story()) ? 6 : started.contains(t.story()) ? 3 : 1) * (t.where().isEmpty() ? 1 : 4);
+			if (!on(t, item) || !from.matches(t.where())) continue;
+			double w = (have.contains(t.id()) ? 0.12 : mine.contains(t.story()) ? 5 : d.stories.contains(t.story()) ? 1.5 : 1)
+					* (t.where().isEmpty() ? 1 : 3);
 			pool.add(t);
 			weights.add(w);
 			total += w;
@@ -563,8 +587,17 @@ final class Found {
 				ItemStack s = inv.getItem(i);
 				if (s.isEmpty()) continue;
 				if (has(s, PENDING)) stamp(p, s);
+				else if (has(s, STAMP)) fix(p, s, p.level().registryAccess());
 				String piece = pieceOf(s);
 				if (piece != null) saw(p, piece, s);
+			}
+			// a chest you have open: what lies in it is told right too
+			if (p.containerMenu != p.inventoryMenu) {
+				for (var slot : p.containerMenu.slots) {
+					if (slot.container instanceof net.minecraft.world.entity.player.Inventory) continue;
+					ItemStack s = slot.getItem();
+					if (!s.isEmpty() && has(s, STAMP) && fix(null, s, p.level().registryAccess())) slot.setChanged();
+				}
 			}
 		}
 	}
@@ -577,12 +610,59 @@ final class Found {
 		if (kind == null || has(s, STAMP)) return;
 		Origin from = new Origin(pending.getStringOr("realm", "overworld"), pending.getStringOr("place", ""), pending.getStringOr("label", "Found"));
 		Random r = new Random(p.getRandom().nextLong() ^ System.nanoTime());
-		Text t = pick(kind, from, r, p);
+		Text t = pick(kind, itemOf(s), from, r, p);
 		if (t == null) return;
 		int day = Chronicle.day(p.level().getServer());
 		write(s, t, from.label(), day, p.getName().getString(), p.level().registryAccess());
 		remember(p, s, t, from.label(), day);
 		if (t.story() != null) nl.libreria.core.Tips.once(p, TIP);
+	}
+
+	/** "leather_boots": the item's id without "minecraft:". */
+	static String itemOf(ItemStack s) {
+		return BuiltInRegistries.ITEM.getKey(s.getItem()).getPath();
+	}
+
+	/**
+	 * A story part on a thing it isn't told on (stories are tied to exact items since; before, any boots would do): a
+	 * fitting text instead, keeping where, when and by whom it was found. {@code holder}: the player whose lore book
+	 * follows (who has it in their inventory), or null.
+	 */
+	static boolean fix(@Nullable ServerPlayer holder, ItemStack s, net.minecraft.core.RegistryAccess access) {
+		CustomData cd = s.get(DataComponents.CUSTOM_DATA);
+		if (cd == null) return false;
+		CompoundTag st = cd.copyTag().getCompoundOrEmpty(STAMP);
+		String id = st.getStringOr("id", "");
+		String kind = kindOf(s);
+		if (!id.startsWith("a:") || kind == null) return false;
+		Text old = BY_ID.get(id);
+		String item = itemOf(s);
+		if (old != null && on(old, item)) return false;
+		String where = st.getStringOr("where", "Found");
+		String label = where.startsWith("Found ") ? where.substring(6) : where;
+		String lower = label.toLowerCase(Locale.ROOT);
+		String realm = lower.contains("nether") || lower.contains("bastion") || lower.contains("piglin") ? "nether" : lower.contains("end") ? "end" : "overworld";
+		Random r = new Random(id.hashCode() * 31L + item.hashCode());
+		Text t = pick(kind, item, new Origin(realm, "", label), r, holder);
+		if (t == null) return false;
+		Component name = s.get(DataComponents.CUSTOM_NAME);
+		if (old != null && old.name() != null && name != null && name.getString().equals(old.name())) s.remove(DataComponents.CUSTOM_NAME);
+		write(s, t, label, st.getIntOr("day", 0), st.getStringOr("by", ""), access);
+		if (holder != null && old != null) {
+			Seen seen = SEEN.get(holder);
+			Set<Integer> parts = seen.parts.get(old.story());
+			if (parts != null) parts.remove(old.part());
+			seen.partInfo.remove(old.story() + ":" + old.part());
+			String full = BuiltInRegistries.ITEM.getKey(s.getItem()).toString();
+			for (Find f : seen.finds) {
+				if (f.id.equals(id) && f.item.equals(full)) {
+					f.id = t.id();
+					f.name = t.name() == null ? "" : t.name();
+				}
+			}
+			SEEN.markDirty(holder);
+		}
+		return true;
 	}
 
 	/** Into the finder's lore book. */

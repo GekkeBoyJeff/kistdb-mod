@@ -1,0 +1,46 @@
+# Stories, eighth book. Format as in arcs_1.txt.
+
+@ remembered | The Zombie Who Remembered
+iron_shovel@mob | Something About a Garden | Carried by a zombie that would stop, now and then, at the edge of a farm, and stand very still, and look at the carrots for a long time before it remembered it was hungry for other things.
+iron_sword@mob | Something About a Promise | It never swung this at children. It swung at everyone else. Whatever it promised, a very long time ago, part of it is still keeping the promise.
+leather_helmet@mob | Something About a Name | Inside, stitched in faded thread: "Tom". The zombie wearing it would turn its head when the villagers shouted at each other. Only when somebody shouted "Tom".
+chainmail_chestplate@mob | Something About Rain | It always walked out into the rain, when the others went to hide from the sun in the morning. It stood in the rain with its face turned up, until it burned. As if it liked the rain, once.
+iron_boots@mob | Something About Going Home | Its tracks went the same way every night: down the hill, past the well, to a house that isn't there any more, and a door that is only a doorframe. It knocked. Every night. It knocked.
+
+@ archercorps | The Skeleton Archer Corps
+bow@mob | Drill Sergeant Rattlebones | "LISTEN UP, RECRUITS. WE HAVE NO EYES. THAT IS NOT AN EXCUSE. WE HAVE NO MUSCLES. THAT IS NOT AN EXCUSE. WE BURN IN THE SUN. THAT, ADMITTEDLY, IS AN EXCUSE."
+bow@mob | Private Femur | Private Femur once shot a creeper by accident and blew up his whole squad. He was given a medal, a demotion and a new squad, in that order. The new squad keeps its distance.
+bow@mob | Corporal Clatter | Clatter's arrows always went a bit to the left. He compensated by aiming a bit to the right. He has never hit anything. He has never stopped trying. The Corps respects that.
+chainmail_helmet@mob | The Sergeant's Helmet | Rattlebones wore it to look official. It slid down over his eye sockets in every battle. He commanded blind for sixty years and claims he never noticed.
+chainmail_chestplate@mob | Parade Armour | Worn once a year, for the Corps parade at midnight. The parade marches around a dungeon spawner in a circle. Nobody watches. That's fine. It's not for anyone else.
+
+@ hagra | Hagra's Very Fair Trades
+iron_boots@barter | First Trade | Hagra the piglin gave these for one gold ingot. "GOOD BOOTS. NO HOLES. ONLY SOME HOLES. HOLES FOR AIR." The holes were not for air.
+iron_boots@barter | Second Trade | "SAME BOOTS AGAIN. HUMAN BOUGHT BOOTS, HUMAN DROPPED BOOTS IN LAVA, HAGRA FISHED BOOTS OUT. ALMOST NEW. HOT. DO NOT PUT ON YET."
+iron_boots@barter | Third Trade | "LAST BOOTS. HAGRA HAS NO MORE BOOTS. HAGRA HAS NEVER HAD BOOTS. HAGRA FINDS BOOTS. NOBODY ASKS WHERE. GOOD HUMAN. NO ASK."
+
+@ fortresscook | The Nether Fortress Kitchen
+golden_sword@fortress | The Head Cook's Knife | The fortress had a cook once, before the wither skeletons took over the kitchen. He made a soup out of magma cream and bad decisions. Everyone ate it. Nobody asked for seconds.
+golden_chestplate@fortress | The Cook's Apron | Gold, because everything in the kitchen was on fire all the time. It has a gravy stain that is older than most villages. The gravy is still slightly warm.
+flint_and_steel@fortress | The Stove-Lighter | The fortress stove was lit with this once, a thousand years ago, and never went out. Not because anyone kept it going. Because the whole fortress is a stove.
+
+@ smallthings | The Fisher of Small Things
+fishing_rod@fishing | Her Rod | Rosa fished every morning off the old jetty for fifty years. Her husband sat beside her and caught nothing, on purpose, so she would always win. She knew. She let him.
+fishing_rod@fishing | His Rod | After Rosa was gone, he kept fishing off the jetty, every morning, with her rod beside him, baited. He said she was just late. He said she was always late.
+bow@fishing | The Bow in the Water | Pulled up one morning on his line. Rosa's old bow, from when she was a girl and wanted to be an adventurer. He'd never known she had one. He sat on the jetty and laughed until he cried.
+leather_boots@fishing | The Last Catch | His boots, fished up years later by his granddaughter, off the same jetty, on her first morning there. She says there was a second tug on the line, right after, like someone saying hello.
+
+@ embergulch | The Embergulch Gold Rush
+golden_pickaxe@ruined_portal | Prospector Dusty's Pick | Well now. Folks said there was gold in them ruined portals. Folks was right. Folks didn't say the gold was mostly in the shape of other folks' pickaxes. Still counts.
+golden_shovel@ruined_portal | The Claim Jumper's Spade | Snake-Eye Pete dug up three claims that weren't his with this here shovel. Then the fourth claim dug him up. That's the gulch for you. It gives and it takes and it don't explain.
+golden_axe@ruined_portal | Big Martha's Axe | Big Martha ran the saloon and the bank and the sheriff's office, on account of there being only one building. She settled arguments with this. There was a lot less arguing after the first one.
+golden_hoe@ruined_portal | The Gold Farmer | One fella tried to plant gold nuggets in the dirt to grow more gold. Tilled the whole gulch with this golden hoe. Nothing grew. He's still waiting. Says it's a slow crop.
+golden_helmet@ruined_portal | The Sheriff's Star | It ain't a star, it's a helmet, but the sheriff painted a star on it and nobody had the heart to tell him. He wore it proud. He was a good sheriff. Mostly he was a good man.
+
+@ copperpot | The Ballad of Sir Copperpot
+copper_sword | The Gleaming Blade (Briefly) | Sir Copperpot set out on his quest with a blade that shone like the dawn. By the second week it was green. He called it "The Verdant Blade" and pretended he'd planned it.
+copper_chestplate | The Proud Breastplate | Hammered from his grandmother's cooking pots, with her permission and some reluctance. It still smells faintly of stew in the rain. Dragons, he says, are drawn to the scent of stew.
+copper_leggings | The Squeaking Greaves | You could hear Sir Copperpot coming from three hills away. Every ambush he planned, the enemy was already waiting, with snacks, curious to see what all the squeaking was.
+copper_boots | The Boots of Long Patience | He walked into every village on the coast and offered to slay its monster. Most villages had no monster. He helped with the harvest instead. He was very good at the harvest.
+copper_spear | The Lance of the Final Charge | He finally met a real monster: a ravager, outside a village of farmers who had fed him all summer. He charged. The squeaking terrified the ravager so badly it never came back.
+copper_axe | Copperpot's Retirement | He hung up his green armour and became a woodcutter in that village, and married the miller, and nobody ever told him his armour was the colour of a frog. They loved him for it.

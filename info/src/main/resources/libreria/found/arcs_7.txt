@@ -1,0 +1,66 @@
+# Stories, seventh book. Format as in arcs_1.txt.
+
+@ admiralty | The Admiralty of the Outer Isles
+diamond_helmet@end_city | Admiral Seluun's Helm | Log of the flagship, first entry: we set sail from the last island. The void is calm. The Admiral wears her helm even to dinner. She says the stars here are watching. They are.
+diamond_chestplate@end_city | The Navigator's Plate | Log, twelfth entry: the Navigator reports that the islands are moving away from us, not we from them. The Admiral has ordered the ship to turn back. The ship has not turned back.
+diamond_leggings@end_city | The Purser's Greaves | Log, fortieth entry: rations are low. The purser has started counting the stars instead of the biscuits. He says there are more of them every night. He is right.
+diamond_boots@end_city | The Boatswain's Boots | Log, ninetieth entry: the boatswain stepped off the deck to walk on the void. He said it felt like a carpet. He is still walking. We can see him, getting smaller, waving.
+diamond_sword@end_city | The Admiral's Ceremonial Sword | Last entry, in a different hand: the Admiral is gone. She left her sword on the wheel and her helm on the deck, and walked to the bow, and asked the stars a question. They answered.
+diamond_pickaxe@end_city | The Quartermaster's Pick | Found in the hold of an End ship, with a note: "for chipping our way back in, if the islands ever come close enough again". They never did. The ships wait in the sky, docked and empty.
+
+@ bastionprisoner | The Vault Keeper's Servant
+diamond_sword@bastion | Day One in the Vault | My name is Hollis. The piglins keep me to polish the treasure because my hands are small. This sword was the first thing I polished. I could see my face in it. I looked very tired.
+diamond_helmet@bastion | Day Thirty | I talk to the helmet now. It is the best listener in the vault. The piglins think it is funny that the human talks to the treasure. Maybe the treasure thinks so too.
+diamond_chestplate@bastion | Day One Hundred | I have scratched a little sun on the inside of this plate, where nobody will see. I don't remember what the real one looks like. I remember it was warm.
+diamond_leggings@bastion | Day Three Hundred | A new prisoner came today, a girl from a village by the sea. I taught her how to polish without leaving smudges, so they won't hurt her. She laughs sometimes. I had forgotten that sound.
+diamond_boots@bastion | The Night We Ran | We ran during the great feast, when the brutes were fat and sleeping. These were the fastest boots in the vault. I gave them to her. She made it to the portal. I heard her call my name from the other side.
+diamond_pickaxe@bastion | Hollis's Pick | Found by a collapsed tunnel in the vault, pointing towards the surface. Whoever dug it got very, very far. On the handle: a tiny, careful sun.
+
+@ trialwardens | The Grand Trials
+diamond_axe@trial | Contestant Number Four | "AND HERE COMES CONTESTANT NUMBER FOUR, WITH A DIAMOND AXE AND A DREAM! The breezes are circling! The crowd is silent! The crowd is also made of copper statues, but still!"
+iron_chestplate@trial | Contestant Number Nine | "Number nine wore iron and good manners! She bowed to every mob before fighting it! The mobs were confused! She won by confusion! The judges allowed it!"
+bow@trial | The Archer of Hall Seven | "In Hall Seven, a bow that never missed! Except once! At the announcer! THE ANNOUNCER IS FINE! THE ANNOUNCER WOULD LIKE TO MOVE ON!"
+crossbow@trial | The Bolt of the Final Round | "The final round! A single bolt! The vault key on a pressure plate! Ladies and gentlemen and breezes, I have never seen a crossbow aimed with so much love!"
+shield@trial | The Shield of the Runner-Up | "The runner-up! Held this shield for forty minutes against six spawners! Lost on a technicality! The technicality was a slime! A standing ovation for the runner-up!"
+golden_pickaxe@trial | The Wardens' Trophy | Engraved: "Winner of the Grand Trials". The winner never collected it. The trials went on without anyone watching, year after year. The announcer never stopped announcing.
+
+@ gardener | The Last Gardener of the Deep
+diamond_hoe@ancient_city | Her Hoe | Down in the city of the deep dark, where nothing grows, someone kept a garden. Moss and glow berries in a square of soil, behind a wall, tended with this. In silence, of course. Always in silence.
+iron_leggings@ancient_city | Kneeling Greaves | Worn through at both knees from kneeling in the soil. She knelt there every day for years, whispering to the berries, which is the only safe way to talk to anything down there.
+diamond_leggings@ancient_city | The Watcher's Greaves | Someone else's, left beside the garden wall. The Warden walked past this garden for three hundred years and never once stepped on it. Nobody knows if it knew. Everybody hopes it did.
+
+@ brannoc | Brannoc the Smith Makes a Set
+iron_helmet@village | The Helmet, First Try | Brannoc's workbook: "Our Aed has signed up for the guard. He is sixteen. Made him a helmet. Too heavy. Made it again. Too light. Made it a third time and cried in the forge where nobody could see."
+iron_chestplate@village | The Breastplate | "Hammered it thick over the heart. Thicker than the books say. The guard captain said it's too heavy to run in. Good. I don't want him running towards anything."
+iron_leggings@village | The Greaves | "Lined the knees with wool from Mrs Fenn's sheep. He'll be kneeling on cold stone on watch. His mother always said his knees were the first thing to get cold."
+iron_boots@village | The Boots | "Made the soles in two layers, so he'll make no noise on patrol, and a third so he can feel the ground through them. My own father did the same for me. I never told Aed that."
+iron_sword@village | The Sword | "Last piece. Balanced it right on my finger, the way my father taught me. Engraved his name on the blade, small, where he'll only see it when he cleans it. That's when he'll need it."
+iron_shovel@village | The Shovel, After | "Aed came home. In one piece. In the whole set. He laughed at me for crying. I dug a new flower bed today for no reason except that I'm happy. That's allowed."
+
+@ shepherd | A Shepherd's Year
+shears@village | Spring | In spring the shears come out of the drawer, and the sheep, who know exactly what that sound means, all suddenly remember an appointment on the far side of the hill.
+leather_helmet@village | Summer | In summer she wears this against the sun and lies in the grass while the sheep do the work of being sheep. Clouds go over. Some of them look like sheep. She counts them, out of habit.
+leather_chestplate@village | Autumn | In autumn the wool is dyed in big pots behind the barn: red for the market, blue for the neighbours, one bright pink fleece for her little brother, who asked very nicely.
+leather_boots@village | Winter | In winter she walks the fields at dawn in these, breaking the ice on the troughs, and talking to every sheep by name. There are forty-one names. She has never once got one wrong.
+shears@village | The Old Shears | Her grandmother's shears, sharpened so often they're half the size they used to be. She doesn't use them. She keeps them in the drawer with the new ones so they can hear the sheep.
+
+@ firstchest | The Book of the First Chest
+wooden_axe@village | The First Axe | In the beginning there was a chest, and in the chest there was an axe, and the first of us took it up, and the first tree fell, and lo, it was very surprised.
+wooden_pickaxe@village | The First Pick | And from the tree came a table, and from the table came this pick, and the first of us struck the stone, and the stone said nothing, as stone will, but it was the beginning of a long conversation.
+stone_pickaxe@village | The Second Pick | And the stone was made into a better pick, and with it the first of us went down into the dark, and found coal, and made light, and understood that there would be no end to digging.
+stone_axe@village | The Axe That Built a House | And with this axe the first of us built a house of planks, just big enough for one, and slept there the first night, and heard the moaning outside, and was glad of the door.
+
+@ stonesong | The Song of Saltmere
+stone_spear@shipwreck | First Verse | Down in the bay where the old town lies, the stones still remember the children's cries; we sang as we swam and we swam as we sang, and the bell in the tower rang and rang.
+stone_axe@shipwreck | Second Verse | Father built boats with this axe on the sand, the best boats in Saltmere, the best in the land; then the sea came up softly one night in the spring, and the boats were too slow for so big a thing.
+golden_helmet@shipwreck | Third Verse | The mayor wore gold so the sea would see that here was a town of good company; but the sea doesn't bargain and the sea doesn't bow, and the mayor's gold hat is the sea's hat now.
+fishing_rod@shipwreck | Fourth Verse | Mother still fishes, they say, from the street, with the fish swimming by at the height of her feet; and if you dive down where the old houses lie, you can see her, still waiting, still looking up high.
+leather_chestplate@shipwreck | Last Verse | So sing it again if you're out on the bay, for the town that is sleeping a fathom away; and if something below hums along to the tune, it's only Saltmere, waking up under the moon.
+
+@ redsail | Captain Redsail's Treasure
+iron_sword@buried | The Captain's Cutlass | Arr. If ye be readin' this, ye've found me cutlass, which means ye've found me treasure, which means ye've had a better day than I have. Congratulations. Arr.
+iron_spear@buried | The Boarding Pike | I boarded forty ships with this. Thirty-nine of them were merchant ships. One was a very large barrel. I do not wish to talk about the barrel.
+leather_chestplate@buried | The Captain's Coat | Me lucky coat. I buried it with the treasure because a fortune teller said the coat would be the death of me. She was a seagull, but she seemed very sure.
+leather_helmet@shipwreck | The First Mate's Hat | Belonged to me first mate, Gilly, who could smell treasure from a mile away. She could also smell rain, rum and lies. She could not smell the reef. Nobody's perfect.
+leather_boots@shipwreck | The Ship's Boots | The boots of the cabin boy, who took the wheel when the rest of us were seasick. He steered us home through the worst storm of the century. Then he sank us in the harbour. Lovely lad.
+leather_leggings@shipwreck | The Captain's Last Trousers | X marks the spot. I marked the map with these trousers. I don't remember why. Arr.

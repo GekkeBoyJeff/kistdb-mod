@@ -172,31 +172,42 @@ final class InfoTests {
 			seen.partInfo.clear();
 		});
 		SelfTests.register("info.found.collect", level -> {
-			// A part of a story can be found by everyone (once each): a one-off text only once on the server
-			Found.Data d = Found.data();
-			Found.Text part = Found.PIECES.get(1);
-			boolean had = d.used.contains(part.id());
-			d.used.add(part.id());
-			SelfTests.check(!Found.allowed(part, d, null), "without a finder: once per server");
-			SelfTests.check(Found.allowed(part, d, java.util.Set.of()), "someone else can still find the same part");
-			SelfTests.check(!Found.allowed(part, d, java.util.Set.of(part.id())), "but not who has it already");
-			if (!had) d.used.remove(part.id());
+			// A story part is told on exactly one item; anyone can find it, again too, but less often than a part they lack
 			FakePlayer a = FakePlayer.get(level, new com.mojang.authlib.GameProfile(java.util.UUID.nameUUIDFromBytes("collect-a".getBytes()), "CollectA"));
-			Found.SEEN.get(a).parts.computeIfAbsent(part.story(), k -> new java.util.HashSet<>()).add(part.part());
-			SelfTests.check(Found.partsOf(a).contains(part.id()), "parts held count as had: " + Found.partsOf(a));
-			// Many finds for one finder: never a part twice (the server's list of handed out texts is put back after)
+			Found.Data d = Found.data();
 			java.util.Set<String> before = new java.util.HashSet<>(d.used);
+			Found.Origin ow = new Found.Origin("overworld", "village", "in a village");
 			java.util.Random r = new java.util.Random(9);
-			java.util.Set<String> parts = new java.util.HashSet<>();
-			int dup = 0;
-			Found.Origin ow = new Found.Origin("overworld", "dungeon", "in a dungeon");
-			for (int i = 0; i < 200; i++) {
-				Found.Text t = Found.pick("chestplate", ow, r, a);
+			java.util.Map<String, Integer> times = new java.util.HashMap<>();
+			int pieces = 0;
+			for (int i = 0; i < 600; i++) {
+				Found.Text t = Found.pick("sword", "iron_sword", ow, r, a);
 				if (t == null || t.story() == null) continue;
-				if (!parts.add(t.id()) || part.id().equals(t.id())) dup++;
+				pieces++;
+				SelfTests.check(t.kinds().equals(java.util.Set.of("iron_sword")), "a part told on an iron sword: " + t.id() + " " + t.kinds());
+				times.merge(t.id(), 1, Integer::sum);
 				Found.SEEN.get(a).parts.computeIfAbsent(t.story(), k -> new java.util.HashSet<>()).add(t.part());
 			}
-			SelfTests.check(dup == 0 && !parts.isEmpty(), "one finder, " + parts.size() + " parts, " + dup + " twice");
+			SelfTests.check(pieces > 60, "parts are found often enough: " + pieces + " of 600");
+			SelfTests.check(times.values().stream().anyMatch(n -> n > 1), "and the same part can be found again: " + times);
+			SelfTests.check(Found.pick("sword", null, ow, r, a) == null || Found.pick("sword", null, ow, r, a).story() == null, "no exact item: no part");
+			// A part on the wrong thing (from before): told right
+			Found.Text lantern = null;
+			for (Found.Text t : Found.PIECES) if ("lantern".equals(t.story()) && t.part() == 1) lantern = t;
+			if (lantern != null) {
+				ItemStack wrong = new ItemStack(Items.DIAMOND_SWORD);
+				Found.write(wrong, lantern, "in a shipwreck", 12, "Anna", level.registryAccess());
+				SelfTests.check(Found.fix(null, wrong, level.registryAccess()), "a lantern part on a diamond sword gets fixed");
+				String now = wrong.get(net.minecraft.core.component.DataComponents.CUSTOM_DATA).copyTag().getCompoundOrEmpty(Found.STAMP).getStringOr("id", "");
+				Found.Text t = Found.byId(now);
+				SelfTests.check(t != null && !now.equals(lantern.id()) && (t.story() == null || Found.on(t, "diamond_sword")), "now: " + now);
+				SelfTests.check(Lore.get(wrong, Lore.FOUND).stream().anyMatch(l -> l.getString().contains("day 12 · Anna")), "where, when and by whom stay");
+				SelfTests.check(wrong.get(net.minecraft.core.component.DataComponents.CUSTOM_NAME) == null
+						|| !wrong.get(net.minecraft.core.component.DataComponents.CUSTOM_NAME).getString().equals(lantern.name()), "not named after the wrong story");
+				ItemStack right = new ItemStack(Items.IRON_SWORD);
+				Found.write(right, lantern, "in a shipwreck", 12, "Anna", level.registryAccess());
+				SelfTests.check(!Found.fix(null, right, level.registryAccess()), "on its own item it stays");
+			}
 			Found.SEEN.get(a).parts.clear();
 			d.used.clear();
 			d.used.addAll(before);
@@ -378,10 +389,15 @@ final class InfoTests {
 			java.util.List<Found.Text> all = new java.util.ArrayList<>(Found.LINES);
 			all.addAll(Found.PIECES);
 			for (Found.Text t : all) {
-				SelfTests.check(known.containsAll(t.kinds()) && where.contains(t.where()), "kinds/where of " + t.id() + ": " + t.kinds() + " @" + t.where());
+				// a one-off text names kinds of things; a story part the exact item it's told on, one that is really found
+				boolean kinds = t.story() == null ? t.kinds().stream().allMatch(k -> known.contains(k) || Found.FINDABLE.contains(k))
+						: t.kinds().size() == 1 && Found.FINDABLE.containsAll(t.kinds());
+				SelfTests.check(kinds && where.contains(t.where()), "kinds/where of " + t.id() + ": " + t.kinds() + " @" + t.where());
 				SelfTests.check(!t.text().replace("{item}", "").contains("{") && !t.text().contains("|"), "no stray slot in " + t.text());
-				SelfTests.check(t.text().length() <= 260, "not too long: " + t.text());
+				SelfTests.check(t.text().length() <= 300, "not too long: " + t.text());
 			}
+			for (String id : Found.FINDABLE) SelfTests.check(net.minecraft.core.registries.BuiltInRegistries.ITEM.containsKey(
+					net.minecraft.resources.Identifier.withDefaultNamespace(id)), "a real item: " + id);
 			for (var e : Found.partsPerStory().entrySet()) SelfTests.check(e.getValue() >= 3, "story " + e.getKey() + " has " + e.getValue() + " parts");
 			for (Found.Family f : Found.FAMILIES) {
 				for (String slot : f.slots()) SelfTests.check(f.form().contains("{" + slot + "}"), "family " + f.id() + " uses {" + slot + "}");

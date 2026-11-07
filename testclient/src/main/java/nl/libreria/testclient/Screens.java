@@ -29,8 +29,9 @@ public final class Screens implements FabricClientGameTest {
 
 	@Override
 	public void runTest(ClientGameTestContext ctx) {
-		// (the shader run walks on a real server, in NetworkTest: in singleplayer there is no pack host to download from)
-		if (SHADERS) return;
+		// The walk runs once, on a real server, with its screenshots (NetworkTest): that also checks every packet crosses a
+		// real connection. In singleplayer only when asked (LIBRERIA_SINGLEPLAYER=1).
+		if (SHADERS || !"1".equals(System.getenv("LIBRERIA_SINGLEPLAYER"))) return;
 		ctx.getInput().resizeWindow(1280, 720);
 		ctx.waitTicks(20);
 		try (TestSingleplayerContext sp = ctx.worldBuilder()
