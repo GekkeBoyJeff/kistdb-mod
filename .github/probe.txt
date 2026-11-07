@@ -31,3 +31,6 @@ eu.pb4.polymer.virtualentity.api.elements.GenericEntityElement
 ? /Rotations\.class
 ? decoration/ItemFrame
 ? PickItem
+net.minecraft.client.multiplayer.MultiPlayerGameMode
+net.minecraft.network.protocol.game.ServerboundInteractPacket
+!net.minecraft.client.Minecraft

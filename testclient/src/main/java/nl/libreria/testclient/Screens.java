@@ -503,7 +503,9 @@ public final class Screens implements FabricClientGameTest {
 				ctx.waitTicks(3);
 				key(ctx, "holdKey", ctx.computeOnClient(mc -> mc.options.keyShift));
 				ctx.waitTicks(2);
+				String target = ctx.computeOnClient(mc -> String.valueOf(mc.hitResult == null ? null : mc.hitResult.getType()));
 				key(ctx, "pressKey", ctx.computeOnClient(mc -> mc.options.keyUse));
+				LOG.info("LIBRERIA-FRAMES crosshair on: {}", target);
 				ctx.waitTicks(3);
 				key(ctx, "releaseKey", ctx.computeOnClient(mc -> mc.options.keyShift));
 				ctx.waitTicks(10);
