@@ -1,0 +1,33 @@
+iris: iris-fabric-1.11.7+mc26.3.jar (1.11.7+26.3-fabric)
+sodium: sodium-fabric-0.9.2+mc26.3.jar (mc26.3-0.9.2-fabric)
+euphoria-patches: EuphoriaPatcher-1.10.5-r5.9.3-fabric.jar (1.10.5-r5.9.3-fabric)
+complementary-unbound: ComplementaryUnbound_r5.9.3.zip (r5.9.3)
+euphoria: EuphoriaPatcher-1.10.5-r5.9.3-fabric.jar → "ComplementaryUnbound_r5.9.3 + EuphoriaPatches_1.10.5"
+options for ComplementaryUnbound_r5.9.3 + EuphoriaPatches_1.10.5: IPBR_EMISSIVE_MODE=3 
+option.RP_MODE=RP Support
+option.RP_MODE.comment=Changes many internal calculations to determine how different blocks and materials will be rendered. §bIntegrated PBR+§r: Calculated PBR and extra effects, highly recommended for most use cases. §aBasic§r: No PBR or extra effects. §elabPBR/seuspbr§r: Materials using the required PBR resource packs.
+value.RP_MODE.0=§aBasic
+value.RP_MODE.1=§bIntegrated PBR+
+value.RP_MODE.2=§eseuspbr (RP Required)
+value.RP_MODE.3=§elabPBR (RP Required)
+option.IPBR_EMISSIVE_MODE=IPBR+ Emissive Mode
+option.IPBR_EMISSIVE_MODE.comment=Determines the handling of emissives within IntegratedPBR+. Choosing the labPBR or seuspbr options allow compatible resource packs to completely override IPBR+ emissives on blocks that have specular textures attached to them. §c[-]§r It's not recommended to change this setting unless you know what you are doing.
+value.IPBR_EMISSIVE_MODE.1=IPBR+ Only
+value.IPBR_EMISSIVE_MODE.3=labPBR > IPBR+
+value.IPBR_EMISSIVE_MODE.2=seuspbr > IPBR+
+IPBR_EMISSIVE_MODE: Materials › IntegratedPBR+ Materials › Other IPBR+ Features › IPBR+ Emissive Mode
+RP_MODE:  › RP Support
+testclient/build/run/clientGameTest/mods:
+total 9156
+drwxr-xr-x 2 runner runner    4096 Nov  7 14:14 .
+drwxr-xr-x 5 runner runner    4096 Nov  7 14:14 ..
+-rw-r--r-- 1 runner runner 4602936 Nov  7 14:14 EuphoriaPatcher-1.10.5-r5.9.3-fabric.jar
+-rw-r--r-- 1 runner runner 2850938 Nov  7 14:14 iris-fabric-1.11.7+mc26.3.jar
+-rw-r--r-- 1 runner runner 1908068 Nov  7 14:14 sodium-fabric-0.9.2+mc26.3.jar
+
+testclient/build/run/clientGameTest/shaderpacks:
+total 556
+drwxr-xr-x 2 runner runner   4096 Nov  7 14:14 .
+drwxr-xr-x 5 runner runner   4096 Nov  7 14:14 ..
+-rw-r--r-- 1 runner runner     21 Nov  7 14:14 ComplementaryUnbound_r5.9.3 + EuphoriaPatches_1.10.5.txt
+-rw-r--r-- 1 runner runner 553400 Nov  7 14:14 ComplementaryUnbound_r5.9.3.zip
