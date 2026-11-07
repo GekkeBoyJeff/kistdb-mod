@@ -1,0 +1,626 @@
+Compiled from "ServerPlayer.java"
+class net.minecraft.server.level.ServerPlayer$1 implements net.minecraft.world.inventory.ContainerSynchronizer {
+  private final com.google.common.cache.LoadingCache<net.minecraft.core.component.TypedDataComponent<?>, java.lang.Integer> cache;
+  final net.minecraft.server.level.ServerPlayer this$0;
+  net.minecraft.server.level.ServerPlayer$1(net.minecraft.server.level.ServerPlayer);
+  public void sendInitialData(net.minecraft.world.inventory.AbstractContainerMenu, java.util.List<net.minecraft.world.item.ItemStack>, net.minecraft.world.item.ItemStack, int[]);
+  public void sendSlotChange(net.minecraft.world.inventory.AbstractContainerMenu, int, net.minecraft.world.item.ItemStack);
+  public void sendCarriedChange(net.minecraft.world.inventory.AbstractContainerMenu, net.minecraft.world.item.ItemStack);
+  public void sendDataChange(net.minecraft.world.inventory.AbstractContainerMenu, int, int);
+  private void broadcastDataValue(net.minecraft.world.inventory.AbstractContainerMenu, int, int);
+  public net.minecraft.world.inventory.RemoteSlot createSlot();
+}
+Compiled from "ServerboundSetCreativeModeSlotPacket.java"
+public final class net.minecraft.network.protocol.game.ServerboundSetCreativeModeSlotPacket extends java.lang.Record implements net.minecraft.network.protocol.Packet<net.minecraft.network.protocol.game.ServerGamePacketListener> {
+  private final short slotNum;
+
+  private final net.minecraft.world.item.ItemStack itemStack;
+
+  public static final net.minecraft.network.codec.StreamCodec<net.minecraft.network.RegistryFriendlyByteBuf, net.minecraft.network.protocol.game.ServerboundSetCreativeModeSlotPacket> STREAM_CODEC;
+
+  public net.minecraft.network.protocol.game.ServerboundSetCreativeModeSlotPacket(int, net.minecraft.world.item.ItemStack);
+    Code:
+         0: aload_0
+         1: iload_1
+         2: i2s
+         3: aload_2
+         4: invokespecial #17                 // Method "<init>":(SLnet/minecraft/world/item/ItemStack;)V
+         7: return
+
+  public net.minecraft.network.protocol.game.ServerboundSetCreativeModeSlotPacket(short, net.minecraft.world.item.ItemStack);
+    Code:
+         0: aload_0
+         1: invokespecial #1                  // Method java/lang/Record."<init>":()V
+         4: aload_0
+         5: iload_1
+         6: putfield      #7                  // Field slotNum:S
+         9: aload_0
+        10: aload_2
+        11: putfield      #13                 // Field itemStack:Lnet/minecraft/world/item/ItemStack;
+        14: return
+
+  public net.minecraft.network.protocol.PacketType<net.minecraft.network.protocol.game.ServerboundSetCreativeModeSlotPacket> type();
+    Code:
+         0: getstatic     #20                 // Field net/minecraft/network/protocol/game/GamePacketTypes.SERVERBOUND_SET_CREATIVE_MODE_SLOT:Lnet/minecraft/network/protocol/PacketType;
+         3: areturn
+
+  public void handle(net.minecraft.network.protocol.game.ServerGamePacketListener);
+    Code:
+         0: aload_1
+         1: aload_0
+         2: invokeinterface #26,  2           // InterfaceMethod net/minecraft/network/protocol/game/ServerGamePacketListener.handleSetCreativeModeSlot:(Lnet/minecraft/network/protocol/game/ServerboundSetCreativeModeSlotPacket;)V
+         7: return
+
+  public final java.lang.String toString();
+    Code:
+         0: aload_0
+         1: invokedynamic #36,  0             // InvokeDynamic #0:toString:(Lnet/minecraft/network/protocol/game/ServerboundSetCreativeModeSlotPacket;)Ljava/lang/String;
+         6: areturn
+
+  public final int hashCode();
+    Code:
+         0: aload_0
+         1: invokedynamic #40,  0             // InvokeDynamic #0:hashCode:(Lnet/minecraft/network/protocol/game/ServerboundSetCreativeModeSlotPacket;)I
+         6: ireturn
+
+  public final boolean equals(java.lang.Object);
+    Code:
+         0: aload_0
+         1: aload_1
+         2: invokedynamic #44,  0             // InvokeDynamic #0:equals:(Lnet/minecraft/network/protocol/game/ServerboundSetCreativeModeSlotPacket;Ljava/lang/Object;)Z
+         7: ireturn
+
+  public short slotNum();
+    Code:
+         0: aload_0
+         1: getfield      #7                  // Field slotNum:S
+         4: ireturn
+
+  public net.minecraft.world.item.ItemStack itemStack();
+    Code:
+         0: aload_0
+         1: getfield      #13                 // Field itemStack:Lnet/minecraft/world/item/ItemStack;
+         4: areturn
+
+  public void handle(net.minecraft.network.PacketListener);
+    Code:
+         0: aload_0
+         1: aload_1
+         2: checkcast     #27                 // class net/minecraft/network/protocol/game/ServerGamePacketListener
+         5: invokevirtual #32                 // Method handle:(Lnet/minecraft/network/protocol/game/ServerGamePacketListener;)V
+         8: return
+
+  static {};
+    Code:
+         0: getstatic     #48                 // Field net/minecraft/network/codec/ByteBufCodecs.SHORT:Lnet/minecraft/network/codec/StreamCodec;
+         3: invokedynamic #54,  0             // InvokeDynamic #1:apply:()Ljava/util/function/Function;
+         8: getstatic     #58                 // Field net/minecraft/world/item/ItemStack.OPTIONAL_UNTRUSTED_STREAM_CODEC:Lnet/minecraft/network/codec/StreamCodec;
+        11: invokestatic  #63                 // Method net/minecraft/world/item/ItemStack.validatedStreamCodec:(Lnet/minecraft/network/codec/StreamCodec;)Lnet/minecraft/network/codec/StreamCodec;
+        14: invokedynamic #67,  0             // InvokeDynamic #2:apply:()Ljava/util/function/Function;
+        19: invokedynamic #68,  0             // InvokeDynamic #3:apply:()Ljava/util/function/BiFunction;
+        24: invokestatic  #71                 // InterfaceMethod net/minecraft/network/codec/StreamCodec.composite:(Lnet/minecraft/network/codec/StreamCodec;Ljava/util/function/Function;Lnet/minecraft/network/codec/StreamCodec;Ljava/util/function/Function;Ljava/util/function/BiFunction;)Lnet/minecraft/network/codec/StreamCodec;
+        27: putstatic     #77                 // Field STREAM_CODEC:Lnet/minecraft/network/codec/StreamCodec;
+        30: return
+}
+Compiled from "ItemAttributeModifiers.java"
+public final class net.minecraft.world.item.component.ItemAttributeModifiers extends java.lang.Record {
+  public static final net.minecraft.world.item.component.ItemAttributeModifiers EMPTY;
+  public static final com.mojang.serialization.Codec<net.minecraft.world.item.component.ItemAttributeModifiers> CODEC;
+  public static final net.minecraft.network.codec.StreamCodec<net.minecraft.network.RegistryFriendlyByteBuf, net.minecraft.world.item.component.ItemAttributeModifiers> STREAM_CODEC;
+  public static final java.text.DecimalFormat ATTRIBUTE_MODIFIER_FORMAT;
+  public net.minecraft.world.item.component.ItemAttributeModifiers(java.util.List<net.minecraft.world.item.component.ItemAttributeModifiers$Entry>);
+  public static net.minecraft.world.item.component.ItemAttributeModifiers$Builder builder();
+  public net.minecraft.world.item.component.ItemAttributeModifiers withModifierAdded(net.minecraft.core.Holder<net.minecraft.world.entity.ai.attributes.Attribute>, net.minecraft.world.entity.ai.attributes.AttributeModifier, net.minecraft.world.entity.EquipmentSlotGroup);
+  public void forEach(net.minecraft.world.entity.EquipmentSlotGroup, org.apache.commons.lang3.function.TriConsumer<net.minecraft.core.Holder<net.minecraft.world.entity.ai.attributes.Attribute>, net.minecraft.world.entity.ai.attributes.AttributeModifier, net.minecraft.world.item.component.ItemAttributeModifiers$Display>);
+  public void forEach(net.minecraft.world.entity.EquipmentSlotGroup, java.util.function.BiConsumer<net.minecraft.core.Holder<net.minecraft.world.entity.ai.attributes.Attribute>, net.minecraft.world.entity.ai.attributes.AttributeModifier>);
+  public void forEach(net.minecraft.world.entity.EquipmentSlot, java.util.function.BiConsumer<net.minecraft.core.Holder<net.minecraft.world.entity.ai.attributes.Attribute>, net.minecraft.world.entity.ai.attributes.AttributeModifier>);
+  public double compute(net.minecraft.core.Holder<net.minecraft.world.entity.ai.attributes.Attribute>, double, net.minecraft.world.entity.EquipmentSlot);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.util.List<net.minecraft.world.item.component.ItemAttributeModifiers$Entry> modifiers();
+}
+Compiled from "ItemAttributeModifiers.java"
+public final class net.minecraft.world.item.component.ItemAttributeModifiers$Entry extends java.lang.Record {
+  public static final com.mojang.serialization.Codec<net.minecraft.world.item.component.ItemAttributeModifiers$Entry> CODEC;
+  public static final net.minecraft.network.codec.StreamCodec<net.minecraft.network.RegistryFriendlyByteBuf, net.minecraft.world.item.component.ItemAttributeModifiers$Entry> STREAM_CODEC;
+  public net.minecraft.world.item.component.ItemAttributeModifiers$Entry(net.minecraft.core.Holder<net.minecraft.world.entity.ai.attributes.Attribute>, net.minecraft.world.entity.ai.attributes.AttributeModifier, net.minecraft.world.entity.EquipmentSlotGroup);
+  public net.minecraft.world.item.component.ItemAttributeModifiers$Entry(net.minecraft.core.Holder<net.minecraft.world.entity.ai.attributes.Attribute>, net.minecraft.world.entity.ai.attributes.AttributeModifier, net.minecraft.world.entity.EquipmentSlotGroup, net.minecraft.world.item.component.ItemAttributeModifiers$Display);
+  public boolean matches(net.minecraft.core.Holder<net.minecraft.world.entity.ai.attributes.Attribute>, net.minecraft.resources.Identifier);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public net.minecraft.core.Holder<net.minecraft.world.entity.ai.attributes.Attribute> attribute();
+  public net.minecraft.world.entity.ai.attributes.AttributeModifier modifier();
+  public net.minecraft.world.entity.EquipmentSlotGroup slot();
+  public net.minecraft.world.item.component.ItemAttributeModifiers$Display display();
+}
+Compiled from "ItemAttributeModifiers.java"
+public interface net.minecraft.world.item.component.ItemAttributeModifiers$Display {
+  public static final com.mojang.serialization.Codec<net.minecraft.world.item.component.ItemAttributeModifiers$Display> CODEC;
+  public static final net.minecraft.network.codec.StreamCodec<net.minecraft.network.RegistryFriendlyByteBuf, net.minecraft.world.item.component.ItemAttributeModifiers$Display> STREAM_CODEC;
+  public static net.minecraft.world.item.component.ItemAttributeModifiers$Display attributeModifiers();
+  public static net.minecraft.world.item.component.ItemAttributeModifiers$Display hidden();
+  public static net.minecraft.world.item.component.ItemAttributeModifiers$Display override(net.minecraft.network.chat.Component);
+  public abstract net.minecraft.world.item.component.ItemAttributeModifiers$Display$Type type();
+  public abstract void apply(java.util.function.Consumer<net.minecraft.network.chat.Component>, net.minecraft.world.entity.player.Player, net.minecraft.core.Holder<net.minecraft.world.entity.ai.attributes.Attribute>, net.minecraft.world.entity.ai.attributes.AttributeModifier);
+}
+Compiled from "TooltipDisplay.java"
+public final class net.minecraft.world.item.component.TooltipDisplay extends java.lang.Record {
+  public static final com.mojang.serialization.Codec<net.minecraft.world.item.component.TooltipDisplay> CODEC;
+  public static final net.minecraft.network.codec.StreamCodec<net.minecraft.network.RegistryFriendlyByteBuf, net.minecraft.world.item.component.TooltipDisplay> STREAM_CODEC;
+  public static final net.minecraft.world.item.component.TooltipDisplay DEFAULT;
+  public net.minecraft.world.item.component.TooltipDisplay(boolean, java.util.SequencedSet<net.minecraft.core.component.DataComponentType<?>>);
+  public net.minecraft.world.item.component.TooltipDisplay withHidden(net.minecraft.core.component.DataComponentType<?>, boolean);
+  public boolean shows(net.minecraft.core.component.DataComponentType<?>);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public boolean hideTooltip();
+  public java.util.SequencedSet<net.minecraft.core.component.DataComponentType<?>> hiddenComponents();
+}
+Compiled from "ItemLore.java"
+public final class net.minecraft.world.item.component.ItemLore extends java.lang.Record implements net.minecraft.world.item.component.TooltipProvider {
+  public static final net.minecraft.world.item.component.ItemLore EMPTY;
+  public static final int MAX_LINES;
+  public static final com.mojang.serialization.Codec<net.minecraft.world.item.component.ItemLore> CODEC;
+  public static final net.minecraft.network.codec.StreamCodec<net.minecraft.network.RegistryFriendlyByteBuf, net.minecraft.world.item.component.ItemLore> STREAM_CODEC;
+  public net.minecraft.world.item.component.ItemLore(java.util.List<net.minecraft.network.chat.Component>);
+  public net.minecraft.world.item.component.ItemLore(java.util.List<net.minecraft.network.chat.Component>, java.util.List<net.minecraft.network.chat.Component>);
+  public net.minecraft.world.item.component.ItemLore withLineAdded(net.minecraft.network.chat.Component);
+  public void addToTooltip(net.minecraft.world.item.Item$TooltipContext, java.util.function.Consumer<net.minecraft.network.chat.Component>, net.minecraft.world.item.TooltipFlag, net.minecraft.core.component.DataComponentGetter);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.util.List<net.minecraft.network.chat.Component> lines();
+  public java.util.List<net.minecraft.network.chat.Component> styledLines();
+}
+Compiled from "ItemEnchantments.java"
+public class net.minecraft.world.item.enchantment.ItemEnchantments implements net.minecraft.world.item.component.TooltipProvider {
+  public static final net.minecraft.world.item.enchantment.ItemEnchantments EMPTY;
+  public static final com.mojang.serialization.Codec<net.minecraft.world.item.enchantment.ItemEnchantments> CODEC;
+  public static final net.minecraft.network.codec.StreamCodec<net.minecraft.network.RegistryFriendlyByteBuf, net.minecraft.world.item.enchantment.ItemEnchantments> STREAM_CODEC;
+  public int getLevel(net.minecraft.core.Holder<net.minecraft.world.item.enchantment.Enchantment>);
+  public void addToTooltip(net.minecraft.world.item.Item$TooltipContext, java.util.function.Consumer<net.minecraft.network.chat.Component>, net.minecraft.world.item.TooltipFlag, net.minecraft.core.component.DataComponentGetter);
+  public java.util.Set<net.minecraft.core.Holder<net.minecraft.world.item.enchantment.Enchantment>> keySet();
+  public java.util.Set<it.unimi.dsi.fastutil.objects.Object2IntMap$Entry<net.minecraft.core.Holder<net.minecraft.world.item.enchantment.Enchantment>>> entrySet();
+  public int size();
+  public boolean isEmpty();
+  public boolean equals(java.lang.Object);
+  public int hashCode();
+  public java.lang.String toString();
+}
+Compiled from "Enchantment.java"
+public final class net.minecraft.world.item.enchantment.Enchantment extends java.lang.Record {
+  public static final int MAX_LEVEL;
+  public static final com.mojang.serialization.Codec<net.minecraft.world.item.enchantment.Enchantment> DIRECT_CODEC;
+  public static final com.mojang.serialization.Codec<net.minecraft.core.Holder<net.minecraft.world.item.enchantment.Enchantment>> CODEC;
+  public static final net.minecraft.network.codec.StreamCodec<net.minecraft.network.RegistryFriendlyByteBuf, net.minecraft.core.Holder<net.minecraft.world.item.enchantment.Enchantment>> STREAM_CODEC;
+  public net.minecraft.world.item.enchantment.Enchantment(net.minecraft.network.chat.Component, net.minecraft.world.item.enchantment.Enchantment$EnchantmentDefinition, net.minecraft.core.HolderSet<net.minecraft.world.item.enchantment.Enchantment>, net.minecraft.core.component.DataComponentMap);
+  public static net.minecraft.world.item.enchantment.Enchantment$Cost constantCost(int);
+  public static net.minecraft.world.item.enchantment.Enchantment$Cost dynamicCost(int, int);
+  public static net.minecraft.world.item.enchantment.Enchantment$EnchantmentDefinition definition(net.minecraft.core.HolderSet<net.minecraft.world.item.Item>, net.minecraft.core.HolderSet<net.minecraft.world.item.Item>, int, int, net.minecraft.world.item.enchantment.Enchantment$Cost, net.minecraft.world.item.enchantment.Enchantment$Cost, int, net.minecraft.world.entity.EquipmentSlotGroup...);
+  public static net.minecraft.world.item.enchantment.Enchantment$EnchantmentDefinition definition(net.minecraft.core.HolderSet<net.minecraft.world.item.Item>, int, int, net.minecraft.world.item.enchantment.Enchantment$Cost, net.minecraft.world.item.enchantment.Enchantment$Cost, int, net.minecraft.world.entity.EquipmentSlotGroup...);
+  public java.util.Map<net.minecraft.world.entity.EquipmentSlot, net.minecraft.world.item.ItemStack> getSlotItems(net.minecraft.world.entity.LivingEntity);
+  public net.minecraft.core.HolderSet<net.minecraft.world.item.Item> getSupportedItems();
+  public boolean matchingSlot(net.minecraft.world.entity.EquipmentSlot);
+  public boolean isPrimaryItem(net.minecraft.world.item.ItemStack);
+  public boolean isSupportedItem(net.minecraft.world.item.ItemStack);
+  public int getWeight();
+  public int getAnvilCost();
+  public int getMinLevel();
+  public int getMaxLevel();
+  public int getMinCost(int);
+  public int getMaxCost(int);
+  public java.lang.String toString();
+  public static boolean areCompatible(net.minecraft.core.Holder<net.minecraft.world.item.enchantment.Enchantment>, net.minecraft.core.Holder<net.minecraft.world.item.enchantment.Enchantment>);
+  public static net.minecraft.network.chat.Component getFullname(net.minecraft.core.Holder<net.minecraft.world.item.enchantment.Enchantment>, int);
+  public boolean canEnchant(net.minecraft.world.item.ItemStack);
+  public <T> java.util.List<T> getEffects(net.minecraft.core.component.DataComponentType<java.util.List<T>>);
+  public boolean isImmuneToDamage(net.minecraft.server.level.ServerLevel, int, net.minecraft.world.entity.Entity, net.minecraft.world.damagesource.DamageSource);
+  public void modifyDamageProtection(net.minecraft.server.level.ServerLevel, int, net.minecraft.world.item.ItemStack, net.minecraft.world.entity.Entity, net.minecraft.world.damagesource.DamageSource, org.apache.commons.lang3.mutable.MutableFloat);
+  public void modifyDurabilityChange(net.minecraft.server.level.ServerLevel, int, net.minecraft.world.item.ItemStack, org.apache.commons.lang3.mutable.MutableFloat);
+  public void modifyAmmoCount(net.minecraft.server.level.ServerLevel, int, net.minecraft.world.item.ItemStack, org.apache.commons.lang3.mutable.MutableFloat);
+  public void modifyPiercingCount(net.minecraft.server.level.ServerLevel, int, net.minecraft.world.item.ItemStack, org.apache.commons.lang3.mutable.MutableFloat);
+  public void modifyBlockExperience(net.minecraft.server.level.ServerLevel, int, net.minecraft.world.item.ItemStack, org.apache.commons.lang3.mutable.MutableFloat);
+  public void modifyMobExperience(net.minecraft.server.level.ServerLevel, int, net.minecraft.world.item.ItemStack, net.minecraft.world.entity.Entity, org.apache.commons.lang3.mutable.MutableFloat);
+  public void modifyDurabilityToRepairFromXp(net.minecraft.server.level.ServerLevel, int, net.minecraft.world.item.ItemStack, org.apache.commons.lang3.mutable.MutableFloat);
+  public void modifyTridentReturnToOwnerAcceleration(net.minecraft.server.level.ServerLevel, int, net.minecraft.world.item.ItemStack, net.minecraft.world.entity.Entity, org.apache.commons.lang3.mutable.MutableFloat);
+  public void modifyTridentSpinAttackStrength(net.minecraft.util.RandomSource, int, org.apache.commons.lang3.mutable.MutableFloat);
+  public void modifyFishingTimeReduction(net.minecraft.server.level.ServerLevel, int, net.minecraft.world.item.ItemStack, net.minecraft.world.entity.Entity, org.apache.commons.lang3.mutable.MutableFloat);
+  public void modifyFishingLuckBonus(net.minecraft.server.level.ServerLevel, int, net.minecraft.world.item.ItemStack, net.minecraft.world.entity.Entity, org.apache.commons.lang3.mutable.MutableFloat);
+  public void modifyDamage(net.minecraft.server.level.ServerLevel, int, net.minecraft.world.item.ItemStack, net.minecraft.world.entity.Entity, net.minecraft.world.damagesource.DamageSource, org.apache.commons.lang3.mutable.MutableFloat);
+  public void modifyFallBasedDamage(net.minecraft.server.level.ServerLevel, int, net.minecraft.world.item.ItemStack, net.minecraft.world.entity.Entity, net.minecraft.world.damagesource.DamageSource, org.apache.commons.lang3.mutable.MutableFloat);
+  public void modifyKnockback(net.minecraft.server.level.ServerLevel, int, net.minecraft.world.item.ItemStack, net.minecraft.world.entity.Entity, net.minecraft.world.damagesource.DamageSource, org.apache.commons.lang3.mutable.MutableFloat);
+  public void modifyArmorEffectivness(net.minecraft.server.level.ServerLevel, int, net.minecraft.world.item.ItemStack, net.minecraft.world.entity.Entity, net.minecraft.world.damagesource.DamageSource, org.apache.commons.lang3.mutable.MutableFloat);
+  public void doPostAttack(net.minecraft.server.level.ServerLevel, int, net.minecraft.world.item.enchantment.EnchantedItemInUse, net.minecraft.world.item.enchantment.EnchantmentTarget, net.minecraft.world.entity.Entity, net.minecraft.world.damagesource.DamageSource);
+  public static void doPostAttack(net.minecraft.world.item.enchantment.TargetedConditionalEffect<net.minecraft.world.item.enchantment.effects.EnchantmentEntityEffect>, net.minecraft.server.level.ServerLevel, int, net.minecraft.world.item.enchantment.EnchantedItemInUse, net.minecraft.world.entity.Entity, net.minecraft.world.damagesource.DamageSource);
+  public void doPostPiercingAttack(net.minecraft.server.level.ServerLevel, int, net.minecraft.world.item.enchantment.EnchantedItemInUse, net.minecraft.world.entity.Entity);
+  public void modifyProjectileCount(net.minecraft.server.level.ServerLevel, int, net.minecraft.world.item.ItemStack, net.minecraft.world.entity.Entity, org.apache.commons.lang3.mutable.MutableFloat);
+  public void modifyProjectileSpread(net.minecraft.server.level.ServerLevel, int, net.minecraft.world.item.ItemStack, net.minecraft.world.entity.Entity, org.apache.commons.lang3.mutable.MutableFloat);
+  public void modifyCrossbowChargeTime(net.minecraft.util.RandomSource, int, org.apache.commons.lang3.mutable.MutableFloat);
+  public void modifyUnfilteredValue(net.minecraft.core.component.DataComponentType<net.minecraft.world.item.enchantment.effects.EnchantmentValueEffect>, net.minecraft.util.RandomSource, int, org.apache.commons.lang3.mutable.MutableFloat);
+  public void tick(net.minecraft.server.level.ServerLevel, int, net.minecraft.world.item.enchantment.EnchantedItemInUse, net.minecraft.world.entity.Entity);
+  public void onProjectileSpawned(net.minecraft.server.level.ServerLevel, int, net.minecraft.world.item.enchantment.EnchantedItemInUse, net.minecraft.world.entity.Entity);
+  public void onHitBlock(net.minecraft.server.level.ServerLevel, int, net.minecraft.world.item.enchantment.EnchantedItemInUse, net.minecraft.world.entity.Entity, net.minecraft.world.phys.Vec3, net.minecraft.world.level.block.state.BlockState);
+  public final void modifyItemFilteredCount(net.minecraft.core.component.DataComponentType<java.util.List<net.minecraft.world.item.enchantment.ConditionalEffect<net.minecraft.world.item.enchantment.effects.EnchantmentValueEffect>>>, net.minecraft.server.level.ServerLevel, int, net.minecraft.world.item.ItemInstance, org.apache.commons.lang3.mutable.MutableFloat);
+  public final void modifyEntityFilteredValue(net.minecraft.core.component.DataComponentType<java.util.List<net.minecraft.world.item.enchantment.ConditionalEffect<net.minecraft.world.item.enchantment.effects.EnchantmentValueEffect>>>, net.minecraft.server.level.ServerLevel, int, net.minecraft.world.item.ItemStack, net.minecraft.world.entity.Entity, org.apache.commons.lang3.mutable.MutableFloat);
+  public final void modifyDamageFilteredValue(net.minecraft.core.component.DataComponentType<java.util.List<net.minecraft.world.item.enchantment.ConditionalEffect<net.minecraft.world.item.enchantment.effects.EnchantmentValueEffect>>>, net.minecraft.server.level.ServerLevel, int, net.minecraft.world.item.ItemStack, net.minecraft.world.entity.Entity, net.minecraft.world.damagesource.DamageSource, org.apache.commons.lang3.mutable.MutableFloat);
+  public static net.minecraft.world.level.storage.loot.LootContext damageContext(net.minecraft.server.level.ServerLevel, int, net.minecraft.world.entity.Entity, net.minecraft.world.damagesource.DamageSource);
+  public static net.minecraft.world.level.storage.loot.LootContext itemContext(net.minecraft.server.level.ServerLevel, int, net.minecraft.world.item.ItemInstance);
+  public static net.minecraft.world.level.storage.loot.LootContext locationContext(net.minecraft.server.level.ServerLevel, int, net.minecraft.world.entity.Entity, boolean);
+  public static net.minecraft.world.level.storage.loot.LootContext entityContext(net.minecraft.server.level.ServerLevel, int, net.minecraft.world.entity.Entity, net.minecraft.world.phys.Vec3);
+  public static net.minecraft.world.level.storage.loot.LootContext blockHitContext(net.minecraft.server.level.ServerLevel, int, net.minecraft.world.entity.Entity, net.minecraft.world.phys.Vec3, net.minecraft.world.level.block.state.BlockState);
+  public static <T> void applyEffects(java.util.List<net.minecraft.world.item.enchantment.ConditionalEffect<T>>, net.minecraft.world.level.storage.loot.LootContext, net.minecraft.world.item.enchantment.Enchantment$GenericAction<T>);
+  public static <T> void applyEffects(java.util.List<net.minecraft.world.item.enchantment.ConditionalEffect<T>>, net.minecraft.world.level.storage.loot.LootContext, org.apache.commons.lang3.mutable.MutableFloat, net.minecraft.world.item.enchantment.Enchantment$FloatAction<T>);
+  public void runLocationChangedEffects(net.minecraft.server.level.ServerLevel, int, net.minecraft.world.item.enchantment.EnchantedItemInUse, net.minecraft.world.entity.LivingEntity);
+  public void stopLocationBasedEffects(int, net.minecraft.world.item.enchantment.EnchantedItemInUse, net.minecraft.world.entity.LivingEntity);
+  public static net.minecraft.world.item.enchantment.Enchantment$Builder enchantment(net.minecraft.world.item.enchantment.Enchantment$EnchantmentDefinition);
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public net.minecraft.network.chat.Component description();
+  public net.minecraft.world.item.enchantment.Enchantment$EnchantmentDefinition definition();
+  public net.minecraft.core.HolderSet<net.minecraft.world.item.enchantment.Enchantment> exclusiveSet();
+  public net.minecraft.core.component.DataComponentMap effects();
+}
+Compiled from "AttributeModifier.java"
+public final class net.minecraft.world.entity.ai.attributes.AttributeModifier extends java.lang.Record {
+  public static final com.mojang.serialization.MapCodec<net.minecraft.world.entity.ai.attributes.AttributeModifier> MAP_CODEC;
+  public static final com.mojang.serialization.Codec<net.minecraft.world.entity.ai.attributes.AttributeModifier> CODEC;
+  public static final net.minecraft.network.codec.StreamCodec<io.netty.buffer.ByteBuf, net.minecraft.world.entity.ai.attributes.AttributeModifier> STREAM_CODEC;
+  public net.minecraft.world.entity.ai.attributes.AttributeModifier(net.minecraft.resources.Identifier, double, net.minecraft.world.entity.ai.attributes.AttributeModifier$Operation);
+  public boolean is(net.minecraft.resources.Identifier);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public net.minecraft.resources.Identifier id();
+  public double amount();
+  public net.minecraft.world.entity.ai.attributes.AttributeModifier$Operation operation();
+}
+Compiled from "Attribute.java"
+public class net.minecraft.world.entity.ai.attributes.Attribute {
+  public static final com.mojang.serialization.Codec<net.minecraft.core.Holder<net.minecraft.world.entity.ai.attributes.Attribute>> CODEC;
+  public static final net.minecraft.network.codec.StreamCodec<net.minecraft.network.RegistryFriendlyByteBuf, net.minecraft.core.Holder<net.minecraft.world.entity.ai.attributes.Attribute>> STREAM_CODEC;
+  protected net.minecraft.world.entity.ai.attributes.Attribute(java.lang.String, double);
+  public double getDefaultValue();
+  public boolean isClientSyncable();
+  public net.minecraft.world.entity.ai.attributes.Attribute setSyncable(boolean);
+  public net.minecraft.world.entity.ai.attributes.Attribute setSentiment(net.minecraft.world.entity.ai.attributes.Attribute$Sentiment);
+  public double sanitizeValue(double);
+  public java.lang.String getDescriptionId();
+  public net.minecraft.ChatFormatting getStyle(boolean);
+}
+Compiled from "EquipmentSlotGroup.java"
+public final class net.minecraft.world.entity.EquipmentSlotGroup extends java.lang.Enum<net.minecraft.world.entity.EquipmentSlotGroup> implements net.minecraft.util.StringRepresentable, java.lang.Iterable<net.minecraft.world.entity.EquipmentSlot> {
+  public static final net.minecraft.world.entity.EquipmentSlotGroup ANY;
+  public static final net.minecraft.world.entity.EquipmentSlotGroup MAINHAND;
+  public static final net.minecraft.world.entity.EquipmentSlotGroup OFFHAND;
+  public static final net.minecraft.world.entity.EquipmentSlotGroup HAND;
+  public static final net.minecraft.world.entity.EquipmentSlotGroup FEET;
+  public static final net.minecraft.world.entity.EquipmentSlotGroup LEGS;
+  public static final net.minecraft.world.entity.EquipmentSlotGroup CHEST;
+  public static final net.minecraft.world.entity.EquipmentSlotGroup HEAD;
+  public static final net.minecraft.world.entity.EquipmentSlotGroup ARMOR;
+  public static final net.minecraft.world.entity.EquipmentSlotGroup BODY;
+  public static final net.minecraft.world.entity.EquipmentSlotGroup SADDLE;
+  public static final java.util.function.IntFunction<net.minecraft.world.entity.EquipmentSlotGroup> BY_ID;
+  public static final com.mojang.serialization.Codec<net.minecraft.world.entity.EquipmentSlotGroup> CODEC;
+  public static final net.minecraft.network.codec.StreamCodec<io.netty.buffer.ByteBuf, net.minecraft.world.entity.EquipmentSlotGroup> STREAM_CODEC;
+  public static net.minecraft.world.entity.EquipmentSlotGroup[] values();
+  public static net.minecraft.world.entity.EquipmentSlotGroup valueOf(java.lang.String);
+  public static net.minecraft.world.entity.EquipmentSlotGroup bySlot(net.minecraft.world.entity.EquipmentSlot);
+  public java.lang.String getSerializedName();
+  public boolean test(net.minecraft.world.entity.EquipmentSlot);
+  public java.util.List<net.minecraft.world.entity.EquipmentSlot> slots();
+  public java.util.Iterator<net.minecraft.world.entity.EquipmentSlot> iterator();
+}
+Compiled from "LootTableEvents.java"
+public final class net.fabricmc.fabric.api.loot.v3.LootTableEvents {
+  public static final net.fabricmc.fabric.api.event.Event<net.fabricmc.fabric.api.loot.v3.LootTableEvents$Replace> REPLACE;
+  public static final net.fabricmc.fabric.api.event.Event<net.fabricmc.fabric.api.loot.v3.LootTableEvents$Modify> MODIFY;
+  public static final net.fabricmc.fabric.api.event.Event<net.fabricmc.fabric.api.loot.v3.LootTableEvents$Loaded> ALL_LOADED;
+  public static final net.fabricmc.fabric.api.event.Event<net.fabricmc.fabric.api.loot.v3.LootTableEvents$ModifyDrops> MODIFY_DROPS;
+}
+Compiled from "LootTableEvents.java"
+public interface net.fabricmc.fabric.api.loot.v3.LootTableEvents$ModifyDrops {
+  public abstract void modifyLootTableDrops(net.minecraft.core.Holder<net.minecraft.world.level.storage.loot.LootTable>, net.minecraft.world.level.storage.loot.LootContext, java.util.List<net.minecraft.world.item.ItemStack>);
+}
+Compiled from "LootContext.java"
+public class net.minecraft.world.level.storage.loot.LootContext {
+  public boolean hasParameter(net.minecraft.util.context.ContextKey<?>);
+  public <T> T getOptional(net.minecraft.util.context.ContextKey<T>);
+  public void addDynamicDrops(net.minecraft.resources.Identifier, java.util.function.Consumer<net.minecraft.world.item.ItemStack>);
+  public boolean hasVisitedElement(net.minecraft.world.level.storage.loot.LootContext$VisitedEntry<?>);
+  public boolean pushVisitedElement(net.minecraft.world.level.storage.loot.LootContext$VisitedEntry<?>);
+  public void popVisitedElement(net.minecraft.world.level.storage.loot.LootContext$VisitedEntry<?>);
+  public net.minecraft.core.HolderGetter$Provider getResolver();
+  public net.minecraft.util.RandomSource getRandom();
+  public float getLuck();
+  public net.minecraft.server.level.ServerLevel getLevel();
+  public static net.minecraft.world.level.storage.loot.LootContext$VisitedEntry<net.minecraft.world.level.storage.loot.LootTable> createVisitedEntry(net.minecraft.world.level.storage.loot.LootTable);
+  public static net.minecraft.world.level.storage.loot.LootContext$VisitedEntry<net.minecraft.world.level.storage.loot.predicates.LootItemCondition> createVisitedEntry(net.minecraft.world.level.storage.loot.predicates.LootItemCondition);
+  public static net.minecraft.world.level.storage.loot.LootContext$VisitedEntry<net.minecraft.world.level.storage.loot.functions.LootItemFunction> createVisitedEntry(net.minecraft.world.level.storage.loot.functions.LootItemFunction);
+  public static net.minecraft.world.level.storage.loot.LootContext$VisitedEntry<net.minecraft.world.item.slot.SlotSource> createVisitedEntry(net.minecraft.world.item.slot.SlotSource);
+}
+Compiled from "LootContextParams.java"
+public class net.minecraft.world.level.storage.loot.parameters.LootContextParams {
+  public static final net.minecraft.util.context.ContextKey<net.minecraft.world.entity.Entity> THIS_ENTITY;
+  public static final net.minecraft.util.context.ContextKey<net.minecraft.world.entity.Entity> INTERACTING_ENTITY;
+  public static final net.minecraft.util.context.ContextKey<net.minecraft.world.entity.Entity> TARGET_ENTITY;
+  public static final net.minecraft.util.context.ContextKey<net.minecraft.world.entity.player.Player> LAST_DAMAGE_PLAYER;
+  public static final net.minecraft.util.context.ContextKey<net.minecraft.world.damagesource.DamageSource> DAMAGE_SOURCE;
+  public static final net.minecraft.util.context.ContextKey<net.minecraft.world.entity.Entity> ATTACKING_ENTITY;
+  public static final net.minecraft.util.context.ContextKey<net.minecraft.world.entity.Entity> DIRECT_ATTACKING_ENTITY;
+  public static final net.minecraft.util.context.ContextKey<net.minecraft.world.phys.Vec3> ORIGIN;
+  public static final net.minecraft.util.context.ContextKey<net.minecraft.world.level.block.state.BlockState> BLOCK_STATE;
+  public static final net.minecraft.util.context.ContextKey<net.minecraft.world.level.block.entity.BlockEntity> BLOCK_ENTITY;
+  public static final net.minecraft.util.context.ContextKey<net.minecraft.world.item.ItemInstance> TOOL;
+  public static final net.minecraft.util.context.ContextKey<java.lang.Float> EXPLOSION_RADIUS;
+  public static final net.minecraft.util.context.ContextKey<java.lang.Integer> ENCHANTMENT_LEVEL;
+  public static final net.minecraft.util.context.ContextKey<java.lang.Boolean> ENCHANTMENT_ACTIVE;
+  public static final net.minecraft.util.context.ContextKey<net.minecraft.util.Unit> ADDITIONAL_COST_COMPONENT_ALLOWED;
+  public static final net.minecraft.util.context.ContextKey<net.minecraft.world.entity.SlotProvider> CONTAINER;
+  public net.minecraft.world.level.storage.loot.parameters.LootContextParams();
+}
+Compiled from "AnvilBlock.java"
+public class net.minecraft.world.level.block.AnvilBlock extends net.minecraft.world.level.block.FallingBlock {
+  public static final net.minecraft.world.level.block.state.properties.EnumProperty<net.minecraft.core.Direction> FACING;
+  public net.minecraft.world.level.block.AnvilBlock(net.minecraft.world.level.block.state.BlockBehaviour$Properties);
+  public net.minecraft.world.level.block.state.BlockState getStateForPlacement(net.minecraft.world.item.context.BlockPlaceContext);
+  protected net.minecraft.world.InteractionResult useWithoutItem(net.minecraft.world.level.block.state.BlockState, net.minecraft.world.level.Level, net.minecraft.core.BlockPos, net.minecraft.world.entity.player.Player, net.minecraft.world.phys.BlockHitResult);
+  protected net.minecraft.world.MenuProvider getMenuProvider(net.minecraft.world.level.block.state.BlockState, net.minecraft.world.level.Level, net.minecraft.core.BlockPos);
+  protected net.minecraft.world.phys.shapes.VoxelShape getShape(net.minecraft.world.level.block.state.BlockState, net.minecraft.world.level.BlockGetter, net.minecraft.core.BlockPos, net.minecraft.world.phys.shapes.CollisionContext);
+  protected void falling(net.minecraft.world.entity.item.FallingBlockEntity);
+  public void onLand(net.minecraft.world.level.Level, net.minecraft.core.BlockPos, net.minecraft.world.level.block.state.BlockState, net.minecraft.world.level.block.state.BlockState, net.minecraft.world.entity.item.FallingBlockEntity);
+  public void onBrokenAfterFall(net.minecraft.world.level.Level, net.minecraft.core.BlockPos, net.minecraft.world.entity.item.FallingBlockEntity);
+  public net.minecraft.world.damagesource.DamageSource getFallDamageSource(net.minecraft.world.entity.Entity);
+  public static net.minecraft.world.level.block.state.BlockState damage(net.minecraft.world.level.block.state.BlockState);
+  protected net.minecraft.world.level.block.state.BlockState rotate(net.minecraft.world.level.block.state.BlockState, net.minecraft.world.level.block.Rotation);
+  protected void createBlockStateDefinition(net.minecraft.world.level.block.state.StateDefinition$Builder<net.minecraft.world.level.block.Block, net.minecraft.world.level.block.state.BlockState>);
+  protected boolean isPathfindable(net.minecraft.world.level.block.state.BlockState, net.minecraft.world.level.pathfinder.PathComputationType);
+  public int getDustColor(net.minecraft.world.level.block.state.BlockState, net.minecraft.world.level.BlockGetter, net.minecraft.core.BlockPos);
+}
+Compiled from "ItemStack.java"
+public final class net.minecraft.world.item.ItemStack implements net.minecraft.core.component.DataComponentHolder,net.minecraft.world.item.ItemInstance,net.fabricmc.fabric.api.item.v1.FabricItemStack {
+  private static final java.util.List<net.minecraft.network.chat.Component> OP_NBT_WARNING;
+  private static final net.minecraft.network.chat.Component UNBREAKABLE_TOOLTIP;
+  private static final net.minecraft.network.chat.Component INTANGIBLE_TOOLTIP;
+  public static final com.mojang.serialization.MapCodec<net.minecraft.world.item.ItemStack> MAP_CODEC;
+  public static final com.mojang.serialization.Codec<net.minecraft.world.item.ItemStack> CODEC;
+  public static final com.mojang.serialization.Codec<net.minecraft.world.item.ItemStack> OPTIONAL_CODEC;
+  public static final net.minecraft.network.codec.StreamCodec<net.minecraft.network.RegistryFriendlyByteBuf, net.minecraft.world.item.ItemStack> OPTIONAL_STREAM_CODEC;
+  public static final net.minecraft.network.codec.StreamCodec<net.minecraft.network.RegistryFriendlyByteBuf, net.minecraft.world.item.ItemStack> OPTIONAL_UNTRUSTED_STREAM_CODEC;
+  public static final net.minecraft.network.codec.StreamCodec<net.minecraft.network.RegistryFriendlyByteBuf, net.minecraft.world.item.ItemStack> STREAM_CODEC;
+  public static final net.minecraft.network.codec.StreamCodec<net.minecraft.network.RegistryFriendlyByteBuf, java.util.List<net.minecraft.world.item.ItemStack>> OPTIONAL_LIST_STREAM_CODEC;
+  private static final org.slf4j.Logger LOGGER;
+  public static final net.minecraft.world.item.ItemStack EMPTY;
+  private static final net.minecraft.network.chat.Component DISABLED_ITEM_TOOLTIP;
+  private int count;
+  private int popTime;
+  private final net.minecraft.core.Holder<net.minecraft.world.item.Item> item;
+  private final net.minecraft.core.component.PatchedDataComponentMap components;
+  public static com.mojang.serialization.DataResult<net.minecraft.world.item.ItemStack> validateStrict(net.minecraft.world.item.ItemStack);
+  private static net.minecraft.network.codec.StreamCodec<net.minecraft.network.RegistryFriendlyByteBuf, net.minecraft.world.item.ItemStack> createOptionalStreamCodec(net.minecraft.network.codec.StreamCodec<net.minecraft.network.RegistryFriendlyByteBuf, net.minecraft.core.component.DataComponentPatch>);
+  public static net.minecraft.network.codec.StreamCodec<net.minecraft.network.RegistryFriendlyByteBuf, net.minecraft.world.item.ItemStack> validatedStreamCodec(net.minecraft.network.codec.StreamCodec<net.minecraft.network.RegistryFriendlyByteBuf, net.minecraft.world.item.ItemStack>);
+  public java.util.Optional<net.minecraft.world.inventory.tooltip.TooltipComponent> getTooltipImage();
+  public net.minecraft.core.component.DataComponentMap getComponents();
+  public net.minecraft.core.component.DataComponentMap getPrototype();
+  public net.minecraft.core.component.DataComponentPatch getComponentsPatch();
+  public net.minecraft.core.component.DataComponentMap immutableComponents();
+  public boolean hasNonDefault(net.minecraft.core.component.DataComponentType<?>);
+  public net.minecraft.world.item.ItemStack(net.minecraft.world.level.ItemLike, int);
+  public net.minecraft.world.item.ItemStack(net.minecraft.world.level.ItemLike);
+  public net.minecraft.world.item.ItemStack(net.minecraft.core.Holder<net.minecraft.world.item.Item>, int);
+  public net.minecraft.world.item.ItemStack(net.minecraft.core.Holder<net.minecraft.world.item.Item>);
+  public net.minecraft.world.item.ItemStack(net.minecraft.core.Holder<net.minecraft.world.item.Item>, int, net.minecraft.core.component.DataComponentPatch);
+  private net.minecraft.world.item.ItemStack(net.minecraft.core.Holder<net.minecraft.world.item.Item>, int, net.minecraft.core.component.PatchedDataComponentMap);
+  private net.minecraft.world.item.ItemStack(java.lang.Void);
+  private static com.mojang.serialization.DataResult<?> validateComponents(net.minecraft.core.component.DataComponentMap);
+  private static com.mojang.serialization.DataResult<?> validateContainedItemSizes(java.lang.Iterable<? extends net.minecraft.world.item.ItemInstance>);
+  public boolean isEmpty();
+  public boolean isItemEnabled(net.minecraft.world.flag.FeatureFlagSet);
+  public net.minecraft.world.item.ItemStack split(int);
+  public net.minecraft.world.item.ItemStack copyAndClear();
+  public net.minecraft.world.item.Item getItem();
+  public net.minecraft.core.Holder<net.minecraft.world.item.Item> typeHolder();
+  public boolean is(java.util.function.Predicate<net.minecraft.core.Holder<net.minecraft.world.item.Item>>);
+  public net.minecraft.world.InteractionResult useOn(net.minecraft.world.item.context.UseOnContext);
+  public float getDestroySpeed(net.minecraft.world.level.block.state.BlockState);
+  public net.minecraft.world.InteractionResult use(net.minecraft.world.level.Level, net.minecraft.world.entity.player.Player, net.minecraft.world.InteractionHand);
+  public net.minecraft.world.item.ItemStack finishUsingItem(net.minecraft.world.level.Level, net.minecraft.world.entity.LivingEntity);
+  private net.minecraft.world.item.ItemStack applyAfterUseComponentSideEffects(net.minecraft.world.entity.LivingEntity, net.minecraft.world.item.ItemStack);
+  public boolean isStackable();
+  public boolean isDamageableItem();
+  public boolean isDamaged();
+  public int getDamageValue();
+  public void setDamageValue(int);
+  public int getMaxDamage();
+  public boolean isBroken();
+  public boolean nextDamageWillBreak();
+  public void hurtAndBreak(int, net.minecraft.server.level.ServerLevel, net.minecraft.server.level.ServerPlayer, java.util.function.Consumer<net.minecraft.world.item.ItemStack>);
+  private int processDurabilityChange(int, net.minecraft.server.level.ServerLevel, net.minecraft.server.level.ServerPlayer);
+  private void applyDamage(int, net.minecraft.server.level.ServerPlayer, java.util.function.Consumer<net.minecraft.world.item.ItemStack>);
+  public void hurtWithoutBreaking(int, net.minecraft.world.entity.player.Player);
+  public void hurtAndBreak(int, net.minecraft.world.entity.LivingEntity, net.minecraft.world.InteractionHand);
+  public void hurtAndBreak(int, net.minecraft.world.entity.LivingEntity, net.minecraft.world.entity.EquipmentSlot);
+  public net.minecraft.world.item.ItemStack hurtAndConvertOnBreak(int, net.minecraft.world.level.ItemLike, net.minecraft.world.entity.LivingEntity, net.minecraft.world.entity.EquipmentSlot);
+  public boolean isBarVisible();
+  public int getBarWidth();
+  public int getBarColor();
+  public boolean overrideStackedOnOther(net.minecraft.world.inventory.Slot, net.minecraft.world.inventory.ClickAction, net.minecraft.world.entity.player.Player);
+  public boolean overrideOtherStackedOnMe(net.minecraft.world.item.ItemStack, net.minecraft.world.inventory.Slot, net.minecraft.world.inventory.ClickAction, net.minecraft.world.entity.player.Player, net.minecraft.world.entity.SlotAccess);
+  public boolean hurtEnemy(net.minecraft.world.entity.LivingEntity, net.minecraft.world.entity.LivingEntity);
+  public void postHurtEnemy(net.minecraft.world.entity.LivingEntity, net.minecraft.world.entity.LivingEntity);
+  public void mineBlock(net.minecraft.world.level.Level, net.minecraft.world.level.block.state.BlockState, net.minecraft.core.BlockPos, net.minecraft.world.entity.player.Player);
+  public boolean isCorrectToolForDrops(net.minecraft.world.level.block.state.BlockState);
+  public net.minecraft.world.InteractionResult interactLivingEntity(net.minecraft.world.entity.player.Player, net.minecraft.world.entity.LivingEntity, net.minecraft.world.InteractionHand);
+  public net.minecraft.world.item.ItemStack copy();
+  public net.minecraft.world.item.ItemStack copyWithCount(int);
+  public net.minecraft.world.item.ItemStack transmuteCopy(net.minecraft.world.level.ItemLike);
+  public net.minecraft.world.item.ItemStack transmuteCopy(net.minecraft.world.level.ItemLike, int);
+  private net.minecraft.world.item.ItemStack transmuteCopyIgnoreEmpty(net.minecraft.world.level.ItemLike, int);
+  public static boolean matches(net.minecraft.world.item.ItemStack, net.minecraft.world.item.ItemStack);
+  public static boolean listMatches(java.util.List<net.minecraft.world.item.ItemStack>, java.util.List<net.minecraft.world.item.ItemStack>);
+  public static boolean isSameItem(net.minecraft.world.item.ItemStack, net.minecraft.world.item.ItemStack);
+  public static boolean isSameItemSameComponents(net.minecraft.world.item.ItemStack, net.minecraft.world.item.ItemStack);
+  public static boolean matchesIgnoringComponents(net.minecraft.world.item.ItemStack, net.minecraft.world.item.ItemStack, java.util.function.Predicate<net.minecraft.core.component.DataComponentType<?>>);
+  public static com.mojang.serialization.MapCodec<net.minecraft.world.item.ItemStack> lenientOptionalFieldOf(java.lang.String);
+  public static int hashItemAndComponents(net.minecraft.world.item.ItemStack);
+  public static int hashStackList(java.util.List<net.minecraft.world.item.ItemStack>);
+  public java.lang.String toString();
+  public void inventoryTick(net.minecraft.world.level.Level, net.minecraft.world.entity.Entity, net.minecraft.world.entity.EquipmentSlot);
+  public void onCraftedBy(net.minecraft.world.entity.player.Player, int);
+  public void onCraftedBySystem(net.minecraft.world.level.Level);
+  public int getUseDuration(net.minecraft.world.entity.LivingEntity);
+  public net.minecraft.world.item.ItemUseAnimation getUseAnimation();
+  public void releaseUsing(net.minecraft.world.level.Level, net.minecraft.world.entity.LivingEntity, int);
+  public void causeUseVibration(net.minecraft.world.entity.Entity, net.minecraft.core.Holder$Reference<net.minecraft.world.level.gameevent.GameEvent>);
+  public boolean useOnRelease();
+  public <T> T set(net.minecraft.core.component.DataComponentType<T>, T);
+  public <T> T set(net.minecraft.core.component.TypedDataComponent<T>);
+  public <T> void copyFrom(net.minecraft.core.component.DataComponentType<T>, net.minecraft.core.component.DataComponentGetter);
+  public <T, U> T update(net.minecraft.core.component.DataComponentType<T>, T, U, java.util.function.BiFunction<T, U, T>);
+  public <T> T update(net.minecraft.core.component.DataComponentType<T>, T, java.util.function.UnaryOperator<T>);
+  public <T> T remove(net.minecraft.core.component.DataComponentType<? extends T>);
+  public void applyComponentsAndValidate(net.minecraft.core.component.DataComponentPatch);
+  public void applyComponents(net.minecraft.core.component.DataComponentPatch);
+  public void applyComponents(net.minecraft.core.component.DataComponentMap);
+  public net.minecraft.network.chat.Component getHoverName();
+  public net.minecraft.network.chat.Component getCustomName();
+  public net.minecraft.network.chat.Component getItemName();
+  public net.minecraft.network.chat.Component getStyledHoverName();
+  public <T> void addToTooltip(net.minecraft.core.component.DataComponentType<T>, net.minecraft.world.item.component.TooltipProvider$Getter<T>, net.minecraft.world.item.Item$TooltipContext, net.minecraft.world.item.component.TooltipDisplay, java.util.function.Consumer<net.minecraft.network.chat.Component>, net.minecraft.world.item.TooltipFlag);
+  public <T extends net.minecraft.world.item.component.TooltipProvider> void addToTooltip(net.minecraft.core.component.DataComponentType<T>, net.minecraft.world.item.Item$TooltipContext, net.minecraft.world.item.component.TooltipDisplay, java.util.function.Consumer<net.minecraft.network.chat.Component>, net.minecraft.world.item.TooltipFlag);
+  public java.util.List<net.minecraft.network.chat.Component> getTooltipLines(net.minecraft.world.item.Item$TooltipContext, net.minecraft.world.entity.player.Player, net.minecraft.world.item.TooltipFlag);
+  public void addDetailsToTooltip(net.minecraft.world.item.Item$TooltipContext, net.minecraft.world.item.component.TooltipDisplay, net.minecraft.world.entity.player.Player, net.minecraft.world.item.TooltipFlag, java.util.function.Consumer<net.minecraft.network.chat.Component>);
+  private void addUnitComponentToTooltip(net.minecraft.core.component.DataComponentType<?>, net.minecraft.network.chat.Component, net.minecraft.world.item.component.TooltipDisplay, java.util.function.Consumer<net.minecraft.network.chat.Component>);
+  private void addAttributeTooltips(java.util.function.Consumer<net.minecraft.network.chat.Component>, net.minecraft.world.item.component.TooltipDisplay, net.minecraft.world.entity.player.Player);
+  public boolean hasFoil();
+  public net.minecraft.world.item.Rarity getRarity();
+  public boolean isEnchantable();
+  public void enchant(net.minecraft.core.Holder<net.minecraft.world.item.enchantment.Enchantment>, int);
+  public boolean isEnchanted();
+  public net.minecraft.world.item.enchantment.ItemEnchantments getEnchantments();
+  public void forEachModifier(net.minecraft.world.entity.EquipmentSlotGroup, org.apache.commons.lang3.function.TriConsumer<net.minecraft.core.Holder<net.minecraft.world.entity.ai.attributes.Attribute>, net.minecraft.world.entity.ai.attributes.AttributeModifier, net.minecraft.world.item.component.ItemAttributeModifiers$Display>);
+  public void forEachModifier(net.minecraft.world.entity.EquipmentSlot, java.util.function.BiConsumer<net.minecraft.core.Holder<net.minecraft.world.entity.ai.attributes.Attribute>, net.minecraft.world.entity.ai.attributes.AttributeModifier>);
+  public net.minecraft.network.chat.Component getDisplayName();
+  public net.minecraft.world.item.component.SwingAnimation getAttackAnimation();
+  public net.minecraft.world.item.component.SwingAnimation getInteractAnimation();
+  public boolean canPlaceOnBlockInAdventureMode(net.minecraft.world.level.block.state.pattern.BlockInWorld);
+  public boolean canBreakBlockInAdventureMode(net.minecraft.world.level.block.state.pattern.BlockInWorld);
+  public int getPopTime();
+  public void setPopTime(int);
+  public int getCount();
+  public int count();
+  public void setCount(int);
+  public void limitSize(int);
+  public void grow(int);
+  public void shrink(int);
+  public void consume(int, net.minecraft.world.entity.LivingEntity);
+  public net.minecraft.world.item.ItemStack consumeAndReturn(int, net.minecraft.world.entity.LivingEntity);
+  public void onUseTick(net.minecraft.world.level.Level, net.minecraft.world.entity.LivingEntity, int);
+  public void onDestroyed(net.minecraft.world.entity.item.ItemEntity);
+  public boolean canBeHurtBy(net.minecraft.world.damagesource.DamageSource);
+  public boolean isValidRepairItem(net.minecraft.world.item.ItemStack);
+  public boolean canDestroyBlock(net.minecraft.world.level.block.state.BlockState, net.minecraft.world.level.Level, net.minecraft.core.BlockPos, net.minecraft.world.entity.player.Player);
+  public net.minecraft.world.damagesource.DamageSource getDamageSource(net.minecraft.world.entity.LivingEntity);
+  private java.util.Optional lambda$getDamageSource$1(net.minecraft.world.entity.LivingEntity);
+  private static net.minecraft.world.damagesource.DamageSource lambda$getDamageSource$0(net.minecraft.world.entity.LivingEntity, net.minecraft.core.Holder);
+  private net.minecraft.network.chat.Style lambda$getDisplayName$0(net.minecraft.network.chat.Style);
+  private static void lambda$forEachModifier$0(org.apache.commons.lang3.function.TriConsumer, net.minecraft.core.Holder, net.minecraft.world.entity.ai.attributes.AttributeModifier);
+  private static void lambda$enchant$0(net.minecraft.core.Holder, int, net.minecraft.world.item.enchantment.ItemEnchantments$Mutable);
+  private static void lambda$addAttributeTooltips$0(org.apache.commons.lang3.mutable.MutableBoolean, java.util.function.Consumer, net.minecraft.world.entity.EquipmentSlotGroup, net.minecraft.world.entity.player.Player, net.minecraft.core.Holder, net.minecraft.world.entity.ai.attributes.AttributeModifier, net.minecraft.world.item.component.ItemAttributeModifiers$Display);
+  private static net.minecraft.world.item.component.TooltipProvider lambda$addToTooltip$0(net.minecraft.world.item.component.TooltipProvider);
+  private static java.util.Optional lambda$lenientOptionalFieldOf$1(net.minecraft.world.item.ItemStack);
+  private static net.minecraft.world.item.ItemStack lambda$lenientOptionalFieldOf$0(java.util.Optional);
+  private static void lambda$hurtAndBreak$0(net.minecraft.world.entity.LivingEntity, net.minecraft.world.entity.EquipmentSlot, net.minecraft.world.item.ItemStack);
+  private static void lambda$hurtWithoutBreaking$0(net.minecraft.world.item.ItemStack);
+  private static java.lang.String lambda$validateContainedItemSizes$0(int, int);
+  private static java.lang.String lambda$validateComponents$0();
+  private static java.util.Optional lambda$static$4(net.minecraft.world.item.ItemStack);
+  private static net.minecraft.world.item.ItemStack lambda$static$3(java.util.Optional);
+  private static java.lang.String lambda$validateStrict$1(net.minecraft.world.item.ItemStack);
+  private static net.minecraft.world.item.ItemStack lambda$validateStrict$0(net.minecraft.world.item.ItemStack, java.lang.Object);
+  private static com.mojang.serialization.MapCodec lambda$static$0(com.mojang.serialization.Codec);
+  private static com.mojang.datafixers.kinds.App lambda$static$1(com.mojang.serialization.codecs.RecordCodecBuilder$Instance);
+  private static net.minecraft.core.component.DataComponentPatch lambda$static$2(net.minecraft.world.item.ItemStack);
+  static {};
+}
+Compiled from "EnchantmentHelper.java"
+public class net.minecraft.world.item.enchantment.EnchantmentHelper {
+  public net.minecraft.world.item.enchantment.EnchantmentHelper();
+  public static int getItemEnchantmentLevel(net.minecraft.core.Holder<net.minecraft.world.item.enchantment.Enchantment>, net.minecraft.world.item.ItemInstance);
+  public static net.minecraft.world.item.enchantment.ItemEnchantments updateEnchantments(net.minecraft.world.item.ItemStack, java.util.function.Consumer<net.minecraft.world.item.enchantment.ItemEnchantments$Mutable>);
+  public static boolean canStoreEnchantments(net.minecraft.world.item.ItemStack);
+  public static void setEnchantments(net.minecraft.world.item.ItemStack, net.minecraft.world.item.enchantment.ItemEnchantments);
+  public static net.minecraft.world.item.enchantment.ItemEnchantments getEnchantmentsForCrafting(net.minecraft.world.item.ItemStack);
+  public static net.minecraft.core.component.DataComponentType<net.minecraft.world.item.enchantment.ItemEnchantments> getComponentType(net.minecraft.world.item.ItemStack);
+  public static boolean hasAnyEnchantments(net.minecraft.world.item.ItemStack);
+  public static int processDurabilityChange(net.minecraft.server.level.ServerLevel, net.minecraft.world.item.ItemStack, int);
+  public static int processAmmoUse(net.minecraft.server.level.ServerLevel, net.minecraft.world.item.ItemStack, net.minecraft.world.item.ItemStack, int);
+  public static int processBlockExperience(net.minecraft.server.level.ServerLevel, net.minecraft.world.item.ItemStack, int);
+  public static int processMobExperience(net.minecraft.server.level.ServerLevel, net.minecraft.world.entity.Entity, net.minecraft.world.entity.Entity, int);
+  public static net.minecraft.world.item.ItemStack createBook(net.minecraft.world.item.enchantment.EnchantmentInstance);
+  public static void runIterationOnItem(net.minecraft.world.item.ItemStack, net.minecraft.world.item.enchantment.EnchantmentHelper$EnchantmentVisitor);
+  public static void runIterationOnItem(net.minecraft.world.item.ItemStack, net.minecraft.world.entity.EquipmentSlot, net.minecraft.world.entity.LivingEntity, net.minecraft.world.item.enchantment.EnchantmentHelper$EnchantmentInSlotVisitor);
+  public static void runIterationOnEquipment(net.minecraft.world.entity.LivingEntity, net.minecraft.world.item.enchantment.EnchantmentHelper$EnchantmentInSlotVisitor);
+  public static boolean isImmuneToDamage(net.minecraft.server.level.ServerLevel, net.minecraft.world.entity.LivingEntity, net.minecraft.world.damagesource.DamageSource);
+  public static float getDamageProtection(net.minecraft.server.level.ServerLevel, net.minecraft.world.entity.LivingEntity, net.minecraft.world.damagesource.DamageSource);
+  public static float modifyDamage(net.minecraft.server.level.ServerLevel, net.minecraft.world.item.ItemStack, net.minecraft.world.entity.Entity, net.minecraft.world.damagesource.DamageSource, float);
+  public static float modifyFallBasedDamage(net.minecraft.server.level.ServerLevel, net.minecraft.world.item.ItemStack, net.minecraft.world.entity.Entity, net.minecraft.world.damagesource.DamageSource, float);
+  public static float modifyArmorEffectiveness(net.minecraft.server.level.ServerLevel, net.minecraft.world.item.ItemStack, net.minecraft.world.entity.Entity, net.minecraft.world.damagesource.DamageSource, float);
+  public static float modifyKnockback(net.minecraft.server.level.ServerLevel, net.minecraft.world.item.ItemStack, net.minecraft.world.entity.Entity, net.minecraft.world.damagesource.DamageSource, float);
+  public static void doPostAttackEffects(net.minecraft.server.level.ServerLevel, net.minecraft.world.entity.Entity, net.minecraft.world.damagesource.DamageSource);
+  public static void doPostPiercingAttackEffects(net.minecraft.server.level.ServerLevel, net.minecraft.world.entity.LivingEntity);
+  public static void doPostAttackEffectsWithItemSource(net.minecraft.server.level.ServerLevel, net.minecraft.world.entity.Entity, net.minecraft.world.damagesource.DamageSource, net.minecraft.world.item.ItemStack);
+  public static void doPostAttackEffectsWithItemSourceOnBreak(net.minecraft.server.level.ServerLevel, net.minecraft.world.entity.Entity, net.minecraft.world.damagesource.DamageSource, net.minecraft.world.item.ItemStack, java.util.function.Consumer<net.minecraft.world.item.ItemStack>);
+  public static void runLocationChangedEffects(net.minecraft.server.level.ServerLevel, net.minecraft.world.entity.LivingEntity);
+  public static void runLocationChangedEffects(net.minecraft.server.level.ServerLevel, net.minecraft.world.item.ItemStack, net.minecraft.world.entity.LivingEntity, net.minecraft.world.entity.EquipmentSlot);
+  public static void stopLocationBasedEffects(net.minecraft.world.entity.LivingEntity);
+  public static void stopLocationBasedEffects(net.minecraft.world.item.ItemStack, net.minecraft.world.entity.LivingEntity, net.minecraft.world.entity.EquipmentSlot);
+  public static void tickEffects(net.minecraft.server.level.ServerLevel, net.minecraft.world.entity.LivingEntity);
+  public static int getEnchantmentLevel(net.minecraft.core.Holder<net.minecraft.world.item.enchantment.Enchantment>, net.minecraft.world.entity.LivingEntity);
+  public static int processProjectileCount(net.minecraft.server.level.ServerLevel, net.minecraft.world.item.ItemStack, net.minecraft.world.entity.Entity, int);
+  public static float processProjectileSpread(net.minecraft.server.level.ServerLevel, net.minecraft.world.item.ItemStack, net.minecraft.world.entity.Entity, float);
+  public static int getPiercingCount(net.minecraft.server.level.ServerLevel, net.minecraft.world.item.ItemStack, net.minecraft.world.item.ItemStack);
+  public static void onProjectileSpawned(net.minecraft.server.level.ServerLevel, net.minecraft.world.item.ItemStack, net.minecraft.world.entity.projectile.Projectile, java.util.function.Consumer<net.minecraft.world.item.ItemStack>);
+  public static void onHitBlock(net.minecraft.server.level.ServerLevel, net.minecraft.world.item.ItemStack, net.minecraft.world.entity.LivingEntity, net.minecraft.world.entity.Entity, net.minecraft.world.entity.EquipmentSlot, net.minecraft.world.phys.Vec3, net.minecraft.world.level.block.state.BlockState, java.util.function.Consumer<net.minecraft.world.item.ItemStack>);
+  public static int modifyDurabilityToRepairFromXp(net.minecraft.server.level.ServerLevel, net.minecraft.world.item.ItemStack, int);
+  public static float processEquipmentDropChance(net.minecraft.server.level.ServerLevel, net.minecraft.world.entity.LivingEntity, net.minecraft.world.damagesource.DamageSource, float);
+  public static void forEachModifier(net.minecraft.world.item.ItemStack, net.minecraft.world.entity.EquipmentSlotGroup, java.util.function.BiConsumer<net.minecraft.core.Holder<net.minecraft.world.entity.ai.attributes.Attribute>, net.minecraft.world.entity.ai.attributes.AttributeModifier>);
+  public static void forEachModifier(net.minecraft.world.item.ItemStack, net.minecraft.world.entity.EquipmentSlot, java.util.function.BiConsumer<net.minecraft.core.Holder<net.minecraft.world.entity.ai.attributes.Attribute>, net.minecraft.world.entity.ai.attributes.AttributeModifier>);
+  public static int getFishingLuckBonus(net.minecraft.server.level.ServerLevel, net.minecraft.world.item.ItemStack, net.minecraft.world.entity.Entity);
+  public static float getFishingTimeReduction(net.minecraft.server.level.ServerLevel, net.minecraft.world.item.ItemStack, net.minecraft.world.entity.Entity);
+  public static int getTridentReturnToOwnerAcceleration(net.minecraft.server.level.ServerLevel, net.minecraft.world.item.ItemStack, net.minecraft.world.entity.Entity);
+  public static float modifyCrossbowChargingTime(net.minecraft.world.item.ItemStack, net.minecraft.world.entity.LivingEntity, float);
+  public static float getTridentSpinAttackStrength(net.minecraft.world.item.ItemStack, net.minecraft.world.entity.LivingEntity);
+  public static boolean hasTag(net.minecraft.world.item.ItemStack, net.minecraft.tags.TagKey<net.minecraft.world.item.enchantment.Enchantment>);
+  public static boolean has(net.minecraft.world.item.ItemStack, net.minecraft.core.component.DataComponentType<?>);
+  public static <T> java.util.Optional<T> pickHighestLevel(net.minecraft.world.item.ItemStack, net.minecraft.core.component.DataComponentType<java.util.List<T>>);
+  public static <T> com.mojang.datafixers.util.Pair<T, java.lang.Integer> getHighestLevel(net.minecraft.world.item.ItemStack, net.minecraft.core.component.DataComponentType<T>);
+  public static java.util.Optional<net.minecraft.world.item.enchantment.EnchantedItemInUse> getRandomItemWith(net.minecraft.core.component.DataComponentType<?>, net.minecraft.world.entity.LivingEntity, java.util.function.Predicate<net.minecraft.world.item.ItemStack>);
+  public static int getEnchantmentCost(net.minecraft.util.RandomSource, int, int, net.minecraft.world.item.ItemStack);
+  public static net.minecraft.world.item.ItemStack enchantItem(net.minecraft.util.RandomSource, net.minecraft.world.item.ItemStack, int, net.minecraft.core.RegistryAccess, java.util.Optional<? extends net.minecraft.core.HolderSet<net.minecraft.world.item.enchantment.Enchantment>>);
+  public static net.minecraft.world.item.ItemStack enchantItem(net.minecraft.util.RandomSource, net.minecraft.world.item.ItemStack, int, java.util.stream.Stream<net.minecraft.core.Holder<net.minecraft.world.item.enchantment.Enchantment>>);
+  public static java.util.List<net.minecraft.world.item.enchantment.EnchantmentInstance> selectEnchantment(net.minecraft.util.RandomSource, net.minecraft.world.item.ItemStack, int, java.util.stream.Stream<net.minecraft.core.Holder<net.minecraft.world.item.enchantment.Enchantment>>);
+  public static void filterCompatibleEnchantments(java.util.List<net.minecraft.world.item.enchantment.EnchantmentInstance>, net.minecraft.world.item.enchantment.EnchantmentInstance);
+  public static boolean isEnchantmentCompatible(java.util.Collection<net.minecraft.core.Holder<net.minecraft.world.item.enchantment.Enchantment>>, net.minecraft.core.Holder<net.minecraft.world.item.enchantment.Enchantment>);
+  public static java.util.List<net.minecraft.world.item.enchantment.EnchantmentInstance> getAvailableEnchantmentResults(int, net.minecraft.world.item.ItemStack, java.util.stream.Stream<net.minecraft.core.Holder<net.minecraft.world.item.enchantment.Enchantment>>);
+  public static void enchantItemFromProvider(net.minecraft.world.item.ItemStack, net.minecraft.core.RegistryAccess, net.minecraft.resources.ResourceKey<net.minecraft.world.item.enchantment.providers.EnchantmentProvider>, net.minecraft.world.DifficultyInstance, net.minecraft.util.RandomSource);
+}
+Compiled from "Item.java"
+public interface net.minecraft.world.item.Item$TooltipContext {
+  public static final net.minecraft.world.item.Item$TooltipContext EMPTY;
+  public abstract net.minecraft.core.HolderLookup$Provider registries();
+  public abstract float tickRate();
+  public abstract net.minecraft.world.level.saveddata.maps.MapItemSavedData mapData(net.minecraft.world.level.saveddata.maps.MapId);
+  public abstract boolean isPeaceful();
+  public static net.minecraft.world.item.Item$TooltipContext of(net.minecraft.world.level.Level);
+  public static net.minecraft.world.item.Item$TooltipContext of(net.minecraft.core.HolderLookup$Provider);
+}
+?? loot/v[0-9]/LootTableEvents -> net/fabricmc/fabric/api/loot/v3/LootTableEvents$Loaded.class
+?? loot/v[0-9]/LootTableEvents -> net/fabricmc/fabric/api/loot/v3/LootTableEvents$Modify.class
+?? loot/v[0-9]/LootTableEvents -> net/fabricmc/fabric/api/loot/v3/LootTableEvents$ModifyDrops.class
+?? loot/v[0-9]/LootTableEvents -> net/fabricmc/fabric/api/loot/v3/LootTableEvents$Replace.class
+?? loot/v[0-9]/LootTableEvents -> net/fabricmc/fabric/api/loot/v3/LootTableEvents.class
+vanilla assets from .gradle/loom-cache/minecraftMaven/net/minecraft/minecraft-merged-27659ce045/26.3/minecraft-merged-27659ce045-26.3.jar
