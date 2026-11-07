@@ -69,7 +69,7 @@ public final class GlintMod implements ModInitializer {
 	public static final Setting.Toggle SHADER_SAFE = MODULE.toggle("shader_safe", "Own set behind you (shaders)", true, Items.SPYGLASS,
 			"With shaders (Iris, OptiFine) your own", "set stays behind you and on the", "ground, never in your first-person view.");
 	public static final Setting.Toggle SHADER_GLOW = MODULE.toggle("shader_glow", "Glow with shaders", false, Items.GLOWSTONE,
-			"For shader packs that read PBR maps", "(LabPBR: Complementary, BSL…): the", "effects light up. Turn on the pack's", "resource pack PBR too.");
+			"With shaders the effects light up,", "once the shader pack reads them:", "Complementary: IPBR+ Emissive Mode", "on labPBR > IPBR+ (or RP Support on", "labPBR). BSL: Advanced Materials on.");
 	public static final Setting.Toggle AURA = MODULE.toggle("particles", "On other players", true, Items.BLAZE_POWDER,
 			"Glowing armour, armour sets and", "particles on other players.");
 
