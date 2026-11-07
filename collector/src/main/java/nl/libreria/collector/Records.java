@@ -172,7 +172,7 @@ public final class Records {
 
 	/** Every ten seconds: announce the records whose new holder has waited long enough. */
 	static void tick(net.minecraft.server.MinecraftServer server) {
-		if (data().fixed < 2) recount(server);
+		if (data().fixed < 3) recount(server);
 		long now = System.currentTimeMillis();
 		for (Kind k : Kind.values()) {
 			Rec r = data().records.get(k.id);
@@ -237,11 +237,11 @@ public final class Records {
 	 * climbed the "Set a server record" ladder in no time. Every player's takes are counted again by today's rule (once
 	 * per record and per holder taken from; a record you hold now counts at least once); grades that were bought that
 	 * way go again, with their lines in the chronicle, and of a run of record lines only the last stays. Nobody gets
-	 * more than they had.
+	 * more than they had, and this once nobody keeps more than 4 (Hall of Famer and Living Legend start over).
 	 */
 	static void recount(net.minecraft.server.MinecraftServer server) {
 		Data d = data();
-		d.fixed = 2;
+		d.fixed = 3;
 		STORE.markDirty();
 		try {
 			java.util.List<Chronicle.Entry> all = Chronicle.all();
@@ -274,7 +274,9 @@ public final class Records {
 			for (nl.libreria.core.Players.Known k : nl.libreria.core.Players.all(server)) everyone.add(k.id());
 			int lowered = 0;
 			for (UUID who : everyone) {
-				int n = pairs.getOrDefault(who, java.util.Set.of()).size();
+				// (and, once, at most 4: Hall of Famer and Living Legend go for everyone, as asked; earned again from here
+				// only by taking records from new holders)
+				int n = Math.min(4, pairs.getOrDefault(who, java.util.Set.of()).size());
 				CollectorMod.Data cd = CollectorMod.STORE.get(who);
 				if (cd.recordsTaken <= n) continue;
 				if (cd.recountedFrom == 0) cd.recountedFrom = cd.recordsTaken;

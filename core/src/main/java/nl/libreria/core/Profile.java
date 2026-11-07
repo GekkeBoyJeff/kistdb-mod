@@ -15,6 +15,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
@@ -36,8 +37,16 @@ public final class Profile {
 		@Nullable String of(MinecraftServer server, UUID who, Stats stats);
 	}
 
-	/** {@code main}: a row of its own (four at most); otherwise in the tooltip of the card at the top. */
-	public record Line(int order, Item icon, String label, Value value, boolean main) {
+	/** What clicking a row opens: {@code who}'s profile is open for {@code viewer}; null when the row does nothing there. */
+	public interface Click {
+		@Nullable Consumer<ServerPlayer> on(ServerPlayer viewer, UUID who);
+	}
+
+	/**
+	 * {@code main}: a row of its own (four at most); otherwise in the tooltip of the card at the top. {@code click} (may
+	 * be null): where the row leads, {@code hint} what the tooltip says about it ("see them").
+	 */
+	public record Line(int order, Item icon, String label, Value value, boolean main, @Nullable Click click, String hint) {
 	}
 
 	/** An achievement (or anything) shown big on a profile: picture, name, the colour of its rim and name, tooltip. */
@@ -60,13 +69,18 @@ public final class Profile {
 
 	/** A line in the tooltip of the profile's card, ordered by {@code order} (core: since 20, monsters 60). */
 	public static void add(int order, Item icon, String label, Value value) {
-		LINES.add(new Line(order, icon, label, value, false));
+		LINES.add(new Line(order, icon, label, value, false, null, ""));
 		LINES.sort(Comparator.comparingInt(Line::order));
 	}
 
 	/** A row of its own on every profile (core: playtime 10); four fit. */
 	public static void main(int order, Item icon, String label, Value value) {
-		LINES.add(new Line(order, icon, label, value, true));
+		main(order, icon, label, value, null, "");
+	}
+
+	/** The same, and a click on it opens something ({@code hint}: what, for the tooltip: "see them"). */
+	public static void main(int order, Item icon, String label, Value value, @Nullable Click click, String hint) {
+		LINES.add(new Line(order, icon, label, value, true, click, hint));
 		LINES.sort(Comparator.comparingInt(Line::order));
 	}
 

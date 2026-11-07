@@ -35,6 +35,7 @@ public final class ProfileWindow extends CanvasWindow {
 	private final String via;
 	private final List<String[]> facts = new ArrayList<>();
 	private final List<ItemStack> icons = new ArrayList<>();
+	private final List<Profile.Line> factLines = new ArrayList<>();
 	private final List<String[]> more = new ArrayList<>();
 	private final List<Profile.Shown> shown = new ArrayList<>();
 	private final boolean showcase;
@@ -68,6 +69,7 @@ public final class ProfileWindow extends CanvasWindow {
 			if (l.main() && this.facts.size() < room) {
 				this.facts.add(new String[] {l.label(), v});
 				this.icons.add(new ItemStack(l.icon()));
+				this.factLines.add(l);
 			} else {
 				this.more.add(new String[] {l.label(), v});
 			}
@@ -220,11 +222,24 @@ public final class ProfileWindow extends CanvasWindow {
 		for (int i = 0; i < this.facts.size(); i++) {
 			String[] f = this.facts.get(i);
 			Component label = Ui.text(f[0], Domain.YOU.rgb).withStyle(ChatFormatting.BOLD);
-			List<Component> lore = List.of(Ui.text(f[1], ChatFormatting.WHITE));
-			area(1, rows[i], 8, 1, label, lore, p -> {
-			});
-			icon(0, rows[i], this.icons.get(i), label, lore, p -> {
-			});
+			Profile.Line line = this.factLines.get(i);
+			Consumer<ServerPlayer> go = null;
+			if (line.click() != null) {
+				try {
+					go = line.click().on(this.player, this.who.id());
+				} catch (RuntimeException e) {
+					Libreria.LOG.warn("Profile row {} failed", line.label(), e);
+				}
+			}
+			List<Component> lore = new ArrayList<>(List.of(Ui.text(f[1], ChatFormatting.WHITE)));
+			if (go != null) {
+				lore.add(Component.empty());
+				lore.add(Ui.text("▸ Click: " + line.hint(), ChatFormatting.YELLOW));
+			}
+			Consumer<ServerPlayer> click = go != null ? go : p -> {
+			};
+			area(1, rows[i], 8, 1, label, lore, click);
+			icon(0, rows[i], this.icons.get(i), label, lore, click);
 		}
 		area(0, 9, 9, 1, Ui.text("Back", ChatFormatting.WHITE).withStyle(ChatFormatting.BOLD), List.of(), this.back);
 	}

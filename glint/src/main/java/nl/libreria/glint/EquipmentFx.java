@@ -139,7 +139,9 @@ public final class EquipmentFx {
 			var profile = ctx.get(PacketContext.GAME_PROFILE);
 			if (profile == null) return stack;
 			Prefs prefs = VIEWERS.getOrDefault(profile.id(), OFF);
-			return prefs.on() ? withEffect(stack, prefs) : stack;
+			ItemStack out = prefs.on() ? withEffect(stack, prefs) : stack;
+			// a weapon in someone's hand: no glint where its effect shows (also with shaders)
+			return nl.libreria.core.Pack.ENABLED.get(profile.id()) ? NoGlint.view(out) : out;
 		} catch (Throwable t) {
 			return stack;
 		}

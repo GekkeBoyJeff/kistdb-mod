@@ -29,6 +29,7 @@ import zlib
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import tools_fx  # noqa: E402
 import glass  # noqa: E402
+import shader_glow  # noqa: E402
 
 from PIL import Image
 
@@ -1029,7 +1030,8 @@ def main():
                {f: {'group': g, 'name': n, 'enchantments': e, 'items': len(overlay_models[f]),
                     'ids': sorted(k for k, v in ENCHANT_FAMILY.items() if v == f)} for f, (g, n, e) in FAMILIES.items()})
     glasses, glass_models = glass.build(VANILLA, OUT, PACK_FORMAT)
-    print(f'{count_items} items, {sum(len(v) for v in overlay_models.values())} effect textures, {len(BOOKS)} books, ' f'{glasses} glasses ({glass_models} block models)')
+    glow_maps, glow_bytes = shader_glow.build(OUT, PACK_FORMAT)
+    print(f'{count_items} items, {sum(len(v) for v in overlay_models.values())} effect textures, {len(BOOKS)} books, ' f'{glasses} glasses ({glass_models} block models), {glow_maps} glow maps ({glow_bytes // 1024} KB)')
 
 
 if __name__ == '__main__':

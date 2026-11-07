@@ -273,17 +273,20 @@ public final class CollectorMod implements ModInitializer {
 
 	/** Lines on everyone's profile: achievements, points, records (the main ones), items, server goals; and the showcase. */
 	private static void profileLines() {
+		// On your own profile, achievements and points open your achievements; records open the server's records (on
+		// anyone's profile)
+		nl.libreria.core.Profile.Click mine = (viewer, who) -> viewer.getUUID().equals(who) ? nl.libreria.collector.gui.AchievementsGui::open : null;
 		nl.libreria.core.Profile.main(30, Items.NETHER_STAR, "Achievements", (s, who, st) -> {
 			Data d = STORE.get(who);
 			int earned = 0;
 			for (String id : d.earned.keySet()) if (Catalog.get(id) != null) earned++;
 			return Ui.n(earned);
-		});
-		nl.libreria.core.Profile.main(40, Items.GOLD_INGOT, "Points", (s, who, st) -> Ui.n(points(STORE.get(who))));
+		}, mine, "your achievements");
+		nl.libreria.core.Profile.main(40, Items.GOLD_INGOT, "Points", (s, who, st) -> Ui.n(points(STORE.get(who))), mine, "your achievements");
 		nl.libreria.core.Profile.main(45, Items.GOLD_BLOCK, "Records", (s, who, st) -> {
 			int held = Records.held(who);
 			return held == 0 ? "none" : held + " held";
-		});
+		}, (viewer, who) -> nl.libreria.collector.gui.RecordsWindow::open, "the server's records");
 		nl.libreria.core.Profile.showcase(new nl.libreria.core.Profile.Showcase() {
 			@Override
 			public List<nl.libreria.core.Profile.Shown> of(MinecraftServer server, java.util.UUID who) {
