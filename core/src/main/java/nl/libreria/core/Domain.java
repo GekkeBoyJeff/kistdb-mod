@@ -16,7 +16,7 @@ public enum Domain {
 	ITEMS("Items", "items", 0x62D6E8, ChatFormatting.AQUA, "cyan", Items.CHEST,
 			"Search, chests, sorting and tools."),
 	PLACES("Land & places", "land", 0x86DB7A, ChatFormatting.GREEN, "lime", Items.FILLED_MAP,
-			"Your land, waypoints, graves, pets and the places you found."),
+			"Your land, pings, graves, pets and the places you found."),
 	PROGRESS("Progress", "progress", 0xFFCB52, ChatFormatting.GOLD, "yellow", Items.NETHER_STAR,
 			"Achievements, statistics and the story of this world."),
 	YOU("You", "me", 0xE39BFF, ChatFormatting.LIGHT_PURPLE, "magenta", Items.NAME_TAG,

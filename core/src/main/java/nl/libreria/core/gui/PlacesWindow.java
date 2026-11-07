@@ -131,7 +131,7 @@ public final class PlacesWindow extends CanvasWindow {
 		}
 		if (shown.isEmpty()) {
 			List<String> lines = current != null && !current.emptyLines().isEmpty() ? current.emptyLines()
-					: List.of("Save a waypoint, tame a pet or find", "a village: it shows up here.");
+					: List.of("Tame a pet, claim land or find", "a village: it shows up here.");
 			int y = Canvas.cellY(3);
 			c.centred(current != null ? "Nothing here yet" : "No places yet", 88, y, TEXT);
 			for (String l : lines) c.centred(l, 88, y += 11, Glyphs.muted);

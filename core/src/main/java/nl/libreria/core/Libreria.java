@@ -84,7 +84,7 @@ public final class Libreria implements ModInitializer {
 			if (PlaceList.any() && !placesButton) {
 				placesButton = true;
 				MODULE.hubEntry(Domain.PLACES, 10, Items.COMPASS, "Your places", PlaceList::open,
-						"Everything you can be shown the way to: waypoints, graves, pets, the journal, your land.");
+						"Everything you can be shown the way to: graves, pets, the journal, your land.");
 				MODULE.commands(Domain.PLACES, "/places – everything you can be shown the way to");
 			}
 			PlayerStore.initAll(s);

@@ -68,8 +68,11 @@ public final class ComfortMod implements ModInitializer {
 		net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents.END_SERVER_TICK.register(server -> {
 			tickDoors();
 			Sleep.tick(server);
+			Spawns.tick(server);
 		});
 		Sleep.init();
+		Stands.init();
+		Spawns.init();
 		net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STARTED.register(Sleep::start);
 		net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> Sleep.forget(handler.player.getUUID()));
 		registerTests();
@@ -247,6 +250,38 @@ public final class ComfortMod implements ModInitializer {
 	}
 
 	private static void registerTests() {
+		SelfTests.register("comfort.spawns", level -> {
+			BlockPos feet = new BlockPos(44, 121, 40);
+			var air = net.minecraft.world.level.block.Blocks.AIR.defaultBlockState();
+			level.setBlock(feet, air, 3);
+			level.setBlock(feet.above(), air, 3);
+			level.setBlock(feet.below(), nl.libreria.core.Ui.block("stone"), 3);
+			Spawns.Spot s = Spawns.spot(level, feet);
+			SelfTests.check(s != null && s.light() == 0 && s.kind() != Spawns.Kind.LIT, "dark stone under the sky: monsters can spawn: " + s);
+			SelfTests.check(Spawns.marks(Vec3.ZERO, feet, s).size() == 2, "a tile and a number");
+			level.setBlock(feet.below(), nl.libreria.core.Ui.block("glass"), 3);
+			Spawns.Spot g = Spawns.spot(level, feet);
+			SelfTests.check(g != null && g.kind() == Spawns.Kind.LIT && g.light() == 0, "glass: no monster spawns there (only the number): " + g);
+			SelfTests.check(Spawns.marks(Vec3.ZERO, feet, g).size() == 1, "only the number");
+			level.setBlock(feet.below(), air, 3);
+			SelfTests.check(Spawns.spot(level, feet) == null, "nothing to stand on: no mark");
+			SelfTests.check(Spawns.isTorch(Items.TORCH) && Spawns.isTorch(Items.SOUL_TORCH) && Spawns.isTorch(Items.REDSTONE_TORCH)
+					&& !Spawns.isTorch(Items.STICK), "torches count, sticks don't");
+		});
+		SelfTests.register("comfort.stands", level -> {
+			var s = new net.minecraft.world.entity.decoration.ArmorStand(net.minecraft.world.entity.EntityType.ARMOR_STAND, level);
+			SelfTests.check(Stands.POSES.size() == 8 && Stands.POSES.containsKey("Standing"), "eight poses: " + Stands.POSES.keySet());
+			Stands.POSES.get("Waving").applyTo(s);
+			SelfTests.check(s.getRightArmPose().x() == -160f, "waving: the right arm up");
+			Stands.Pose.of(s).mirrored().applyTo(s);
+			SelfTests.check(s.getLeftArmPose().x() == -160f && s.getRightArmPose().x() == -10f, "mirrored: now the left arm");
+			SelfTests.check(Stands.get(Stands.Pose.of(s), "larm").x() == -160f && Stands.get(s, "larm").x() == -160f, "a part by name");
+			Stands.setSmall(s, true);
+			SelfTests.check(s.isSmall(), "small");
+			Stands.setSmall(s, false);
+			SelfTests.check(!s.isSmall(), "big again");
+			SelfTests.check(Stands.wrap(350f) == -10f && Stands.wrap(-200f) == 160f && Stands.wrap(90f) == 90f, "angles -180..180");
+		});
 		SelfTests.register("comfort.sleep", level -> {
 			SelfTests.check("06:00".equals(Sleep.clockText(0)), "tick 0 is six in the morning");
 			SelfTests.check("18:00".equals(Sleep.clockText(12000)), "12000 is six in the evening");

@@ -19,7 +19,26 @@ public final class Hotkeys {
 		boolean onKey(ServerPlayer player, Key key, boolean sneaking);
 	}
 
+	/** Pick block (middle-click) on a block within reach: the client sends it in survival too. */
+	public interface PickHandler {
+		boolean onPick(ServerPlayer player, net.minecraft.core.BlockPos pos, boolean sneaking);
+	}
+
 	private static final List<Handler> HANDLERS = new ArrayList<>();
+	private static final List<PickHandler> PICK_HANDLERS = new ArrayList<>();
+
+	public static void registerPick(PickHandler handler) {
+		PICK_HANDLERS.add(handler);
+	}
+
+	/** From the mixin, on the server thread: true = taken over (no pick block). */
+	public static boolean dispatchPick(ServerPlayer player, net.minecraft.core.BlockPos pos) {
+		if (player.isSpectator()) return false;
+		for (PickHandler h : PICK_HANDLERS) {
+			if (h.onPick(player, pos, player.isShiftKeyDown())) return true;
+		}
+		return false;
+	}
 
 	private Hotkeys() {
 	}

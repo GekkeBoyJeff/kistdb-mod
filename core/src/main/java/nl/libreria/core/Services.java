@@ -63,6 +63,12 @@ public final class Services {
 	public interface Land {
 		/** The owner of the chunk at {@code pos}, or null for free land. */
 		@Nullable java.util.UUID ownerAt(net.minecraft.server.level.ServerLevel level, net.minecraft.core.BlockPos pos);
+
+		/** May this player build (and change stands, frames…) here: free land, their own, or land where they're trusted. */
+		default boolean mayBuild(ServerPlayer player, net.minecraft.server.level.ServerLevel level, net.minecraft.core.BlockPos pos) {
+			java.util.UUID owner = ownerAt(level, pos);
+			return owner == null || owner.equals(player.getUUID());
+		}
 	}
 
 	private static @Nullable Land land;
@@ -73,6 +79,11 @@ public final class Services {
 
 	public static Optional<Land> land() {
 		return Optional.ofNullable(land);
+	}
+
+	/** May {@code player} build at {@code pos}? Always, when there are no claims on this server. */
+	public static boolean mayBuild(ServerPlayer player, net.minecraft.server.level.ServerLevel level, net.minecraft.core.BlockPos pos) {
+		return land == null || land.mayBuild(player, level, pos);
 	}
 
 	/** Is {@code pos} on land that {@code player} claimed? False when there are no claims on this server. */

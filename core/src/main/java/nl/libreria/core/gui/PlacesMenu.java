@@ -236,7 +236,7 @@ public final class PlacesMenu extends Menu {
 		if (k != null && !k.emptyLines().isEmpty()) {
 			return button(k.icon, "Nothing here yet", ChatFormatting.WHITE, k.emptyLines().toArray(String[]::new));
 		}
-		return button(Items.MAP, "No places yet", ChatFormatting.WHITE, "Save a waypoint, tame a pet or find", "a village: it shows up here.");
+		return button(Items.MAP, "No places yet", ChatFormatting.WHITE, "Tame a pet, claim land or find", "a village: it shows up here.");
 	}
 
 	/** "120 m · north-east". */

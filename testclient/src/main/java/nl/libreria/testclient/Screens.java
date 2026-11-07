@@ -10,6 +10,7 @@ import net.fabricmc.fabric.api.client.gametest.v1.context.TestSingleplayerContex
 import net.minecraft.client.CameraType;
 import net.minecraft.client.gui.screens.worldselection.WorldCreationUiState;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import nl.libreria.claims.ClaimsMod;
 import nl.libreria.collector.CollectorMod;
@@ -421,6 +422,94 @@ public final class Screens implements FabricClientGameTest {
 						"item replace entity @a armor.legs with minecraft:air", "item replace entity @a armor.feet with minecraft:air");
 			});
 
+			// Light levels: a torch right-clicked into the air (nothing gets placed) shows the light level on every floor
+			// around you, red and yellow tiles where monsters can spawn; the same click again hides them
+			safe("light_levels", () -> {
+				ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.HIDDEN));
+				camera(ctx, CameraType.FIRST_PERSON);
+				run(server, "time set midnight", "clear @a", "item replace entity @a weapon.mainhand with minecraft:torch 16",
+						f("fill %d %d %d %d %d %d minecraft:stone_bricks hollow", x + 3, y - 1, z + 3, x + 9, y + 3, z + 9),
+						f("fill %d %d %d %d %d %d minecraft:air", x + 3, y, z + 4, x + 3, y + 1, z + 6),
+						f("setblock %d %d %d minecraft:torch", x - 4, y, z + 6));
+				ctx.waitTicks(10);
+				ctx.getInput().lookAt(0, -80);
+				ctx.waitTicks(3);
+				key(ctx, "pressKey", ctx.computeOnClient(mc -> mc.options.keyUse));
+				ctx.waitTicks(25);
+				ctx.getInput().lookAt(-30, 35);
+				ctx.waitTicks(15);
+				noToasts(ctx);
+				ctx.takeScreenshot("light_levels");
+				ctx.getInput().lookAt(0, -80);
+				ctx.waitTicks(3);
+				key(ctx, "pressKey", ctx.computeOnClient(mc -> mc.options.keyUse));
+				ctx.waitTicks(10);
+				run(server, f("fill %d %d %d %d %d %d minecraft:air", x + 3, y - 1, z + 3, x + 9, y + 3, z + 9),
+						f("fill %d %d %d %d %d %d minecraft:grass_block", x + 3, y - 1, z + 3, x + 9, y - 1, z + 9),
+						f("setblock %d %d %d minecraft:air", x - 4, y, z + 6), "clear @a", "time set noon");
+				ctx.getInput().lookAt(0, 0);
+				ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.FULL));
+			});
+			// Pings: sneak + Q at a far spot (the item stays in your hand): your own beam to it
+			safe("ping", () -> {
+				run(server, "clear @a", "item replace entity @a weapon.mainhand with minecraft:iron_sword",
+						f("fill %d %d %d %d %d %d minecraft:oak_log", x + 2, y, z + 20, x + 2, y + 3, z + 20));
+				ctx.waitTicks(5);
+				ctx.getInput().lookAt(new BlockPos(x + 2, y + 1, z + 20));
+				ctx.waitTicks(3);
+				key(ctx, "holdKey", ctx.computeOnClient(mc -> mc.options.keyShift));
+				ctx.waitTicks(3);
+				key(ctx, "pressKey", ctx.computeOnClient(mc -> mc.options.keyDrop));
+				ctx.waitTicks(3);
+				key(ctx, "releaseKey", ctx.computeOnClient(mc -> mc.options.keyShift));
+				ctx.waitTicks(20);
+				boolean kept = server.computeOnServer(sv -> player.getMainHandItem().is(net.minecraft.world.item.Items.IRON_SWORD));
+				LOG.info("LIBRERIA-PING sword still in hand: {}", kept);
+				noToasts(ctx);
+				ctx.takeScreenshot("ping_own");
+				run(server, "execute as @a run ping clear", f("fill %d %d %d %d %d %d minecraft:air", x + 2, y, z + 20, x + 2, y + 3, z + 20), "clear @a");
+				server.runOnServer(sv -> nl.libreria.core.Guide.clear(player));
+				ctx.getInput().lookAt(0, 0);
+			});
+			// Armour stands: sneak + right-click with an empty hand opens the window; item frames: sneak + right-click hides
+			// the frame (only the item shows)
+			safe("stands", () -> {
+				run(server, "clear @a", "kill @e[type=minecraft:armor_stand]", "kill @e[type=minecraft:item_frame]",
+						f("summon minecraft:armor_stand %d %d %d {Rotation:[180f,0f],ShowArms:1b,equipment:{chest:{id:\"minecraft:diamond_chestplate\"},head:{id:\"minecraft:iron_helmet\"}}}", x, y, z + 3));
+				ctx.waitTicks(10);
+				ctx.getInput().lookAt(new BlockPos(x, y + 1, z + 3));
+				ctx.waitTicks(3);
+				key(ctx, "holdKey", ctx.computeOnClient(mc -> mc.options.keyShift));
+				ctx.waitTicks(2);
+				key(ctx, "pressKey", ctx.computeOnClient(mc -> mc.options.keyUse));
+				ctx.waitTicks(3);
+				key(ctx, "releaseKey", ctx.computeOnClient(mc -> mc.options.keyShift));
+				ctx.waitTicks(15);
+				ctx.getInput().setCursorPos(2, 2);
+				noToasts(ctx);
+				ctx.takeScreenshot("stand_window");
+				close(ctx, server, player);
+				run(server, "kill @e[type=minecraft:armor_stand]",
+						f("fill %d %d %d %d %d %d minecraft:spruce_planks", x - 2, y, z + 4, x + 2, y + 2, z + 4),
+						f("summon minecraft:item_frame %d %d %d {Facing:2b,Item:{id:\"minecraft:diamond_sword\",count:1}}", x, y + 1, z + 3));
+				ctx.waitTicks(10);
+				ctx.getInput().lookAt(new BlockPos(x, y + 1, z + 3));
+				ctx.waitTicks(3);
+				key(ctx, "holdKey", ctx.computeOnClient(mc -> mc.options.keyShift));
+				ctx.waitTicks(2);
+				key(ctx, "pressKey", ctx.computeOnClient(mc -> mc.options.keyUse));
+				ctx.waitTicks(3);
+				key(ctx, "releaseKey", ctx.computeOnClient(mc -> mc.options.keyShift));
+				ctx.waitTicks(10);
+				boolean hidden = server.computeOnServer(sv -> !((ServerLevel) player.level()).getEntitiesOfClass(
+						net.minecraft.world.entity.decoration.ItemFrame.class, player.getBoundingBox().inflate(8), fr -> fr.isInvisible()).isEmpty());
+				LOG.info("LIBRERIA-FRAMES hidden: {}", hidden);
+				ctx.takeScreenshot("frame_hidden");
+				run(server, "kill @e[type=minecraft:item_frame]", f("fill %d %d %d %d %d %d minecraft:air", x - 2, y, z + 4, x + 2, y + 2, z + 4));
+				ctx.getInput().lookAt(0, 0);
+			});
+
+
 			// Tooltips: found gear with its text (a part of a story, named), what each enchantment does and what it adds
 			// to the attack damage; a book; a pickaxe with its owner's words; then the same sword with the details off
 			safe("tooltips", () -> {
@@ -784,7 +873,7 @@ public final class Screens implements FabricClientGameTest {
 			}
 			menu(ctx, server, player, "own_settings", nl.libreria.core.gui.SettingsCanvas::open);
 			menu(ctx, server, player, "own_places", p -> nl.libreria.core.gui.PlacesWindow.open(p, null, 0));
-			menu(ctx, server, player, "own_places_waypoints", p -> nl.libreria.core.gui.PlacesWindow.open(p, "waypoints", 0));
+			menu(ctx, server, player, "own_places_death", p -> nl.libreria.core.gui.PlacesWindow.open(p, "death", 0));
 			// The journal, with the mouse on the first two places (who found them first)
 			safe("own_journal_hover", () -> {
 				server.runOnServer(s -> nl.libreria.core.gui.PlacesWindow.open(player, "journal", 0));
@@ -1079,8 +1168,7 @@ public final class Screens implements FabricClientGameTest {
 						f("setblock %d %d %d minecraft:air", foot.getX(), foot.getY(), foot.getZ()));
 			});
 
-			// Every menu (with a waypoint of our own, so Your places has one)
-			run(server, "execute as @a at @s run waypoint set Home");
+			// Every menu
 			ctx.waitTicks(5);
 			close(ctx, server, player);
 			menu(ctx, server, player, "window_admin_root", nl.libreria.core.gui.AdminWindow::open);
@@ -1193,6 +1281,16 @@ public final class Screens implements FabricClientGameTest {
 	private static void camera(ClientGameTestContext ctx, CameraType type) {
 		ctx.runOnClient(c -> c.options.setCameraType(type));
 		ctx.waitTick();
+	}
+
+	/** Presses, holds or releases a key (TestInput.pressKey/holdKey/releaseKey with a KeyMapping, looked up by name). */
+	private static void key(ClientGameTestContext ctx, String what, net.minecraft.client.KeyMapping mapping) {
+		try {
+			Object input = ctx.getInput();
+			input.getClass().getMethod(what, net.minecraft.client.KeyMapping.class).invoke(input, mapping);
+		} catch (ReflectiveOperationException | RuntimeException e) {
+			LOG.warn("Could not {} {}: {}", what, mapping.getName(), e.toString());
+		}
 	}
 
 	/** Moves the mouse by this many pixels (TestInput.moveCursor, looked up by name). */

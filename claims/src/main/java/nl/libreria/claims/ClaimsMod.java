@@ -213,9 +213,17 @@ public final class ClaimsMod implements ModInitializer {
 		Hud.setHotbarButton(ClaimView::hotbarButton);
 		nl.libreria.core.Services.provideMenu(nl.libreria.core.Services.MENU_LAND_MAP, ClaimsMod::openMap);
 		nl.libreria.core.gui.Markers.addSource(ClaimsMod::compassMarker);
-		nl.libreria.core.Services.provideLand((level, pos) -> {
-			Claim c = claimAt(level, new ChunkPos(pos.getX() >> 4, pos.getZ() >> 4));
-			return c == null ? null : c.owner;
+		nl.libreria.core.Services.provideLand(new nl.libreria.core.Services.Land() {
+			@Override
+			public java.util.UUID ownerAt(ServerLevel level, BlockPos pos) {
+				Claim c = claimAt(level, new ChunkPos(pos.getX() >> 4, pos.getZ() >> 4));
+				return c == null ? null : c.owner;
+			}
+
+			@Override
+			public boolean mayBuild(ServerPlayer player, ServerLevel level, BlockPos pos) {
+				return allowed(player, level, pos, Action.BUILD);
+			}
 		});
 		// Getting hurt closes the land map at once
 		net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.AFTER_DAMAGE.register((entity, source, base, taken, blocked) -> {

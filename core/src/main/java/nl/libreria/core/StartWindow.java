@@ -100,7 +100,7 @@ public final class StartWindow extends CanvasWindow {
 				best = p;
 			}
 		}
-		if (best == null) return new String[] {places.isEmpty() ? "Waypoints, graves, pets and more" : "None in this world", ""};
+		if (best == null) return new String[] {places.isEmpty() ? "Land, graves, pets and more" : "None in this world", ""};
 		double dx = best.pos.x - this.player.getX(), dz = best.pos.z - this.player.getZ();
 		double d = Math.sqrt(bestD);
 		String far = d < 8 ? "right here" : d >= 1000 ? String.format(java.util.Locale.ROOT, "%.1f km", d / 1000) : Math.round(d) + " m";
@@ -122,7 +122,7 @@ public final class StartWindow extends CanvasWindow {
 			area(s[0], s[1], 4, 3, d.title().withStyle(ChatFormatting.BOLD), lore(d.blurb, "Click: open"), p -> Start.domain(p, d));
 		}
 		area(0, 6, 9, 2, Ui.text("Your places", Domain.PLACES.rgb).withStyle(ChatFormatting.BOLD),
-				lore("Your waypoints, land, graves, pets and the places you found: click one to be shown the way.", "Click: open"),
+				lore("Your land, graves, pets and the places you found: click one to be shown the way.", "Click: open"),
 				PlaceList::open);
 		item(0, 8, "Settings", "Your own settings, by the same four places.", SettingsWindow::open);
 		item(5, 8, "Chronicle", "What happened in this world.", Chronicle::open);
