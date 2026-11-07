@@ -30,7 +30,8 @@ final class EffectsWindow {
 		w.text(Ui.text("First person shows the item in your hand; your armour only shows in third person (F5), so it never "
 				+ "fills your view. Playing with shaders? Keep \"own set behind you\" on: a shader pack can't hide it near "
 				+ "your camera. The effects light up with shaders too, once your shader pack reads a resource pack's light: "
-				+ "Complementary: Materials › IPBR+ Emissive Mode on \"labPBR > IPBR+\". BSL: Material › Advanced Materials on.",
+				+ "Complementary (also with Euphoria Patches): Materials › IntegratedPBR+ Materials › Other IPBR+ Features › IPBR+ "
+				+ "Emissive Mode on \"labPBR > IPBR+\". BSL: Material › Advanced Materials on.",
 				ChatFormatting.DARK_GRAY));
 		w.choice("intensity", Ui.text("Intensity", ChatFormatting.WHITE), List.of("1", "2", "3"),
 				List.of(Ui.text("Subtle", ChatFormatting.AQUA), Ui.text("Normal", ChatFormatting.AQUA), Ui.text("Rich", ChatFormatting.AQUA)),
