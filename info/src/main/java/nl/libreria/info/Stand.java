@@ -79,19 +79,25 @@ final class Stand {
 		return new Look.Card(new ItemStack(Items.ARMOR_STAND), Found.HEAD, name, sub, fit(told, oneStory));
 	}
 
-	/** As many rows as the card can hold: first everything, then without where, then wider lines, then shorter texts. */
+	/** Where a piece was found: on a line of its own, behind its name, or left out. */
+	static final int OWN_LINE = 1, BEHIND_NAME = 2, LEFT_OUT = 0;
+
+	/**
+	 * As many rows as the card can hold: first everything, then where behind the name and wider lines, then without
+	 * where, then shorter texts.
+	 */
 	static List<Look.Row> fit(List<ItemStack> told, boolean oneStory) {
 		int budget = Math.max(6, Glyphs.maxPanel - 3);
-		int[][] tries = {{40, 1, 99}, {40, 0, 99}, {50, 0, 99}, {50, 0, 3}, {50, 0, 2}, {50, 0, 1}};
+		int[][] tries = {{40, OWN_LINE, 99}, {50, BEHIND_NAME, 99}, {50, LEFT_OUT, 99}, {50, LEFT_OUT, 3}, {50, LEFT_OUT, 2}, {50, LEFT_OUT, 1}};
 		List<Look.Row> rows = List.of();
 		for (int[] t : tries) {
-			rows = rows(told, oneStory, t[0], t[1] == 1, t[2]);
+			rows = rows(told, oneStory, t[0], t[1], t[2]);
 			if (rows.size() <= budget) return rows;
 		}
 		return new ArrayList<>(rows.subList(0, budget));
 	}
 
-	static List<Look.Row> rows(List<ItemStack> told, boolean oneStory, int wrap, boolean where, int maxText) {
+	static List<Look.Row> rows(List<ItemStack> told, boolean oneStory, int wrap, int where, int maxText) {
 		List<Look.Row> out = new ArrayList<>();
 		for (ItemStack s : told) {
 			CompoundTag stamp = stamp(s);
@@ -105,6 +111,11 @@ final class Stand {
 				String what = oneStory ? "part " + part : (info == null ? story : info.title()) + " · part " + part;
 				head.append(Component.literal("  " + what).withStyle(st -> st.withColor(Found.HEAD)));
 			}
+			String at = stamp.getStringOr("where", "");
+			if (where == BEHIND_NAME && !at.isEmpty()) {
+				String place = at.startsWith("Found ") ? at.substring(6) : at.substring(0, 1).toLowerCase(java.util.Locale.ROOT) + at.substring(1);
+				head.append(Component.literal("  " + place + ", day " + stamp.getIntOr("day", 0)).withStyle(st -> st.withColor(Found.WHERE)));
+			}
 			out.add(Look.Row.text(story.isEmpty() ? "chest" : "star", story.isEmpty() ? "▪" : "✦", "", head));
 			List<String> text = text(s, wrap);
 			if (text.size() > maxText) {
@@ -113,8 +124,7 @@ final class Stand {
 			}
 			for (String l : text) out.add(Look.Row.text(Look.INDENT, " ", "", Lore.line(l, Found.TEXT, true)));
 			for (Component w : Lore.get(s, Lore.OWN)) out.add(Look.Row.text(Look.INDENT, " ", "", w.copy()));
-			String at = stamp.getStringOr("where", "");
-			if (where && !at.isEmpty()) {
+			if (where == OWN_LINE && !at.isEmpty()) {
 				String line = at + " · day " + stamp.getIntOr("day", 0) + (stamp.getStringOr("by", "").isEmpty() ? "" : " · " + stamp.getStringOr("by", ""));
 				out.add(Look.Row.text(Look.INDENT, " ", "", Lore.line(line, Found.WHERE, false)));
 			}
@@ -149,10 +159,10 @@ final class Stand {
 
 	/**
 	 * Where the card goes: always beside the stand (the card is tall), its middle at the stand's middle but never into
-	 * the floor, pulled in front of the stand (its arms and gear never poke through), and small enough to fit on your
-	 * screen from up close.
+	 * the floor and never under the hotbar, pulled in front of the stand (its arms and gear never poke through), and small
+	 * enough to fit on your screen from up close.
 	 */
-	static Look.Target target(Vec3 eye, Entity e, Look.Card card, boolean pack) {
+	static Look.Target target(Vec3 eye, Vec3 dir, Entity e, Look.Card card, boolean pack) {
 		float[] d = Look.dims(card, pack);
 		double mid = e.getY() + e.getBbHeight() * 0.55;
 		double dist = Math.max(0.8, eye.distanceTo(new Vec3(e.getX(), mid, e.getZ())));
@@ -162,7 +172,8 @@ final class Stand {
 		// How tall it looks, measured at the stand
 		double tall = d[1] * size * dist / near;
 		double bottom = Math.max(e.getY() + 0.02, mid - tall / 2);
-		return new Look.Target(Look.inFront(eye, Look.beside(eye, e, bottom), by), card, false, size, 1);
+		Vec3 at = Look.keepOnScreen(eye, dir, Look.inFront(eye, Look.beside(eye, e, bottom), by), d[1] * size);
+		return new Look.Target(at, card, false, size, 1);
 	}
 
 	/** For the screenshots and the self-test: a stand wearing four parts of one story. */

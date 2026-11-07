@@ -92,8 +92,9 @@ final class InfoTests {
 					"a set of one story: " + (card == null ? null : card.name().getString() + " / " + card.subtitle().getString()));
 			if (card != null) {
 				String all = String.join("\n", card.rows().stream().map(r -> r.value().getString()).toList());
-				String first = Stand.text(stand.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.HEAD), 40).get(0);
-				SelfTests.check(all.contains(first) && all.contains("day 3"), "the whole story on the card: " + all);
+				// The whole text (wrapped differently perhaps) and where it was found
+				String whole = Stand.text(stand.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.HEAD), 1000).get(0);
+				SelfTests.check(all.replace("\n", " ").contains(whole) && all.contains("day 3"), "the whole story on the card: " + all);
 				SelfTests.check(card.rows().size() <= Math.max(6, nl.libreria.core.gui.Glyphs.maxPanel - 3), "fits its panel: " + card.rows().size());
 				org.slf4j.LoggerFactory.getLogger("Libreria found").info("STAND-CARD {} rows:\n{}", card.rows().size(), all);
 			}
@@ -109,10 +110,18 @@ final class InfoTests {
 			// Placement: a stand 2.5 blocks south of you, looking at it: right of it (west), bottom not in the floor, smaller
 			stand.setPos(0, 0, 2.5);
 			net.minecraft.world.phys.Vec3 eye = new net.minecraft.world.phys.Vec3(0, 1.62, 0);
-			Look.Target t = Stand.target(eye, stand, five, true);
+			Look.Target t = Stand.target(eye, new net.minecraft.world.phys.Vec3(0, -0.2, 1).normalize(), stand, five, true);
 			SelfTests.check(t.side() == 1 && t.anchor().x < 0 && t.anchor().y > 0 && t.size() <= 1 && t.size() >= 0.3, "beside the stand: " + t.anchor() + " size " + t.size());
 			float[] d = Look.dims(five, true);
 			SelfTests.check(d[0] > 0.5 && d[1] > 0.5, "card size " + d[0] + " x " + d[1]);
+			// Looking steeply down at something right in front of you: the card comes down into the screen
+			net.minecraft.world.phys.Vec3 down = new net.minecraft.world.phys.Vec3(0, -1.2, 1).normalize();
+			net.minecraft.world.phys.Vec3 high = new net.minecraft.world.phys.Vec3(-0.6, 1.4, 0.8);
+			net.minecraft.world.phys.Vec3 kept = Look.keepOnScreen(eye, down, high, 0.3);
+			double top = Math.toDegrees(Math.atan2(kept.y + 0.3 - eye.y, Math.hypot(kept.x, kept.z))), look = Math.toDegrees(Math.atan2(down.y, Math.hypot(down.x, down.z)));
+			SelfTests.check(kept.y < high.y && top <= look + Look.UP + 0.01, "kept on screen: " + kept + ", top " + top + "° vs look " + look + "°");
+			SelfTests.check(Look.keepOnScreen(eye, new net.minecraft.world.phys.Vec3(0, 0, 1), new net.minecraft.world.phys.Vec3(-0.6, 1.4, 2), 0.3).y == 1.4,
+					"looking straight at it: stays");
 		});
 		SelfTests.register("info.found.collect", level -> {
 			// A part of a story can be found by everyone (once each): a one-off text only once on the server

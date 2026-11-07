@@ -501,6 +501,7 @@ final class Found {
 	/** Who made this loot happen: the player who opened or brushed, or whose hook it was. */
 	static @Nullable ServerPlayer finder(LootContext context) {
 		var e = context.getOptional(net.minecraft.world.level.storage.loot.parameters.LootContextParams.THIS_ENTITY);
+		if (e == null) e = context.getOptional(net.minecraft.world.level.storage.loot.parameters.LootContextParams.INTERACTING_ENTITY);
 		if (e instanceof ServerPlayer p && !(p instanceof net.fabricmc.fabric.api.entity.FakePlayer)) return p;
 		if (e instanceof net.minecraft.world.entity.projectile.FishingHook hook && hook.getPlayerOwner() instanceof ServerPlayer p) return p;
 		var killer = context.getOptional(net.minecraft.world.level.storage.loot.parameters.LootContextParams.LAST_DAMAGE_PLAYER);
@@ -671,7 +672,7 @@ final class Found {
 			try {
 				entry.unwrapKey().ifPresent(key -> onLoot(key.identifier().getPath(), context, drops));
 			} catch (RuntimeException e) {
-				Libreria.LOG.debug("Found: loot failed", e);
+				Libreria.LOG.warn("Found: loot failed", e);
 			}
 		});
 		net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.ALLOW_DEATH.register((entity, source, amount) -> {

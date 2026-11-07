@@ -399,7 +399,7 @@ final class Look {
 			Entity e = eh.getEntity();
 			Card card = describeEntity(p, e, all);
 			if (card == null) return null;
-			if (e instanceof ArmorStand) return Stand.target(eye, e, card, Pack.has(p));
+			if (e instanceof ArmorStand) return Stand.target(eye, dir, e, card, Pack.has(p));
 			// Above the head. The vanilla name tag (players, and any mob with its own name such as a
 			// named villager) floats half a block above the head while you look at it, so the card
 			// goes above that; players also get room for a scoreboard line under their name.
@@ -411,6 +411,7 @@ final class Look {
 			// shoulders never hide part of it
 			Vec3 at = inFront(eye, beside(eye, e), e.getBbWidth() / 2 + 0.45);
 			float size = (float) Math.max(0.35, Math.min(1.0, at.distanceTo(eye) / 3.5));
+			at = keepOnScreen(eye, dir, at, dims(card, Pack.has(p))[1] * size);
 			return new Target(at, card, !(e instanceof LivingEntity), size, 1);
 		}
 		if (bh.getType() != HitResult.Type.BLOCK) return null;
@@ -446,6 +447,22 @@ final class Look {
 		double rx = -dz / len, rz = dx / len;
 		double out = e.getBbWidth() / 2 + 0.1;
 		return new Vec3(e.getX() + rx * out, y, e.getZ() + rz * out);
+	}
+
+	/** How far above and below where you look a card may reach (degrees): clear of the tips at the top, the hotbar below. */
+	static final double UP = 18, DOWN = 22;
+
+	/**
+	 * The same spot, moved up or down so a card this tall (from its bottom at {@code at}) stays on your screen: looking
+	 * down at something right in front of you, the spot beside its head is near the top edge.
+	 */
+	static Vec3 keepOnScreen(Vec3 eye, Vec3 dir, Vec3 at, double tall) {
+		double look = Math.toDegrees(Math.atan2(dir.y, Math.hypot(dir.x, dir.z)));
+		double flat = Math.max(0.3, Math.hypot(at.x - eye.x, at.z - eye.z));
+		double y = at.y;
+		if (look - DOWN > -89) y = Math.max(y, eye.y + flat * Math.tan(Math.toRadians(look - DOWN)));
+		if (look + UP < 89) y = Math.min(y, eye.y + flat * Math.tan(Math.toRadians(look + UP)) - tall);
+		return new Vec3(at.x, y, at.z);
 	}
 
 	/** How big a card is, in blocks at size 1: {width, height} (the same sums as the layouts below). */
@@ -615,7 +632,12 @@ final class Look {
 		}
 		// How full a chest, furnace, hopper… is
 		BlockEntity be = level.getBlockEntity(pos);
-		if (be instanceof Container c && c.getContainerSize() > 0) {
+		if (be instanceof net.minecraft.world.RandomizableContainer rc && rc.getLootTable() != null) {
+			// Loot that's made when someone opens it: reading it now would make it without them (and found gear in it
+			// would miss its finder)
+			if (kind == null) kind = "Storage";
+			rows.add(Row.text("chest", "▣", "", Component.literal("Not opened yet").withStyle(ChatFormatting.GRAY)));
+		} else if (be instanceof Container c && c.getContainerSize() > 0) {
 			if (kind == null) kind = "Storage";
 			int used = 0, items = 0;
 			for (int i = 0; i < c.getContainerSize(); i++) {
