@@ -22,12 +22,16 @@ jobs:
         run: |
           chmod +x ./gradlew
           sudo apt-get update -q > /dev/null
-          sudo apt-get install -y -q xvfb mesa-vulkan-drivers libgl1-mesa-dri libegl1 jq unzip > /dev/null
+          sudo apt-get install -y -q xvfb mesa-vulkan-drivers libgl1-mesa-dri libegl1 libegl-mesa0 mesa-utils jq unzip > /dev/null
           mkdir -p testclient/build/run/clientGameTest out
           echo 'preferredGraphicsBackend:"opengl"' > testclient/build/run/clientGameTest/options.txt
           echo 'renderDistance:4' >> testclient/build/run/clientGameTest/options.txt
           bash .github/shaders.sh
-          timeout 2700 xvfb-run -a -s "-screen 0 1280x720x24" ./gradlew :testclient:runClientGameTest --no-daemon > client.log 2>&1 || true
+          # Iris needs OpenGL; in Xvfb SDL finds no GLX visual for it (the normal run falls back to Vulkan), so EGL
+          xvfb-run -a -s "-screen 0 1280x720x24 +extension GLX" glxinfo -B > out/glxinfo.txt 2>&1 || true
+          export SDL_VIDEO_X11_FORCE_EGL=1 LIBGL_ALWAYS_SOFTWARE=1
+          timeout 2700 xvfb-run -a -s "-screen 0 1280x720x24 +extension GLX" ./gradlew :testclient:runClientGameTest --no-daemon > client.log 2>&1 || true
+          grep -E 'graphics backend|Failed to create backend|GLX|EGL' client.log | head -10
           grep -E 'LIBRERIA-SHADERS|Iris|iris|Sodium|ERROR|Exception|Caused by' client.log | head -80
           grep -q 'LIBRERIA-SHADERS DONE' client.log
       - name: collect output
