@@ -249,7 +249,18 @@ final class Details {
 						fx.getEffect().value().getDescriptionId())).append(": " + what).withStyle(Style.EMPTY.withColor(EXPLAIN)))) : explain(what));
 			}
 		}
-		List<String> tip = tip(net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath());
+		// An ominous bottle: the game writes its Bad Omen line after the lore, so it's hidden and written here, above
+		// what Bad Omen does
+		var omen = stack.get(DataComponents.OMINOUS_BOTTLE_AMPLIFIER);
+		boolean doOmen = omen != null && display.shows(DataComponents.OMINOUS_BOTTLE_AMPLIFIER);
+		if (doOmen) {
+			var fx = new net.minecraft.world.effect.MobEffectInstance(net.minecraft.world.effect.MobEffects.BAD_OMEN, 120000, omen.value(), false, false, true);
+			net.minecraft.world.item.alchemy.PotionContents.addPotionTooltip(List.of(fx), c -> extra.add(ours(c)), 1.0F,
+					viewer.level().tickRateManager().tickrate());
+			String what = effect("bad_omen");
+			if (what != null) extra.add(explain(what));
+		}
+		List<String> tip = doOmen ? null : tip(net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath());
 		if (tip != null) for (String t : tip) extra.add(ours(Component.literal(t).withStyle(Style.EMPTY.withColor(EXPLAIN))));
 		if (!doEnch && !doStored && extra.isEmpty()) return stack;
 		RegistryAccess access = viewer.level().registryAccess();
@@ -276,6 +287,7 @@ final class Details {
 		if (doEnch) hidden = hidden.withHidden(DataComponents.ENCHANTMENTS, true);
 		if (doStored) hidden = hidden.withHidden(DataComponents.STORED_ENCHANTMENTS, true);
 		if (after != null) hidden = hidden.withHidden(DataComponents.ATTRIBUTE_MODIFIERS, true);
+		if (doOmen) hidden = hidden.withHidden(DataComponents.OMINOUS_BOTTLE_AMPLIFIER, true);
 		out.set(DataComponents.TOOLTIP_DISPLAY, hidden);
 		return out;
 	}
@@ -385,7 +397,7 @@ final class Details {
 		TooltipDisplay d = out.get(DataComponents.TOOLTIP_DISPLAY);
 		if (d != null) {
 			for (DataComponentType<?> t : List.<DataComponentType<?>>of(DataComponents.ENCHANTMENTS, DataComponents.STORED_ENCHANTMENTS,
-					DataComponents.ATTRIBUTE_MODIFIERS)) d = d.withHidden(t, false);
+					DataComponents.ATTRIBUTE_MODIFIERS, DataComponents.OMINOUS_BOTTLE_AMPLIFIER)) d = d.withHidden(t, false);
 			out.set(DataComponents.TOOLTIP_DISPLAY, d.equals(TooltipDisplay.DEFAULT) ? TooltipDisplay.DEFAULT : d);
 		}
 		return out;

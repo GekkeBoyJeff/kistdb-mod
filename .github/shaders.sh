@@ -12,6 +12,8 @@ get() {
   [ "${4:-on}" = on ] && q="$q&game_versions=%5B%2226.3%22%5D"
   api "$q" > "/tmp/$1.json"
   local url name
+  # the newest release (a beta only when there is no release)
+  jq '[([.[] | select(.version_type=="release")][0] // .[0])]' "/tmp/$1.json" > "/tmp/$1.pick.json" && mv "/tmp/$1.pick.json" "/tmp/$1.json"
   url=$(jq -r '[.[0].files[] | select(.primary==true)][0].url // .[0].files[0].url' "/tmp/$1.json")
   name=$(jq -r '[.[0].files[] | select(.primary==true)][0].filename // .[0].files[0].filename' "/tmp/$1.json")
   if [ -z "$url" ] || [ "$url" = null ]; then echo "$1: none found" >> "$OUT/shader-setup.txt"; return 1; fi

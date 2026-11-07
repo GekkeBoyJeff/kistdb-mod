@@ -335,6 +335,12 @@ final class InfoTests {
 			ItemStack magma = new ItemStack(Items.MAGMA_BLOCK);
 			String ml = String.join("\n", Details.view(p, magma).get(DataComponents.LORE).lines().stream().map(Component::getString).toList());
 			SelfTests.check(ml.contains("Underwater") && ItemStack.isSameItemSameComponents(Details.clean(Details.view(p, magma)), magma), "a magma block, and back: " + ml);
+			ItemStack omen = new ItemStack(Items.OMINOUS_BOTTLE);
+			ItemStack omenView = Details.view(p, omen);
+			String ol = String.join("\n", omenView.get(DataComponents.LORE).lines().stream().map(Component::getString).toList());
+			SelfTests.check(ol.contains("Bad Omen") && ol.contains("raid") && !omenView.getOrDefault(DataComponents.TOOLTIP_DISPLAY,
+					net.minecraft.world.item.component.TooltipDisplay.DEFAULT).shows(DataComponents.OMINOUS_BOTTLE_AMPLIFIER)
+					&& ItemStack.isSameItemSameComponents(Details.clean(omenView), omen), "an ominous bottle: Bad Omen, then what it does: " + ol);
 			SelfTests.check(Details.view(p, new ItemStack(Items.STONE)).getOrDefault(DataComponents.LORE, ItemLore.EMPTY).lines().isEmpty(), "stone: nothing to say");
 		});
 		SelfTests.register("info.pets", level -> {

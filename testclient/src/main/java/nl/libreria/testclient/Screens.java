@@ -82,14 +82,16 @@ public final class Screens implements FabricClientGameTest {
 			ctx.waitTicks(20);
 			ctx.takeScreenshot("shaders_glow_off_third");
 			camera(ctx, CameraType.FIRST_PERSON);
-			LOG.info("LIBRERIA-SHADERS off: glow maps loaded {}", ctx.computeOnClient(mc -> hasAll(mc, probe)));
+			String loaded = ctx.computeOnClient(mc -> hasAll(mc, probe));
+			LOG.info("LIBRERIA-SHADERS off: glow maps loaded {}", loaded);
 		});
 		safe("shaders_on", () -> {
 			NetworkTest.acceptServerPack();
 			server.runOnServer(sv -> nl.libreria.glint.GlintMod.SHADER_GLOW.set(player, true));
 			ctx.waitTicks(240);
-			LOG.info("LIBRERIA-SHADERS on: glow maps loaded {} · packs {} · shader pack in use {}", ctx.computeOnClient(mc -> hasAll(mc, probe)),
-					ctx.computeOnClient(mc -> String.join(", ", mc.getResourcePackRepository().getSelectedIds())), irisInUse());
+			String loaded = ctx.computeOnClient(mc -> hasAll(mc, probe));
+			String packs = ctx.computeOnClient(mc -> String.join(", ", mc.getResourcePackRepository().getSelectedIds()));
+			LOG.info("LIBRERIA-SHADERS on: glow maps loaded {} · packs {} · shader pack in use {}", loaded, packs, irisInUse());
 			run(server, "time set midnight");
 			ctx.getInput().lookAt(0, 12);
 			ctx.waitTicks(20);
