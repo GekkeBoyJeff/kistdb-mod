@@ -32,12 +32,14 @@ import nl.libreria.core.dialog.Window;
  * the stand behind the window changes), its switches (arms, base plate, small, invisible, name), fine-tuning per part
  * with sliders, and copying a pose to another stand. Sneak + right-click an item frame with an empty hand: the frame
  * hides and only its item shows (again: it comes back); a hidden frame that loses its item shows again, so it can't get
- * lost on a wall. Only where you may build (on someone's land: when they trust you).
+ * lost on a wall. A hidden frame is locked: a right-click on it (or its item) goes through to the block it hangs on, so
+ * the chest behind a label opens instead of the item turning. Only where you may build (on someone's land: when they
+ * trust you).
  */
 final class Stands {
 	static final Setting.Toggle EDIT = ComfortMod.MODULE.toggle("stands", "Armour stands and frames", true, Items.ARMOR_STAND,
 			"{sneak} + right-click an armour stand", "with an empty hand: pose it. The same", "on an item frame: hide the frame, so",
-			"only its item shows.").in(Domain.YOU, "Small comforts");
+			"only its item shows; clicks go through", "it to the chest behind.").in(Domain.YOU, "Small comforts");
 
 	/** A whole pose: head, body, left arm, right arm, left leg, right leg. */
 	record Pose(Rotations head, Rotations body, Rotations leftArm, Rotations rightArm, Rotations leftLeg, Rotations rightLeg) {
@@ -96,9 +98,15 @@ final class Stands {
 
 	static void init() {
 		UseEntityCallback.EVENT.register((player, world, hand, entity, hit) -> {
-			if (world.isClientSide() || hand != InteractionHand.MAIN_HAND || !(player instanceof ServerPlayer sp) || sp.isSpectator()) {
-				return InteractionResult.PASS;
+			if (world.isClientSide() || !(player instanceof ServerPlayer sp) || sp.isSpectator()) return InteractionResult.PASS;
+			// A hidden frame is locked: the click goes through it to the block behind (sneak + empty hand still shows it)
+			if (entity instanceof ItemFrame locked && locked(locked) && !(sp.isShiftKeyDown() && sp.getMainHandItem().isEmpty() && EDIT.get(sp))) {
+				long tick = sp.level().getServer().getTickCount();
+				Long last = LAST_TICK.put(sp.getUUID(), tick);
+				if (hand == InteractionHand.MAIN_HAND && (last == null || last != tick)) through(sp, (ServerLevel) world, locked);
+				return InteractionResult.SUCCESS;
 			}
+			if (hand != InteractionHand.MAIN_HAND) return InteractionResult.PASS;
 			if (!(entity instanceof ArmorStand) && !(entity instanceof ItemFrame)) return InteractionResult.PASS;
 			if (net.fabricmc.loader.api.FabricLoader.getInstance().isDevelopmentEnvironment()) nl.libreria.core.Libreria.LOG.info("Stands: {} sneak {} empty {} hit {}", entity.getType(),
 					sp.isShiftKeyDown(), sp.getMainHandItem().isEmpty(), hit != null);
@@ -129,6 +137,25 @@ final class Stands {
 			});
 			return InteractionResult.PASS;
 		});
+	}
+
+	/** A hidden frame with something in it: clicks go through it. */
+	static boolean locked(ItemFrame frame) {
+		return frame.isInvisible() && !frame.getItem().isEmpty();
+	}
+
+	/**
+	 * A right-click on the block a frame hangs on, as if the frame weren't there: the chest opens, the door turns, the
+	 * button is pressed. Only what the block does itself, never what's in your hand (a block in your hand isn't placed
+	 * where the frame hangs). Through the game's own way, so land protection still has its say.
+	 */
+	static InteractionResult through(ServerPlayer sp, ServerLevel level, ItemFrame frame) {
+		net.minecraft.core.Direction face = frame.getDirection();
+		net.minecraft.core.BlockPos behind = frame.getPos().relative(face.getOpposite());
+		net.minecraft.world.phys.Vec3 at = net.minecraft.world.phys.Vec3.atCenterOf(behind)
+				.add(face.getStepX() * 0.5, face.getStepY() * 0.5, face.getStepZ() * 0.5);
+		var hit = new net.minecraft.world.phys.BlockHitResult(at, face, behind, false);
+		return sp.gameMode.useItemOn(sp, level, ItemStack.EMPTY, InteractionHand.MAIN_HAND, hit);
 	}
 
 	/** Can this player still work on this stand (it's there, near, and theirs to change)? */

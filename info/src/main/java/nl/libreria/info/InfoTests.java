@@ -76,6 +76,15 @@ final class InfoTests {
 				net.minecraft.world.phys.Vec3 at = Look.beside(eye, cow);
 				SelfTests.check(at.x < -0.5 && Math.abs(at.z - 1.5) < 0.01, "beside: on your right (west, facing south): " + at);
 				SelfTests.check(Look.fits(eye, dir, at), "and that's on the screen");
+				// Right up against it, looking down at it: the card hangs in front of its nearest part, and to the right of
+				// how wide it looks from here
+				cow.setPos(0, 0, 1.0);
+				net.minecraft.world.phys.Vec3 hung = Look.hang(eye, cow, cow.getEyeY() - 0.2, cow.getBbWidth() / 2 + 0.45);
+				var box = cow.getBoundingBox();
+				double gap = Math.sqrt(Math.pow(Math.max(box.minZ - eye.z, 0), 2) + Math.pow(Math.max(eye.y - box.maxY, 0), 2));
+				SelfTests.check(hung.distanceTo(eye) <= Math.max(0.35, gap - 0.1) + 1.0e-6, "in front of it: " + hung.distanceTo(eye) + " vs " + gap);
+				double cornerSlope = (cow.getBbWidth() / 2) / (box.minZ - eye.z);
+				SelfTests.check(-hung.x / hung.z >= cornerSlope, "right of its near corner: " + hung);
 			}
 		});
 		SelfTests.register("info.look-stand", level -> {
@@ -111,7 +120,7 @@ final class InfoTests {
 			stand.setPos(0, 0, 2.5);
 			net.minecraft.world.phys.Vec3 eye = new net.minecraft.world.phys.Vec3(0, 1.62, 0);
 			Look.Target t = Stand.target(eye, new net.minecraft.world.phys.Vec3(0, -0.2, 1).normalize(), stand, five, true);
-			SelfTests.check(t.side() == 1 && t.anchor().x < 0 && t.anchor().y > 0 && t.size() <= 1 && t.size() >= 0.12, "beside the stand: " + t.anchor() + " size " + t.size());
+			SelfTests.check(t.side() == 1 && t.anchor().x < 0 && t.anchor().y > 0 && t.size() <= 1 && t.size() >= 0.08, "beside the stand: " + t.anchor() + " size " + t.size());
 			// A step away: smaller, so the whole card still fits on the screen
 			stand.setPos(0, 0, 1.0);
 			Look.Target close = Stand.target(eye, new net.minecraft.world.phys.Vec3(0, -0.6, 1).normalize(), stand, five, true);
@@ -122,10 +131,10 @@ final class InfoTests {
 			// Looking steeply down at something right in front of you: the card comes down into the screen
 			net.minecraft.world.phys.Vec3 down = new net.minecraft.world.phys.Vec3(0, -1.2, 1).normalize();
 			net.minecraft.world.phys.Vec3 high = new net.minecraft.world.phys.Vec3(-0.6, 1.4, 0.8);
-			net.minecraft.world.phys.Vec3 kept = Look.keepOnScreen(eye, down, high, 0.3);
+			net.minecraft.world.phys.Vec3 kept = Look.keepOnScreen(eye, down, high, 0.3, Look.DOWN);
 			double top = Math.toDegrees(Math.atan2(kept.y + 0.3 - eye.y, Math.hypot(kept.x, kept.z))), look = Math.toDegrees(Math.atan2(down.y, Math.hypot(down.x, down.z)));
 			SelfTests.check(kept.y < high.y && top <= look + Look.UP + 0.01, "kept on screen: " + kept + ", top " + top + "° vs look " + look + "°");
-			SelfTests.check(Look.keepOnScreen(eye, new net.minecraft.world.phys.Vec3(0, 0, 1), new net.minecraft.world.phys.Vec3(-0.6, 1.4, 2), 0.3).y == 1.4,
+			SelfTests.check(Look.keepOnScreen(eye, new net.minecraft.world.phys.Vec3(0, 0, 1), new net.minecraft.world.phys.Vec3(-0.6, 1.4, 2), 0.3, Look.DOWN).y == 1.4,
 					"looking straight at it: stays");
 		});
 		SelfTests.register("info.found.collect", level -> {

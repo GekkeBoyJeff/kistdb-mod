@@ -409,9 +409,9 @@ final class Look {
 			// Up close: beside them, and smaller, so it's about as big on your screen as from a few steps back. Pulled
 			// towards you (it stays at the same spot on your screen), so it hangs in front of them: their head and
 			// shoulders never hide part of it
-			Vec3 at = inFront(eye, beside(eye, e), e.getBbWidth() / 2 + 0.45);
-			float size = (float) Math.max(0.35, Math.min(1.0, at.distanceTo(eye) / 3.5));
-			at = keepOnScreen(eye, dir, at, dims(card, Pack.has(p))[1] * size);
+			Vec3 at = hang(eye, e, e.getEyeY() - 0.2, e.getBbWidth() / 2 + 0.45);
+			float size = (float) Math.max(0.1, Math.min(1.0, at.distanceTo(eye) / 3.5));
+			at = keepOnScreen(eye, dir, at, dims(card, Pack.has(p))[1] * size, DOWN);
 			return new Target(at, card, !(e instanceof LivingEntity), size, 1);
 		}
 		if (bh.getType() != HitResult.Type.BLOCK) return null;
@@ -444,23 +444,51 @@ final class Look {
 		double dx = e.getX() - eye.x, dz = e.getZ() - eye.z;
 		double len = Math.max(1.0e-4, Math.sqrt(dx * dx + dz * dz));
 		// your right, as you face them
-		double rx = -dz / len, rz = dx / len;
-		double out = e.getBbWidth() / 2 + 0.1;
+		double fx = dx / len, fz = dz / len, rx = -fz, rz = fx;
+		// As far right as it reaches on your screen: up close its near side looks wider than its middle (a slope: sideways
+		// per step forward, over the corners of its box; something you stand next to reaches far round)
+		AABB b = e.getBoundingBox();
+		double slope = 0;
+		for (double cx : new double[] {b.minX, b.maxX}) {
+			for (double cz : new double[] {b.minZ, b.maxZ}) {
+				double vx = cx - eye.x, vz = cz - eye.z, f = vx * fx + vz * fz, side = vx * rx + vz * rz;
+				slope = Math.max(slope, f > 0.05 ? side / f : 1.2);
+			}
+		}
+		double out = Math.min(1.2, slope) * len + 0.1;
 		return new Vec3(e.getX() + rx * out, y, e.getZ() + rz * out);
 	}
 
-	/** How far above and below where you look a card may reach (degrees): clear of the tips at the top, the hotbar below. */
-	static final double UP = 18, DOWN = 22;
+	/**
+	 * Where a card beside something hangs: on the line to {@link #beside}, pulled towards you by {@code by} and always in
+	 * front of the nearest part of it (else its head or a cow's nose pokes through the card), never closer than 0.35.
+	 */
+	static Vec3 hang(Vec3 eye, Entity e, double y, double by) {
+		Vec3 spot = beside(eye, e, y);
+		double len = Math.max(1.0e-4, spot.distanceTo(eye));
+		AABB b = e.getBoundingBox();
+		double nx = Math.max(b.minX - eye.x, Math.max(0, eye.x - b.maxX)), ny = Math.max(b.minY - eye.y, Math.max(0, eye.y - b.maxY)),
+				nz = Math.max(b.minZ - eye.z, Math.max(0, eye.z - b.maxZ));
+		double nearest = Math.sqrt(nx * nx + ny * ny + nz * nz);
+		double d = Math.min(len, Math.max(0.35, Math.min(len - by, nearest - 0.15)));
+		return eye.add(spot.subtract(eye).scale(d / len));
+	}
+
+	/**
+	 * How far above and below where you look a card may reach (degrees): clear of the tips at the top, the hotbar below
+	 * (a tall card: also clear of your hand).
+	 */
+	static final double UP = 18, DOWN = 22, DOWN_TALL = 16;
 
 	/**
 	 * The same spot, moved up or down so a card this tall (from its bottom at {@code at}) stays on your screen: looking
 	 * down at something right in front of you, the spot beside its head is near the top edge.
 	 */
-	static Vec3 keepOnScreen(Vec3 eye, Vec3 dir, Vec3 at, double tall) {
+	static Vec3 keepOnScreen(Vec3 eye, Vec3 dir, Vec3 at, double tall, double down) {
 		double look = Math.toDegrees(Math.atan2(dir.y, Math.hypot(dir.x, dir.z)));
 		double flat = Math.max(0.3, Math.hypot(at.x - eye.x, at.z - eye.z));
 		double y = at.y;
-		if (look - DOWN > -89) y = Math.max(y, eye.y + flat * Math.tan(Math.toRadians(look - DOWN)));
+		if (look - down > -89) y = Math.max(y, eye.y + flat * Math.tan(Math.toRadians(look - down)));
 		if (look + UP < 89) y = Math.min(y, eye.y + flat * Math.tan(Math.toRadians(look + UP)) - tall);
 		return new Vec3(at.x, y, at.z);
 	}

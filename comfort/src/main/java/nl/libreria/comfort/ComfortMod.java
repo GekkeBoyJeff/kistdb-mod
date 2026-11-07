@@ -294,8 +294,23 @@ public final class ComfortMod implements ModInitializer {
 			try {
 				var r = net.fabricmc.fabric.api.event.player.UseEntityCallback.EVENT.invoker().interact(fp, level, InteractionHand.MAIN_HAND, frame, null);
 				SelfTests.check(r.consumesAction() && frame.isInvisible(), "sneak + right-click hides the frame: " + r);
-				frame.setItem(ItemStack.EMPTY);
+				// Hidden, it's locked: a click goes through to the chest behind; the item doesn't turn, nothing is placed
 				fp.setShiftKeyDown(false);
+				level.setBlock(wall, nl.libreria.core.Ui.block("chest"), 3);
+				int turned = frame.getRotation();
+				fp.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.COBBLESTONE));
+				var through = net.fabricmc.fabric.api.event.player.UseEntityCallback.EVENT.invoker().interact(fp, level, InteractionHand.MAIN_HAND, frame, null);
+				SelfTests.check(through.consumesAction() && frame.getRotation() == turned && frame.getItem().is(Items.DIAMOND_SWORD) && frame.isInvisible(),
+						"locked: the item stays as it is: " + through + ", rotation " + frame.getRotation());
+				var opened = Stands.through(fp, level, frame);
+				SelfTests.check(opened.consumesAction(), "the chest behind is used: " + opened);
+				SelfTests.check(level.getBlockState(wall.north()).isAir() && fp.getMainHandItem().getCount() == 1, "and nothing is placed where it hangs");
+				var off = net.fabricmc.fabric.api.event.player.UseEntityCallback.EVENT.invoker().interact(fp, level, InteractionHand.OFF_HAND, frame, null);
+				SelfTests.check(off.consumesAction() && frame.getRotation() == turned, "not with the other hand either");
+				fp.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+				SelfTests.check(Stands.locked(frame), "locked while it holds something");
+				frame.setItem(ItemStack.EMPTY);
+				SelfTests.check(!Stands.locked(frame), "empty: not locked");
 			} finally {
 				frame.discard();
 				level.setBlock(wall, net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), 3);

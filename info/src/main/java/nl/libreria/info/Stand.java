@@ -168,14 +168,15 @@ final class Stand {
 		double by = e.getBbWidth() / 2 + 0.3;
 		// How far the card hangs from your eye (beside the stand, pulled towards you), and as far as the stand
 		Vec3 spot = Look.beside(eye, e, mid);
-		double dist = Math.max(0.5, eye.distanceTo(spot));
-		double near = Math.max(0.5, Look.inFront(eye, spot, by).distanceTo(eye));
-		// At most about 40 degrees tall and 37 wide: even a step away the whole story fits (the text stays readable)
-		float size = (float) Math.max(0.12, Math.min(1.0, Math.min(0.72 * near / d[1], 0.75 * near / d[0])));
+		double dist = Math.max(0.35, eye.distanceTo(spot));
+		double near = Math.max(0.35, Look.hang(eye, e, mid, by).distanceTo(eye));
+		// At most about 33 degrees tall and 37 wide: even a step away the whole story fits, above your hand (the text
+		// stays readable)
+		float size = (float) Math.max(0.08, Math.min(1.0, Math.min(0.6 * near / d[1], 0.75 * near / d[0])));
 		// How tall it looks, measured at the stand
 		double tall = d[1] * size * dist / near;
 		double bottom = Math.max(e.getY() + 0.02, mid - tall / 2);
-		Vec3 at = Look.keepOnScreen(eye, dir, Look.inFront(eye, Look.beside(eye, e, bottom), by), d[1] * size);
+		Vec3 at = Look.keepOnScreen(eye, dir, Look.hang(eye, e, bottom, by), d[1] * size, Look.DOWN_TALL);
 		return new Look.Target(at, card, false, size, 1);
 	}
 

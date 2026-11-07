@@ -583,7 +583,35 @@ public final class Screens implements FabricClientGameTest {
 				boolean hidden = server.computeOnServer(sv -> !((ServerLevel) player.level()).getEntitiesOfClass(
 						net.minecraft.world.entity.decoration.ItemFrame.class, player.getBoundingBox().inflate(8), fr -> fr.isInvisible()).isEmpty());
 				LOG.info("LIBRERIA-FRAMES hidden: {}", hidden);
+				LOG.info("LIBRERIA-FRAMES client: {}", ctx.computeOnClient(mc -> {
+					StringBuilder b = new StringBuilder("eye " + mc.player.getEyePosition() + " look " + mc.player.getViewVector(1f));
+					if (mc.hitResult != null) b.append(" hit ").append(mc.hitResult.getType()).append(" at ").append(mc.hitResult.getLocation());
+					for (var en : mc.level.entitiesForRendering()) {
+						if (en instanceof net.minecraft.world.entity.decoration.ItemFrame fr) b.append(" | frame ").append(fr.getBoundingBox())
+								.append(" pickable ").append(fr.isPickable());
+					}
+					return b.toString();
+				}));
 				ctx.takeScreenshot("frame_hidden");
+				// Hidden, it's locked: a right-click on it opens the chest it hangs on (a label on a chest)
+				if (!hidden) {
+					server.runOnServer(sv -> ((ServerLevel) player.level()).getEntitiesOfClass(net.minecraft.world.entity.decoration.ItemFrame.class,
+							player.getBoundingBox().inflate(8)).forEach(fr -> fr.setInvisible(true)));
+				}
+				run(server, f("setblock %d %d %d minecraft:chest[facing=north]", x, y + 1, z + 3));
+				ctx.waitTicks(5);
+				ctx.getInput().lookAt(new BlockPos(x, y + 1, z + 2));
+				ctx.waitTicks(3);
+				String on = ctx.computeOnClient(mc -> String.valueOf(mc.hitResult == null ? null : mc.hitResult.getType()));
+				key(ctx, "pressKey", ctx.computeOnClient(mc -> mc.options.keyUse));
+				ctx.waitTicks(10);
+				String menu = server.computeOnServer(sv -> player.containerMenu.getClass().getSimpleName());
+				int rotation = server.computeOnServer(sv -> ((ServerLevel) player.level()).getEntitiesOfClass(net.minecraft.world.entity.decoration.ItemFrame.class,
+						player.getBoundingBox().inflate(8)).stream().mapToInt(net.minecraft.world.entity.decoration.ItemFrame::getRotation).sum());
+				LOG.info("LIBRERIA-FRAMES click through (crosshair on {}): menu {}, rotation {}", on, menu, rotation);
+				noToasts(ctx);
+				ctx.takeScreenshot("frame_click_through");
+				close(ctx, server, player);
 				run(server, "kill @e[type=minecraft:item_frame]", f("fill %d %d %d %d %d %d minecraft:air", x - 2, y, z + 3, x + 2, y + 2, z + 3));
 				ctx.getInput().lookAt(0, 0);
 			});
