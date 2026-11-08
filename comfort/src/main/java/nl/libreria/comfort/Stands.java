@@ -15,6 +15,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.entity.decoration.ItemFrame;
 import net.minecraft.world.item.ItemStack;
@@ -34,7 +35,8 @@ import nl.libreria.core.dialog.Window;
  * hides and only its item shows (again: it comes back); a hidden frame that loses its item shows again, so it can't get
  * lost on a wall. A hidden frame is locked: a right-click on it (or its item) goes through to the block it hangs on, so
  * the chest behind a label opens instead of the item turning. Only where you may build (on someone's land: when they
- * trust you).
+ * trust you). And a stand holds two things: right-click it with a tool, weapon, shield or rod and it gets arms if it has
+ * none, and the second thing goes in its off hand (so a whole story fits on one stand).
  */
 final class Stands {
 	static final Setting.Toggle EDIT = ComfortMod.MODULE.toggle("stands", "Armour stands and frames", true, Items.ARMOR_STAND,
@@ -91,7 +93,7 @@ final class Stands {
 	/** A copied pose per player, to give to another stand. */
 	private static final Map<UUID, Pose> COPIED = new HashMap<>();
 	/** The client sends a right-click on an entity twice (at a spot, and on it): act once a tick. */
-	private static final Map<UUID, Long> LAST_TICK = new HashMap<>();
+	static final Map<UUID, Long> LAST_TICK = new HashMap<>();
 
 	private Stands() {
 	}
@@ -109,6 +111,8 @@ final class Stands {
 			}
 			if (hand != InteractionHand.MAIN_HAND) return InteractionResult.PASS;
 			if (!(entity instanceof ArmorStand) && !(entity instanceof ItemFrame)) return InteractionResult.PASS;
+			// Something to hold: arms if it has none, and the off hand when the main hand is full (a whole story on a stand)
+			if (entity instanceof ArmorStand held && !sp.isShiftKeyDown() && hold(sp, (ServerLevel) world, held)) return InteractionResult.SUCCESS;
 			if (net.fabricmc.loader.api.FabricLoader.getInstance().isDevelopmentEnvironment()) nl.libreria.core.Libreria.LOG.info("Stands: {} sneak {} empty {} hit {}", entity.getType(),
 					sp.isShiftKeyDown(), sp.getMainHandItem().isEmpty(), hit != null);
 			if (!sp.isShiftKeyDown() || !sp.getMainHandItem().isEmpty() || !EDIT.get(sp)) return InteractionResult.PASS;
@@ -139,6 +143,48 @@ final class Stands {
 			});
 			return InteractionResult.PASS;
 		});
+	}
+
+	/**
+	 * Right-click on a stand with something to hold (a tool, a weapon, a shield, a rod): vanilla only ever fills the main
+	 * hand, and only of a stand with arms. Here a stand without arms gets them, a shield goes to the off hand, and the
+	 * second thing goes to the off hand when the main hand is full, so a stand can show all of a story, both hands too.
+	 * When both hands are full, vanilla swaps the main hand as always; an empty hand takes things off as always.
+	 * @return true when it was handled here
+	 */
+	static boolean hold(ServerPlayer sp, ServerLevel level, ArmorStand stand) {
+		ItemStack stack = sp.getMainHandItem();
+		if (stack.isEmpty() || stand.isMarker()) return false;
+		if (stand.getEquipmentSlotForItem(stack).getType() != EquipmentSlot.Type.HAND) return false;
+		EquipmentSlot slot = slotFor(stand, stack);
+		if (slot == null && stand.showArms()) return false;
+		if (!Services.mayBuild(sp, level, stand.blockPosition())) return false;
+		// The client sends the click twice (at a spot, and on it): once
+		long tick = level.getServer().getTickCount();
+		Long last = LAST_TICK.put(sp.getUUID(), tick);
+		if (last != null && last == tick) return true;
+		if (!stand.showArms()) stand.setShowArms(true);
+		if (slot == null) slot = EquipmentSlot.MAINHAND;
+		ItemStack old = stand.getItemBySlot(slot);
+		if (!old.isEmpty()) {
+			// (only the main hand, when both are full: what vanilla does)
+			if (stack.getCount() > 1) return true;
+			stand.setItemSlot(slot, stack.copy());
+			sp.setItemInHand(InteractionHand.MAIN_HAND, old);
+		} else {
+			stand.setItemSlot(slot, sp.hasInfiniteMaterials() ? stack.copyWithCount(1) : stack.split(1));
+		}
+		Ui.sound(sp, SoundEvents.ITEM_FRAME_ADD_ITEM, 0.8f, 1.1f);
+		return true;
+	}
+
+	/** Which hand of this stand a held thing goes in: a shield the off hand, else the main hand, then the off hand. Null: both full. */
+	static @org.jetbrains.annotations.Nullable EquipmentSlot slotFor(ArmorStand stand, ItemStack stack) {
+		boolean main = stand.getItemBySlot(EquipmentSlot.MAINHAND).isEmpty(), off = stand.getItemBySlot(EquipmentSlot.OFFHAND).isEmpty();
+		if (stack.is(Items.SHIELD) && off) return EquipmentSlot.OFFHAND;
+		if (main) return EquipmentSlot.MAINHAND;
+		if (off) return EquipmentSlot.OFFHAND;
+		return null;
 	}
 
 	/** A hidden frame with something in it: clicks go through it. */

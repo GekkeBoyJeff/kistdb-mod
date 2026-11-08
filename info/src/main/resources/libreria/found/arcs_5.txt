@@ -11,7 +11,7 @@ shield | The Sweet Roll Shield | He used it to guard his lunch. Someone stole hi
 @ greenhero | The Hero in Green Who Never Spoke
 iron_sword | The Old Man's Gift | Given to a boy in a cave by an old man who said it was dangerous to go alone. The boy never said a word. He just nodded and took it.
 shield | The Hero's Shield | The boy blocked everything with this: arrows, fireballs, a chicken he'd hit once by accident and the very angry flock that followed.
-bow | The Hero's Bow | He used it to hit switches nobody else could reach. Every switch opened a door. Every door had a key behind it. He was very good at keys.
+leather_chestplate | The Green Tunic | He wore it into every dungeon. Every room had a switch, every switch a door, every door a key. He was very good at keys. He never said a word about it.
 iron_boots | The Iron Boots | So heavy he walked along the bottom of lakes in them. He said nothing about it. He never said anything about anything.
 leather_helmet | The Green Cap | Not technically a cap. He wore it anyway. Somewhere, a fairy is still shouting at him to listen.
 

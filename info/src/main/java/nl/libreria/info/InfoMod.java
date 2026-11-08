@@ -123,9 +123,9 @@ public final class InfoMod implements ModInitializer {
 	}
 
 	/** For the screenshots: the lore book, a story in it, or your finds. */
-	/** For the screenshots: this armour stand wears four parts of one story. */
+	/** For the screenshots: this armour stand wears a whole story, the two things it holds too. */
 	public static void debugStand(net.minecraft.world.entity.decoration.ArmorStand stand) {
-		Stand.showcase(stand);
+		Stand.showcase(stand, true);
 	}
 
 	public static void debugLoreBook(ServerPlayer p, String page) {

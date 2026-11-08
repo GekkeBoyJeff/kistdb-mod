@@ -100,6 +100,62 @@ final class InfoTests {
 				SelfTests.check(-hung.x / hung.z >= cornerSlope, "right of its near corner: " + hung);
 			}
 		});
+		SelfTests.register("info.restand", level -> {
+			// Every story fits one armour stand: one of each armour piece, two things held
+			java.util.Map<String, java.util.Map<String, Integer>> worn = new java.util.HashMap<>();
+			for (Found.Text t : Found.PIECES) {
+				net.minecraft.world.entity.EquipmentSlot slot = Stand.worn(t.kinds().iterator().next());
+				worn.computeIfAbsent(t.story(), k -> new java.util.HashMap<>()).merge(slot == null ? "hand" : slot.getName(), 1, Integer::sum);
+			}
+			for (var e : worn.entrySet()) {
+				boolean fits = e.getValue().getOrDefault("hand", 0) <= 2
+						&& e.getValue().entrySet().stream().allMatch(w -> w.getKey().equals("hand") || w.getValue() <= 1);
+				SelfTests.check(fits, e.getKey() + " fits one stand: " + e.getValue());
+			}
+			SelfTests.check(Found.MOVED.size() > 300 && "-".equals(Found.MOVED.get("lantern:2")) && "2".equals(Found.MOVED.get("lantern:7")),
+					"which parts moved: " + Found.MOVED.size());
+			var access = level.registryAccess();
+			// A lantern bow from before (part 2 of 7): no longer a part, but it keeps its words
+			ItemStack bow = new ItemStack(Items.BOW);
+			Found.write(bow, new Found.Text("a:lantern:2", java.util.Set.of("bow"), "", "M. could hit a moth at forty paces.", "Mothsparer",
+					"lantern", "The Lantern Keeper", 2, 7), "in a shipwreck", 4, "Anna", access);
+			old(bow);
+			SelfTests.check(Found.fix(null, bow, access), "brought in line");
+			var st = Stand.stamp(bow);
+			SelfTests.check(st.getStringOr("story", "").isEmpty() && st.getStringOr("id", "").equals("x:a:lantern:2")
+					&& Found.byId("x:a:lantern:2") != null && "Mothsparer".equals(Found.byId("x:a:lantern:2").name()), "a part no more: " + st);
+			SelfTests.check(!Lore.get(bow, Lore.FOUND).getFirst().getString().startsWith("✦ ")
+					&& Lore.get(bow, Lore.FOUND).stream().anyMatch(l -> l.getString().contains("day 4 · Anna")), "its words stay, without the story");
+			SelfTests.check(!Found.fix(null, bow, access), "once");
+			// Maren's Hood (part 7 of 7 then): part 2 of 5 now
+			ItemStack hood = new ItemStack(Items.LEATHER_HELMET);
+			Found.write(hood, new Found.Text("a:lantern:7", java.util.Set.of("leather_helmet"), "", "Salt-stiff.", "Maren's Hood",
+					"lantern", "The Lantern Keeper", 7, 7), "Fished up", 9, "Jeff", access);
+			old(hood);
+			SelfTests.check(Found.fix(null, hood, access), "the hood brought in line");
+			st = Stand.stamp(hood);
+			SelfTests.check(st.getIntOr("part", 0) == 2 && st.getStringOr("id", "").equals("a:lantern:2")
+					&& Lore.get(hood, Lore.FOUND).getFirst().getString().contains("part 2 of 5")
+					&& Lore.get(hood, Lore.FOUND).stream().anyMatch(l -> l.getString().contains("day 9 · Jeff")), "part 2 of 5 now: " + st);
+			// A lore book from before
+			Found.Seen seen = new Found.Seen();
+			seen.parts.put("lantern", new java.util.HashSet<>(java.util.Set.of(2, 6, 7)));
+			seen.parts.put("odric", new java.util.HashSet<>(java.util.Set.of(1, 6)));
+			seen.partInfo.put("lantern:7", "Fished up|9|Jeff");
+			seen.partInfo.put("lantern:2", "in a shipwreck|4|Anna");
+			Found.Find a = new Found.Find(), b = new Found.Find();
+			a.id = "a:lantern:2";
+			b.id = "a:lantern:6";
+			seen.finds.add(a);
+			seen.finds.add(b);
+			Found.renumber(seen);
+			SelfTests.check(seen.parts.get("lantern").equals(java.util.Set.of(2, 5)) && seen.parts.get("odric").equals(java.util.Set.of(1, 6)),
+					"the lore book renumbered: " + seen.parts);
+			SelfTests.check(seen.partInfo.containsKey("lantern:2") && seen.partInfo.get("lantern:2").startsWith("Fished") && seen.partInfo.size() == 1,
+					"where they were found: " + seen.partInfo);
+			SelfTests.check(a.id.equals("x:a:lantern:2") && b.id.equals("a:lantern:5"), "finds: " + a.id + ", " + b.id);
+			SelfTests.check(Found.SEEN.get(FakePlayer.get(level)).v == Found.VERSION, "a new lore book is new already");
+		});
 		SelfTests.register("info.look-stand", level -> {
 			// An armour stand wearing a story: the card tells all of it, and hangs beside the stand, not in front of it
 			var stand = net.minecraft.world.entity.EntityTypes.ARMOR_STAND.create(level, net.minecraft.world.entity.EntitySpawnReason.COMMAND);
@@ -108,7 +164,7 @@ final class InfoTests {
 			SelfTests.check(Stand.card(stand, false) == null && !Stand.dressed(stand), "a bare stand: no card");
 			stand.setItemSlot(net.minecraft.world.entity.EquipmentSlot.HEAD, new ItemStack(Items.IRON_HELMET));
 			SelfTests.check(Stand.dressed(stand) && Stand.card(stand, false) == null && Stand.card(stand, true) != null, "plain gear: a card only with everything on");
-			Stand.showcase(stand);
+			Stand.showcase(stand, false);
 			Look.Card card = Stand.card(stand, false);
 			SelfTests.check(card != null && card.name().getString().startsWith("✦ ") && card.subtitle().getString().startsWith("4 of "),
 					"a set of one story: " + (card == null ? null : card.name().getString() + " / " + card.subtitle().getString()));
@@ -578,5 +634,14 @@ final class InfoTests {
 
 	private static String text(Look.Card card) {
 		return card == null ? "" : card.plain().toLowerCase(java.util.Locale.ROOT);
+	}
+
+	/** Makes an item look stamped before every story fit one armour stand. */
+	private static void old(ItemStack s) {
+		net.minecraft.world.item.component.CustomData.update(net.minecraft.core.component.DataComponents.CUSTOM_DATA, s, root -> {
+			var t = root.getCompoundOrEmpty(Found.STAMP).copy();
+			t.remove("v");
+			root.put(Found.STAMP, t);
+		});
 	}
 }

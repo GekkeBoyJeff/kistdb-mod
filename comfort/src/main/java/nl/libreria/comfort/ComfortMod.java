@@ -283,6 +283,26 @@ public final class ComfortMod implements ModInitializer {
 			Stands.setSmall(s, false);
 			SelfTests.check(!s.isSmall(), "big again");
 			SelfTests.check(Stands.wrap(350f) == -10f && Stands.wrap(-200f) == 160f && Stands.wrap(90f) == 90f, "angles -180..180");
+			// Holding: arms when it has none, a second thing in the off hand, a shield in the off hand first
+			var holder = net.fabricmc.fabric.api.entity.FakePlayer.get(level);
+			var bare = net.minecraft.world.entity.EntityTypes.ARMOR_STAND.create(level, net.minecraft.world.entity.EntitySpawnReason.COMMAND);
+			java.util.function.Function<net.minecraft.world.item.Item, Boolean> give = item -> {
+				Stands.LAST_TICK.remove(holder.getUUID());
+				holder.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(item));
+				return Stands.hold(holder, level, bare);
+			};
+			SelfTests.check(!bare.showArms() && give.apply(Items.IRON_SWORD) && bare.showArms()
+					&& bare.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.MAINHAND).is(Items.IRON_SWORD) && holder.getMainHandItem().isEmpty(),
+					"a sword: arms, and in its hand");
+			SelfTests.check(give.apply(Items.SHEARS) && bare.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.OFFHAND).is(Items.SHEARS),
+					"shears next: the off hand");
+			SelfTests.check(!give.apply(Items.BOW), "both full: as vanilla does (the main hand swaps)");
+			SelfTests.check(!give.apply(Items.IRON_HELMET), "armour: as vanilla does");
+			var other = net.minecraft.world.entity.EntityTypes.ARMOR_STAND.create(level, net.minecraft.world.entity.EntitySpawnReason.COMMAND);
+			SelfTests.check(Stands.slotFor(other, new ItemStack(Items.SHIELD)) == net.minecraft.world.entity.EquipmentSlot.OFFHAND,
+					"a shield goes in the off hand");
+			holder.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+			Stands.LAST_TICK.remove(holder.getUUID());
 			// an item frame: sneak + right-click with an empty hand hides the frame
 			BlockPos wall = new BlockPos(48, 121, 44);
 			level.setBlock(wall, nl.libreria.core.Ui.block("stone"), 3);

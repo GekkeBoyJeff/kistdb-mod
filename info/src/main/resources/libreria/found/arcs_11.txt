@@ -1,7 +1,7 @@
 # Stories, eleventh book. Format as in arcs_1.txt.
 
 @ butler | Memoirs of a Mansion Butler
-chainmail_chestplate@mansion | Chapter One: My Appointment | I entered the service of the mansion in my twenty-second year. The household consisted of forty-one evokers, two hundred vindicators and one very old allay who did the dusting. I wore chain, as the staff were frequently attacked by the family.
+chainmail_helmet | Chapter One: My Appointment | I entered the service of the mansion in my twenty-second year. The household was forty-one evokers, two hundred vindicators and one very old allay who did the dusting. I wore chain, as the staff were frequently attacked by the family.
 diamond_chestplate@mansion | Chapter Two: The Master's Wardrobe | The master owned eleven diamond breastplates and wore none of them, preferring a dressing gown. I polished all eleven every Sunday. It was, I believe, the finest work of my life.
 diamond_hoe@mansion | Chapter Three: The Garden | The master asked for a garden. I planted roses with this hoe in the courtyard. The vexes ate them. I planted more. In the end the vexes and I reached an understanding, and the roses grew.
 
@@ -17,11 +17,11 @@ leather_helmet | The Doctor's Cap | When the fever came to the lower valley, eve
 leather_chestplate | The Long Coat | Seventy days she wore this coat, from house to house. She slept in it, in chairs, by beds. The pockets are full of little notes: names, and next to each name, a tick, or a small cross.
 shears | The Bandage Shears | She cut a thousand bandages with these. The handles are worn smooth where her thumb rested. Near the end, she cut her own.
 flint_and_steel | The Fire for the Water | Every water the valley drank, she boiled first, on fires lit with this flint. That was what ended the fever, in the end. Boiled water, patience and one stubborn woman.
-iron_shovel | The Garden on the Hill | When it was over, the valley planted a garden on the hill, a flower for every name with a tick. It is a very big garden. The doctor's cap hangs on the gate.
+leather_boots | The Doctor's Boots | When it was over, the valley planted a garden on the hill, a flower for every name with a tick. It is a very big garden. These boots walked every row of it, the first spring. Her cap hangs on the gate.
 
 @ bandit | The Bandit Queen of Copper Ridge
 copper_sword | Red Mag's Blade | Red Mag robbed only the rich, and only on Tuesdays, and only after a polite letter of warning. The rich were furious about the letters. "Stealing is one thing. But warning us is just rude."
-copper_spear | The Bridge-Keeper's Spear | Her right hand, Big Tobble, held the bridge with this. Nobody crossed without paying the toll. The toll was a joke. If it was funny, you crossed for free. Tobble had no sense of humour.
+copper_leggings | The Bridge-Keeper's Greaves | Her right hand, Big Tobble, held the bridge in these. Nobody crossed without paying the toll. The toll was a joke: if it was funny, you crossed for free. Tobble had no sense of humour.
 copper_chestplate | The Green Coat | She wore copper because it went green, and green, she said, was the colour of the forest, and the forest was hers. The forest was not hers. The forest put up with her.
 copper_boots | The Escape Boots | The king's soldiers chased her to the edge of the ridge. She jumped. They looked down. She was gone. She'd landed in a haystack she'd put there three years before, just in case.
 bow | Mag's Last Arrow | In the end she was pardoned, because she had robbed the king's tax collector and given it all back to the villages, and the villages loved her more than they loved the king. The king noticed.
@@ -35,17 +35,16 @@ iron_sword@stronghold | "Last Entry" | Stronghold guard log: an adventurer went 
 
 @ apprentice2 | Diary of a Witch's Apprentice
 leather_helmet | Day 1 | Mistress Gruel says the pointy hat is "a privilege, not a right". I don't have a pointy hat. I have this leather cap. She says the point grows with practice. I'm checking every morning.
-wooden_hoe@archaeology | Day 12 | Weeding the mandrake patch. Mistress says don't pull them up, they scream. I pulled one up. It screamed. I screamed. Mistress screamed at both of us. Nobody is speaking to anyone.
+leather_boots | Day 12 | Weeding the mandrake patch. Mistress says don't pull them up, they scream. I pulled one up. It screamed. I screamed and ran right out of a boot. Mistress screamed at both of us. Nobody is speaking to anyone.
 shears | Day 30 | Cut a lock of hair from a sleeping cat for a potion. The cat was not sleeping. I have a lot of plasters now. The potion did nothing. The cat is still staring at me.
-fishing_rod | Day 59 | Fishing for a frog with a crown on, for a spell. Caught three ordinary frogs and one very indignant prince. Mistress says we'll "talk about the prince later".
+leather_chestplate | Day 59 | Fishing for a frog with a crown on, for a spell. Caught three ordinary frogs and one very indignant prince, who was sick on my jerkin. Mistress says we'll "talk about the prince later".
 flint_and_steel | Day 100 | Lit my first proper cauldron fire. The potion turned blue and smelled of strawberries. Mistress looked at it and didn't say anything for a long time. Then she gave me her old pointy hat.
 
 @ golemfriend | Lina and the Iron Giant
 iron_helmet | The Helmet Lina Made It | Lina was six when she climbed onto the iron golem's shoulders and put a helmet on its head, to keep the rain off. It let her. It was the only thing in the village it ever let touch it.
 iron_chestplate | The Breastplate She Polished | Every Sunday she polished the golem with an old rag and a lot of spit. It stood very still, the way a dog does when you scratch the right spot. It gave her a poppy every time. She has a box full.
 iron_leggings | The Night of the Raid | When the raid came, the golem stood in front of Lina's house and didn't move, while the whole village burned around it. Lina's house was the only one still standing in the morning. The golem wasn't.
-iron_boots | What Was Left | They found these where it fell, standing upright, as if it was still on guard. Lina was eleven. She sat with the pieces for three days and nobody could make her come in.
-iron_boots | The New One | The village built a new golem. Lina, grown, put the old boots on its feet herself. The new golem looked down at her for a long time. Then it handed her a poppy.
+iron_boots | What Was Left | They found these where it fell, standing upright, as if it was still on guard. Lina was eleven. Years later she put them on the new golem's feet herself. It looked down at her for a long time. Then it handed her a poppy.
 
 @ sixtyyears | Sixty Years at Cobbleford
 golden_helmet | His Wedding Hat | He married her in a golden helmet because he was nervous and wanted to look like someone braver. She laughed through the whole ceremony. He said that was the moment he knew.

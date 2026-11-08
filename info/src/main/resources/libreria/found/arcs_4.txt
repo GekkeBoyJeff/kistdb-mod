@@ -11,7 +11,7 @@ shield | Ser Odric's Crest | Painted with a lion. It looks more like a cat. Ser 
 
 @ bramble | The Bramblewick Miners
 iron_pickaxe@mineshaft | Old Bramble's Pick | Old Bramble mined the deepest shaft in the hills and named every tunnel after one of his eleven children. He ran out of children before he ran out of tunnels.
-iron_shovel | Bramble's Second Shovel | Nobody knows what happened to the first shovel. Bramble only ever said "the mountain kept it".
+leather_chestplate | Bramble's Pit Jacket | Nobody knows what happened to his first shovel, or to the pocket of this jacket it was in. Bramble only ever said "the mountain kept it".
 iron_helmet | Bramble's Lamp-Helm | The lamp went out three hundred metres down, and he walked home in the dark by counting his steps. He was off by one. He's never told anyone where the one went.
 leather_boots | Bramble's Pit Boots | Steel toes, iron soles, and a secret compartment with a single emergency biscuit. The biscuit is older than you.
 iron_axe | Bramble's Prop-Cutter | Used to cut the beams that held up the tunnels. The tunnels are still up. Bramble said that was the only part of mining that mattered.
@@ -34,7 +34,7 @@ leather_chestplate | The Quiver-Plate | A chestplate with a quiver welded to the
 wooden_hoe | Grandpa Hollow's Hoe | The Hollows farmed the same field for nine generations. This hoe tilled it for six of them. The handle has been replaced eleven times; the blade never.
 shears | The Shearing Shears | Every spring the whole family sheared the sheep together, and every spring the sheep won at least once.
 leather_boots | Muddy Boots | There is mud on these from every spring for sixty years. It's less mud than history at this point.
-stone_axe | The Fence-Mender | Used to mend fences the cows had broken. The cows broke them again. It was a long, friendly war.
+leather_leggings | The Fence-Mender's Trousers | Patched at both knees from mending the fences the cows had broken. The cows broke them again. It was a long, friendly war.
 leather_helmet | The Scarecrow's Hat | Grandpa Hollow put this on the scarecrow. The crows stayed away for forty years. Then the scarecrow walked off one night, still wearing it.
 
 @ skyrider | Captain Talia's Sky Kit
@@ -46,7 +46,7 @@ leather_chestplate | Talia's Mailbag Plate | A chestplate with a satchel strap w
 
 @ digsite | The Digsite at Dunmarrow
 wooden_hoe@archaeology | Professor Quill's Trowel | Professor Quill scraped the sand off a single pot with this little hoe for three weeks. It was the most important pot in history. It was also, technically, a chamber pot.
-iron_shovel | The Dunmarrow Spade | Used to dig the first trench at Dunmarrow, where the Old Builders' town lay under the dunes. The town was there. So was something else.
+leather_chestplate | The Dunmarrow Jacket | Worn the day they dug the first trench at Dunmarrow, where the Old Builders' town lay under the dunes. The town was there. So was something else. The pockets still won't empty of sand.
 leather_boots | Desert Boots | The professor's boots, full of sand. When you shake them, sand comes out. When you stop, there's more sand.
 leather_helmet | The Pith Helmet | Not a real pith helmet, an iron one painted white. The paint is mostly gone. The professor's dignity went at about the same speed.
 iron_pickaxe | The Last Trench | On the last day of the dig, someone found a door in the trench. Professor Quill told everyone to go home. He stayed.
@@ -67,10 +67,10 @@ diamond_sword@end | Blade of the Void Warden | It hums a note so low only enderm
 
 @ chef | The Royal Kitchen Brigade
 iron_axe | The Head Chef's Cleaver | The head chef of the royal kitchen ran it like an army. This axe was his cleaver. The kitchen ran very well. The army was terrified of the kitchen.
-wooden_hoe | The Herb Garden Hoe | Used in the royal herb garden. The king never knew where the parsley came from. The gardener never told him; she liked the mystery.
+leather_boots | The Gardener's Clogs | Worn in the royal herb garden. The king never knew where the parsley came from. The gardener never told him; she liked the mystery.
 shears | The Pastry Shears | For trimming pie crust. And, once, the king's beard, after he complained about the pie.
 leather_helmet | The Toque | A chef's hat, made of iron after an incident with a rolling pin and a jealous baker.
-iron_sword | The Carving Sword | Used to carve the roast at the king's feast. The roast was a whole cow. The sword was the only knife big enough.
+leather_chestplate | The Carver's Apron | Worn to carve the roast at the king's feast. The roast was a whole cow. The apron has never been the same, and neither has the cow.
 
 @ wolfpack | The Wolf Mother's Pack
 leather_helmet | Wolfhead Helm | The Wolf Mother lived in the taiga with nine wolves and no people. She wore this so the wolves would know she was one of them. They knew anyway.
@@ -119,4 +119,4 @@ wooden_hoe | The Moonlit Hoe | Old Wick only farmed by moonlight. He said the cr
 leather_boots | Night Boots | Never seen the sun. The farmer slept all day and the boots slept in a cupboard.
 leather_helmet | Wick's Lantern Brim | A helmet with a lantern on the brim. The crops grew towards it, like sunflowers. Wick said that proved his point.
 shears | The Midnight Shears | For pumpkins, which Wick carved into faces so the monsters would think someone was watching. Someone was. Wick.
-stone_axe | The Shed Axe | Used to build his shed, his fence and his small but deeply unsettling scarecrow army.
+leather_chestplate | Wick's Shed Coat | He wore it to build his shed, his fence and his small but deeply unsettling scarecrow army. The scarecrows wear the rest of his clothes.

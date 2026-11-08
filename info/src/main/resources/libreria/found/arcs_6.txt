@@ -2,7 +2,7 @@
 
 @ aldo | Big Aldo's Last Winter
 iron_axe | The Last Swing | Big Aldo felled trees for forty winters. On his last one, the axe bit wrong and his finger cracked like a twig. He wrapped it in a rag, said "one more", and finished the tree anyway. It was the tallest pine on the ridge.
-stone_axe | The Spare Axe | Aldo kept a stone axe by the door "for when the good one breaks". It never did. His granddaughter learned to chop with this one, standing on a stump so she could reach.
+leather_leggings | The Worn-Through Knees | Aldo knelt in the snow in these to teach his granddaughter to chop, with the stone axe by the door, her standing on a stump so she could reach. Both knees are worn through. He said it was a good kind of worn.
 leather_helmet | Aldo's Wool-Lined Cap | Lined with wool from the sheep he kept for her. He wore it pulled down to his eyebrows, so nobody could see when the cold made his eyes water. It wasn't always the cold.
 leather_chestplate | The Sap-Stained Jerkin | Stiff with forty years of sap. In the pocket: a carved wooden bird, half finished. He was making one for every winter she'd been alive. This was the eleventh.
 leather_boots | Aldo's Snow Boots | He walked the long way home through the snow, every evening, so the path would be packed flat for her in the morning. The path is still there. Someone keeps walking it.
@@ -14,51 +14,48 @@ golden_helmet@ruined_portal | The Gilded Hat | "The piglins only talk to you if 
 golden_chestplate@ruined_portal | The Breastplate of Many Repairs | "Third portal. The lava ate my good boots. I have a list of every plant on this side. None of them is the right one yet. Eat your vegetables. Papa."
 golden_leggings@ruined_portal | The Pilgrim's Greaves | "Fourth portal. Someone else's ruin, very old. Another father, I think, looking for another cure. I said a word for him. I hope someone says one for me. Papa."
 golden_boots@ruined_portal | The Long Way Back | "I found it. A blue flower in a forest that hums. I am coming home through the fifth portal. It is the fastest way. Tell your aunt to boil water. Papa."
-golden_pickaxe@ruined_portal | The Pick That Cleared the Way | Found at the fifth portal, which had collapsed from the other side. The flower was pressed flat between two pages of a letter. It still smelled of the Nether.
-golden_shovel@ruined_portal | Mira's Shovel | Years later, a young woman dug a small garden at the foot of the fifth portal and planted the seeds from a pressed blue flower. The flowers hum. She sits with them on her father's birthday.
+golden_shovel@ruined_portal | Mira's Shovel | The fifth portal collapsed from the other side. The flower came through anyway, pressed flat in a letter. Years later, a young woman planted its seeds at the foot of that portal. The flowers hum. She sits with them on her father's birthday.
 
 @ grashk2 | The Court of Queen Gruntilda
 golden_sword@bastion | The Royal Snout-Sword | "QUEEN GRUNTILDA SAYS: THIS SWORD IS SHINY. SHINY IS GOOD. HUMAN WHO TOUCHES SWORD GETS BONKED." The bonking was enforced very fairly, which is to say, constantly.
 golden_axe@bastion | The Chancellor's Axe | The Chancellor of the Court collected taxes in gold, in pork and in fear. Mostly in pork. He said the gold made his axe heavy and the pork made him happy.
 golden_helmet@bastion | The Crown of Gruntilda | Too small for her head. She wore it anyway, balanced on one ear, and dared anyone to say something. One brute said something. He was promoted to "door".
 golden_chestplate@bastion | The Jester's Plate | The court jester wore gold too, so he would not be eaten during his act. His best joke was about a human who brought a wooden sword to a bastion. Everyone laughed. The human did not.
-crossbow@bastion | The Royal Guard's Bow | Fired only at people who forgot to wear gold. It was fired a great deal. Humans have very bad memories.
+golden_leggings@bastion | The Royal Guard's Greaves | Worn by the guard who shot at people who forgot to wear gold. He shot a great deal. Humans have very bad memories.
 golden_boots@bastion | The Dancing Boots | Gruntilda danced every night after the feast, alone, in the treasure room. Nobody watched. Everybody knew. She danced for the king, who went to the overworld one day and shook and was gone.
 
 @ charred | The Charred Oath
 stone_sword@nether | The First Blade of the Oath | Thou who findest this: it was carried by the first of seven who swore at the gate. Fire took their skin and the years took their names. The oath they kept. They keep it still.
-stone_sword@nether | The Second Blade | Here lieth the blade of Varn, who laughed the loudest, and was the first to go silent. The smoke hath not dimmed the edge. It remembereth his laugh, though he doth not.
-stone_sword@nether | The Third Blade | Edda carried this, who had a daughter in the green lands above. She asked of each traveller whether the grass was still soft. None who came would answer. She asketh still, without a voice.
-stone_sword@nether | The Fourth Blade | The fourth never wanted to come. He swore because his brother swore. His brother fell on the first night. He hath stood at the gate ever since, guarding a promise that was never his.
-stone_sword@nether | The Fifth Blade | Blackened, nicked, and wrapped at the grip with a scrap of blue cloth. Blue was not a colour of the Nether. Someone brought it from home, and kept it, all this while.
+golden_helmet@nether | The Helm of Varn | Here lieth the helm of Varn, who laughed the loudest, and was the first to go silent. The smoke hath blackened the gold. It remembereth his laugh, though he doth not.
+golden_chestplate@nether | The Plate of Edda | Edda wore this, who had a daughter in the green lands above. She asked of each traveller whether the grass was still soft. None who came would answer. She asketh still, without a voice.
+golden_leggings@nether | The Fourth Oath | The fourth never wanted to come. He swore because his brother swore. His brother fell on the first night. He hath stood at the gate ever since, guarding a promise that was never his.
+golden_boots@nether | The Fifth Oath | Blackened, worn thin, and laced with a scrap of blue cloth. Blue was not a colour of the Nether. Someone brought it from home, and kept it, all this while.
 stone_sword@nether | The Last Blade | The seventh stood alone when the others were bones. Lay it down gently, traveller. The gate they guarded fell long ago. Nobody told them. Thou art the first to tell them now.
 
 @ saltreach | The Drowned of Saltreach
 trident | The Skipper's Fork | The skipper of the Saltreach went down holding this, still shouting orders at the storm. Down there he is shouting them still. The drowned around him are, technically, still his crew.
-trident | Little Pell's Spear | The youngest deckhand had never held a weapon. He took this from the hold when the ship began to tip, because he thought it would make him brave. It did. It didn't help.
+leather_boots@fishing | Little Pell's Boots | The youngest deckhand had never been to sea. He wore his brother's boots, too big, because he thought they would make him brave. They did. It didn't help. They came up on a line years later, still laced.
 fishing_rod | The Cook's Line | The cook kept a line over the side every evening "for the soup". The soup was famous. He fishes on, below, out of habit, catching nothing, cooking nothing, for nobody.
-fishing_rod | The Bosun's Spare Rod | The bosun lent this to every sailor who was homesick, because fishing is the same on every sea. He said it helps. Down there, he still holds it out to anyone passing by.
-trident | The Lookout's Trident | The lookout saw the reef too late. She has looked up at the surface every day since, as if she might see the next ship in time. Sometimes she does. Sometimes they listen.
+leather_chestplate@shipwreck | The Bosun's Coat | The bosun lent this to every sailor who was homesick, because a warm coat is the same on every sea. He said it helps. Down there, he still holds it out to anyone passing by.
+leather_helmet@shipwreck | The Lookout's Hood | The lookout saw the reef too late. She has looked up at the surface every day since, as if she might see the next ship in time. Sometimes she does. Sometimes they listen.
 
 @ coppercamp | The Copperkettle Camp
 copper_axe | Dad's Copper Axe | Day one! Dad says copper is cheap but honest, like him. He chopped the logs for our camp with this. He missed the log twice and Mum laughed so hard she sat in the stream.
-copper_sword | My Sword (Mine) | Day three. I got my own sword because I'm eleven now. It's copper so it turns green, which Dad says means it's "doing its best". I fought a bush. I won.
-copper_spear | The Fishing Spear | Day five. Mum spears fish with this standing in the river like a heron. She caught seven. I caught a boot. Dad says the boot was "a strong start".
 copper_chestplate | Dad's Shiny Shirt | Day nine. A spider came at night. Dad stood in front of our tent in his copper shirt with the lantern and yelled at it until it left. Mum says he yelled louder than the spider.
 copper_leggings | Mum's Trousers | Day twelve. It rained so hard the stream came into the tent. We sat on the chest all night and Mum told stories about a castle made of cake. Best night of the trip.
-copper_boots | My Boots, Green Now | Last day. We have to go back to the village. Dad says we'll come every summer. My boots went green. I'm leaving them here so the camp knows we're coming back.
+copper_boots | My Boots, Green Now | Last day. We have to go back to the village. Dad says we'll come every summer. My boots went green; Dad says that means they're "doing their best", like me. I'm leaving them here so the camp knows we're coming back.
 fishing_rod | The Rod We Forgot | We didn't come back the next summer. Or the one after. Dad got sick. I'm grown up now. I found the camp again and the rod was still by the stream, where we left it, waiting.
 
 @ deepvein | The Deepvein Memos
 iron_pickaxe@mineshaft | Memo No. 1 | DEEPVEIN MINING COMPANY. To all crews: productivity is up 12%. Well done. Please stop reporting "a sound like breathing" behind the east wall. It is the wind. Management.
-iron_pickaxe@mineshaft | Memo No. 4 | To all crews: the east wall is not to be mined further until further notice. Crew 3 is reminded that "it asked us to stop" is not an approved reason for leaving a shift early. Management.
-iron_pickaxe@mineshaft | Memo No. 7 | To all crews: Crew 3's picks have been found. Crew 3 has not. The company thanks Crew 3 for its service. The east wall is to be bricked up by Friday. Management.
+leather_chestplate | Memo No. 4 | Pinned inside a jacket: To all crews: the east wall is not to be mined further until further notice. Crew 3 is reminded that "it asked us to stop" is not an approved reason for leaving a shift early. Management.
+leather_boots | Memo No. 7 | Folded into a boot: To all crews: Crew 3's picks have been found. Crew 3 has not. The company thanks Crew 3 for its service. The east wall is to be bricked up by Friday. Management.
 leather_helmet | The Foreman's Cap | Scratched inside the cap, in a hurry: "Not the wind. Not the wind. Tell the company it is not the wind." Found far from the mine, as if the foreman had run for a very long time.
 iron_shovel | Memo No. 9 (Final) | To whoever finds this: the company is closed. The east wall did not hold. If you are in a mine and you hear something like breathing, the company's official advice is to leave. Management.
 
 @ yrsa | The Pillager's Daughter
-iron_axe | Her Father's Axe | Yrsa grew up in the outpost, among people who took things from villages. Her father gave her this axe on her tenth birthday and said "now you are one of us". She hid it under her bed.
-crossbow | The Crossbow She Didn't Fire | On her first raid she raised this at a farmer's boy her own age. He looked at her. She looked at him. She lowered it and ran into the forest, and she did not stop.
+leather_helmet | The Outpost Cap | Yrsa grew up in the outpost, among people who took things from villages. On her tenth birthday her father gave her an axe and said "now you are one of us". She hid it under her bed, and this cap on top of it.
+leather_leggings | The Raid She Ran From | On her first raid she raised her crossbow at a farmer's boy her own age. He looked at her. She looked at him. She lowered it and ran into the forest in these, and she did not stop.
 leather_boots | The Running Boots | She ran for three days. Her boots wore through. A village found her asleep in their haystack and, instead of chasing her off, left a bowl of soup beside her. She cried into the soup.
 leather_chestplate | The Farmhand's Jerkin | They gave her work and a jerkin with a hole in the elbow. The boy from the raid lived in that village. He recognised her. He said nothing to anyone, ever. They married nine years later.
 crossbow | Her Answer | When the outpost came to raid the village, she was waiting on the wall with this. Her father saw her. He stopped. He turned his people around. Nobody in either camp knows what was said with that look.

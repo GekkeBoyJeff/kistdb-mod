@@ -19,15 +19,14 @@ diamond_pickaxe@bastion | Hollis's Pick | Found by a collapsed tunnel in the vau
 @ trialwardens | The Grand Trials
 diamond_axe@trial | Contestant Number Four | "AND HERE COMES CONTESTANT NUMBER FOUR, WITH A DIAMOND AXE AND A DREAM! The breezes are circling! The crowd is silent! The crowd is also made of copper statues, but still!"
 iron_chestplate@trial | Contestant Number Nine | "Number nine wore iron and good manners! She bowed to every mob before fighting it! The mobs were confused! She won by confusion! The judges allowed it!"
-bow@trial | The Archer of Hall Seven | "In Hall Seven, a bow that never missed! Except once! At the announcer! THE ANNOUNCER IS FINE! THE ANNOUNCER WOULD LIKE TO MOVE ON!"
-crossbow@trial | The Bolt of the Final Round | "The final round! A single bolt! The vault key on a pressure plate! Ladies and gentlemen and breezes, I have never seen a crossbow aimed with so much love!"
-shield@trial | The Shield of the Runner-Up | "The runner-up! Held this shield for forty minutes against six spawners! Lost on a technicality! The technicality was a slime! A standing ovation for the runner-up!"
+iron_helmet@trial | The Helmet of Hall Seven | "In Hall Seven, a bow that never missed! Except once! At the announcer! This is the announcer's helmet! THE ANNOUNCER IS FINE! THE ANNOUNCER WOULD LIKE TO MOVE ON!"
+iron_leggings | The Runner-Up's Greaves | "The runner-up! Forty minutes against six spawners in these greaves! Lost on a technicality! The technicality was a slime! A standing ovation for the runner-up!"
 golden_pickaxe@trial | The Wardens' Trophy | Engraved: "Winner of the Grand Trials". The winner never collected it. The trials went on without anyone watching, year after year. The announcer never stopped announcing.
 
 @ gardener | The Last Gardener of the Deep
 diamond_hoe@ancient_city | Her Hoe | Down in the city of the deep dark, where nothing grows, someone kept a garden. Moss and glow berries in a square of soil, behind a wall, tended with this. In silence, of course. Always in silence.
 iron_leggings@ancient_city | Kneeling Greaves | Worn through at both knees from kneeling in the soil. She knelt there every day for years, whispering to the berries, which is the only safe way to talk to anything down there.
-diamond_leggings@ancient_city | The Watcher's Greaves | Someone else's, left beside the garden wall. The Warden walked past this garden for three hundred years and never once stepped on it. Nobody knows if it knew. Everybody hopes it did.
+iron_boots | The Watcher's Boots | Someone else's, left neatly beside the garden wall. The Warden walked past this garden for three hundred years and never once stepped on it. Nobody knows if it knew. Everybody hopes it did.
 
 @ brannoc | Brannoc the Smith Makes a Set
 iron_helmet@village | The Helmet, First Try | Brannoc's workbook: "Our Aed has signed up for the guard. He is sixteen. Made him a helmet. Too heavy. Made it again. Too light. Made it a third time and cried in the forge where nobody could see."
@@ -47,12 +46,13 @@ shears@village | The Old Shears | Her grandmother's shears, sharpened so often t
 @ firstchest | The Book of the First Chest
 wooden_axe@village | The First Axe | In the beginning there was a chest, and in the chest there was an axe, and the first of us took it up, and the first tree fell, and lo, it was very surprised.
 wooden_pickaxe@village | The First Pick | And from the tree came a table, and from the table came this pick, and the first of us struck the stone, and the stone said nothing, as stone will, but it was the beginning of a long conversation.
-stone_pickaxe@village | The Second Pick | And the stone was made into a better pick, and with it the first of us went down into the dark, and found coal, and made light, and understood that there would be no end to digging.
-stone_axe@village | The Axe That Built a House | And with this axe the first of us built a house of planks, just big enough for one, and slept there the first night, and heard the moaning outside, and was glad of the door.
+leather_boots@village | The First Boots | And the first of us went down into the dark in these, with a pick of stone, and found coal, and made light, and understood that there would be no end to digging.
+leather_helmet@village | The First Hat | And the first of us built a house of planks, just big enough for one, and slept there the first night, and heard the moaning outside, and pulled this down over both ears, and was glad of the door.
+leather_chestplate@village | The First Coat | And the first of us met a cow, and from the cow came leather, and from the leather this coat, and lo, the nights were less cold. The cow was not consulted.
 
 @ stonesong | The Song of Saltmere
 stone_spear@shipwreck | First Verse | Down in the bay where the old town lies, the stones still remember the children's cries; we sang as we swam and we swam as we sang, and the bell in the tower rang and rang.
-stone_axe@shipwreck | Second Verse | Father built boats with this axe on the sand, the best boats in Saltmere, the best in the land; then the sea came up softly one night in the spring, and the boats were too slow for so big a thing.
+leather_boots@shipwreck | Second Verse | Father built boats with his axe on the sand, the best boats in Saltmere, the best in the land; then the sea came up softly one night in the spring, and the boats were too slow for so big a thing.
 golden_helmet@shipwreck | Third Verse | The mayor wore gold so the sea would see that here was a town of good company; but the sea doesn't bargain and the sea doesn't bow, and the mayor's gold hat is the sea's hat now.
 fishing_rod@shipwreck | Fourth Verse | Mother still fishes, they say, from the street, with the fish swimming by at the height of her feet; and if you dive down where the old houses lie, you can see her, still waiting, still looking up high.
 leather_chestplate@shipwreck | Last Verse | So sing it again if you're out on the bay, for the town that is sleeping a fathom away; and if something below hums along to the tune, it's only Saltmere, waking up under the moon.

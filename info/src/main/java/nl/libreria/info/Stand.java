@@ -183,8 +183,17 @@ final class Stand {
 		return new Look.Target(at, card, false, size, 1);
 	}
 
-	/** For the screenshots and the self-test: a stand wearing the armour of one story (a knight's). */
-	static void showcase(ArmorStand st) {
+	/** Where a story part goes on a stand: its armour slot, or null for something held. */
+	static @Nullable EquipmentSlot worn(String item) {
+		return item.endsWith("helmet") ? EquipmentSlot.HEAD : item.endsWith("chestplate") ? EquipmentSlot.CHEST
+				: item.endsWith("leggings") ? EquipmentSlot.LEGS : item.endsWith("boots") ? EquipmentSlot.FEET : null;
+	}
+
+	/**
+	 * For the screenshots and the self-test: a stand wearing one story (a knight's). {@code whole}: all of it, the two
+	 * things held too (with arms); else only its armour.
+	 */
+	static void showcase(ArmorStand st, boolean whole) {
 		String story = Found.STORIES.containsKey("odric") ? "odric" : null;
 		if (story == null) {
 			for (var e : Found.STORIES.entrySet()) {
@@ -197,14 +206,15 @@ final class Stand {
 		if (story == null) return;
 		String[] where = {"in a stronghold", "in a village", "Dropped by a zombie", "in an End city", "in a trial chamber", "in a village"};
 		int k = 0;
-		java.util.Set<EquipmentSlot> filled = new java.util.HashSet<>();
 		for (Found.Text t : Found.PIECES) {
 			if (!story.equals(t.story())) continue;
 			String id = t.kinds().iterator().next();
-			EquipmentSlot slot = id.endsWith("helmet") ? EquipmentSlot.HEAD : id.endsWith("chestplate") ? EquipmentSlot.CHEST
-					: id.endsWith("leggings") ? EquipmentSlot.LEGS : id.endsWith("boots") ? EquipmentSlot.FEET : null;
-			// (the armour: four parts fit one card in full; one part per slot, whatever was there before)
-			if (slot == null || !filled.add(slot)) continue;
+			EquipmentSlot slot = worn(id);
+			if (slot == null) {
+				if (!whole) continue;
+				slot = st.getItemBySlot(EquipmentSlot.MAINHAND).isEmpty() ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND;
+				st.setShowArms(true);
+			}
 			ItemStack gear = new ItemStack(net.minecraft.core.registries.BuiltInRegistries.ITEM.getOptional(
 					net.minecraft.resources.Identifier.withDefaultNamespace(id)).orElse(Items.LEATHER_BOOTS));
 			Found.write(gear, t, where[k % where.length], 3 + 4 * k, k % 2 == 0 ? "Anna" : "Jeff", st.level().registryAccess());
