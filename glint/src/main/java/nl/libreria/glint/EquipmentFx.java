@@ -91,11 +91,6 @@ public final class EquipmentFx {
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
 			if (server.getTickCount() % 10 == 0) refreshAll(server);
 		});
-		// Before the pack goes, the armour around you goes back to vanilla (without the pack our assets don't exist)
-		Pack.beforePop(p -> {
-			VIEWERS.put(p.getUUID(), OFF);
-			resend(p);
-		});
 	}
 
 	private static void refreshAll(MinecraftServer server) {
@@ -141,7 +136,7 @@ public final class EquipmentFx {
 			Prefs prefs = VIEWERS.getOrDefault(profile.id(), OFF);
 			ItemStack out = prefs.on() ? withEffect(stack, prefs) : stack;
 			// a weapon in someone's hand: no glint where its effect shows (also with shaders)
-			return nl.libreria.core.Pack.ENABLED.get(profile.id()) ? NoGlint.view(out) : out;
+			return NoGlint.view(out);
 		} catch (Throwable t) {
 			return stack;
 		}

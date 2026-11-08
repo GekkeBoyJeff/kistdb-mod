@@ -103,9 +103,9 @@ final class EffectsGui extends Menu {
 				"Textures, book covers and", "particles around players.");
 		if (!nl.libreria.core.Pack.has(this.player)) {
 			settings.addLoreLine(Component.empty());
-			settings.addLoreLine(Ui.text("✘ The Libreria resource pack is off,", ChatFormatting.RED));
+			settings.addLoreLine(Ui.text("✘ The Libreria resource pack didn't load,", ChatFormatting.RED));
 			settings.addLoreLine(Ui.text("so effects on items don't show.", ChatFormatting.RED));
-			settings.addLoreLine(Ui.text("(Settings › You › What you see)", ChatFormatting.GRAY));
+			settings.addLoreLine(Ui.text("(Log in again to load it.)", ChatFormatting.GRAY));
 		}
 		actions(settings, "Click: open");
 		this.setSlot(navRow() + 1, settings.setCallback((i, t, a, g) -> {

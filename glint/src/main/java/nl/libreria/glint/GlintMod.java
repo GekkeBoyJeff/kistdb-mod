@@ -105,17 +105,10 @@ public final class GlintMod implements ModInitializer {
 		ServerLifecycleEvents.SERVER_STARTING.register(GlintMod::hostOffPacks);
 		AutoHostUtils.SEND_RESOURCE_PACK_COLLECTOR.register((provider, context, consumer) -> {
 			UUID id = playerId(context);
-			if (id == null || !Pack.ENABLED.get(id)) return;
+			if (id == null) return;
 			for (String pack : disabledPacks(id)) {
 				consumer.accept(provider.createProperties(context, packUuid(pack), packId(pack), OFF_PACKS.get(pack)));
 			}
-		});
-		// The main pack lives in core; when it comes back, the effects that are off must be switched off again
-		Pack.afterPush(p -> {
-			for (String pack : disabledPacks(p.getUUID())) setOffPack(p, pack, true);
-		});
-		Pack.beforePop(p -> {
-			for (String pack : OFF_PACKS.keySet()) p.connection.send(new ClientboundResourcePackPopPacket(Optional.of(packUuid(pack))));
 		});
 		BOOKS.onChange(p -> setOffPack(p, "books", !BOOKS.get(p)));
 		FRAMES.onChange(p -> setOffPack(p, "frames", !FRAMES.get(p)));
@@ -266,7 +259,7 @@ public final class GlintMod implements ModInitializer {
 	/** Een "uit"-pakketje toevoegen of weghalen terwijl de speler online is. */
 	static void setOffPack(ServerPlayer p, String pack, boolean apply) {
 		String hash = OFF_PACKS.get(pack);
-		if (hash == null || !Pack.ENABLED.get(p)) return;
+		if (hash == null || !Pack.has(p)) return;
 		if (apply) {
 			ResourcePackDataProvider provider = ResourcePackDataProvider.getActive();
 			if (provider == null || !provider.isReady(p.connection.getPacketContext())) return;

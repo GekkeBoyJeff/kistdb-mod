@@ -50,7 +50,7 @@ final class Sleep {
 			Ui.item("red_bed"), 100, 0, 100, 1, "%", "How many of the players in a world must", "sleep to skip the night (0: one is enough).");
 	static final ServerSetting.Toggle FAST = ComfortMod.MODULE.serverToggle("sleep_fast", "Time runs while sleeping", Ui.item("clock"), true,
 			"Instead of jumping to morning, the time", "runs fast while enough players sleep.", "Leave your bed to stop it there.");
-	static final ServerSetting.Number SECONDS = ComfortMod.MODULE.serverNumber("sleep_seconds", "A night takes", Ui.item("clock"), 15, 5, 60, 5,
+	static final ServerSetting.Number SECONDS = ComfortMod.MODULE.serverNumber("sleep_seconds", "A night takes", Ui.item("clock"), 15, 3, 60, 1,
 			"seconds", "How long a whole night takes while", "the time runs (a nap is shorter).");
 	static final ServerSetting.Toggle NAP = ComfortMod.MODULE.serverToggle("nap", "Napping in the day", Ui.item("white_bed"), true,
 			"Click a bed twice in the day to nap", "until evening (as many players in bed", "as at night).");

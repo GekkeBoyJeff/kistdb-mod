@@ -64,8 +64,9 @@ And the modules help each other. A few examples:
 ## The resource pack
 
 When the server starts, core builds the Libreria resource pack from the assets of every installed module and hosts it
-itself, on the same port as the server (via Polymer AutoHost). Players are asked once when they join whether to use it.
-Anyone who picks "No" just plays on with the plain look; everything keeps working.
+itself, on the same port as the server (via Polymer AutoHost). It is **required**: the menus, cards and tooltips are
+drawn with it. Players get it when they join ("Proceed"); whoever declines it (or has Server Resource Packs set to
+Disabled in their server list) can't join and is told how to fix that.
 
 With the pack you get:
 - **One look for everything**: dark wood with a bronze edge, like the cards at the top of the screen. Minecraft's own
@@ -99,10 +100,10 @@ With the pack you get:
   the rarity's colours (the rockets exist only on their screens). Without the pack it's a coloured boss bar.
 - **Glint**: rarity frames, enchant effects and book covers.
 
-- On first start, core writes `config/polymer/auto-host.json` with `enabled: true` and `required: false`. Set
-  `required` to `true` if you want to make the pack mandatory.
-- Per player: Settings › You › What you see › Libreria resource pack; Glint's parts under Settings › You › Effects,
-  or You › Effects. Switching makes the player's screen reload briefly.
+- On every start, core makes sure `config/polymer/auto-host.json` has `required: true` (and, on first start,
+  `enabled: true` with an English question and a disconnect line that says how to fix it).
+- Per player: Glint's parts under Settings › You › Effects, or You › Effects. Switching makes the player's screen
+  reload briefly.
 
 Generated assets (only needed to change them):
 
