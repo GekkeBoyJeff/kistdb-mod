@@ -1143,9 +1143,8 @@ public final class Screens implements FabricClientGameTest {
 						net.minecraft.world.item.Items.OAK_PLANKS, net.minecraft.world.item.Items.WOODEN_PICKAXE, net.minecraft.world.item.Items.STONE_PICKAXE, net.minecraft.world.item.Items.IRON_PICKAXE, net.minecraft.world.item.Items.BREAD}) {
 					player.awardStat(net.minecraft.stats.Stats.ITEM_CRAFTED.get(it), 2);
 				}
-				for (var t : new net.minecraft.world.entity.EntityType<?>[] {net.minecraft.world.entity.EntityType.ZOMBIE,
-						net.minecraft.world.entity.EntityType.SKELETON, net.minecraft.world.entity.EntityType.CREEPER,
-						net.minecraft.world.entity.EntityType.SPIDER}) {
+				for (String mob : new String[] {"zombie", "skeleton", "creeper", "spider"}) {
+					var t = net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getValue(net.minecraft.resources.Identifier.withDefaultNamespace(mob));
 					player.awardStat(net.minecraft.stats.Stats.ENTITY_KILLED.get(t), 4);
 				}
 				player.awardStat(net.minecraft.stats.Stats.BLOCK_MINED.get(net.minecraft.world.level.block.Blocks.COAL_ORE), 12);
