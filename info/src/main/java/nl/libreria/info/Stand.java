@@ -197,13 +197,14 @@ final class Stand {
 		if (story == null) return;
 		String[] where = {"in a stronghold", "in a village", "Dropped by a zombie", "in an End city", "in a trial chamber", "in a village"};
 		int k = 0;
+		java.util.Set<EquipmentSlot> filled = new java.util.HashSet<>();
 		for (Found.Text t : Found.PIECES) {
 			if (!story.equals(t.story())) continue;
 			String id = t.kinds().iterator().next();
 			EquipmentSlot slot = id.endsWith("helmet") ? EquipmentSlot.HEAD : id.endsWith("chestplate") ? EquipmentSlot.CHEST
 					: id.endsWith("leggings") ? EquipmentSlot.LEGS : id.endsWith("boots") ? EquipmentSlot.FEET : null;
-			// (the armour: four parts fit one card in full)
-			if (slot == null || !st.getItemBySlot(slot).isEmpty()) continue;
+			// (the armour: four parts fit one card in full; one part per slot, whatever was there before)
+			if (slot == null || !filled.add(slot)) continue;
 			ItemStack gear = new ItemStack(net.minecraft.core.registries.BuiltInRegistries.ITEM.getOptional(
 					net.minecraft.resources.Identifier.withDefaultNamespace(id)).orElse(Items.LEATHER_BOOTS));
 			Found.write(gear, t, where[k % where.length], 3 + 4 * k, k % 2 == 0 ? "Anna" : "Jeff", st.level().registryAccess());

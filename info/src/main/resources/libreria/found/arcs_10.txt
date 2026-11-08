@@ -1,0 +1,58 @@
+# Stories, tenth book. Format as in arcs_1.txt.
+
+@ waited | The Dog Who Waited
+leather_helmet | His Hat | This is his hat. It smells like him. He put it on my head once and laughed and I wagged so hard I fell over. He said stay. I am staying.
+leather_boots | His Boots | These are his boots. He walked to the mountain in them. He said stay, so I stayed by the door. The snow came. The snow went. I am a very good stay.
+iron_sword | His Sword | Somebody brought back his sword. They patted my head and their eyes were wet. I don't know why. He is coming. He said stay. I am staying.
+bow | His Bow | I am old now and slow. A girl from the village brings me bones and sits with me by the door. She says he would be proud. I think so too. I am still staying. He said.
+
+@ elowen | Dame Elowen's Last Tournament
+golden_helmet | The Helm of Fifty Tourneys | Dame Elowen of the Golden Lists rode in fifty tournaments and was unhorsed in none. At the fifty-first she was seventy-three years old and every knight in the realm came to watch.
+golden_chestplate | The Breastplate of the Lists | It no longer closed at the side. Her squire laced it shut with a ribbon. "Gold," she said, "is a vain metal. So am I. Pull tighter, boy."
+golden_leggings | The Riding Greaves | Her knees hurt in the cold and she said so, loudly, to anyone. Then she mounted without help and rode the length of the lists at a gallop, to be sure they heard her knees too.
+golden_boots | The Stirrup Boots | Her opponent was a boy of nineteen who had wanted to be her since he was six. When the horns blew he lowered his lance and would not ride. She laughed and rode at him anyway.
+golden_sword | The Victor's Blade | She won, of course. Then she gave him this sword and said: "Next year, you'll ride properly, and I'll be in the stands, shouting at you." She was. Every year, until she wasn't.
+shield | The Retired Shield | It hangs in the boy's hall now, above the fire, dented in fifty-one places. Under it, in his handwriting: "Pull tighter, boy." He is not a boy any more. He still reads it every morning.
+
+@ firsttools | Pip Grows Up
+wooden_pickaxe@village | Pip's First Pick | Pip was seven and made this pickaxe all by herself, with only a little bit of help, which was mostly her dad doing it. She mined one block of stone and was a miner from that day on.
+wooden_axe@village | Pip's First Axe | She chopped her first tree with this. It took all afternoon. She came home covered in sawdust and said trees were "very rude" for being so hard. Then she went back for another.
+stone_pickaxe@village | Pip's Real Pick | At ten she made a stone pickaxe with no help at all and wouldn't let anyone else touch it. She dug a cellar under the shed. Nobody knew until the shed sank a little.
+stone_axe | Pip's Working Axe | At fourteen she cut all the wood for the village winter, and the old woodcutter, who had done it for forty years, sat on a stump and watched and said "well, that's that, then."
+wooden_hoe@archaeology | Pip's Little Hoe | Found in the sand where her family's first house stood, long after. Pip, grown and grey, held it and laughed: she'd buried it there herself, at five, "so the garden would know her".
+
+@ hermit | The Hermit of the White Waste
+stone_axe@igloo | The Hermit's Axe | Under the igloo, in the room nobody is meant to find, the hermit lived for thirty winters. He cut ice with this to drink and cut wood with it, when there was wood, which was never.
+leather_helmet | The Fur-Lined Hood | He wore it so long the fur took the shape of his head. He talked to the hood in the long dark. The hood didn't answer. That was the right kind of company for him.
+leather_chestplate | The Waiting Coat | In the inside pocket: a letter, read to softness. "Wait for me at the white hill. I'll come when the trouble's over." The trouble was over twenty-eight winters ago.
+leather_boots | The Watch Boots | Every evening he climbed the white hill in these and looked south until it was dark. Then he climbed down. Every evening. Thirty winters. The boots wore through twice. He mended them.
+flint_and_steel | The Signal Fire | On the last night he lit a fire on the white hill that could be seen for miles. Somebody saw it. Somebody came. They found the fire still burning and the hermit asleep beside it, smiling.
+
+@ outpostledger | The Outpost Accounts
+crossbow@outpost | Ledger, Page One | PILLAGER OUTPOST, QUARTERLY ACCOUNTS. Income: 3 carrots, 1 cow (escaped), 4 emeralds. Expenses: 40 arrows, 1 tower (structural), 1 captain (structural, fell off tower).
+crossbow@outpost | Ledger, Page Two | Income: 1 allay (complaining). Expenses: 1 cage (allay escaped through the bars), 2 guards (fired), 1 cage (allay-proof, pending). Morale: low. Allay: thriving.
+iron_axe@mob | Ledger, Page Three | The vindicators have unionised. Their only demand is that someone, finally, tell them who Johnny is. Management does not know who Johnny is. Negotiations continue.
+crossbow@outpost | Ledger, Final Page | Income: none. Expenses: entire outpost (a hero of the village was involved). Note for next quarter: build the outpost further from the village. Note two: any further.
+
+@ breeze | The Breeze Who Collected Things
+bow@trial | Toy Number One | The breeze in Hall Three collected everything adventurers dropped. This bow was its favourite. It liked the twang. It blew through the string all day, twang, twang, until it got told off.
+shield@trial | Toy Number Two | It used the shield as a sled down the copper stairs. Shields are not sleds. The breeze didn't know that. The breeze didn't know very much. It had a wonderful time.
+trident@trial | Toy Number Three | It tried to throw the trident like the adventurers did. The trident went into the wall and stayed there for six years. The breeze was very patient. It waited. It was worth it.
+diamond_axe@trial | Toy Number Four | The breeze gave this one back. The adventurer who dropped it was crying in the corner of the vault. The breeze didn't understand crying. It understood that it didn't like it.
+
+@ fishinglessons | Three Generations at the Pier
+fishing_rod@fishing | Grandad's Rod | "Patience," said Grandad, and cast, and waited, and fell asleep, and woke up with a fish, and said "see? patience". He had never caught a fish awake in his life.
+fishing_rod@fishing | Mum's Rod | Mum cast like an arrow and reeled like a winch and caught three fish while Grandad caught a nap. She never told him. She put her fish in his bucket so he'd wake up proud.
+fishing_rod@fishing | My Rod | I'm the third one at the pier now. I cast badly and wait badly and catch nothing, and on quiet evenings I put a fish in an empty bucket beside me, for whoever's watching.
+
+@ ravagerrider | Grimtusk the Ravager Rider
+iron_axe@mob | Grimtusk's Chopper | Grimtusk rode a ravager named Petal into forty raids. Petal was the gentlest ravager alive. It only knocked down walls because it wanted to say hello to what was behind them.
+crossbow@mob | The Rider's Bow | Grimtusk could not aim while riding Petal, because Petal stopped to sniff every flower. The raids took a very long time. The villages had plenty of warning. Petal had a lovely life.
+leather_chestplate | The Riding Coat | Covered in ravager hair. Grimtusk claimed it was a fur collar on purpose. It was not. Petal shed. Petal shed all the time. Petal was a big, soft, enormous dog.
+iron_axe@mob | Grimtusk's Retirement | When the raids stopped, Grimtusk and Petal moved to a farm by a village they'd once raided. The villagers were terrified for a year. Then Petal pulled their ploughs. Now they bring her apples.
+
+@ ferryman | The Ferryman of Still Water
+copper_spear | The Ferryman's Pole | There is a lake where the fog never lifts, and on it a ferry, and on the ferry a man who poles you across for a copper coin. Nobody remembers asking to go across. Everybody remembers arriving.
+stone_spear | The First Passenger's Spear | The first passenger left this in the boat, a stone spear, very old. He said he wouldn't need it on the other side. The ferryman kept it. He keeps everything they leave.
+iron_spear | The Soldier's Spear | A soldier left this with a note: "for my son, if he ever comes this way, which I hope he won't for a long time". The ferryman has it ready. He hopes so too.
+fishing_rod | The Ferryman's Own Rod | Between crossings he fishes off the back of the ferry, in water no fish has ever lived in. Sometimes something tugs. He lets it go. He says everyone deserves to get across.
