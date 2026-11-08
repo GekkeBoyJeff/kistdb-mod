@@ -106,6 +106,13 @@ final class Found {
 
 	static final int MAX_FINDS = 2000;
 
+	/**
+	 * The story numbering: 2 since every story fits one armour stand (Nov 2026). Parts that moved are in
+	 * {@code moved.map} ("story:old" → new number, "-" for no longer a part); their old words in {@code retired.map}.
+	 */
+	static final int VERSION = 2;
+	static final Map<String, String> MOVED = new HashMap<>();
+
 	static final nl.libreria.core.PlayerStore<Seen> SEEN = nl.libreria.core.PlayerStore.create("libreria/stories", Seen.class, () -> {
 		Seen fresh = new Seen();
 		fresh.v = VERSION;
@@ -119,13 +126,6 @@ final class Found {
 			d.v = VERSION;
 		}
 	});
-
-	/**
-	 * The story numbering: 2 since every story fits one armour stand (Nov 2026). Parts that moved are in
-	 * {@code moved.map} ("story:old" → new number, "-" for no longer a part); their old words in {@code retired.map}.
-	 */
-	static final int VERSION = 2;
-	static final Map<String, String> MOVED = new HashMap<>();
 
 	/** Every text by its id (lines and story parts; family texts are made again from their id). */
 	static final Map<String, Text> BY_ID = new HashMap<>();
