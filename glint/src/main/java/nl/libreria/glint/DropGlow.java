@@ -3,14 +3,11 @@ package nl.libreria.glint;
 import eu.pb4.polymer.virtualentity.api.ElementHolder;
 import eu.pb4.polymer.virtualentity.api.attachment.EntityAttachment;
 import eu.pb4.polymer.virtualentity.api.elements.ItemDisplayElement;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Brightness;
 import net.minecraft.world.entity.Display;
@@ -21,31 +18,38 @@ import net.minecraft.world.item.Rarity;
 import net.minecraft.world.phys.Vec3;
 import nl.libreria.core.ServerSetting;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 /**
- * Uncommon, rare and epic items lying on the ground give off a soft glow in the colour of their rarity (yellow, light
- * blue, purple), and now and then a mote of light rises from them: a good drop is never missed. A glowing sprite from
- * the pack follows the item; nothing about the item itself changes.
+ * A thin beam of light rises from uncommon, rare and epic items lying on the ground, in the colour of their rarity
+ * (yellow, light blue, purple; taller for rarer): a good drop is never missed.
+ *
+ * <p>Light on purpose: one still sprite per item, only once it lies still (not while it flies, floats or rides a water
+ * stream or a hopper line), at most a few in one spot (a farm's pile gets a few beams, not hundreds), never moved or
+ * redrawn; it goes with the item.
  */
 final class DropGlow {
-	static final ServerSetting.Toggle ON = GlintMod.MODULE.serverToggle("drop_glow", "Rare items on the ground glow", Items.GLOWSTONE_DUST,
-			true, "Uncommon, rare and epic items on the", "ground give off a soft glow in their", "rarity's colour.");
+	static final ServerSetting.Toggle ON = GlintMod.MODULE.serverToggle("drop_glow", "Beams over rare drops", Items.GLOWSTONE_DUST,
+			true, "A thin beam of light over uncommon,", "rare and epic items on the ground,", "in their rarity's colour.");
 	private static final Map<Rarity, Integer> COLOURS = Map.of(Rarity.UNCOMMON, 0xFFE066, Rarity.RARE, 0x6FE3FF, Rarity.EPIC, 0xD07BFF);
+	/** Beams within this many blocks of each other count as one spot. */
+	private static final double SPOT = 3;
+	/** Most beams in one spot. */
+	private static final int PER_SPOT = 3;
+	/** An item has to lie still this long (ticks) before it gets a beam. */
+	private static final int SETTLED = 30;
 
-	/** The glow of each item that has one, and the rarity it glows for. */
-	private record Glow(ElementHolder holder, Rarity rarity) {
+	/** An item's beam, the rarity it shows and where the item was then. */
+	private record Beam(ElementHolder holder, Rarity rarity, Vec3 at) {
 	}
 
-	private static final Map<ItemEntity, Glow> GLOWS = new HashMap<>();
+	private static final Map<ItemEntity, Beam> BEAMS = new HashMap<>();
 
 	private DropGlow() {
 	}
 
 	static void init() {
-		ServerEntityEvents.ENTITY_LOAD.register((entity, level) -> {
-			if (entity instanceof ItemEntity item) apply(item);
-		});
 		ServerEntityEvents.ENTITY_UNLOAD.register((entity, level) -> {
 			if (entity instanceof ItemEntity item) drop(item);
 		});
@@ -56,7 +60,7 @@ final class DropGlow {
 		return GlintMod.MODULE.on() && ON.get();
 	}
 
-	/** The rarity an item on the ground glows for (as its name is coloured: enchanted is a step rarer), or null. */
+	/** The rarity an item on the ground shows (as its name is coloured: enchanted is a step rarer), or null. */
 	static @Nullable Rarity of(ItemEntity item) {
 		var stack = item.getItem();
 		if (stack.isEmpty()) return null;
@@ -65,61 +69,69 @@ final class DropGlow {
 		return r == Rarity.COMMON ? null : r;
 	}
 
-	static boolean glows(ItemEntity item) {
-		return GLOWS.containsKey(item);
+	/** Lying still on the ground, out of the water, for a moment. */
+	private static boolean settled(ItemEntity item) {
+		return (item.onGround() || item.isNoGravity()) && !item.isInWater() && item.tickCount >= SETTLED
+				&& item.getDeltaMovement().horizontalDistanceSqr() < 1.0E-4;
 	}
 
-	/** Gives the item its glow, changes it, or takes it away, as its stack and the switch say. */
+	static boolean shows(ItemEntity item) {
+		return BEAMS.containsKey(item);
+	}
+
+	/** How many beams there already are around a spot. */
+	private static int around(ItemEntity item) {
+		int n = 0;
+		for (var e : BEAMS.entrySet()) {
+			if (e.getKey() != item && e.getKey().level() == item.level() && e.getValue().at().distanceToSqr(item.position()) < SPOT * SPOT) n++;
+		}
+		return n;
+	}
+
+	/** Gives the item its beam, changes it, or takes it away. */
 	static void apply(ItemEntity item) {
-		Rarity r = on() && item.isAlive() ? of(item) : null;
-		Glow now = GLOWS.get(item);
-		if (now != null && now.rarity() == r) return;
+		Rarity r = on() && item.isAlive() && settled(item) ? of(item) : null;
+		Beam now = BEAMS.get(item);
+		if (now != null && now.rarity() == r && now.at().distanceToSqr(item.position()) < 0.25) return;
 		drop(item);
-		if (r == null) return;
+		if (r == null || around(item) >= PER_SPOT) return;
+		float tall = r == Rarity.EPIC ? 3.2f : r == Rarity.RARE ? 2.4f : 1.6f;
 		ElementHolder holder = new ElementHolder();
-		// A soft haze round the item (not a disc: the item stays clear in the middle of it)
-		ItemDisplayElement glow = new ItemDisplayElement(Fx.sprite("haze", COLOURS.get(r)));
-		glow.setItemDisplayContext(ItemDisplayContext.FIXED);
-		glow.setBillboardMode(Display.BillboardConstraints.CENTER);
-		glow.setBrightness(new Brightness(15, 15));
-		glow.setScale(new Vector3f(r == Rarity.EPIC ? 1.5f : r == Rarity.RARE ? 1.3f : 1.1f));
-		glow.setOffset(new Vec3(0, 0.42, 0));
-		glow.setViewRange(0.5f);
-		holder.addElement(glow);
-		EntityAttachment.ofTicking(holder, item);
-		GLOWS.put(item, new Glow(holder, r));
+		ItemDisplayElement beam = new ItemDisplayElement(Fx.sprite("beam", COLOURS.get(r)));
+		beam.setItemDisplayContext(ItemDisplayContext.FIXED);
+		// Turns to face you round its own axis, stays upright; brightest at the item, fading upwards
+		beam.setBillboardMode(Display.BillboardConstraints.VERTICAL);
+		beam.setBrightness(new Brightness(15, 15));
+		beam.setLeftRotation(new Quaternionf().rotateZ((float) Math.PI));
+		beam.setScale(new Vector3f(r == Rarity.EPIC ? 0.22f : 0.17f, tall, 1f));
+		beam.setTranslation(new Vector3f(0, tall / 2 + 0.1f, 0));
+		beam.setDisplaySize(1, tall + 0.5f);
+		beam.setViewRange(0.6f);
+		holder.addElement(beam);
+		EntityAttachment.of(holder, item);
+		BEAMS.put(item, new Beam(holder, r, item.position()));
 	}
 
 	private static void drop(ItemEntity item) {
-		Glow g = GLOWS.remove(item);
-		if (g != null) g.holder().destroy();
+		Beam b = BEAMS.remove(item);
+		if (b != null) b.holder().destroy();
 	}
 
 	private static void tick(MinecraftServer server) {
-		int t = server.getTickCount();
-		// Gone items, and stacks that changed (merged) or the switch: the items around players looked at again
-		if (t % 40 == 17) {
-			GLOWS.keySet().removeIf(item -> {
-				if (item.isAlive()) return false;
-				GLOWS.get(item).holder().destroy();
-				return true;
-			});
-			for (ServerPlayer p : server.getPlayerList().getPlayers()) {
-				for (ItemEntity item : p.level().getEntitiesOfClass(ItemEntity.class, p.getBoundingBox().inflate(64))) apply(item);
-			}
+		if (server.getTickCount() % 20 != 17) return;
+		BEAMS.keySet().removeIf(item -> {
+			if (item.isAlive()) return false;
+			BEAMS.get(item).holder().destroy();
+			return true;
+		});
+		if (!on()) {
+			for (Beam b : BEAMS.values()) b.holder().destroy();
+			BEAMS.clear();
+			return;
 		}
-		// Now and then a mote of light rises from each glowing item someone is near
-		if (t % 12 != 5 || GLOWS.isEmpty()) return;
-		for (var e : new ArrayList<>(GLOWS.entrySet())) {
-			ItemEntity item = e.getKey();
-			if (!(item.level() instanceof ServerLevel level) || item.getRandom().nextInt(3) != 0) continue;
-			List<ServerPlayer> near = new ArrayList<>();
-			for (ServerPlayer p : level.players()) if (p.distanceToSqr(item) < 24 * 24) near.add(p);
-			if (near.isEmpty()) continue;
-			double dx = (item.getRandom().nextDouble() - 0.5) * 0.35, dz = (item.getRandom().nextDouble() - 0.5) * 0.35;
-			int rgb = COLOURS.get(e.getValue().rarity());
-			Fx.emit(level, item.position(), near, List.of(Fx.line("mote", rgb, new Vec3(dx, 0.25, dz), new Vec3(dx * 1.4, 1.0, dz * 1.4),
-					0.16f, 0.02f, 0, 0, 34)));
+		// The items around players: the ones that came to rest get a beam, the ones that moved or changed again
+		for (ServerPlayer p : server.getPlayerList().getPlayers()) {
+			for (ItemEntity item : p.level().getEntitiesOfClass(ItemEntity.class, p.getBoundingBox().inflate(48))) apply(item);
 		}
 	}
 }

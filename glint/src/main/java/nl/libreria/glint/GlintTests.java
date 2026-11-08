@@ -39,8 +39,8 @@ final class GlintTests {
 			var dirt = new net.minecraft.world.entity.item.ItemEntity(level, 0, 120, 0, new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.DIRT));
 			var star = new net.minecraft.world.entity.item.ItemEntity(level, 0, 120, 0, new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.NETHER_STAR));
 			SelfTests.check(DropGlow.of(rare) == net.minecraft.world.item.Rarity.RARE, "an enchanted iron sword: rare (light blue)");
-			SelfTests.check(DropGlow.of(dirt) == null, "dirt: no glow");
-			SelfTests.check(DropGlow.of(star) != null, "a nether star glows");
+			SelfTests.check(DropGlow.of(dirt) == null, "dirt: no beam");
+			SelfTests.check(DropGlow.of(star) != null, "a nether star has a beam");
 		});
 		SelfTests.register("glint.pack", level -> {
 			SelfTests.check(GlintMod.assetsAdded, "assets added to the resource pack");

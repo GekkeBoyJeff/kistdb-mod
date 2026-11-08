@@ -88,8 +88,9 @@ With the pack you get:
   and the recipe book) on the same dark panel as Libreria's windows, dark slots with a faint rim: only their colours
   change; arrows and flames stay light, and the titles the server sends are light (the game would draw them dark). **Books** (the lore book, written books, book and quill):
   walnut leather, a bronze rim, gold corners and a small gold diamond under the text.
-- **Rare drops glow**: uncommon, rare and epic items on the ground give off a soft glow in their rarity's colour, and
-  now and then a mote of light rises from them (an operator can turn it off). **The tab list** shows each player's title after their name.
+- **Beams over rare drops**: a thin beam of light rises from uncommon, rare and epic items lying on the ground, in
+  their rarity's colour, taller for rarer. Kept light: one still sprite per item, only once it lies still, at most
+  three in one spot (an operator can turn it off). **The tab list** shows each player's title after their name.
 - **Menus** (chests, achievements, statistics …) on the same dark panel: the menu's items float on a tray, the bottom
   row of buttons is a band of its own, your inventory keeps real slots, and tooltips get the same panel. Coloured panes
   become little plaques. The "Inventory" line above your inventory is gone in every screen.
