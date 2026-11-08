@@ -173,7 +173,7 @@ final class Stand {
 		double reach = e instanceof ArmorStand st && (!st.getItemBySlot(EquipmentSlot.MAINHAND).isEmpty()
 				|| !st.getItemBySlot(EquipmentSlot.OFFHAND).isEmpty()) ? 0.6 : 0;
 		// How far the card hangs from your eye (beside the stand, pulled towards you), and as far as the stand
-		Vec3 spot = Look.beside(eye, e, mid, reach);
+		Vec3 spot = Look.beside(eye, e, mid);
 		double dist = Math.max(0.35, eye.distanceTo(spot));
 		double near = Math.max(0.35, Look.hang(eye, e, mid, by, reach).distanceTo(eye));
 		// At most about 33 degrees tall and 37 wide: even a step away the whole story fits, above your hand (the text

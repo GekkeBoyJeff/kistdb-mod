@@ -441,18 +441,13 @@ final class Look {
 	}
 
 	static Vec3 beside(Vec3 eye, Entity e, double y) {
-		return beside(eye, e, y, 0);
-	}
-
-	/** {@code reach}: how far past its box something it holds sticks out (an armour stand's sword). */
-	static Vec3 beside(Vec3 eye, Entity e, double y, double reach) {
 		double dx = e.getX() - eye.x, dz = e.getZ() - eye.z;
 		double len = Math.max(1.0e-4, Math.sqrt(dx * dx + dz * dz));
 		// your right, as you face them
 		double fx = dx / len, fz = dz / len, rx = -fz, rz = fx;
 		// As far right as it reaches on your screen: up close its near side looks wider than its middle (a slope: sideways
 		// per step forward, over the corners of its box; something you stand next to reaches far round)
-		AABB b = e.getBoundingBox().inflate(reach, 0, reach);
+		AABB b = e.getBoundingBox();
 		double slope = 0;
 		for (double cx : new double[] {b.minX, b.maxX}) {
 			for (double cz : new double[] {b.minZ, b.maxZ}) {
@@ -474,7 +469,8 @@ final class Look {
 
 	/** {@code reach}: how far past its box something it holds sticks out, so that doesn't poke through the card either. */
 	static Vec3 hang(Vec3 eye, Entity e, double y, double by, double reach) {
-		Vec3 spot = beside(eye, e, y, reach);
+		// (beside its body, as always: only nearer to you, so it stays on your screen)
+		Vec3 spot = beside(eye, e, y);
 		double len = Math.max(1.0e-4, spot.distanceTo(eye));
 		AABB b = e.getBoundingBox().inflate(reach, 0, reach);
 		double nx = Math.max(b.minX - eye.x, Math.max(0, eye.x - b.maxX)), ny = Math.max(b.minY - eye.y, Math.max(0, eye.y - b.maxY)),
