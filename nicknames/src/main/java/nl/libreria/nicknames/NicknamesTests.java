@@ -21,6 +21,12 @@ final class NicknamesTests {
 			d.color = "rainbow";
 			SelfTests.check(NicknamesMod.styled(p) != null && NicknamesMod.styled(p).getString().equals("Jeff"), "nickname text");
 			SelfTests.check(NicknamesMod.chatName(p) != null, "chat name");
+			// Through Minecraft's own name hooks, every time (two mods' hooks used to cut each other off)
+			SelfTests.check(p.getDisplayName().getString().equals("Jeff"), "in chat: " + p.getDisplayName().getString());
+			SelfTests.check(p.getDisplayName().getStyle().getClickEvent() instanceof net.minecraft.network.chat.ClickEvent.RunCommand,
+					"a click on it: their profile");
+			var tab = p.getTabListDisplayName();
+			SelfTests.check(tab != null && tab.getString().startsWith("Jeff ("), "in the tab list: " + (tab == null ? null : tab.getString()));
 			d.nick = "";
 			SelfTests.check(NicknamesMod.styled(p) == null, "without nickname: regular name");
 		});

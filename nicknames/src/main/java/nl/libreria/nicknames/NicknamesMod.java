@@ -71,6 +71,7 @@ public final class NicknamesMod implements ModInitializer {
 		MODULE.hubEntry(nl.libreria.core.Domain.YOU, 10, Items.NAME_TAG, "Nickname", NickGui::open,
 				"Pick a nickname and a colour. Rarer achievements unlock more colours.");
 		Nameplate.setName(NicknamesMod::plateName);
+		nl.libreria.core.Names.provide(NicknamesMod::chatName, NicknamesMod::tabName);
 
 		CommandRegistrationCallback.EVENT.register((dispatcher, registry, env) -> dispatcher.register(
 				Commands.literal("nick").requires(MODULE.available()).executes(ctx -> {
