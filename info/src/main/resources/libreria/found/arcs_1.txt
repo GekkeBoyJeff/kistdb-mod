@@ -5,6 +5,7 @@
 # The item gets the name; its tooltip says which story it belongs to and which part it is.
 
 @ lantern | The Lantern Keeper
+> The lighthouse on the cliffs went dark one night and never lit again. Maren had kept it burning for thirty years; her brother Oskar kept a grudge against the sea. Between them they kept a secret the whole village knows and nobody will say out loud. Her things still wash up now and then, and each one remembers a little more.
 iron_sword | Maren's Promise | Scratched under the grip: "for M., who kept the lantern lit". The lighthouse stood on the cliffs past the last village. Whoever finds the rest of her things will know why it went dark.
 bow | Mothsparer | M. could hit a moth at forty paces. She never did; she liked moths. She shot only once in anger, the night the ships stopped coming.
 iron_axe | The Beam-Cutter | Maren cut the lighthouse beams herself, one winter, alone. The sea took the lighthouse anyway, but it took forty years and it had to try very hard.
@@ -12,8 +13,10 @@ trident | Where the Light Went Out | Carried out of the sea by a drowned, from t
 crossbow | Oskar's Grudge | Her brother Oskar's. He never forgave the sea, and the sea never apologised. He sat on the cliffs with this every night, waiting for it to try.
 shield | The Hammered Bell | The lighthouse bell, hammered flat and strapped to an arm. Some nights it still rings when something strikes it, softly, three times. Three ships never came home.
 leather_helmet | Maren's Hood | Salt-stiff and patched with sailcloth. Inside, in small letters: "If the light is out, I'm looking for it. Don't wait up, Oskar."
+leather_chestplate | Maren's Oilskin | Her storm coat. In the inside pocket, a list in her careful hand: oil, wick, bread, "ask Oskar about the boat". The last line is crossed out so hard the pen went through the paper.
 
 @ ninth | The Ninth Village
+> There were nine villages along the river road. Then one night the bell of the ninth rang nine times, and in the morning there were eight. No ruins, no graves, no smoke. Just a field where a village had been, a well that goes down too far, and a little girl who took the long way home.
 golden_helmet | The Mayor's Last Hat | The mayor of the Ninth Village wore this to every meeting. At the last one, the bell rang nine times, and when it stopped there was no village left to have a meeting in.
 iron_pickaxe | The Well-Digger | They dug the village well deeper than any well should go. On the ninth night they heard something below digging back.
 iron_shovel | The Ninth Grave | The gravedigger of the Ninth Village dug eight graves in one week and was told to stop. He dug a ninth anyway. Nobody knows who it was for. It is still empty.
@@ -23,6 +26,7 @@ shears | The Bell-Rope | Used to cut the bell-rope after the ninth ring. It didn
 shield | The Village Banner | It still carries the banner of a village that is on no map. Show it to an old villager and watch them go very quiet.
 
 @ pell | Grandma Pell's Kitchen
+> Everybody loves Grandma Pell. Her pies win every fair, her soup cures colds, and her cottage at the edge of the swamp always smells of cinnamon. Travellers who stop there for supper write the loveliest letters home about her. Most of them, anyway. Some of them never write anything again.
 wooden_hoe | The Pie Garden | Grandma Pell grows the pumpkins for her famous pies with this. Nobody has ever seen a pumpkin seed in her garden. They have seen a lot of very nervous travellers.
 iron_axe | The Rolling Pin | It's an axe, but Grandma Pell calls it her rolling pin, and nobody has ever been brave enough to correct her.
 iron_sword | Pell's Carving Knife | "For the Sunday roast," she says. Sunday roasts have been very large lately. Fewer people visit on Sundays.
@@ -33,6 +37,7 @@ leather_chestplate | Pell's Apron | Reinforced. "Spills happen," she says, smili
 iron_shovel | The Herb Bed | She uses it to plant herbs, she says. Her herb bed is six feet long and two feet wide and the herbs grow very well.
 
 @ crumb | Tobias Crumb, the Worst Adventurer
+> Tobias Crumb wanted to be a hero. He had the boots, the sword, the shield, the swagger and, crucially, none of the talent. What he did have was luck: stupid, enormous, completely undeserved luck, and a gift for telling the story afterwards so you'd swear he planned it.
 copper_sword | The Sword of Mild Success | Tobias Crumb swung this at a zombie, missed, hit a tree, and the tree fell on the zombie. He has told that story four thousand times. The tree is still dead.
 leather_boots | Crumb's Running Shoes | Tobias's boots. He ran from a chicken in these. Then from a sheep. Then from the sheep's lawyer. They have never seen him run towards anything.
 bow | Crumb's Hopeful Bow | Tobias fired three hundred arrows with this and hit one target: himself. Twice. He says it was a tactic.
@@ -43,6 +48,7 @@ shield | Crumb's Excuse | Mostly used to hide behind. Tobias has hidden behind i
 flint_and_steel | Crumb's Campfire | Tobias tried to light a cosy campfire with this once. The forest is still recovering. So are his eyebrows.
 
 @ torch | The Order of the Last Torch
+> When the deep dark began to sing, the Order of the Last Torch went down the ancient stairs to make it stop. Seven knights, one squire, a great many torches. The singing stopped. So did nearly everything else. What's left of them still turns up in strongholds and buried cities, still faintly warm.
 iron_sword | Vow of the First Flame | The knights of the Last Torch swore to keep the dark at bay. This blade carries their sign, a flame in a circle, and a dent from the night the dark pushed back.
 iron_chestplate | Commander Aldric's Plate | Aldric led the Order into the deep dark to put out what was singing there. He came back. His plate came back. The rest of the Order did not.
 shield | The Circle Unbroken | The Order's shields were painted with a flame in a circle. When the circle broke, they said, the dark would come up. On this one, the paint is cracked.
@@ -52,6 +58,7 @@ iron_boots | Silent Steps | The Order learned to walk without a sound. These boo
 crossbow | The Torch-Bearer's Answer | Used to fire burning bolts into the dark. The dark did not care about fire. The dark cared about noise.
 
 @ choir | The Hollow Choir
+> Something enormous is asleep under the world, and for three hundred years the Hollow Choir sang to keep it that way: one low note, held night and day, handed from singer to singer like a candle. Then the singer of the low note grew old. The stories disagree about what happened next. They all end in silence.
 golden_helmet | The Listener's Crown | The Hollow Choir sang in the deep dark to keep something asleep. Their leader wore this, and heard every note the sleeper made in reply.
 leather_chestplate | Robe of the Low Note | The Choir needed someone to sing the lowest note, the one that held the song together. He sang for forty years. When he stopped, something woke up.
 golden_sword | The Conductor's Baton | Choir masters lead with a baton. The Hollow Choir's master led with this, and nobody sang out of tune twice.
@@ -60,6 +67,7 @@ shears | The Song-Cutter | Used to cut the strings of a sculk sensor so the Choi
 bow | The Silence Bow | When a Choir member broke the song, the archer took care of the silence. The archer never missed. The silence was always complete.
 
 @ cartographer | The Pale Cartographer
+> Ilse Vorn mapped every coast, every ruin and every mountain, and she never once got lost. Then she decided the world needed one more map, drawn from above, and she went up to draw it. She never came down. Her maps still turn up, though. Some of them show places that weren't there when she drew them.
 stone_pickaxe | Ilse's Rock Hammer | Ilse Vorn mapped the world to its edges and chipped a sample from every ruin she passed. She marked each one with a pin hole. She always said the last map would be the most important.
 leather_boots | Ilse's Long Walk | The Pale Cartographer walked so far her maps ran out of paper. These boots took her to the edge of the world, and one step past it.
 iron_shovel | The Measuring Spade | Ilse dug a hole every hundred blocks to measure the depth of the world. In the last one, she found a map. In her own handwriting.
@@ -68,6 +76,7 @@ fishing_rod | Line of Depths | Ilse used this to measure the depth of the sea, b
 leather_chestplate | Ilse's Flying Coat | She wanted to map the world from above, and wore this coat to do it. She flew so high the world looked like one of her maps. She circled back to check a mistake. There was no mistake. There was a new island.
 
 @ twins | The Saltmarsh Twins
+> The Saltmarsh Twins could sell a bucket of seawater to a fish and make it say thank you. For twenty years they worked the coast, one singing, one selling, both running. Here are the tools of the trade: fake heirlooms, a fake crest, a borrowed guard's helmet and, entirely by accident, one genuine masterpiece.
 golden_sword | Brand of the First Twin | The Saltmarsh Twins sold genuine heirlooms to every village on the coast. This was one. Their mother's sword, they said. They had sold their mother's sword eleven times.
 golden_axe | Brand of the Second Twin | The other twin's "family axe". The twins agreed: one would distract the village with a song, the other would sell it something. It worked for years. They are banned from music now.
 leather_boots | The Getaway | The twins always left town at night. These boots have left nineteen towns at night. They know the way out of every one.
@@ -77,6 +86,7 @@ flint_and_steel | Twin Flames | The twins once sold a village "fire insurance" a
 iron_chestplate | The Honest Plate | The only honest thing the Saltmarsh Twins ever sold. They didn't know it was honest. They thought it was another fake. It's real, and it's very good, and that annoys them.
 
 @ quiet | The Quiet Winter
+> Old people in the valley still won't talk about the winter the sky went quiet. The birds stopped. The wind stopped. One night the snow fell upwards. People wore helmets indoors and couldn't have told you why, only that something up there had started listening.
 iron_sword | First Frost | Forged the morning the birds stopped singing. The smith said the sky was too quiet to work in. He worked anyway, and this is what came of it.
 iron_helmet | The Silent Sky | The winter the sky went quiet, people wore helmets indoors. Nobody knew what they were protecting against. They just knew it was listening.
 bow | Arrow to the Moon | A hunter fired an arrow into the quiet sky that winter to see if anything was there. Something was. It sent the arrow back.
@@ -85,6 +95,7 @@ iron_shovel | Digging Out | When the Quiet Winter ended, the whole valley was un
 leather_chestplate | Winter's Coat | Lined with wool from sheep that went white in a single night. The winter's coat. Some say the winter is still wearing the rest of it.
 
 @ halvard | The Drowned Crown
+> King Halvard swore the sea would never take the Sunken Hall. He was wrong, spectacularly and specifically wrong, and now the Hall lies at the bottom of the bay with its king still on the throne. His crown still blows bubbles. His people still walk the old roads at night, very wet and very loyal.
 trident | Halvard's Sceptre | King Halvard ruled the Sunken Hall when it was still above the waves. He promised his people the sea would never take them. This was his sceptre. The sea took it as a souvenir.
 golden_helmet | The Crown of Bubbles | Halvard's crown, after the flood. It never stops making bubbles, even on land. It is still breathing for a king who doesn't need to breathe anymore.
 golden_chestplate | The King's Ballast | Halvard tried to escape the flood on a ship. He wore his finest plate. That was the problem with the ship.
@@ -93,9 +104,11 @@ leather_boots@fishing | The Drowned King's Steps | Fished from the deep, still w
 shield | The Last Wall | The Sunken Hall's last wall was a line of shields. This was in the middle. The water came over the top, as water does.
 
 @ reginald | Sir Reginald the Unremarkable
+> Sir Reginald was knighted for being there. Not for courage, or cleverness, or luck: just for turning up, every single time, in perfectly adequate armour. This is the story of the most average knight who ever lived, and of the one afternoon he wasn't.
 iron_sword | A Perfectly Adequate Blade | Sir Reginald was knighted for "being there". This was his sword. It is perfectly adequate. That's the nicest thing anyone ever said about either of them.
 shield | Reginald's Shield of Average Courage | He held the line at the Battle of the Potato Field. The line was mostly potatoes. He was very brave about it.
 iron_helmet | The Moderate Helm | Reginald's helmet. He wore it to tournaments, where he came seventh. Every year. Out of seven.
 iron_chestplate | Sir Reginald's Breastplate | Engraved: "Here beats the heart of a knight, slightly too fast". Reginald was afraid of chickens. He hid it well. He hid it in this.
 iron_boots | Reginald's Retreat | Sir Reginald's famous tactical retreat lasted four days and covered three biomes. The enemy gave up out of boredom. He calls it a victory.
 iron_leggings | Reginald's Second-Best Trousers | His best trousers were lost at the Battle of the Potato Field. These are his second-best. They have seen less, and are grateful.
+fishing_rod | Reginald's Day Off | On his one day off in forty years, Sir Reginald went fishing, and the dragon that had burned three kingdoms landed at his pond for a drink. He hit it on the nose with this rod, mostly out of surprise. It left. Nobody believes him. He doesn't mind.

@@ -236,7 +236,7 @@ final class Showcase {
 	/** Into the player's inventory, or at their feet when it's full. */
 	static void give(ServerPlayer p, ItemStack s) {
 		ItemStack copy = s.copy();
-		if (!p.getInventory().add(copy) && !copy.isEmpty()) p.drop(copy, false);
+		if (!p.getInventory().add(copy) && !copy.isEmpty()) drop((ServerLevel) p.level(), p.position(), copy);
 	}
 
 	/** Hit: it comes down, with everything it held. */

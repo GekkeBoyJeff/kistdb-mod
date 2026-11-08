@@ -219,9 +219,9 @@ final class LoreBook {
 			b.text(intro, st(Book.INK).withItalic(true));
 			b.newPage();
 		}
-		String have = showcase ? (got.size() >= first.parts() ? "All of them are here!" : got.size() + " of them here.")
+		String count = showcase ? (got.size() >= first.parts() ? "All of them are here!" : got.size() + " of them here.")
 				: got.size() >= first.parts() ? "You have all of them!" : "You have " + got.size() + " of them.";
-		b.centred(have, st(got.size() >= first.parts() ? Book.ACCENT : Book.INK));
+		b.centred(count, st(got.size() >= first.parts() ? Book.ACCENT : Book.INK));
 		b.gap();
 		for (int i = 0; i < parts.size(); i++) {
 			Found.Text t = parts.get(i);
