@@ -97,6 +97,7 @@ public final class CollectorCollections {
 		Completion.add("achievements", Completion.Tab.COLLECT, 10, Items.NETHER_STAR, "Achievements")
 				.about("Libreria's achievements: collect, breed, explore, play. Every one is within reach.")
 				.words("Earned", "Not earned yet")
+				.version(() -> Catalog.all().size() * 31 + Catalog.signature())
 				.entries(() -> {
 					List<Completion.Entry> out = new ArrayList<>();
 					for (Achievement a : Catalog.all()) {
@@ -120,6 +121,7 @@ public final class CollectorCollections {
 		Completion.add("items", Completion.Tab.COLLECT, 20, Items.BUNDLE, "Items found")
 				.about("Every item there is, had in your inventory at least once.")
 				.words("Found", "Not found yet")
+				.version(() -> Catalog.allItems().size())
 				.entries(() -> items(Catalog.allItems()))
 				.done((s, who, st) -> new HashSet<>(CollectorMod.STORE.get(who).items));
 		Completion.add("enchantments", Completion.Tab.COLLECT, 40, Items.ENCHANTED_BOOK, "Enchantments")

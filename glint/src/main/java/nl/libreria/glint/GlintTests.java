@@ -29,6 +29,19 @@ final class GlintTests {
 	}
 
 	static void register() {
+		SelfTests.register("glint.dropglow", level -> {
+			var sword = new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.IRON_SWORD);
+			level.registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.ENCHANTMENT)
+					.get(net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.ENCHANTMENT,
+							net.minecraft.resources.Identifier.withDefaultNamespace("sharpness")))
+					.ifPresent(h -> net.minecraft.world.item.enchantment.EnchantmentHelper.updateEnchantments(sword, m -> m.set(h, 1)));
+			var rare = new net.minecraft.world.entity.item.ItemEntity(level, 0, 120, 0, sword);
+			var dirt = new net.minecraft.world.entity.item.ItemEntity(level, 0, 120, 0, new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.DIRT));
+			var star = new net.minecraft.world.entity.item.ItemEntity(level, 0, 120, 0, new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.NETHER_STAR));
+			SelfTests.check(DropGlow.of(rare) == net.minecraft.world.item.Rarity.RARE, "an enchanted iron sword: rare (light blue)");
+			SelfTests.check(DropGlow.of(dirt) == null, "dirt: no glow");
+			SelfTests.check(DropGlow.of(star) != null, "a nether star glows");
+		});
 		SelfTests.register("glint.pack", level -> {
 			SelfTests.check(GlintMod.assetsAdded, "assets added to the resource pack");
 			SelfTests.check(GlintMod.FAMILIES.size() >= 30, "30+ effect families: " + GlintMod.FAMILIES.size());

@@ -88,8 +88,9 @@ def book():
             if abs(dx) + abs(dy) <= 3:
                 c = GOLD_LIGHT if dx <= 0 and dy <= 0 and abs(dx) + abs(dy) <= 2 else GOLD if abs(dx) + abs(dy) <= 2 else BRONZE
                 px[mx + dx, my + dy] = c + (255,)
-    for dx in range(6, 22):
-        a = int(200 * (1 - (dx - 6) / 16))
+    # (short lines: the page arrows sit in this margin too)
+    for dx in range(5, 14):
+        a = int(200 * (1 - (dx - 5) / 9))
         for sx in (-1, 1):
             px[mx + sx * dx, my] = BRONZE + (a,)
     return im

@@ -1308,7 +1308,11 @@ def inventory_tab():
     for code in LANGS:
         # white (a title is drawn dark grey), back to the tab's place, the tab. And no "Inventory" line above your
         # inventory in chests and other screens: it says nothing you don't see, and Libreria's windows use that spot
-        json.dump({'container.crafting': '\u00a7f' + back + tab, 'container.inventory': ''}, open(os.path.join(ld, code + '.json'), 'w'))
+        lang = {'container.crafting': '\u00a7f' + back + tab, 'container.inventory': ''}
+        # Words the game writes itself on its (now dark) screens: light, in English (other languages keep their own)
+        if code.startswith('en_'):
+            lang['merchant.trades'] = '\u00a77Trades'
+        json.dump(lang, open(os.path.join(ld, code + '.json'), 'w'))
 
 
 def dialog_warning():

@@ -82,6 +82,9 @@ public final class Completion {
 		private @Nullable Opener own;
 		private @Nullable List<Entry> cache;
 		private Set<String> keys = Set.of();
+		/** Changes when what there is changes (a catalogue built anew): then it's listed again. */
+		private java.util.function.IntSupplier version = () -> 0;
+		private int listedAt;
 
 		private Collection(String id, Tab tab, int order, Item icon, String name) {
 			this.id = id;
@@ -108,6 +111,12 @@ public final class Completion {
 		public Collection entries(Supplier<List<Entry>> source) {
 			this.source = source;
 			this.cache = null;
+			return this;
+		}
+
+		/** A number that changes when what there is changes (then the list is made again). */
+		public Collection version(java.util.function.IntSupplier version) {
+			this.version = version;
 			return this;
 		}
 
@@ -149,7 +158,9 @@ public final class Completion {
 		/** Everything there is, in a fixed order. */
 		public List<Entry> entries() {
 			List<Entry> c = this.cache;
-			if (c != null) return c;
+			int v = this.version.getAsInt();
+			if (c != null && v == this.listedAt) return c;
+			this.listedAt = v;
 			try {
 				List<Entry> out = new ArrayList<>();
 				Set<String> seen = new HashSet<>();

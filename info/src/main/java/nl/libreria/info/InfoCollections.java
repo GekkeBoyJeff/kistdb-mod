@@ -56,6 +56,7 @@ final class InfoCollections {
 		Completion.add("stories", Completion.Tab.COLLECT, 30, Items.WRITABLE_BOOK, "Stories")
 				.about("The stories found gear tells, in parts. A story counts once you found one of its parts.")
 				.words("Found", "Not found yet")
+				.version(Found.STORIES::size)
 				.entries(InfoCollections::stories)
 				.done((s, who, st) -> {
 					Set<String> out = new HashSet<>();
