@@ -1,0 +1,87 @@
+# Texts in many voices: the old, grand way of telling things, a merchant's tag, a child's note, a tavern rumour, a
+# letter, a tired guard. Not everyone tells a story the same way. Format as in any_1.txt.
+
+# ---------------------------------------------------------------- the old, grand way
+sword|Lo, a blade unblessed and unsung. Many a hand hath held it and none hath named it. Perhaps thine shall.
+sword|This sword was carried to the edge of the world by one who sought an end to sorrow. The world, alas, hath no edge, and sorrow hath no end.
+sword|Forged in the hour of a dying fire, quenched in the river of a drowned kingdom. Its edge remembereth both.
+axe|An axe of the old woodfolk, who felled no tree without first asking its pardon. The trees, it is said, forgave them. The trees were very old and very tired.
+axe|Here is an axe that hath split shields, doors and the morning silence. It hath split nothing since. It waiteth.
+pickaxe|A delver's pick, worn to the shape of one hand. That hand dug deep, deeper than wisdom allowed, and found what lay beneath, and did not speak of it.
+pickaxe|Thou who holdest this: beneath every mountain sleepeth something older than the mountain. Strike gently.
+shovel|With this spade a grave was dug for a king, and a garden for his daughter, in one day. History remembereth only the grave.
+helmet|A helm worn by one who would not bow. It beareth no dent upon its brow. It beareth many upon its back.
+helmet|The visor is shut and cannot be opened. Whoever wore it last chose to see no more of this world. Thou mayest choose otherwise.
+chestplate|Over the heart, a small cross scratched by a trembling hand. Whether a prayer or a target, none can now say.
+chestplate|This breastplate hath turned aside a hundred blades and one apology. The apology came too late. The blades came on time.
+leggings|These greaves knelt before a throne, before an altar and before a grave. Of the three, only the grave was honest.
+boots|Boots that walked the pilgrim's road from the first village to the last. At the last village there was no shrine. There was only a bench, and a view. The pilgrim deemed it enough.
+bow|A bow of the forest wardens, who loosed no arrow in anger. They loosed a great many in irritation.
+crossbow|The string singeth a low note when drawn, like a word half spoken. Many have drawn it. None hath finished the word.
+shield|Upon it, the device of a house long fallen: a tower, a star, a hand. The tower fell. The star went out. The hand held on.
+trident|Taken from the deep, where crowns rust and kings forget their names. It is cold. It shall always be cold.
+rod|The line of a fisher who sat at the shore of the world, angling for the moon's reflection. Many nights she nearly had it.
+flint|The spark that lit the first hearth of a village is said to have come from this flint. The village burned twice since. The flint taketh no responsibility.
+shears|These shears cut the thread that bound two houses together. Whether that was mercy or murder, the tapestry doth not say.
+hoe|A humble tool for a humble land. Kings came and went across the field it tilled. The wheat did not notice them.
+
+# ---------------------------------------------------------------- a merchant's tag
+sword|ONE (1) SWORD. Gently used. Previous owner retired, emigrated or "no longer requires a sword". We do not ask which.
+axe|AXE, FOR SALE OR TRADE. Has chopped wood, doors and one (1) very large mushroom. Will chop more. Handle slightly haunted. Discount applied.
+pickaxe|PICKAXE. Found diamonds once. Is not guaranteed to find diamonds again. Is guaranteed to find stone. Lots of stone.
+helmet|HELMET. One careful owner. One careless owner. One owner who used it as a soup bowl. Cleaned. Mostly.
+boots|BOOTS, PAIR OF. Walked across three kingdoms, one desert and one very wet field. Smell included at no extra cost.
+bow|BOW. Excellent condition. Has never been fired at a customer. Please do not be the first.
+shield|SHIELD. Some arrow holes. Each hole comes with a story at no extra charge. The stories are mostly "ow".
+rod|FISHING ROD. Caught: fish, boots, a saddle and one (1) marriage proposal. Results may vary.
+shears|SHEARS, SHARP. Non-negotiable.
+chestplate|CHESTPLATE, BARELY DENTED. The dents that are there are artistic. We call this one "Autumn".
+
+# ---------------------------------------------------------------- a child's note
+sword|This is my dads sword. He said I can have it when I am big. I am big now. I am 8.
+axe|i chopped a tree with this and the tree fell on the shed. sorry mum. the shed was old anyway.
+helmet|This helmet is too big but I wear it anyway and I am a knight. My dog is my horse. My dog does not agree.
+boots|My brother says these boots are magic and they make you run faster. They don't. I tried. I just got tired.
+bow|I shot a pumpkin with this and it went right through. Dad said "good aim". I was aiming at the cow. Don't tell him.
+shovel|I dug a hole to the other side of the world. I got to the other side of the garden. It was still good.
+rod|I caught a fish this big. (Picture: the fish is drawn bigger than the page.)
+shield|I painted a dragon on this shield. Mum says it looks like a sheep. It is a dragon sheep. It is very scary.
+
+# ---------------------------------------------------------------- a tavern rumour
+sword|They say at the Crooked Kettle that this blade cut a creeper in half before it could hiss. They also say the barman is a wizard. The barman is a goat.
+axe|Heard it from a man who heard it from a woman who swore on her mother: this axe cut down the tree the first village was built from. Her mother was also a goat.
+pickaxe|Old Holt at the inn says a miner found this sticking out of bedrock. Nobody believes Old Holt. Old Holt once found a cake in a cave, so who knows.
+boots|They whisper in the taverns that whoever wears these will never be lost. Their last owner is missing. The taverns have moved on to whispering about something else.
+helmet|At the Drowned Ferret they swear a man wore this through a lightning storm and came out with curly hair. He had straight hair before. Everybody remembers.
+trident|In every port the same tale: this trident was thrown by a drowned that wanted it back. The sailors still drink to the drowned that missed.
+
+# ---------------------------------------------------------------- letters and notes
+sword|"If you're reading this, I lost the sword again. It's not mine. Please give it back to the blacksmith. Tell him I'm sorry. Tell him I'm sorry about the other three as well."
+boots|"Love, I've taken your boots. Mine have a hole. I'll be back by spring. Keep the fire going and keep my boots, they're terrible."
+helmet|"To whoever finds this: the helmet's fine, it's my head that needed fixing. Go on. You'll look better in it than I did."
+chestplate|"Mother, I wore it every day, like you said. It didn't stop the cold. It did stop the arrow. You were right. You're always right. It's very annoying."
+pickaxe|"Gone digging. Back by dinner. If not back by dinner, I've found something. If not back by breakfast, I've found something bad."
+bow|"Take care of it. It pulls a little to the left. So did I."
+shield|"I held the gate. Tell the children I held the gate."
+
+# ---------------------------------------------------------------- the ones that hurt a little
+boots|These boots took someone home after a long war. They were the only thing that made it all the way home. The family keeps them by the door.
+helmet|A child's drawing is tucked inside the lining: a stick figure in a helmet, and the word "Dad", and a heart. The paper has been unfolded and folded a great many times.
+sword|Its owner trained every day for twenty years for one fight that never came. He died old, in bed, surrounded by grandchildren. He said it was a waste of a good sword. It wasn't.
+shield|A small shield, too small for a grown soldier. It was the youngest guard's. He was fifteen. He stood at the front because he was too proud to stand at the back.
+rod|She fished every morning at the spot where his boat went down. She never caught anything there. She said that wasn't the point.
+hoe|The last thing the old farmer did was plant a row of apple trees he would never see bear fruit. The village eats those apples every autumn and says his name.
+chestplate|Inside: two names scratched side by side, and a date, and later, in a different hand, a line through one name, and next to it, very small, "still".
+leggings|One knee is mended with a patch cut from a child's blanket. The blanket had little stars on it. You can still see one star.
+pickaxe|A miner's pick, the handle wrapped with a lock of hair tied with blue thread. Miners did that for luck, back then. Wives did it for hope.
+flint|He lit a candle in the window with this every night for a year, for a ship that wasn't coming. On the last night of the year, the ship came. It had a different name. He lit the candle anyway.
+crossbow|It was fired once, to save a life. The life it saved was a stranger's. The stranger never knew. That's the best kind of saving.
+axe|He cut down the tree they'd carved their names into, because he couldn't bear to walk past it. Then he planted two saplings in its place. They grew up leaning towards each other.
+
+# ---------------------------------------------------------------- tired guards and honest workers
+helmet|Gate duty. Nine hours. A chicken came by. That was the shift. That was the whole shift.
+boots|A guard's boots. Ten thousand laps around the same village wall. He knew every stone. He named some of them. He liked Gerald best.
+sword|Standard issue. Never drawn in anger. Drawn a lot in boredom, to see if it was still shiny. It is still shiny.
+pickaxe|A miner's pick that clocked in at dawn and out at dusk for thirty years, and never once complained, which is more than can be said for the miner.
+shovel|A road-mender's shovel. Every road you have walked without tripping, somebody like this fixed. Nobody thanks the road-mender. Thank the shovel.
+hoe|A farmhand's hoe. Not glorious. Not heroic. Fed a village for forty years. Which is the most heroic thing there is.
