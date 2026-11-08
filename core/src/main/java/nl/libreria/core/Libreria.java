@@ -55,6 +55,7 @@ public final class Libreria implements ModInitializer {
 		Afk.init();
 		Tab.init();
 		ServerList.init();
+		ItemLink.init();
 		nl.libreria.core.gui.Markers.addSource(p -> {
 			var m = Guide.marker(p);
 			return m == null ? java.util.List.of() : java.util.List.of(m);
@@ -73,7 +74,8 @@ public final class Libreria implements ModInitializer {
 		MODULE.hubEntry(Domain.YOU, 2, Items.BOOK, "Players", PlayersWindow::open,
 				"Everybody who has played here. Click someone: their profile.");
 		MODULE.commands(Domain.YOU, "/profile <name> – someone's profile", "/players – everybody who has played here",
-				"{sneak} + right-click a player – their profile");
+				"{sneak} + right-click a player – their profile",
+				"Shift + right-click an item in your inventory – show it in chat");
 		net.fabricmc.fabric.api.event.player.UseEntityCallback.EVENT.register((player, world, hand, entity, hit) -> {
 			if (!world.isClientSide() && hand == net.minecraft.world.InteractionHand.MAIN_HAND && player instanceof ServerPlayer sp
 					&& entity instanceof ServerPlayer target && sp.isShiftKeyDown() && sp.getMainHandItem().isEmpty()) {

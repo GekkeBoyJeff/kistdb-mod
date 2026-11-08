@@ -34,6 +34,34 @@ final class CoreTests {
 			Setting.STORE.get(p).values.remove(Tips.ENABLED.fullKey());
 			SelfTests.check(Tips.ENABLED.get(p) && !Tips.ENABLED.isForced(), "back as shipped");
 		});
+		SelfTests.register("core.itemlink", level -> {
+			FakePlayer p = FakePlayer.get(level);
+			SelfTests.check(ItemLink.line(net.minecraft.network.chat.Component.literal("Ann"),
+					new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.OAK_LOG, 64)).getString().equals("<Ann> [Oak Log] ×64"),
+					"the chat line: " + ItemLink.line(net.minecraft.network.chat.Component.literal("Ann"),
+							new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.OAK_LOG, 64)).getString());
+			var inv = p.getInventory();
+			net.minecraft.world.item.ItemStack before = inv.getItem(9);
+			inv.setItem(9, new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.DIAMOND_SWORD));
+			ItemLink.LAST.remove(p.getUUID());
+			int n = ItemLink.shown;
+			var menu = p.inventoryMenu;
+			var quick = net.minecraft.world.inventory.ContainerInput.QUICK_MOVE;
+			SelfTests.check(!ItemLink.onClick(p, menu, 9, quick, 0), "Shift + left-click stays vanilla");
+			SelfTests.check(ItemLink.onClick(p, menu, 9, quick, 1) && ItemLink.shown == n + 1, "Shift + right-click: in chat");
+			SelfTests.check(inv.getItem(9).is(net.minecraft.world.item.Items.DIAMOND_SWORD), "and the sword stays where it was");
+			SelfTests.check(ItemLink.onClick(p, menu, 9, quick, 1) && ItemLink.shown == n + 1, "not twice in five seconds");
+			SelfTests.check(!ItemLink.onClick(p, menu, 1, quick, 1), "not from the crafting grid (empty)");
+			ItemLink.LAST.remove(p.getUUID());
+			ItemLink.MINE.set(p, false);
+			SelfTests.check(!ItemLink.onClick(p, menu, 9, quick, 1), "a player can turn it off");
+			ItemLink.MINE.set(p, true);
+			ItemLink.ON.set(false);
+			SelfTests.check(!ItemLink.onClick(p, menu, 9, quick, 1), "an op can turn it off for everybody");
+			ItemLink.ON.set(true);
+			ItemLink.LAST.remove(p.getUUID());
+			inv.setItem(9, before);
+		});
 		SelfTests.register("core.completion", level -> {
 			net.minecraft.server.MinecraftServer s = level.getServer();
 			SelfTests.check(Completion.all().size() >= 5, "collections: " + Completion.all().size());
