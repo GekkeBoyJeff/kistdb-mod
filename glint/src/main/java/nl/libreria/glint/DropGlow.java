@@ -81,12 +81,38 @@ final class DropGlow {
 		if (now != null && now.getName().startsWith("libreria_drop_")) board.removePlayerFromTeam(item.getScoreboardName(), now);
 	}
 
+	/**
+	 * A team's colour. Teams take a {@code TeamColor} in 26.x (named like the chat colours); found by name, so this
+	 * keeps working whatever its package.
+	 */
+	private static void colour(PlayerTeam t, ChatFormatting f) {
+		try {
+			for (var m : PlayerTeam.class.getMethods()) {
+				if (!m.getName().equals("setColor") || m.getParameterCount() != 1) continue;
+				var type = m.getGenericParameterTypes()[0];
+				if (type instanceof java.lang.reflect.ParameterizedType pt && pt.getActualTypeArguments()[0] instanceof Class<?> c && c.isEnum()) {
+					for (Object o : c.getEnumConstants()) {
+						if (((Enum<?>) o).name().equalsIgnoreCase(f.name())) {
+							m.invoke(t, java.util.Optional.of(o));
+							return;
+						}
+					}
+				} else if (m.getParameterTypes()[0] == ChatFormatting.class) {
+					m.invoke(t, f);
+					return;
+				}
+			}
+		} catch (ReflectiveOperationException | RuntimeException e) {
+			nl.libreria.core.Libreria.LOG.warn("Glint: could not colour the {} team", t.getName(), e);
+		}
+	}
+
 	private static PlayerTeam team(Scoreboard board, Rarity r) {
 		String name = TEAMS.get(r);
 		PlayerTeam t = board.getPlayerTeam(name);
 		if (t == null) {
 			t = board.addPlayerTeam(name);
-			t.setColor(COLOURS.get(r));
+			colour(t, COLOURS.get(r));
 		}
 		return t;
 	}
