@@ -1639,11 +1639,32 @@ def boss_bar():
 
 
 def main():
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     base = os.path.join(OUT, 'assets', NS)
     for sub in ('textures/font/ui', 'font', 'items/gui', 'models/item/gui', 'textures/item/gui', 'items/claim',
                 'models/item/claim', 'textures/item/claim'):
         shutil.rmtree(os.path.join(base, sub), ignore_errors=True)
+    # Minecraft's screens are recoloured from the game's own pictures (containers.py); without them at hand, keep the
+    # ones made before
+    import containers as container_screens
+    keep = None
+    if not os.path.isdir(os.path.join(container_screens.VANILLA, 'container')):
+        keep = os.path.join(OUT, '..', 'kept_screens')
+        shutil.rmtree(keep, ignore_errors=True)
+        gui = os.path.join(OUT, 'assets', 'minecraft', 'textures', 'gui')
+        for rel in ('container', 'sprites/container', 'recipe_book.png'):
+            src = os.path.join(gui, rel)
+            if os.path.isdir(src):
+                shutil.copytree(src, os.path.join(keep, rel))
+            elif os.path.exists(src):
+                os.makedirs(keep, exist_ok=True)
+                shutil.copy(src, os.path.join(keep, rel))
     shutil.rmtree(os.path.join(OUT, 'assets', 'minecraft'), ignore_errors=True)
+    if keep:
+        gui = os.path.join(OUT, 'assets', 'minecraft', 'textures', 'gui')
+        os.makedirs(gui, exist_ok=True)
+        shutil.copytree(keep, gui, dirs_exist_ok=True)
+        shutil.rmtree(keep, ignore_errors=True)
     spaces()
     panels()
     gem()
@@ -1680,9 +1701,9 @@ def main():
     # Minecraft's own screens and the book in the same look (they live under assets/minecraft too, wiped above)
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     import book as book_screen
-    import containers as container_screens
     container_screens.OUT = OUT
-    container_screens.main()
+    if keep is None:
+        container_screens.main()
     path = os.path.join(OUT, 'assets/minecraft/textures/gui/book.png')
     os.makedirs(os.path.dirname(path), exist_ok=True)
     book_screen.book().save(path)
