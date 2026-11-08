@@ -975,6 +975,16 @@ public final class Screens implements FabricClientGameTest {
 				ctx.waitTicks(15);
 				ctx.takeScreenshot("claim_view_turned");
 				server.runOnServer(s -> LOG.info("LIBRERIA-MAP-TURN riding {} yaw {} -> {}", riding, before[0], player.getYRot()));
+				// Straight down, and up high with sneak: the land from above
+				ctx.getInput().lookAt(startYaw + 70, 89);
+				ctx.waitTicks(5);
+				ctx.getInput().holdKeyFor(o2 -> o2.keyShift, 20);
+				ctx.waitTicks(15);
+				noToasts(ctx);
+				ctx.takeScreenshot("claim_view_top");
+				// and down again with sprint
+				ctx.getInput().holdKeyFor(o2 -> o2.keySprint, 20);
+				ctx.waitTicks(10);
 				ctx.getInput().lookAt(startYaw, startPitch);
 				ctx.waitTicks(10);
 				// Over to Steve's sloped land (east = left on the screen)

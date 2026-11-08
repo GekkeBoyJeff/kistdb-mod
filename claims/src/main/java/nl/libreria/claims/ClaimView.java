@@ -45,6 +45,10 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import nl.libreria.core.Hotkeys;
 import nl.libreria.core.Hud;
@@ -60,12 +64,13 @@ import org.joml.Vector3f;
 /**
  * The land map. Your camera swoops back and up into a third-person view over your own head and looks down at the
  * real world around you. Claimed land stands there as see-through glass buildings with bright frames (green = yours,
- * blue = you may build there, red = someone else's), each with its name (or its owner's) on top. The chunk in the
- * middle of the screen has a golden frame: that is what you claim (click) or release (right-click); jump names the
- * piece of your land under it. The mouse turns the view and tilts it, WASD glides over the land (sprint = faster),
- * scroll zooms, and sneak, Q or the land map key (sneak + swap hands) takes you back. Getting hurt
- * closes it at once. With the pack a card at the top of the screen says whose land it is and how much you may still
- * claim.
+ * blue = you may build there, red = someone else's), each with its name (or its owner's) on top. The chunk you look
+ * at (under the crosshair) has a golden frame: that is what you claim (click) or release (right-click); jump names the
+ * piece of your land under it. From there the camera is free: the mouse looks around (straight down too, for a view
+ * from above), WASD flies, sneak goes up and sprint goes down, scroll flies closer or further along where you look;
+ * it never goes into the ground or through walls. Q or the land map key (sneak + swap hands) takes you back. Getting
+ * hurt closes it at once. With the pack a card at the top of the screen says whose land it is and how much you may
+ * still claim.
  *
  * <p>Fully server-side: the camera is a virtual entity the client looks through, everything else is display
  * entities only you can see. While the camera is elsewhere the client doesn't send where it looks, except when it
@@ -78,7 +83,9 @@ final class ClaimView {
 	private static final int OPEN_TICKS = 28, CLOSE_TICKS = 16;
 	/** Camera distance (zoom) and how steep it looks down. */
 	private static final double MIN_D = 14, MAX_D = 90, START_D = 34;
-	private static final float PITCH = 56f, MIN_PITCH = 22f, MAX_PITCH = 89f;
+	private static final float PITCH = 56f, MIN_PITCH = -70f, MAX_PITCH = 89.5f;
+	/** How far the crosshair reaches to find the chunk you look at. */
+	private static final double REACH = 260;
 	/** Roofs float this high over the highest ground of a piece of land; the cursor box over free land is lower. */
 	private static final int ROOF = 3, CURSOR_ROOF = 2;
 	private static final float ROD = 0.14f, CURSOR_ROD = 0.26f;
@@ -156,8 +163,8 @@ final class ClaimView {
 		final List<Anim> anims = new ArrayList<>();
 		final Vec3 eyeStart;
 		final float yawStart, pitchStart;
-		/** Cursor (the point in the middle of the screen) and its glide speed. */
-		double curX, curZ, curY, velX, velZ;
+		/** Where the camera starts looking (where you stand), how fast it flies now, and how high it is over the ground. */
+		double curX, curZ, curY, velX, velY, velZ;
 		double dist = START_D, targetDist = START_D;
 		int age, closeAge = -1, lastSlot, deniedUntil = -1;
 		boolean cameraSet, wasSwinging, wasJumping, sneakReleased, denied;
@@ -220,6 +227,7 @@ final class ClaimView {
 		v.curX = p.getX();
 		v.curZ = p.getZ();
 		v.curY = p.getY();
+		v.targetDist = START_D;
 		v.lastSlot = p.getInventory().getSelectedSlot();
 		v.sneakReleased = !p.isShiftKeyDown();
 
@@ -420,35 +428,34 @@ final class ClaimView {
 
 			input(v);
 
-			ChunkPos cc = new ChunkPos(Mth.floor(v.curX) >> 4, Mth.floor(v.curZ) >> 4);
-			boolean deniedOver = v.denied && v.age >= v.deniedUntil;
-			if (!cc.equals(v.cursorChunk) || deniedOver) {
-				if (!cc.equals(v.cursorChunk)) Ui.sound(p, SoundEvents.UI_BUTTON_CLICK.value(), 0.06f, 1.9f);
-				v.cursorChunk = cc;
-				v.denied = false;
-				placeCursor(v, cc);
-			}
-			if (v.age % 6 == 0) motes(v);
-			// The point the camera looks at follows the ground under the cursor, gently
-			v.curY = Mth.lerp(0.15, v.curY, highest(v, cc));
-			v.dist = Mth.lerp(0.3, v.dist, v.targetDist);
-
-			Vec3 look = new Vec3(v.curX, v.curY, v.curZ);
 			if (v.age <= OPEN_TICKS) {
-				// Swoop: out of your head, back and up, while tilting down
+				// Swoop: out of your head, back and up over it, while tilting down
 				double t = ease(v.age / (double) OPEN_TICKS);
+				Vec3 look = new Vec3(v.curX, v.curY, v.curZ);
 				Vec3 from = lerp(p.getEyePosition(), look, t);
 				float pitch = Mth.lerp((float) t, v.pitchStart, v.pitch);
-				Vec3 pos = cameraFor(v, from, v.dist * t, pitch);
+				Vec3 pos = cameraFor(v, from, START_D * t, pitch);
 				moveCamera(v, pos, v.yaw, pitch);
 				v.camPos = pos;
 				v.camPitch = pitch;
 			} else {
-				Vec3 pos = cameraFor(v, look, v.dist, v.pitch);
-				moveCamera(v, pos, v.yaw, v.pitch);
-				v.camPos = pos;
+				moveCamera(v, v.camPos, v.yaw, v.pitch);
 				v.camPitch = v.pitch;
 			}
+			// How high over the ground: labels and the marker over your head grow with it
+			v.targetDist = Mth.clamp(v.camPos.y - ground(v, Mth.floor(v.camPos.x), Mth.floor(v.camPos.z)), MIN_D, MAX_D);
+
+			// The chunk under the crosshair
+			ChunkPos cc = v.age > OPEN_TICKS ? aimed(v) : new ChunkPos(Mth.floor(v.curX) >> 4, Mth.floor(v.curZ) >> 4);
+			boolean deniedOver = v.denied && v.age >= v.deniedUntil;
+			if (!java.util.Objects.equals(cc, v.cursorChunk) || deniedOver) {
+				if (cc != null && !cc.equals(v.cursorChunk)) Ui.sound(p, SoundEvents.UI_BUTTON_CLICK.value(), 0.06f, 1.9f);
+				v.cursorChunk = cc;
+				v.denied = false;
+				if (cc != null) placeCursor(v, cc);
+				else sync(v, v.cursor, new HashSet<>(), false, 0);
+			}
+			if (v.age % 6 == 0) motes(v);
 			status(v);
 			v.holder.tick();
 		}
@@ -464,22 +471,30 @@ final class ClaimView {
 		return pos.y < ground + 1 ? new Vec3(pos.x, ground + 1, pos.z) : pos;
 	}
 
-	/** WASD glides over the land (relative to the screen), sprint goes faster, scroll zooms, sneak goes back. */
+	/**
+	 * The mouse looks around (up, down, straight down), WASD flies (ahead = where the screen looks), sneak goes up and
+	 * sprint goes down, scroll flies closer or further along where you look. Never into the ground or through walls,
+	 * and not further than the map reaches.
+	 */
 	private static void input(View v) {
 		ServerPlayer p = v.p;
 		var in = p.getLastClientInput();
-		// The mouse: left and right turn the view around the middle of the screen, up and down tilt it
 		float yaw = p.getYRot(), pitch = p.getXRot();
 		float turn = Mth.wrapDegrees(yaw - v.lastYaw), tilt = pitch - v.lastPitch;
 		v.lastYaw = yaw;
 		v.lastPitch = pitch;
-		if (v.age > OPEN_TICKS) {
+		boolean free = v.age > OPEN_TICKS;
+		if (free) {
 			v.yaw += turn;
 			v.pitch = Mth.clamp(v.pitch + tilt, MIN_PITCH, MAX_PITCH);
 		}
-		double speed = Math.max(0.5, v.dist / 46.0) * (in.sprint() ? 1.9 : 1.0);
+		// Faster the higher you are
+		double speed = Mth.clamp(v.targetDist / 22.0, 0.45, 3.2);
 		double ahead = (in.forward() ? 1 : 0) - (in.backward() ? 1 : 0);
 		double side = (in.right() ? 1 : 0) - (in.left() ? 1 : 0);
+		// (sneak only counts once it was let go after opening: the land map key is sneak + swap hands)
+		if (!p.isShiftKeyDown()) v.sneakReleased = true;
+		double up = (p.isShiftKeyDown() && v.sneakReleased ? 1 : 0) - (in.sprint() ? 1 : 0);
 		if (ahead != 0 && side != 0) {
 			ahead *= 0.7071;
 			side *= 0.7071;
@@ -488,41 +503,91 @@ final class ClaimView {
 		double rx = -v.fz(), rz = v.fx();
 		double wantX = (v.fx() * ahead + rx * side) * speed;
 		double wantZ = (v.fz() * ahead + rz * side) * speed;
+		double wantY = up * speed * 0.8;
 		// Snappy start, soft stop
-		double k = ahead != 0 || side != 0 ? 0.5 : 0.3;
-		v.velX = Mth.lerp(k, v.velX, wantX);
-		v.velZ = Mth.lerp(k, v.velZ, wantZ);
-		double max = RADIUS * 16 + 8;
-		v.curX = Mth.clamp(v.curX + v.velX, v.origin.x - max, v.origin.x + max);
-		v.curZ = Mth.clamp(v.curZ + v.velZ, v.origin.z - max, v.origin.z + max);
+		v.velX = Mth.lerp(ahead != 0 || side != 0 ? 0.5 : 0.3, v.velX, wantX);
+		v.velZ = Mth.lerp(ahead != 0 || side != 0 ? 0.5 : 0.3, v.velZ, wantZ);
+		v.velY = Mth.lerp(up != 0 ? 0.5 : 0.3, v.velY, wantY);
 
-		// Scroll = zoom (the hotbar slot changes)
+		// Scroll = fly closer or further along where you look (the hotbar slot changes)
+		Vec3 dolly = Vec3.ZERO;
 		int slot = p.getInventory().getSelectedSlot();
 		if (slot != v.lastSlot) {
 			int d = slot - v.lastSlot;
 			if (d > 4) d -= 9;
 			if (d < -4) d += 9;
-			v.targetDist = Mth.clamp(v.targetDist * Math.pow(1.18, d), MIN_D, MAX_D);
 			v.lastSlot = slot;
+			emptyHands(p);
+			if (free) dolly = look(v).scale(-d * Math.max(2.5, v.targetDist * 0.18));
+		}
+		if (free) {
+			v.camPos = fly(v, v.camPos, new Vec3(v.velX, v.velY, v.velZ).add(dolly));
 			for (TextDisplayElement l : v.labels) l.setScale(new Vector3f(labelScale(v)));
 			v.you.setScale(new Vector3f(youScale(v)));
-			emptyHands(p);
 		}
 		// Click = claim (an arm swing reaches the server)
 		boolean swinging = p.isSwinging();
-		if (swinging && !v.wasSwinging && v.age > OPEN_TICKS) clickClaim(v, true);
+		if (swinging && !v.wasSwinging && free) clickClaim(v, true);
 		v.wasSwinging = swinging;
-		// Jump = name the piece of your land in the middle of the screen
+		// Jump = name the piece of your land you look at
 		boolean jump = in.jump();
-		if (jump && !v.wasJumping && v.age > OPEN_TICKS && v.cursorChunk != null) {
+		if (jump && !v.wasJumping && free && v.cursorChunk != null) {
 			ClaimsMod.Claim cl = ClaimsMod.claimAt(v.level, v.cursorChunk);
 			if (cl != null && cl.owner.equals(p.getUUID())) ClaimsMod.nameWindow(p, v.level, v.cursorChunk);
 			else Ui.sound(p, SoundEvents.VILLAGER_NO, 0.4f, 1.2f);
 		}
 		v.wasJumping = jump;
-		// Sneak = back
-		if (!p.isShiftKeyDown()) v.sneakReleased = true;
-		else if (v.sneakReleased) close(p, false);
+	}
+
+	/** Which way the camera looks. */
+	private static Vec3 look(View v) {
+		float y = v.yaw * Mth.DEG_TO_RAD, x = v.pitch * Mth.DEG_TO_RAD;
+		return new Vec3(-Mth.sin(y) * Mth.cos(x), -Mth.sin(x), Mth.cos(y) * Mth.cos(x));
+	}
+
+	/**
+	 * The camera moved by {@code by}, a step at a time, each way on its own, stopping short of anything solid (so it
+	 * slides along a wall), never below the ground, and within the map.
+	 */
+	private static Vec3 fly(View v, Vec3 from, Vec3 by) {
+		double len = by.length();
+		if (len < 1.0e-4) return from;
+		int steps = Math.max(1, (int) Math.ceil(len / 0.4));
+		Vec3 step = by.scale(1.0 / steps);
+		Vec3 at = from;
+		double max = RADIUS * 16 + 8;
+		for (int i = 0; i < steps; i++) {
+			double x = Mth.clamp(at.x + step.x, v.origin.x - max, v.origin.x + max);
+			if (!solid(v, x, at.y, at.z)) at = new Vec3(x, at.y, at.z);
+			double y = Mth.clamp(at.y + step.y, v.level.getMinY() + 1, v.level.getMaxY() + 48);
+			if (!solid(v, at.x, y, at.z)) at = new Vec3(at.x, y, at.z);
+			double z = Mth.clamp(at.z + step.z, v.origin.z - max, v.origin.z + max);
+			if (!solid(v, at.x, at.y, z)) at = new Vec3(at.x, at.y, z);
+		}
+		return at;
+	}
+
+	/** Is there something solid within a little of this spot (the camera keeps a bit of room around it)? */
+	private static boolean solid(View v, double x, double y, double z) {
+		for (double dx : new double[] {-0.3, 0.3}) {
+			for (double dy : new double[] {-0.3, 0.3}) {
+				for (double dz : new double[] {-0.3, 0.3}) {
+					BlockPos b = BlockPos.containing(x + dx, y + dy, z + dz);
+					if (!v.level.getBlockState(b).getCollisionShape(v.level, b).isEmpty()) return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	/** The chunk under the crosshair: where the line of sight first meets the ground (or water), within the map. */
+	private static @Nullable ChunkPos aimed(View v) {
+		Vec3 to = v.camPos.add(look(v).scale(REACH));
+		BlockHitResult hit = v.level.clip(new ClipContext(v.camPos, to, ClipContext.Block.OUTLINE, ClipContext.Fluid.ANY, v.p));
+		if (hit.getType() == HitResult.Type.MISS) return null;
+		ChunkPos c = new ChunkPos(Mth.floor(hit.getLocation().x) >> 4, Mth.floor(hit.getLocation().z) >> 4);
+		ChunkPos home = new ChunkPos(Mth.floor(v.origin.x) >> 4, Mth.floor(v.origin.z) >> 4);
+		return Math.abs(c.x() - home.x()) <= RADIUS && Math.abs(c.z() - home.z()) <= RADIUS ? c : null;
 	}
 
 	private static void clickClaim(View v, boolean claim) {
@@ -968,7 +1033,26 @@ final class ClaimView {
 	 */
 	private static void status(View v) {
 		ChunkPos c = v.cursorChunk;
-		if (c == null) return;
+		if (v.pack) {
+			MutableComponent keys = Component.literal("Mouse").withStyle(ChatFormatting.WHITE)
+					.append(Component.literal(" look  ·  ").withStyle(ChatFormatting.GRAY))
+					.append(nl.libreria.core.Keys.text("{forward}{left}{back}{right}").withStyle(ChatFormatting.WHITE))
+					.append(Component.literal(" fly  ·  ").withStyle(ChatFormatting.GRAY))
+					.append(nl.libreria.core.Keys.key("sneak").withStyle(ChatFormatting.WHITE))
+					.append(Component.literal(" up  ·  ").withStyle(ChatFormatting.GRAY))
+					.append(nl.libreria.core.Keys.key("sprint").withStyle(ChatFormatting.WHITE))
+					.append(Component.literal(" down  ·  ").withStyle(ChatFormatting.GRAY))
+					.append(Component.literal("Scroll").withStyle(ChatFormatting.WHITE))
+					.append(Component.literal(" closer  ·  ").withStyle(ChatFormatting.GRAY))
+					.append(nl.libreria.core.Keys.key("drop").withStyle(ChatFormatting.WHITE))
+					.append(Component.literal(" back").withStyle(ChatFormatting.GRAY));
+			Hud.show(v.p, HUD, keys, Hud.PRIO_INFO, 10);
+		}
+		if (c == null) {
+			// Looking at the sky (or past the map): nothing to claim there
+			if (v.pack) TopCard.hide(v.p, CARD);
+			return;
+		}
 		ClaimsMod.Claim cl = ClaimsMod.claimAt(v.level, c);
 		Kind kind = kind(v, cl);
 		int used = ClaimsMod.owned(v.p.getUUID()), max = ClaimsMod.budget(v.p);
@@ -1006,17 +1090,6 @@ final class ClaimView {
 			rows.add(TopCard.Row.text("mouse", "", action));
 			int accent = kind == Kind.FREE ? -1 : kind.color();
 			TopCard.show(v.p, CARD, new TopCard.Card(new ItemStack(Items.FILLED_MAP), accent, name, subtitle, rows), 100);
-			MutableComponent keys = Component.literal("Mouse").withStyle(ChatFormatting.WHITE)
-					.append(Component.literal(" turn  ·  ").withStyle(ChatFormatting.GRAY))
-					.append(nl.libreria.core.Keys.text("{forward}{left}{back}{right}").withStyle(ChatFormatting.WHITE))
-					.append(Component.literal(" glide  ·  ").withStyle(ChatFormatting.GRAY))
-					.append(Component.literal("Scroll").withStyle(ChatFormatting.WHITE))
-					.append(Component.literal(" zoom  ·  ").withStyle(ChatFormatting.GRAY))
-					.append(nl.libreria.core.Keys.key("sneak").withStyle(ChatFormatting.WHITE))
-					.append(Component.literal(" or ").withStyle(ChatFormatting.GRAY))
-					.append(nl.libreria.core.Keys.key("drop").withStyle(ChatFormatting.WHITE))
-					.append(Component.literal(" back").withStyle(ChatFormatting.GRAY));
-			Hud.show(v.p, HUD, keys, Hud.PRIO_INFO, 10);
 			return;
 		}
 		MutableComponent line = Component.empty();
@@ -1030,7 +1103,7 @@ final class ClaimView {
 			default -> line.append(Component.literal(cl.ownerName + "'s land").withStyle(ChatFormatting.RED));
 		}
 		line.append(Component.literal("   " + used + "/" + max + " chunks").withStyle(ChatFormatting.GRAY));
-		if (v.age < 120) line.append(Component.literal("   mouse turn · WASD move · scroll zoom · Q back").withStyle(ChatFormatting.DARK_GRAY));
+		if (v.age < 120) line.append(Component.literal("   mouse look · WASD fly · sneak up · sprint down · Q back").withStyle(ChatFormatting.DARK_GRAY));
 		Hud.show(v.p, HUD, line, Hud.PRIO_INFO, 10);
 	}
 
