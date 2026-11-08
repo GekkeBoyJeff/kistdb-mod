@@ -20,7 +20,7 @@ import nl.libreria.core.dialog.Values;
 import nl.libreria.core.dialog.Window;
 
 /**
- * Your settings, by the same four domains as the start screen: Settings → Items → "Tools &amp; refills" → checkboxes
+ * Your settings, by the same three domains as the start screen: Settings → You → "Tools &amp; refills" → checkboxes
  * and a Save button. Groups have player names ("When you die", "Search &amp; sorting"), whichever module the setting
  * comes from. Every player has their own settings; nothing here changes anything for others.
  */
@@ -68,7 +68,7 @@ public final class SettingsWindow {
 
 	// ---------------------------------------------------------------- screens
 
-	/** Settings: the four domains (and for operators, the server). */
+	/** Settings: the three domains (and for operators, the server). */
 	public static void open(ServerPlayer player) {
 		if (CanvasWindow.available(player)) {
 			SettingsCanvas.open(player);

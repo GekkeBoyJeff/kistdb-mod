@@ -185,6 +185,7 @@ public final class InfoMod implements ModInitializer {
 		VillagerNames.init();
 		Weapons.init();
 		Found.init();
+		InfoCollections.init();
 		Describe.init();
 		Details.init();
 		Pets.init();

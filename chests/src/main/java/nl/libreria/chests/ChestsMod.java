@@ -36,7 +36,7 @@ public final class ChestsMod implements ModInitializer {
 	public static final Logger LOG = LoggerFactory.getLogger("Libreria Chests");
 
 	public static final Module MODULE = Module.register("chests", "Chests", Items.CHEST,
-			"Sorting, searching your chests by icon", "and showing the way to the right chest.").in(Domain.ITEMS, "Search & sorting");
+			"Sorting, searching your chests by icon", "and showing the way to the right chest.").in(Domain.YOU, "Search & sorting");
 	public static final nl.libreria.core.ServerSetting.Number SEARCH_RADIUS = MODULE.serverNumber("search_radius", "Search range",
 			Items.SPYGLASS, 256, 32, 512, 16, "blocks", "How far away chests still count when", "you search your items.");
 	public static final Setting.Toggle SEARCH_BUTTON = MODULE.toggle("zoekknop", "Right-click beside your inventory searches", true, Items.SPYGLASS,
@@ -51,15 +51,15 @@ public final class ChestsMod implements ModInitializer {
 			"With an empty hand on a chest: leave", "it out of search (or take it back in).");
 	public static final Setting.Choice STACK_RADIUS = MODULE.choice("opbergen", "Quick stack range", Items.CHEST_MINECART, 1,
 			new int[]{6, 10, 16, 24}, new String[]{"6 blocks", "10 blocks", "16 blocks", "24 blocks"},
-			"How far your chests can be for quick stack.").in(Domain.ITEMS, "Quick stack & supply chests");
+			"How far your chests can be for quick stack.").in(Domain.YOU, "Quick stack & supply chests");
 
 	public static final Setting.Toggle LABELS = MODULE.toggle("labels", "Labels above your chests", true, Items.ITEM_FRAME,
 			"A small picture above each of your", "chests: what it holds most of.", "Only you see them.",
 			"Off: only above the chests you give", "one in their options ({sneak}-click Sort).");
 	public static final Setting.Toggle CRAFT = MODULE.toggle("craft_supply", "Craft from supply chests", true, Items.CRAFTING_TABLE,
-			"Clicking a recipe in the recipe book", "takes what you miss from your", "supply chests.").in(Domain.ITEMS, "Quick stack & supply chests");
+			"Clicking a recipe in the recipe book", "takes what you miss from your", "supply chests.").in(Domain.YOU, "Quick stack & supply chests");
 	public static final Setting.Toggle REFILL = MODULE.toggle("refill", "Refill from supply chests", true, Items.BUNDLE,
-			"A used-up stack in your hotbar that your", "inventory has no more of is refilled", "from your supply chests.").in(Domain.ITEMS, "Quick stack & supply chests");
+			"A used-up stack in your hotbar that your", "inventory has no more of is refilled", "from your supply chests.").in(Domain.YOU, "Quick stack & supply chests");
 	public static final nl.libreria.core.ServerSetting.Number SUPPLY_RANGE = MODULE.serverNumber("supply_range", "Supply chest range",
 			Items.CHEST, 24, 4, 64, 4, "blocks", "How near supply chests must be for", "crafting and hotbar refills.");
 
@@ -93,15 +93,15 @@ public final class ChestsMod implements ModInitializer {
 		Hub.setEdgeButton(QuickStack::run, p -> {
 			if (!ChestSearch.fromInventory(p)) sort.accept(p);
 		});
-		MODULE.hubEntry(Domain.ITEMS, 10, Items.SPYGLASS, "Your items", ChestSearch::open,
+		MODULE.hubEntry(Domain.YOU, 40, Items.SPYGLASS, "Your items", ChestSearch::open,
 				"Everything on you and in your chests, searchable. Click one and its chest lights up.",
 				"Also: {inventory}, then right-click beside it.");
-		MODULE.hubEntry(Domain.ITEMS, 20, Items.CHEST, "Your chests", ChestsGui::open,
+		MODULE.hubEntry(Domain.YOU, 50, Items.CHEST, "Your chests", ChestsGui::open,
 				"See inside your chests from afar, find your way to them, leave one out of search.");
-		MODULE.hubEntry(Domain.ITEMS, 30, Items.CHEST_MINECART, "Quick stack", QuickStack::run,
+		MODULE.hubEntry(Domain.YOU, 60, Items.CHEST_MINECART, "Quick stack", QuickStack::run,
 				"Puts what you carry into your nearby chests that already hold it (not your hotbar).",
 				"Also: click the button beside your inventory.");
-		MODULE.hubEntry(Domain.ITEMS, 40, Items.HOPPER, "Sort inventory", p -> {
+		MODULE.hubEntry(Domain.YOU, 70, Items.HOPPER, "Sort inventory", p -> {
 			if (Sorter.sortPlayer(p)) nl.libreria.core.Notify.whisper(p, "✔ Your inventory is sorted", net.minecraft.ChatFormatting.GREEN);
 			else nl.libreria.core.Notify.whisper(p, "Your inventory is too full to sort", net.minecraft.ChatFormatting.GRAY);
 		},

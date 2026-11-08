@@ -11,8 +11,9 @@ import nl.libreria.core.gui.Glyphs;
 import nl.libreria.core.gui.SettingsWindow;
 
 /**
- * The start screen as a window of our own: four equal cards (one per {@link Domain}) in two columns, below them your
- * places, and under that settings, the chronicle, tips and help, on the same two columns.
+ * The start screen as a window of our own: Progress the width of the window (how far you are, your place), under it
+ * Land &amp; places and You side by side, below them your places, and under that settings, the chronicle, tips and
+ * help, on the same two columns.
  */
 public final class StartWindow extends CanvasWindow {
 	/** Cards that belong to no domain, quiet text and the title: in the pack's look. */
@@ -27,23 +28,21 @@ public final class StartWindow extends CanvasWindow {
 		new StartWindow(p).show();
 	}
 
-	/** Minecraft's picture for each domain (twice as big on its card). */
+	/** Minecraft's picture for each domain. */
 	private static String icon(Domain d) {
 		return switch (d) {
-			case ITEMS -> "bundle";
 			case PLACES -> "filled_map";
 			case PROGRESS -> "nether_star";
 			case YOU -> "name_tag";
 		};
 	}
 
-	/** The four cards: two equal columns (columns 0–3 and 5–8; column 4 is the space between them), two rows. */
+	/** The cards: {column, row, width}. Progress the whole width, the other two on two equal columns (column 4 between). */
 	private static int[] spot(Domain d) {
 		return switch (d) {
-			case ITEMS -> new int[] {0, 0};
-			case PLACES -> new int[] {5, 0};
-			case PROGRESS -> new int[] {0, 3};
-			case YOU -> new int[] {5, 3};
+			case PROGRESS -> new int[] {0, 0, 9};
+			case PLACES -> new int[] {0, 3, 4};
+			case YOU -> new int[] {5, 3, 4};
 		};
 	}
 
@@ -59,8 +58,9 @@ public final class StartWindow extends CanvasWindow {
 		for (Domain d : Domain.values()) {
 			int[] s = spot(d);
 			int x0 = Canvas.cellX(s[0]) + Canvas.CARD_MARGIN, y0 = Canvas.cellY(s[1]) + Canvas.CARD_MARGIN;
-			c.card(s[0], s[1], 4, 3, d.rgb);
+			c.card(s[0], s[1], s[2], 3, d.rgb);
 			c.picture("ico16." + icon(d), x0 + PAD, y0 + 6, 0xFFFFFF);
+			if (d == Domain.PROGRESS) progress(c, x0 + 18 * 9 - 2 * Canvas.CARD_MARGIN - PAD, y0);
 			// The name at the bottom of the card, in two lines when it doesn't fit in one
 			List<String> lines = Canvas.wrap(d.label, CARD_W - 2 * PAD);
 			int y = lines.size() == 1 ? y0 + 36 : y0 + 27;
@@ -85,6 +85,20 @@ public final class StartWindow extends CanvasWindow {
 		small(c, 0, 9, "Tips");
 		small(c, 5, 9, "Help");
 		return c;
+	}
+
+	/** On the Progress card, on the right: how far you are and your place among everybody. */
+	private void progress(Canvas c, int right, int y0) {
+		try {
+			var server = this.player.level().getServer();
+			Completion.Snap snap = Completion.of(server, this.player.getUUID(), 10_000);
+			var all = Completion.ranking(server, Completion.OVERALL);
+			int rank = Completion.rank(all, this.player.getUUID());
+			c.right(Completion.percent(Completion.overall(snap)) + "% complete", right, y0 + 8, TEXT);
+			if (rank > 0) c.right("#" + rank + " of " + all.size() + (all.size() == 1 ? " player" : " players"), right, y0 + 19, MUTED);
+		} catch (RuntimeException e) {
+			Libreria.LOG.warn("Start screen: could not count your progress", e);
+		}
 	}
 
 	/** {"Nearest: Home", "12 m N"} (in this world), or what to do when there's nothing yet; the distance stands apart so it is never cut off. */
@@ -119,14 +133,14 @@ public final class StartWindow extends CanvasWindow {
 	protected void fill() {
 		for (Domain d : Domain.values()) {
 			int[] s = spot(d);
-			area(s[0], s[1], 4, 3, d.title().withStyle(ChatFormatting.BOLD), lore(d.blurb, "Click: open"), p -> Start.domain(p, d));
+			area(s[0], s[1], s[2], 3, d.title().withStyle(ChatFormatting.BOLD), lore(d.blurb, "Click: open"), p -> Start.domain(p, d));
 		}
 		area(0, 6, 9, 2, Ui.text("Your places", Domain.PLACES.rgb).withStyle(ChatFormatting.BOLD),
 				lore("Your land, graves, pets and the places you found: click one to be shown the way.", "Click: open"),
 				PlaceList::open);
-		item(0, 8, "Settings", "Your own settings, by the same four places.", SettingsWindow::open);
+		item(0, 8, "Settings", "Your own settings, by the same three places.", SettingsWindow::open);
 		item(5, 8, "Chronicle", "What happened in this world.", Chronicle::open);
-		item(0, 9, "Tips", "Every tip, by the four places.", Tips::all);
+		item(0, 9, "Tips", "Every tip, by the three places.", Tips::all);
 		item(5, 9, "Help", "Keys, commands and the server's links. Press {menu} (or Libreria in the pause menu) to come back here.",
 				Welcome::guide);
 	}

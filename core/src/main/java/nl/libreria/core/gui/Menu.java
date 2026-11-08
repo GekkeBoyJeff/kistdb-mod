@@ -106,17 +106,16 @@ public abstract class Menu extends SimpleGui {
 
 	/**
 	 * The domain this menu belongs to: its frame gets that domain's colour and emblem, so a menu looks the same family
-	 * whichever module drew it. By default from the package (chests and tools are Items, claims, waypoints and graves
+	 * whichever module drew it. By default from the package (chests and tools are You, claims, waypoints and graves
 	 * Land &amp; places, and so on); override for a menu that lives elsewhere.
 	 */
 	protected nl.libreria.core.Domain domain() {
 		String[] parts = this.getClass().getPackageName().split("\\.");
 		String module = parts.length > 2 ? parts[2] : "core";
 		return switch (module) {
-			case "chests", "tools" -> nl.libreria.core.Domain.ITEMS;
 			case "claims", "waypoints", "graves" -> nl.libreria.core.Domain.PLACES;
 			case "collector", "info" -> nl.libreria.core.Domain.PROGRESS;
-			case "nicknames", "glint", "comfort" -> nl.libreria.core.Domain.YOU;
+			case "chests", "tools", "nicknames", "glint", "comfort" -> nl.libreria.core.Domain.YOU;
 			default -> null;
 		};
 	}

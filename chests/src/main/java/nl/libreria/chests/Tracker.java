@@ -119,7 +119,7 @@ public final class Tracker {
 		return open.key();
 	}
 
-	static final nl.libreria.core.Tips.Tip TIP_CHEST = nl.libreria.core.Tips.register("chest", nl.libreria.core.Domain.ITEMS,
+	static final nl.libreria.core.Tips.Tip TIP_CHEST = nl.libreria.core.Tips.register("chest", nl.libreria.core.Domain.YOU,
 			net.minecraft.world.item.Items.CHEST, "Sorting a chest", "Double-click an empty slot to sort it.",
 			"The ⇅ button: right-click puts your matching items in.");
 

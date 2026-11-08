@@ -159,7 +159,7 @@ public final class Chronicle {
 	static void init() {
 		Libreria.MODULE.hubEntry(Domain.PROGRESS, 30, Items.LECTERN, "Chronicle", Chronicle::open,
 				"The story of this world: who came first, who slew what, which weapon earned a name.");
-		Libreria.MODULE.commands(Domain.PROGRESS, "/chronicle – the story of this world");
+		Libreria.MODULE.commands(Domain.PROGRESS, "/chronicle – the story of this world", "/l top – the top lists: who did the most of what");
 		net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents.JOIN.register((handler, sender, s) -> onJoin(handler.player));
 		net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.AFTER_DEATH.register((entity, source) -> {
 			try {

@@ -9,7 +9,7 @@ import nl.libreria.core.gui.SettingsWindow;
 /**
  * The start screen (key G, and the Libreria button in the pause menu) is a dialog in the data pack
  * ({@code data/libreria/dialog/quick_menu.json}), so it opens instantly. Its buttons send {@code libreria:quick} with
- * where to go: one of the four domains ({@code items}, {@code land}, {@code progress}, {@code me}), the settings or
+ * where to go: one of the three domains ({@code land}, {@code progress}, {@code me}; the old {@code items} opens You), the settings or
  * Help. Other dialogs may send a menu key too ({@code map}, {@code waypoints}…).
  */
 public final class QuickMenu {

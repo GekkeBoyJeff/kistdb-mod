@@ -18,8 +18,8 @@ import nl.libreria.core.dialog.Window;
 import nl.libreria.core.gui.SettingsWindow;
 
 /**
- * The start screen and its four domain pages. G (and the Libreria button in the pause menu) opens the start screen
- * straight from the data pack, so it's there instantly; {@code /l} and every "Back" open that very same screen. Its four
+ * The start screen and its three domain pages. G (and the Libreria button in the pause menu) opens the start screen
+ * straight from the data pack, so it's there instantly; {@code /l} and every "Back" open that very same screen. Its three
  * buttons lead to a page per {@link Domain}: the domain's buttons from every installed module, in a fixed order, and its
  * settings.
  */
@@ -44,7 +44,7 @@ public final class Start {
 		// Data pack switched off: build the same screen here
 		Window w = Window.of(Ui.text("Libreria", ChatFormatting.WHITE).withStyle(ChatFormatting.BOLD));
 		for (Domain d : Domain.values()) w.button(d.title(), Ui.text(d.blurb, ChatFormatting.GRAY), (pl, v) -> domain(pl, d));
-		w.button("Settings", "Your own settings, by the same four places.", SettingsWindow::open);
+		w.button("Settings", "Your own settings, by the same three places.", SettingsWindow::open);
 		w.button("Help", "Keys, tips and links.", Welcome::guide);
 		w.done().show(p);
 	}
@@ -52,7 +52,8 @@ public final class Start {
 	/** One domain page: its buttons, a card for Progress and You, and its settings. */
 	public static void domain(ServerPlayer p, Domain d) {
 		if (nl.libreria.core.gui.CanvasWindow.available(p)) {
-			DomainWindow.open(p, d);
+			if (d == Domain.PROGRESS) ProgressWindow.open(p);
+			else DomainWindow.open(p, d);
 			return;
 		}
 		Window w = Window.of(d);

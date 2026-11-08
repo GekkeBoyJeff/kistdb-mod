@@ -30,7 +30,7 @@ public final class Libreria implements ModInitializer {
 			"The start screen, beams, cards and the resource pack.").in(Domain.YOU, "What you see");
 	public static final Setting.Toggle HUB_BUTTON = MODULE.toggle("knop", "Buttons beside your inventory", true, Items.HOPPER,
 			"Left-click beside your inventory: your", "items into your nearby chests.", "Right-click: search your items.")
-			.in(Domain.ITEMS, "Search & sorting");
+			.in(Domain.YOU, "Search & sorting");
 	public static final Setting.Toggle OWN_PLATE = MODULE.toggle("eigen_naam", "Your own name tag", true, Items.NAME_TAG,
 			"See your own title and nickname above", "your head in third person (F5).").in(Domain.YOU, "Your name");
 	public static final Setting.Choice GUIDE_SECONDS = MODULE.choice("straal", "How long a beam stays", Items.SPECTRAL_ARROW, 1,
@@ -63,8 +63,12 @@ public final class Libreria implements ModInitializer {
 
 		Chronicle.init();
 		Profile.init();
+		Completion.init();
 		MODULE.hubEntry(Domain.YOU, 1, Items.PLAYER_HEAD, "Your profile", p -> ProfileWindow.open(p, p.getUUID(), "", q -> Start.domain(q, Domain.YOU)),
 				"What others see when they look you up: playtime, achievements and more.");
+		// Your title on the right of "Your profile"
+		DomainWindow.value("Your profile", p -> Services.progress().map(pr -> pr.title(p))
+				.map(t -> t == null ? "" : t.getString().replace("✦", "").trim()).orElse(""));
 		MODULE.hubEntry(Domain.YOU, 2, Items.BOOK, "Players", PlayersWindow::open,
 				"Everybody who has played here. Click someone: their profile.");
 		MODULE.commands(Domain.YOU, "/profile <name> – someone's profile", "/players – everybody who has played here",
@@ -167,7 +171,7 @@ public final class Libreria implements ModInitializer {
 				ProfileWindow.open(p, k.id(), "Players", PlayersWindow::open);
 				return 1;
 			})));
-			// /l (or /lib, /libreria) opens the start screen; /l items|land|progress|me a domain page
+			// /l (or /lib, /libreria) opens the start screen; /l land|progress|me a domain page, /l top the top lists
 			for (String name : new String[] {"l", "lib", "libreria"}) {
 				var root = Commands.literal(name).executes(c -> {
 					Start.open(c.getSource().getPlayerOrException());
@@ -179,6 +183,16 @@ public final class Libreria implements ModInitializer {
 						return 1;
 					}));
 				}
+				// What was Items is under You now
+				root.then(Commands.literal("items").executes(c -> {
+					Start.domain(c.getSource().getPlayerOrException(), Domain.YOU);
+					return 1;
+				}));
+				root.then(Commands.literal("top").executes(c -> {
+					ServerPlayer p = c.getSource().getPlayerOrException();
+					TopListsWindow.open(p, ProgressWindow::open);
+					return 1;
+				}));
 				dispatcher.register(root.then(Commands.literal("settings").executes(c -> {
 					SettingsWindow.open(c.getSource().getPlayerOrException());
 					return 1;

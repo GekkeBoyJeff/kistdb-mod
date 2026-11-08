@@ -175,14 +175,14 @@ final class CoreTests {
 				}
 			}
 			nl.libreria.core.gui.SettingsWindow.open(p);
-			nl.libreria.core.gui.SettingsWindow.open(p, Domain.ITEMS, Start::open);
+			nl.libreria.core.gui.SettingsWindow.open(p, Domain.YOU, Start::open);
 			// One voice in chat
 			SelfTests.check(Say.line(Domain.PLACES).getString().equals("◆ "), "chat lines start with a diamond");
 			// Your places: tabs from the modules, and a list without errors
 			SelfTests.check(PlaceList.kinds().size() >= 4, "kinds of places: " + PlaceList.kinds().size());
 			SelfTests.check(PlaceList.all(p) != null, "places listed");
 			// Tips: once, then never again
-			Tips.Tip tip = Tips.all(Domain.ITEMS).getFirst();
+			Tips.Tip tip = Tips.all(Domain.YOU).getFirst();
 			// Start clean: other tests may have left tips waiting for this (fake) player, and the queue is first come, first served
 			Tips.forget(p.getUUID());
 			nl.libreria.core.gui.TopCard.forget(p.getUUID());

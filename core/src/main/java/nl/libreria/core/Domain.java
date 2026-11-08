@@ -8,23 +8,21 @@ import net.minecraft.world.item.Items;
 
 /**
  * What a player wants to do, not which jar does it. Every button, setting, menu and chat line of Libreria belongs to
- * one of these four, so the whole thing reads as one product: the start screen shows these four, the settings follow
+ * one of these three, so the whole thing reads as one product: the start screen shows these three, the settings follow
  * them, every menu carries its colour and emblem, and chat lines start with a ◆ in its colour. Module names stay
  * behind the scenes (only operators see them, in the server settings).
  */
 public enum Domain {
-	ITEMS("Items", "items", 0x62D6E8, ChatFormatting.AQUA, "cyan", Items.CHEST,
-			"Search, chests, sorting and tools."),
 	PLACES("Land & places", "land", 0x86DB7A, ChatFormatting.GREEN, "lime", Items.FILLED_MAP,
 			"Your land, pings, graves, pets and the places you found."),
 	PROGRESS("Progress", "progress", 0xFFCB52, ChatFormatting.GOLD, "yellow", Items.NETHER_STAR,
-			"Achievements, statistics and the story of this world."),
+			"Everything there is to complete, and who did the most."),
 	YOU("You", "me", 0xE39BFF, ChatFormatting.LIGHT_PURPLE, "magenta", Items.NAME_TAG,
-			"Your name, title, effects and how things look.");
+			"Your name, title, items, chests and how things look.");
 
 	/** What players read. */
 	public final String label;
-	/** Short word for commands ({@code /l items}) and the menu frame theme. */
+	/** Short word for commands ({@code /l land}) and the menu frame theme. */
 	public final String word;
 	/** Colour (0xRRGGBB) for text: chat diamond, window titles, labels. */
 	public final int rgb;
@@ -33,7 +31,6 @@ public enum Domain {
 	/** A darker shade of {@link #rgb}, readable on Minecraft's light grey menus. */
 	public int dark() {
 		return switch (this) {
-			case ITEMS -> 0x1E7480;
 			case PLACES -> 0x2D7428;
 			case PROGRESS -> 0x936600;
 			case YOU -> 0x7A3792;
@@ -64,7 +61,6 @@ public enum Domain {
 	/** Menu frame theme in the Libreria pack (the coloured line and emblem under a menu's title). */
 	public String theme() {
 		return switch (this) {
-			case ITEMS -> "items";
 			case PLACES -> "places";
 			case PROGRESS -> "progress";
 			case YOU -> "you";
@@ -75,16 +71,15 @@ public enum Domain {
 		return List.of(values());
 	}
 
-	/** By its command word or label, or null. */
+	/** By its command word or label, or null ("items", the old page of your items and chests, is You now). */
 	public static Domain byWord(String s) {
 		for (Domain d : values()) if (d.word.equalsIgnoreCase(s) || d.name().equalsIgnoreCase(s)) return d;
-		return null;
+		return "items".equalsIgnoreCase(s) ? YOU : null;
 	}
 
 	/** Where a module's things go unless it says otherwise. */
 	static Domain forModule(String id) {
 		return switch (id) {
-			case "chests", "tools" -> ITEMS;
 			case "claims", "waypoints", "graves" -> PLACES;
 			case "collector" -> PROGRESS;
 			default -> YOU;

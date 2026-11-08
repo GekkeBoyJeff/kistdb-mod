@@ -171,7 +171,7 @@ final class Stands {
 	/** The window: poses, switches, fine-tune, copy and paste. Every click applies at once and opens it again. */
 	static void open(ServerPlayer p, ArmorStand stand) {
 		if (!usable(p, stand)) return;
-		Window w = Window.of(Domain.ITEMS, "Armour stand");
+		Window w = Window.of(Domain.YOU, "Armour stand");
 		w.item(new ItemStack(Items.ARMOR_STAND), Ui.text("Every click shows at once on the stand. Fine-tune each part, "
 				+ "or copy this pose and give it to another stand.", ChatFormatting.GRAY));
 		w.columns(2);
@@ -255,7 +255,7 @@ final class Stands {
 	static void fineTune(ServerPlayer p, ArmorStand stand, String part) {
 		if (!usable(p, stand)) return;
 		Rotations now = get(stand, part);
-		Window w = Window.of(Domain.ITEMS, "Armour stand", partName(part));
+		Window w = Window.of(Domain.YOU, "Armour stand", partName(part));
 		w.slider("x", Ui.text("Forward / back", ChatFormatting.WHITE), -180, 180, 5, wrap(now.x()));
 		w.slider("y", Ui.text("Turn", ChatFormatting.WHITE), -180, 180, 5, wrap(now.y()));
 		w.slider("z", Ui.text("Out to the side", ChatFormatting.WHITE), -180, 180, 5, wrap(now.z()));

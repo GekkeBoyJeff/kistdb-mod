@@ -69,7 +69,7 @@ public final class ChestsGui extends Menu {
 
 	/** Opens "My chests"; Back goes to the Libreria menu. */
 	public static void open(ServerPlayer player) {
-		open(player, Domain.ITEMS.label, () -> nl.libreria.core.Start.domain(player, Domain.ITEMS));
+		open(player, Domain.YOU.label, () -> nl.libreria.core.Start.domain(player, Domain.YOU));
 	}
 
 	static void open(ServerPlayer player, String backLabel, Runnable back) {

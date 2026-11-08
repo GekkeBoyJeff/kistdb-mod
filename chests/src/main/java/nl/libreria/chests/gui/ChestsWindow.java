@@ -94,13 +94,13 @@ public final class ChestsWindow extends CanvasWindow {
 		int pages = pages(shown);
 		this.page = Math.max(0, Math.min(this.page, pages - 1));
 		Canvas c = new Canvas().panel();
-		c.text(Domain.ITEMS.label, 8, 5, Domain.ITEMS.rgb);
-		int x = 8 + Glyphs.width(Component.literal(Domain.ITEMS.label));
+		c.text(Domain.YOU.label, 8, 5, Domain.YOU.rgb);
+		int x = 8 + Glyphs.width(Component.literal(Domain.YOU.label));
 		c.text(" › ", x, 5, Glyphs.muted).text("Your chests", x + Glyphs.width(Component.literal(" › ")), 5, TEXT);
 		for (Show s : Show.values()) {
 			int[] t = tab(s);
 			boolean on = s == this.show;
-			c.card(t[0], 0, t[1], 1, on ? Domain.ITEMS.rgb : OFF);
+			c.card(t[0], 0, t[1], 1, on ? Domain.YOU.rgb : OFF);
 			c.centred(s.tab, Canvas.cellX(t[0]) + 9 * t[1], Canvas.cellY(0) + 5, on ? TEXT : 0xC8CCD4);
 		}
 		int left = Canvas.cellX(1) + 4, width = Canvas.cellX(9) - 2 - left;
@@ -109,7 +109,7 @@ public final class ChestsWindow extends CanvasWindow {
 			Search.Box box = shown.get(from + i);
 			Store.Entry e = box.entry();
 			int row = i + 1;
-			c.line(left, row, width, e.noIndex ? LEFT_OUT : Domain.ITEMS.rgb);
+			c.line(left, row, width, e.noIndex ? LEFT_OUT : Domain.YOU.rgb);
 			int y = Canvas.cellY(row) + 5;
 			String far = Ui.meters(box.distance());
 			long total = total(box);

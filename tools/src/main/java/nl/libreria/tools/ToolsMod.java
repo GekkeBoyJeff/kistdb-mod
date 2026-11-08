@@ -41,12 +41,12 @@ public final class ToolsMod implements ModInitializer {
 	public static final Logger LOG = LoggerFactory.getLogger("Libreria/Tools");
 
 	public static final Module MODULE = Module.register("tools", "Tools", Items.IRON_PICKAXE,
-			"Automatically grab your next tool,", "see durability and refill stacks.").in(nl.libreria.core.Domain.ITEMS, "Tools & refills");
+			"Automatically grab your next tool,", "see durability and refill stacks.").in(nl.libreria.core.Domain.YOU, "Tools & refills");
 
-	static final nl.libreria.core.Tips.Tip TIP_SWAP = nl.libreria.core.Tips.register("tool_swap", nl.libreria.core.Domain.ITEMS,
+	static final nl.libreria.core.Tips.Tip TIP_SWAP = nl.libreria.core.Tips.register("tool_swap", nl.libreria.core.Domain.YOU,
 			Items.IRON_PICKAXE, "The next tool, in your hand", "When a tool runs out, Libreria hands you the next one.",
 			"Save good tools with a break limit: Settings › Items.");
-	static final nl.libreria.core.Tips.Tip TIP_LIMIT = nl.libreria.core.Tips.register("tool_limit", nl.libreria.core.Domain.ITEMS,
+	static final nl.libreria.core.Tips.Tip TIP_LIMIT = nl.libreria.core.Tips.register("tool_limit", nl.libreria.core.Domain.YOU,
 			Items.ANVIL, "Break limit", "This tool stops before it breaks, so you can repair it.",
 			"Change the limit in Settings › Items › Tools & refills.");
 	public static final Setting.Toggle SWAP = MODULE.toggle("wissel", "Auto-swap to next tool", true, Items.IRON_PICKAXE,

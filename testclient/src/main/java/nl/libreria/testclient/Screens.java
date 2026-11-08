@@ -1247,7 +1247,7 @@ public final class Screens implements FabricClientGameTest {
 			menu(ctx, server, player, "window_commands", nl.libreria.core.Welcome::commands);
 			menu(ctx, server, player, "window_tips", nl.libreria.core.Tips::all);
 			safe("tip", () -> {
-				server.runOnServer(s -> nl.libreria.core.Tips.show(player, nl.libreria.core.Tips.all(nl.libreria.core.Domain.ITEMS).getFirst()));
+				server.runOnServer(s -> nl.libreria.core.Tips.show(player, nl.libreria.core.Tips.all(nl.libreria.core.Domain.YOU).getFirst()));
 				ctx.waitTicks(8);
 				ctx.takeScreenshot("tip");
 				server.runOnServer(s -> nl.libreria.core.gui.TopCard.hide(player, "tip"));

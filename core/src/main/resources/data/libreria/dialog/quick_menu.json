@@ -28,19 +28,19 @@
   {
    "label": [
     {
-     "text": "Items",
-     "color": "#62D6E8"
+     "text": "Progress",
+     "color": "#FFCB52"
     }
    ],
    "tooltip": {
-    "text": "Search, chests, sorting and tools."
+    "text": "Everything there is to complete, and who did the most."
    },
    "width": 150,
    "action": {
     "type": "minecraft:custom",
     "id": "libreria:quick",
     "payload": {
-     "go": "items"
+     "go": "progress"
     }
    }
   },
@@ -66,31 +66,12 @@
   {
    "label": [
     {
-     "text": "Progress",
-     "color": "#FFCB52"
-    }
-   ],
-   "tooltip": {
-    "text": "Achievements, statistics and the story of this world."
-   },
-   "width": 150,
-   "action": {
-    "type": "minecraft:custom",
-    "id": "libreria:quick",
-    "payload": {
-     "go": "progress"
-    }
-   }
-  },
-  {
-   "label": [
-    {
      "text": "You",
      "color": "#E39BFF"
     }
    ],
    "tooltip": {
-    "text": "Your name, title, effects and how things look."
+    "text": "Your name, title, items, chests and how things look."
    },
    "width": 150,
    "action": {
@@ -104,12 +85,31 @@
   {
    "label": [
     {
+     "text": "Chronicle",
+     "color": "#C8C8C8"
+    }
+   ],
+   "tooltip": {
+    "text": "What happened in this world."
+   },
+   "width": 150,
+   "action": {
+    "type": "minecraft:custom",
+    "id": "libreria:quick",
+    "payload": {
+     "go": "chronicle"
+    }
+   }
+  },
+  {
+   "label": [
+    {
      "text": "Settings",
      "color": "#C8C8C8"
     }
    ],
    "tooltip": {
-    "text": "Your own settings, by the same four places."
+    "text": "Your own settings, by the same three places."
    },
    "width": 150,
    "action": {

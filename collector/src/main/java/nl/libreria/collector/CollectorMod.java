@@ -64,6 +64,15 @@ public final class CollectorMod implements ModInitializer {
 		public Map<String, Long> earned = new HashMap<>();
 		/** Gefokte soorten (entity-ID's), plus "axolotl:blue". */
 		public Set<String> bred = new HashSet<>();
+		/** For the Progress window: kinds tamed, professions traded with, potions brewed, things fished up, discs played,
+		 * enchantments and armour trims held. */
+		public Set<String> tamed = new HashSet<>();
+		public Set<String> traded = new HashSet<>();
+		public Set<String> brewed = new HashSet<>();
+		public Set<String> fished = new HashSet<>();
+		public Set<String> discs = new HashSet<>();
+		public Set<String> enchantments = new HashSet<>();
+		public Set<String> trims = new HashSet<>();
 		public int villagers;
 		public int cured;
 		/** "" = automatisch (hoogste), "-" = geen titel, anders een prestatie-ID. */
@@ -95,6 +104,13 @@ public final class CollectorMod implements ModInitializer {
 		if (d.items == null) d.items = new HashSet<>();
 		if (d.earned == null) d.earned = new HashMap<>();
 		if (d.bred == null) d.bred = new HashSet<>();
+		if (d.tamed == null) d.tamed = new HashSet<>();
+		if (d.traded == null) d.traded = new HashSet<>();
+		if (d.brewed == null) d.brewed = new HashSet<>();
+		if (d.fished == null) d.fished = new HashSet<>();
+		if (d.discs == null) d.discs = new HashSet<>();
+		if (d.enchantments == null) d.enchantments = new HashSet<>();
+		if (d.trims == null) d.trims = new HashSet<>();
 		if (d.title == null) d.title = "";
 		if (d.secrets == null) d.secrets = new HashSet<>();
 		if (d.showcase == null) d.showcase = new ArrayList<>();
@@ -121,6 +137,9 @@ public final class CollectorMod implements ModInitializer {
 		MODULE.hubEntry(Domain.YOU, 20, Items.NAME_TAG, "Title", AchievementsGui::openTitles,
 				"Choose the title that floats above your name.");
 		Services.provideMenu(Services.MENU_ACHIEVEMENTS, AchievementsGui::open);
+		Services.provideMenu(Services.MENU_GOAL, nl.libreria.collector.gui.GoalWindow::open);
+		Services.provideMenu(Services.MENU_RECORDS, nl.libreria.collector.gui.RecordsWindow::open);
+		CollectorCollections.init();
 		Services.provideProgress(new Services.Progress() {
 			@Override
 			public int points(ServerPlayer player) {
@@ -339,6 +358,7 @@ public final class CollectorMod implements ModInitializer {
 			ItemStack st = inv.getItem(i);
 			if (st.isEmpty()) continue;
 			if (d.items.add(BuiltInRegistries.ITEM.getKey(st.getItem()).getPath())) changed = true;
+			if (CollectorCollections.scan(d, st)) STORE.markDirty(p);
 		}
 		if (changed) {
 			STORE.markDirty(p);

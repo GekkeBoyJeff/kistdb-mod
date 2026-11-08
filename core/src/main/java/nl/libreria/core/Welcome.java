@@ -89,7 +89,7 @@ public final class Welcome {
 		Window w = Window.of(Ui.text("Help", ChatFormatting.WHITE).withStyle(ChatFormatting.BOLD));
 		w.text(Ui.text("Everything works with a normal Minecraft: nothing to install.", ChatFormatting.GRAY));
 		w.text(line("Libreria", key("key.quickActions", ChatFormatting.YELLOW),
-				"everything in four places: Items, Land & places, Progress and You. Also in the pause menu."));
+				"everything in three places: Progress, Land & places and You (your items and chests too). Also in the pause menu."));
 		w.text(line("Your items", key("key.inventory", ChatFormatting.YELLOW),
 				"then right-click the magnifying glass beside the window: search your inventory and your chests."));
 		w.text(line("Put away", key("key.inventory", ChatFormatting.YELLOW),
@@ -110,7 +110,7 @@ public final class Welcome {
 	public static void commands(ServerPlayer p) {
 		Window w = Window.path("Help", "Commands");
 		w.text(Component.empty().append(command("/l – the start screen (also /lib)")).append("\n")
-				.append(command("/l items · land · progress · me – straight to a page")).append("\n")
+				.append(command("/l progress · land · me · top – straight to a page")).append("\n")
 				.append(command("/l settings · start · help – settings, this guide, this list")));
 		for (Domain d : Domain.values()) {
 			List<String> lines = new java.util.ArrayList<>();

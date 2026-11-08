@@ -22,7 +22,7 @@ import nl.libreria.core.dialog.Window;
  */
 final class Describe {
 	static final int MAX = 120, OWN = 0xF2F2F2, BY = 0x6E6E6E;
-	static final nl.libreria.core.Tips.Tip TIP = nl.libreria.core.Tips.register("describe", nl.libreria.core.Domain.ITEMS, Items.ANVIL,
+	static final nl.libreria.core.Tips.Tip TIP = nl.libreria.core.Tips.register("describe", nl.libreria.core.Domain.YOU, Items.ANVIL,
 			"Write on your gear", "Hold it, sneak and right-click an anvil:", "your own words in its tooltip, for a level.");
 
 	private Describe() {

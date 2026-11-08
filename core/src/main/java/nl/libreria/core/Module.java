@@ -11,7 +11,7 @@ import net.minecraft.world.item.Item;
 
 /**
  * A Libreria module (ChestsMod, ToolsMod…): what an operator installs. Players never see the module itself: its
- * buttons and settings land in one of the four {@link Domain}s (Items, Land &amp; places, Progress, You), in a group
+ * buttons and settings land in one of the three {@link Domain}s (Land &amp; places, Progress, You), in a group
  * with a player-friendly name. A module registers itself at startup and gets its place in the start screen, the
  * settings and (for operators) the server settings for free.
  */
@@ -67,7 +67,7 @@ public final class Module {
 		this.section = name;
 	}
 
-	/** Where this module's settings show up for players, e.g. {@code in(Domain.ITEMS, "Tools")}. */
+	/** Where this module's settings show up for players, e.g. {@code in(Domain.YOU, "Tools")}. */
 	public Module in(Domain domain, String section) {
 		this.domain = domain;
 		this.section = section;

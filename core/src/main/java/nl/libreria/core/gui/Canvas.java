@@ -93,6 +93,29 @@ public final class Canvas {
 		return this;
 	}
 
+	/**
+	 * A thin bar (2 px) in a list row, under its text (draw the row's text a pixel higher: at the row's top + 4): from
+	 * {@code x}, {@code width} wide, a dark track filled for {@code fraction} in {@code rgb}.
+	 */
+	public Canvas thin(int x, int row, int width, double fraction, int rgb) {
+		if (!Glyphs.has("thin.m1") || width <= 0) return this;
+		move(x);
+		this.out.append(Component.literal(Glyphs.tiles("thin.m", width)).withStyle(s -> s.withFont(row(row)).withColor(TextColor.fromRgb(TRACK))));
+		this.x += width;
+		int fill = (int) Math.round(Math.max(0, Math.min(1, fraction)) * width);
+		// a sliver of colour as soon as there is anything at all
+		if (fraction > 0 && fill == 0) fill = 1;
+		if (fill > 0) {
+			move(x);
+			this.out.append(Component.literal(Glyphs.tiles("thin.m", fill)).withStyle(s -> s.withFont(row(row)).withColor(TextColor.fromRgb(rgb))));
+			this.x += fill;
+		}
+		return this;
+	}
+
+	/** The empty part of a thin bar. */
+	private static final int TRACK = 0x34373E;
+
 	/** Text with its top at ({@code x}, {@code y}), with a soft shadow. */
 	public Canvas text(String text, int x, int y, int rgb) {
 		return text(Component.literal(clean(text)), x, y, rgb, true);

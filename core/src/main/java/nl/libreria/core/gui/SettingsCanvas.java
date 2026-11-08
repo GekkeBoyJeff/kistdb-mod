@@ -18,7 +18,7 @@ import nl.libreria.core.Start;
 import nl.libreria.core.Ui;
 
 /**
- * Settings as a window of our own. The first page lists the four places (and, for operators, the server settings);
+ * Settings as a window of our own. The first page lists the three places (and, for operators, the server settings);
  * a place's page lists its groups with their settings: a switch you flip with a click, a choice you click through
  * (right-click goes back), and buttons to the screens that go with a group. A change counts at once; the tooltip of
  * each row says what it does.
@@ -30,7 +30,7 @@ public final class SettingsCanvas extends CanvasWindow {
 	/** Rows for the list (the hotbar row is for Back and the page buttons). */
 	private static final int LIST_ROWS = 9;
 
-	/** null: the first page (the four places). */
+	/** null: the first page (the three places). */
 	private final Domain domain;
 	private final Consumer<ServerPlayer> back;
 	private int page;
@@ -42,7 +42,7 @@ public final class SettingsCanvas extends CanvasWindow {
 		this.page = page;
 	}
 
-	/** Settings: the four places. */
+	/** Settings: the three places. */
 	public static void open(ServerPlayer p) {
 		new SettingsCanvas(p, null, Start::open, 0).show();
 	}

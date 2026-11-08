@@ -149,6 +149,56 @@ public final class Profile {
 			return n;
 		}
 
+		/** Is this live (the player is online) rather than read from their file? */
+		public boolean live() {
+			return this.online != null;
+		}
+
+		/**
+		 * Any statistic by its type and key: {@code stat("used", "minecraft:bread")}, {@code stat("crafted", …)},
+		 * {@code stat("mined", "minecraft:diamond_ore")}, {@code stat("killed", "minecraft:zombie")}.
+		 */
+		public long stat(String type, String key) {
+			Identifier t = Identifier.tryParse(type.contains(":") ? type : "minecraft:" + type);
+			Identifier k = Identifier.tryParse(key.contains(":") ? key : "minecraft:" + key);
+			if (t == null || k == null) return 0;
+			if (this.online != null) return live(this.online, t, k);
+			return number(section(t.toString()), k.toString());
+		}
+
+		/** Everything counted under one type ({@code "used"} → every item and how often), as "namespace:path" → count. */
+		public java.util.Map<String, Long> all(String type) {
+			Identifier t = Identifier.tryParse(type.contains(":") ? type : "minecraft:" + type);
+			java.util.Map<String, Long> out = new java.util.HashMap<>();
+			if (t == null) return out;
+			if (this.online != null) {
+				var st = BuiltInRegistries.STAT_TYPE.getValue(t);
+				if (st != null) collect(this.online, st, out);
+				return out;
+			}
+			JsonObject o = section(t.toString());
+			if (o != null) for (var e : o.entrySet()) out.put(e.getKey(), number(o, e.getKey()));
+			return out;
+		}
+
+		private static <T> void collect(ServerPlayer p, net.minecraft.stats.StatType<T> type, java.util.Map<String, Long> out) {
+			for (T value : type.getRegistry()) {
+				int v = p.getStats().getValue(type, value);
+				if (v != 0) {
+					Identifier id = type.getRegistry().getKey(value);
+					if (id != null) out.put(id.toString(), (long) v);
+				}
+			}
+		}
+
+		@SuppressWarnings("unchecked")
+		private static <T> long live(ServerPlayer p, Identifier type, Identifier key) {
+			net.minecraft.stats.StatType<T> t = (net.minecraft.stats.StatType<T>) BuiltInRegistries.STAT_TYPE.getValue(type);
+			if (t == null || !t.getRegistry().containsKey(key)) return 0;
+			T value = t.getRegistry().getValue(key);
+			return value == null ? 0 : p.getStats().getValue(t, value);
+		}
+
 		private @Nullable JsonObject section(String name) {
 			if (this.file == null || !(this.file.get("stats") instanceof JsonObject stats)) return null;
 			return stats.get(name) instanceof JsonObject o ? o : null;

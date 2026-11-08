@@ -673,6 +673,26 @@ def cards():
         glyphs[name] = [cp, im.width + 1]
     sheet.save(os.path.join(OUT, 'assets', NS, 'textures/font/ui/bar_fill.png'))
     card_sheets.append({'file': f'{NS}:font/ui/bar_fill.png', 'height': h, 'chars': [chars], 'top': 4})
+    # A thin bar under the text of a list row ("thin.m…"): 2 px high, 13 px below the row card's top (the text sits a
+    # pixel higher above it), tinted: once in a dark shade for the track, then in the colour for how far
+    h = 2
+    cells = []
+    for w in (64, 32, 16, 8, 4, 2, 1):
+        im = Image.new('RGBA', (w, h), (0, 0, 0, 0))
+        for x in range(w):
+            put(im, x, 0, (235, 235, 235, 255))
+            put(im, x, 1, (170, 170, 170, 255))
+        cells.append((f'thin.m{w}', im))
+    cw = max(im.width for _, im in cells)
+    sheet = Image.new('RGBA', (cw * len(cells), h), (0, 0, 0, 0))
+    chars = ''
+    for i, (name, im) in enumerate(cells):
+        sheet.paste(im, (i * cw, 0))
+        cp = next_cp()
+        chars += chr(cp)
+        glyphs[name] = [cp, im.width + 1]
+    sheet.save(os.path.join(OUT, 'assets', NS, 'textures/font/ui/bar_thin.png'))
+    card_sheets.append({'file': f'{NS}:font/ui/bar_thin.png', 'height': h, 'chars': [chars], 'top': 13})
 
 
 def window_panel():

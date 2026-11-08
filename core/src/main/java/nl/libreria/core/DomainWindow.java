@@ -18,8 +18,10 @@ import nl.libreria.core.gui.SettingsWindow;
 public final class DomainWindow extends CanvasWindow {
 	/** Rows for entries: the six of the chest and the three of the inventory (the hotbar row is for Back). */
 	private static final int[] ALL_ROWS = {0, 1, 2, 3, 4, 5, 6, 7, 8};
-	/** Below the card at the top (You and Progress). */
+	/** Below the card at the top (Progress without the pack's Progress window). */
 	private static final int[] UNDER_CARD = {2, 3, 4, 5, 6, 7, 8};
+	/** The page of rows shown, when there are more than fit. */
+	private int page;
 
 	private final Domain domain;
 	/** A short value right of a row's name ("24%" for the server goal), by the name of the row. */
@@ -62,20 +64,26 @@ public final class DomainWindow extends CanvasWindow {
 						open(pl, this.domain);
 					}));
 		}
-		int[] rows = rowsFor();
-		return out.size() > rows.length ? out.subList(0, rows.length) : out;
+		return out;
 	}
 
-	/** The two lines of the card at the top of You and Progress, or null for the other places. */
+	/** The rows of this page. */
+	private List<Row> pageRows() {
+		List<Row> all = rows();
+		int per = rowsFor().length;
+		this.page = Math.max(0, Math.min(this.page, pages(all) - 1));
+		int from = this.page * per;
+		return all.subList(Math.min(from, all.size()), Math.min(from + per, all.size()));
+	}
+
+	private int pages(List<Row> all) {
+		int per = rowsFor().length;
+		return Math.max(1, (all.size() + per - 1) / per);
+	}
+
+	/** The two lines of the card at the top of Progress (without its own window), or null for the other places. */
 	private String[] card() {
 		switch (this.domain) {
-			case YOU -> {
-				String name = Nameplate.displayName(this.player).getString();
-				Component title = Services.progress().map(pr -> pr.title(this.player)).orElse(null);
-				int hours = this.player.getStats().getValue(net.minecraft.stats.Stats.CUSTOM, net.minecraft.stats.Stats.PLAY_TIME) / 72000;
-				return new String[] {name, title == null ? "" : title.getString(),
-						hours + (hours == 1 ? " hour" : " hours") + " on this server", ""};
-			}
 			case PROGRESS -> {
 				Services.CardData d = Services.progress().map(pr -> pr.cardData(this.player)).orElse(null);
 				if (d == null) return null;
@@ -99,18 +107,17 @@ public final class DomainWindow extends CanvasWindow {
 		int x = 8 + nl.libreria.core.gui.Glyphs.width(Component.literal("Libreria"));
 		c.text(" › ", x, 5, StartWindow.MUTED);
 		c.text(this.domain.label, x + nl.libreria.core.gui.Glyphs.width(Component.literal(" › ")), 5, this.domain.rgb);
-		List<Row> rows = rows();
+		List<Row> rows = pageRows();
 		int[] ROWS = rowsFor();
 		String[] card = card();
 		if (card != null) {
 			// The card at the top: who you are (You) or how far you are (Progress); not a button
 			int x0 = Canvas.cellX(0) + Canvas.CARD_MARGIN + 6, x1 = Canvas.cellX(9) - Canvas.CARD_MARGIN - 6;
 			c.card(0, 0, 9, 2, this.domain.rgb);
-			int titleColor = Services.progress().map(pr -> pr.titleColor(this.player)).orElse(-1);
 			// Two lines, each with something on the left and (maybe) something on the right
 			int r1 = card[1].isEmpty() ? 0 : Math.min(76, nl.libreria.core.gui.Glyphs.width(Component.literal(card[1])) + 8);
 			int r2 = card[3].isEmpty() ? 0 : Math.min(76, nl.libreria.core.gui.Glyphs.width(Component.literal(card[3])) + 8);
-			if (r1 > 0) c.right(Canvas.fit(card[1], r1 - 8), x1, Canvas.cellY(0) + 9, this.domain == Domain.YOU && titleColor >= 0 ? titleColor : StartWindow.MUTED);
+			if (r1 > 0) c.right(Canvas.fit(card[1], r1 - 8), x1, Canvas.cellY(0) + 9, StartWindow.MUTED);
 			c.text(Canvas.fit(card[0], x1 - x0 - r1), x0, Canvas.cellY(0) + 9, StartWindow.TEXT);
 			if (r2 > 0) c.right(Canvas.fit(card[3], r2 - 8), x1, Canvas.cellY(0) + 20, StartWindow.MUTED);
 			c.text(Canvas.fit(card[2], x1 - x0 - r2), x0, Canvas.cellY(0) + 20, StartWindow.MUTED);
@@ -132,8 +139,17 @@ public final class DomainWindow extends CanvasWindow {
 			c.text("›", right - 3, y, StartWindow.MUTED);
 		}
 		boolean settings = SettingsWindow.has(this.domain);
-		small(c, 0, 9, settings ? 4 : 9, "Back");
-		if (settings) small(c, 4, 9, 5, "Settings");
+		int pages = pages(rows());
+		if (pages > 1) {
+			small(c, 0, 9, 3, "Back");
+			if (this.page > 0) small(c, 3, 9, 1, "‹");
+			c.centred((this.page + 1) + "/" + pages, Canvas.cellX(4) + 9, Canvas.cellY(9) + 5, StartWindow.MUTED);
+			if (this.page < pages - 1) small(c, 5, 9, 1, "›");
+			if (settings) small(c, 6, 9, 3, "Settings");
+		} else {
+			small(c, 0, 9, settings ? 4 : 9, "Back");
+			if (settings) small(c, 4, 9, 5, "Settings");
+		}
 		return c;
 	}
 
@@ -144,7 +160,7 @@ public final class DomainWindow extends CanvasWindow {
 
 	@Override
 	protected void fill() {
-		List<Row> rows = rows();
+		List<Row> rows = pageRows();
 		int[] ROWS = rowsFor();
 		for (int i = 0; i < rows.size(); i++) {
 			Row r = rows.get(i);
@@ -153,12 +169,25 @@ public final class DomainWindow extends CanvasWindow {
 			icon(0, ROWS[i], r.icon(), name, r.lore(), r.action());
 		}
 		boolean settings = SettingsWindow.has(this.domain);
-		area(0, 9, settings ? 4 : 9, 1, Ui.text("Back", ChatFormatting.WHITE).withStyle(ChatFormatting.BOLD),
-				lore("To the start screen."), Start::open);
-		if (settings) {
-			area(4, 9, 5, 1, Ui.text("Settings", ChatFormatting.WHITE).withStyle(ChatFormatting.BOLD),
-					lore("Your settings for " + this.domain.label + "."), pl -> SettingsWindow.open(pl, this.domain, q -> open(q, this.domain)));
+		Component back = Ui.text("Back", ChatFormatting.WHITE).withStyle(ChatFormatting.BOLD);
+		Component set = Ui.text("Settings", ChatFormatting.WHITE).withStyle(ChatFormatting.BOLD);
+		java.util.function.Consumer<ServerPlayer> toSettings = pl -> SettingsWindow.open(pl, this.domain, q -> open(q, this.domain));
+		int pages = pages(rows());
+		if (pages > 1) {
+			area(0, 9, 3, 1, back, lore("To the start screen."), Start::open);
+			if (this.page > 0) area(3, 9, 1, 1, Ui.text("Previous page", ChatFormatting.WHITE), List.of(), pl -> turn(-1));
+			if (this.page < pages - 1) area(5, 9, 1, 1, Ui.text("Next page", ChatFormatting.WHITE), List.of(), pl -> turn(1));
+			if (settings) area(6, 9, 3, 1, set, lore("Your settings for " + this.domain.label + "."), toSettings);
+		} else {
+			area(0, 9, settings ? 4 : 9, 1, back, lore("To the start screen."), Start::open);
+			if (settings) area(4, 9, 5, 1, set, lore("Your settings for " + this.domain.label + "."), toSettings);
 		}
+	}
+
+	private void turn(int step) {
+		this.page += step;
+		Ui.click(this.player);
+		refresh();
 	}
 
 	/** The first sentence (or the whole text if it has no full stop), for the hint on the right of a row. */

@@ -195,7 +195,7 @@ final class Mockups {
 
 		// The window: presets (they apply at once, the stand behind it changes), the switches, and fine-tuning
 		server.runOnServer(s -> {
-			Window w = Window.of(nl.libreria.core.Domain.ITEMS, "Armour stand");
+			Window w = Window.of(nl.libreria.core.Domain.YOU, "Armour stand");
 			w.item(new ItemStack(Items.ARMOR_STAND), Ui.text("Every click shows at once on the stand. Fine-tune each part, "
 					+ "or copy this pose and give it to another stand.", ChatFormatting.GRAY));
 			w.columns(2);
@@ -218,7 +218,7 @@ final class Mockups {
 		Screens.shot(ctx, "mock_stand_window");
 		Screens.closeAll(ctx, server, player);
 		server.runOnServer(s -> {
-			Window w = Window.of(nl.libreria.core.Domain.ITEMS, "Armour stand", "Fine-tune");
+			Window w = Window.of(nl.libreria.core.Domain.YOU, "Armour stand", "Fine-tune");
 			w.choice("part", Ui.text("Part", ChatFormatting.WHITE), List.of("head", "body", "rarm", "larm", "rleg", "lleg"),
 					List.of(Ui.text("Head", ChatFormatting.AQUA), Ui.text("Body", ChatFormatting.AQUA), Ui.text("Right arm", ChatFormatting.AQUA),
 							Ui.text("Left arm", ChatFormatting.AQUA), Ui.text("Right leg", ChatFormatting.AQUA), Ui.text("Left leg", ChatFormatting.AQUA)), "rarm");

@@ -174,8 +174,10 @@ public final class ProfileWindow extends CanvasWindow {
 			c.right(Canvas.fit(f[1], width - 12 - 40), left + width - 6, y, StartWindow.MUTED);
 			c.text(Canvas.fit(f[0], width - 12 - vw - 8), left + 6, y, StartWindow.TEXT);
 		}
-		c.card(0, 9, 9, 1, StartWindow.NEUTRAL);
-		c.centred("Back", Canvas.cellX(0) + 81, Canvas.cellY(9) + 5, StartWindow.TEXT);
+		c.card(0, 9, 4, 1, StartWindow.NEUTRAL);
+		c.centred("Back", Canvas.cellX(0) + 36, Canvas.cellY(9) + 5, StartWindow.TEXT);
+		c.card(4, 9, 5, 1, StartWindow.NEUTRAL);
+		c.centred("Progress", Canvas.cellX(4) + 45, Canvas.cellY(9) + 5, StartWindow.TEXT);
 		return c;
 	}
 
@@ -241,6 +243,10 @@ public final class ProfileWindow extends CanvasWindow {
 			area(1, rows[i], 8, 1, label, lore, click);
 			icon(0, rows[i], this.icons.get(i), label, lore, click);
 		}
-		area(0, 9, 9, 1, Ui.text("Back", ChatFormatting.WHITE).withStyle(ChatFormatting.BOLD), List.of(), this.back);
+		area(0, 9, 4, 1, Ui.text("Back", ChatFormatting.WHITE).withStyle(ChatFormatting.BOLD), List.of(), this.back);
+		Consumer<ServerPlayer> reopen = q -> open(q, this.who.id(), this.via, this.back);
+		area(4, 9, 5, 1, Ui.text("Progress", ChatFormatting.WHITE).withStyle(ChatFormatting.BOLD),
+				List.of(Ui.text(own() ? "Everything you can complete." : "How far " + this.who.label() + " is.", ChatFormatting.GRAY)),
+				q -> ProgressWindow.open(q, this.who.id(), "Profile", reopen));
 	}
 }

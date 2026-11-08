@@ -32,9 +32,9 @@ final class LoreBook {
 		Dialogs.on("lore_open", (p, v) -> open(p));
 		Dialogs.on("lore_finds", (p, v) -> finds(p));
 		Dialogs.on("lore_story", (p, v) -> story(p, v.text("story", "")));
-		InfoMod.MODULE.hubEntry(Domain.ITEMS, 85, Items.WRITTEN_BOOK, "Lore book", LoreBook::open,
+		InfoMod.MODULE.hubEntry(Domain.PROGRESS, 85, Items.WRITTEN_BOOK, "Lore book", LoreBook::open,
 				"Every story you found a part of, and everything you found, to read again.");
-		InfoMod.MODULE.commands(Domain.ITEMS, "/lore – the lore book: stories and everything you found");
+		InfoMod.MODULE.commands(Domain.PROGRESS, "/lore – the lore book: stories and everything you found");
 		net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback.EVENT.register((dispatcher, registry, env) ->
 				dispatcher.register(Commands.literal("lore").executes(ctx -> {
 					open(ctx.getSource().getPlayerOrException());

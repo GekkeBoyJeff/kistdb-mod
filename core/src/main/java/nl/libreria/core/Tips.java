@@ -22,7 +22,7 @@ import nl.libreria.core.gui.TopCard;
  * Every tip can be read back under Help → Tips, so nothing is lost by missing one.
  *
  * <pre>{@code
- * static final Tips.Tip SORT = Tips.register("chest_sort", Domain.ITEMS, Items.CHEST, "Sorting a chest",
+ * static final Tips.Tip SORT = Tips.register("chest_sort", Domain.YOU, Items.CHEST, "Sorting a chest",
  *         "Double-click an empty slot to sort it.", "Shift-click the ⇅ button for this chest's options.");
  * ...
  * Tips.once(player, SORT);

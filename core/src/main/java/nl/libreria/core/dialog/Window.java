@@ -82,14 +82,14 @@ public final class Window {
 	}
 
 	/**
-	 * A window inside one of the four domains, titled like a breadcrumb: "Land &amp; places › Journal". The domain is
+	 * A window inside one of the three domains, titled like a breadcrumb: "Land &amp; places › Journal". The domain is
 	 * in its own colour, the page you're on in bold white. Without a path it's the domain page itself.
 	 */
 	public static Window of(nl.libreria.core.Domain domain, String... path) {
 		return new Window(crumbs(domain, path));
 	}
 
-	/** A window outside the four domains, titled like a breadcrumb: "Help › Tips". */
+	/** A window outside the three domains, titled like a breadcrumb: "Help › Tips". */
 	public static Window path(String... path) {
 		net.minecraft.network.chat.MutableComponent c = Component.empty();
 		for (int i = 0; i < path.length; i++) {

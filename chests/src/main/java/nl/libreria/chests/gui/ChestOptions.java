@@ -38,7 +38,7 @@ public final class ChestOptions {
 		boolean claims = Services.land().isPresent();
 
 		long items = entry.items.values().stream().mapToLong(Integer::longValue).sum();
-		Window w = Window.of(nl.libreria.core.Domain.ITEMS, cap(kind) + " options");
+		Window w = Window.of(nl.libreria.core.Domain.YOU, cap(kind) + " options");
 		w.item(icon(entry), Ui.text("At " + entry.x + " " + entry.y + " " + entry.z + " · " + Fmt.number(items)
 				+ (items == 1 ? " item" : " items"), ChatFormatting.GRAY));
 		if (own) {

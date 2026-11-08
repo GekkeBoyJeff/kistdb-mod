@@ -208,7 +208,7 @@ final class Weapons {
 		nl.libreria.core.Tips.once(p, TIP);
 	}
 
-	static final nl.libreria.core.Tips.Tip TIP = nl.libreria.core.Tips.register("weapon_story", nl.libreria.core.Domain.ITEMS,
+	static final nl.libreria.core.Tips.Tip TIP = nl.libreria.core.Tips.register("weapon_story", nl.libreria.core.Domain.PROGRESS,
 			Items.IRON_SWORD, "Weapons with a story", "Hover it to read its story: foes, bosses, days.",
 			"The colour of its name shows how good its enchantments are.");
 
