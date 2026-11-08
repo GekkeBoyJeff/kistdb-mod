@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "minecraft:armor_stand",
+    "minecraft:book"
+  ],
+  "result": {
+    "id": "minecraft:armor_stand",
+    "components": {
+      "minecraft:custom_data": {"libreria_showcase": "mannequin"},
+      "minecraft:item_name": "Mannequin",
+      "minecraft:lore": [
+        {"text": "Dress it in a whole story: armour,", "color": "gray", "italic": false},
+        {"text": "both hands, its back, hips and feet.", "color": "gray", "italic": false},
+        {"text": "Right-click it: read its stories.", "color": "gray", "italic": false}
+      ]
+    }
+  }
+}

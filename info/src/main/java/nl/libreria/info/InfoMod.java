@@ -128,6 +128,29 @@ public final class InfoMod implements ModInitializer {
 		Stand.showcase(stand, true);
 	}
 
+	/** For the screenshots: a mannequin wearing every part of a story, facing {@code yaw}. */
+	public static @org.jetbrains.annotations.Nullable net.minecraft.world.entity.decoration.Mannequin debugMannequin(
+			net.minecraft.server.level.ServerLevel level, net.minecraft.core.BlockPos at, float yaw, String story) {
+		return Showcase.debugMannequin(level, at, yaw, story);
+	}
+
+	/** For the screenshots: a pedestal with every part of a story on it. */
+	public static void debugPedestal(net.minecraft.server.level.ServerLevel level, net.minecraft.core.BlockPos at, float yaw, String story) {
+		Showcase.debugPedestal(level, at, yaw, story);
+	}
+
+	/** For the screenshots: the book a showcase opens (every part of the story there). */
+	public static void debugShowcaseBook(ServerPlayer p, String story) {
+		java.util.Set<Integer> all = new java.util.TreeSet<>();
+		for (Found.Text t : Found.PIECES) if (story.equals(t.story())) all.add(t.part());
+		LoreBook.story(p, story, all);
+	}
+
+	/** For the screenshots: the crafted mannequin and pedestal. */
+	public static net.minecraft.world.item.ItemStack debugShowcaseItem(String what) {
+		return Showcase.item(what);
+	}
+
 	public static void debugLoreBook(ServerPlayer p, String page) {
 		switch (page) {
 			case "story" -> LoreBook.story(p, "lantern");
@@ -185,6 +208,7 @@ public final class InfoMod implements ModInitializer {
 		VillagerNames.init();
 		Weapons.init();
 		Found.init();
+		Showcase.init();
 		InfoCollections.init();
 		Describe.init();
 		Details.init();
@@ -223,6 +247,7 @@ public final class InfoMod implements ModInitializer {
 			if (tick % 20 == 11) Pets.tick(server, tick);
 			if (tick % 40 == 13) Weapons.tick(server);
 			if (tick % 40 == 29) Found.tick(server);
+			if (tick % 40 == 31) Showcase.tick(server);
 		});
 
 		UseEntityCallback.EVENT.register((player, world, hand, entity, hit) -> {

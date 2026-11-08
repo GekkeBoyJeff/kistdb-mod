@@ -31,7 +31,7 @@ final class LoreBook {
 		// The links in the book
 		Dialogs.on("lore_open", (p, v) -> open(p));
 		Dialogs.on("lore_finds", (p, v) -> finds(p));
-		Dialogs.on("lore_story", (p, v) -> story(p, v.text("story", "")));
+		Dialogs.on("lore_story", (p, v) -> story(p, v.text("story", ""), parts(v.text("shown", ""))));
 		InfoMod.MODULE.hubEntry(Domain.PROGRESS, 85, Items.WRITTEN_BOOK, "Lore book", LoreBook::open,
 				"Every story you found a part of, and everything you found, to read again.");
 		InfoMod.MODULE.commands(Domain.PROGRESS, "/lore – the lore book: stories and everything you found");
@@ -184,8 +184,17 @@ final class LoreBook {
 
 	/** One story: what it is, its parts (a link to each), then a page per part, the missing ones too. */
 	static void story(ServerPlayer p, String story) {
+		story(p, story, Set.of());
+	}
+
+	/**
+	 * One story, with these parts readable too ({@code shown}: what a mannequin or pedestal holds, whether or not you
+	 * found them yourself).
+	 */
+	static void story(ServerPlayer p, String story, Set<Integer> shown) {
 		Found.Seen seen = Found.SEEN.get(p);
-		Set<Integer> got = seen.parts.getOrDefault(story, Set.of());
+		Set<Integer> got = new java.util.HashSet<>(seen.parts.getOrDefault(story, Set.of()));
+		got.addAll(shown);
 		List<Found.Text> parts = new ArrayList<>();
 		for (Found.Text t : Found.PIECES) if (story.equals(t.story())) parts.add(t);
 		if (parts.isEmpty() || got.isEmpty()) {
@@ -194,17 +203,25 @@ final class LoreBook {
 		}
 		// (written twice: the second time the list knows on which page each part starts)
 		int[] at = new int[parts.size()];
-		storyBook(seen, story, parts, got, at);
-		storyBook(seen, story, parts, got, at).open(p, parts.get(0).title());
+		storyBook(seen, story, parts, got, at, !shown.isEmpty());
+		storyBook(seen, story, parts, got, at, !shown.isEmpty()).open(p, parts.get(0).title());
 	}
 
-	static Book storyBook(Found.Seen seen, String story, List<Found.Text> parts, Set<Integer> got, int[] at) {
+	static Book storyBook(Found.Seen seen, String story, List<Found.Text> parts, Set<Integer> got, int[] at, boolean showcase) {
 		Found.Text first = parts.get(0);
 		Book b = Book.create();
 		b.centred(first.title(), st(Book.TITLE).withBold(true));
 		b.centred("a story in " + first.parts() + " parts", st(Book.MUTED));
-		b.centred(got.size() >= first.parts() ? "You have all of them!" : "You have " + got.size() + " of them.",
-				st(got.size() >= first.parts() ? Book.ACCENT : Book.INK));
+		String intro = Found.INTROS.get(story);
+		if (intro != null) {
+			// What it's about first, on a page of its own: then the parts
+			b.gap();
+			b.text(intro, st(Book.INK).withItalic(true));
+			b.newPage();
+		}
+		String have = showcase ? (got.size() >= first.parts() ? "All of them are here!" : got.size() + " of them here.")
+				: got.size() >= first.parts() ? "You have all of them!" : "You have " + got.size() + " of them.";
+		b.centred(have, st(got.size() >= first.parts() ? Book.ACCENT : Book.INK));
 		b.gap();
 		for (int i = 0; i < parts.size(); i++) {
 			Found.Text t = parts.get(i);
@@ -292,5 +309,44 @@ final class LoreBook {
 		int n = 0;
 		for (Map.Entry<String, Set<Integer>> e : Found.SEEN.get(p).parts.entrySet()) if (!e.getValue().isEmpty()) n++;
 		return n;
+	}
+
+	/** "2,5,7" → {2, 5, 7}. */
+	static Set<Integer> parts(String list) {
+		Set<Integer> out = new java.util.HashSet<>();
+		for (String x : list.split(",")) {
+			try {
+				if (!x.isBlank()) out.add(Integer.parseInt(x.trim()));
+			} catch (NumberFormatException ignored) {
+				// not a number
+			}
+		}
+		return out;
+	}
+
+	/**
+	 * The stories of what a mannequin or pedestal holds: one story, its book (the parts it holds readable); several, a
+	 * short book with a link to each.
+	 */
+	static void showcase(ServerPlayer p, String what, Map<String, Set<Integer>> stories) {
+		if (stories.size() == 1) {
+			var e = stories.entrySet().iterator().next();
+			story(p, e.getKey(), e.getValue());
+			return;
+		}
+		Book b = Book.create();
+		b.centred("On this " + what, st(Book.TITLE).withBold(true));
+		b.centred(stories.size() + " stories", st(Book.MUTED));
+		b.gap();
+		for (var e : stories.entrySet()) {
+			Found.Text last = Found.STORIES.get(e.getKey());
+			if (last == null) continue;
+			CompoundTag which = new CompoundTag();
+			which.putString("story", e.getKey());
+			which.putString("shown", String.join(",", e.getValue().stream().sorted().map(String::valueOf).toList()));
+			b.text(last.title(), Book.action(st(Book.LINK), "lore_story", which));
+			b.text("   " + e.getValue().size() + " of " + last.parts() + " parts", st(Book.MUTED));
+		}
+		b.open(p, "On this " + what);
 	}
 }

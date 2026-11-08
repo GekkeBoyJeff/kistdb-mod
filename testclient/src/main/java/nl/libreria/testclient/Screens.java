@@ -682,6 +682,47 @@ public final class Screens implements FabricClientGameTest {
 				ctx.getInput().lookAt(0, 0);
 			});
 
+			// A mannequin wearing all of a story (a hood and six things to hold: hands, back, hips), from the front with its
+			// card, from behind and from the side; then a pedestal with the six swords of an oath; then the book they open
+			safe("showcase", () -> {
+				run(server, "kill @e[type=minecraft:mannequin]", "kill @e[type=minecraft:armor_stand]");
+				server.runOnServer(sv -> nl.libreria.info.InfoMod.debugMannequin((ServerLevel) player.level(), new BlockPos(x, y, z + 3), 180f, "lantern"));
+				ctx.waitTicks(10);
+				ctx.getInput().lookAt(new BlockPos(x, y + 1, z + 3));
+				ctx.waitTicks(16);
+				noToasts(ctx);
+				ctx.takeScreenshot("mannequin_front");
+				run(server, f("tp @a %d %d %d 180 10", x, y, z + 6));
+				ctx.waitTicks(5);
+				ctx.getInput().lookAt(new BlockPos(x, y + 1, z + 3));
+				ctx.waitTicks(12);
+				ctx.takeScreenshot("mannequin_back");
+				run(server, f("tp @a %d %d %d 90 10", x + 3, y, z + 3));
+				ctx.waitTicks(5);
+				ctx.getInput().lookAt(new BlockPos(x, y + 1, z + 3));
+				ctx.waitTicks(12);
+				ctx.takeScreenshot("mannequin_side");
+				run(server, "kill @e[type=minecraft:mannequin]", f("tp @a %d %d %d", x, y, z));
+				server.runOnServer(sv -> nl.libreria.info.InfoMod.debugPedestal((ServerLevel) player.level(), new BlockPos(x, y, z + 3), 180f, "charred"));
+				ctx.waitTicks(10);
+				ctx.getInput().lookAt(new BlockPos(x, y, z + 3));
+				ctx.waitTicks(16);
+				noToasts(ctx);
+				ctx.takeScreenshot("pedestal_front");
+				run(server, f("tp @a %d %d %d 135 25", x + 2, y, z + 1));
+				ctx.waitTicks(5);
+				ctx.getInput().lookAt(new BlockPos(x, y + 1, z + 3));
+				ctx.waitTicks(12);
+				ctx.takeScreenshot("pedestal_angle");
+				run(server, f("setblock %d %d %d minecraft:air", x, y, z + 3), f("tp @a %d %d %d", x, y, z));
+				ctx.waitTicks(50);
+				run(server, "kill @e[type=minecraft:item]");
+				server.runOnServer(sv -> nl.libreria.info.InfoMod.debugShowcaseBook(player, "lantern"));
+				ctx.waitTicks(10);
+				ctx.takeScreenshot("showcase_book");
+				close(ctx, server, player);
+				ctx.getInput().lookAt(0, 0);
+			});
 
 			// Tooltips: found gear with its text (a part of a story, named), what each enchantment does and what it adds
 			// to the attack damage; a book; a pickaxe with its owner's words; then the same sword with the details off

@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "minecraft:smooth_stone",
+    "minecraft:item_frame",
+    "minecraft:book"
+  ],
+  "result": {
+    "id": "minecraft:polished_deepslate_wall",
+    "components": {
+      "minecraft:custom_data": {"libreria_showcase": "pedestal"},
+      "minecraft:item_name": "Story Pedestal",
+      "minecraft:lore": [
+        {"text": "Up to eight things on top, for", "color": "gray", "italic": false},
+        {"text": "stories of one kind of thing.", "color": "gray", "italic": false},
+        {"text": "Right-click it: read its stories.", "color": "gray", "italic": false}
+      ]
+    }
+  }
+}

@@ -132,6 +132,8 @@ final class Found {
 	static final List<Family> FAMILIES = new ArrayList<>();
 	/** Story id → title and number of parts. */
 	static final Map<String, Text> STORIES = new LinkedHashMap<>();
+	/** Story id → its introduction ("> " lines under the story's "@" line): the first page of its book, and the card of a showcase. */
+	static final Map<String, String> INTROS = new HashMap<>();
 
 	/**
 	 * The things that are really found (in loot, or on monsters): a story part is always one of these, so every part can
@@ -203,6 +205,7 @@ final class Found {
 		PIECES.clear();
 		FAMILIES.clear();
 		STORIES.clear();
+		INTROS.clear();
 		Optional<Path> dir = FabricLoader.getInstance().getModContainer("libreria_info").flatMap(c -> c.findPath("libreria/found"));
 		if (dir.isEmpty()) {
 			Libreria.LOG.warn("Found: no texts in the mod");
@@ -295,6 +298,10 @@ final class Found {
 				story = s[0].trim();
 				title = s.length > 1 ? s[1].trim() : story;
 				parts = new ArrayList<>();
+				continue;
+			}
+			if (line.startsWith(">") && story != null) {
+				INTROS.merge(story, line.substring(1).strip(), (a, b) -> a + " " + b);
 				continue;
 			}
 			String[] p = line.split("\\|", 3);

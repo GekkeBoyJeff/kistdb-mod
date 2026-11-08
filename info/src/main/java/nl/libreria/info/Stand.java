@@ -1,7 +1,9 @@
 package nl.libreria.info;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.List;
 import java.util.Set;
 import net.minecraft.ChatFormatting;
@@ -43,95 +45,100 @@ final class Stand {
 	}
 
 	static @Nullable Look.Card card(ArmorStand st, boolean all) {
-		List<ItemStack> told = new ArrayList<>();
-		for (EquipmentSlot slot : SLOTS) {
-			ItemStack s = st.getItemBySlot(slot);
-			if (s.isEmpty()) continue;
-			// (a story part from before stories were tied to their items gets its right text first)
-			if (Found.has(s, Found.STAMP)) Found.fix(null, s, st.level().registryAccess());
-			if (told(s)) told.add(s);
-		}
+		List<ItemStack> items = new ArrayList<>();
+		for (EquipmentSlot slot : SLOTS) items.add(st.getItemBySlot(slot));
 		Component own = st.hasCustomName() ? st.getCustomName() : null;
-		if (told.isEmpty()) {
-			if (!all) return null;
-			return new Look.Card(new ItemStack(Items.ARMOR_STAND), -1,
-					Component.literal(st.getDisplayName().getString()).withStyle(ChatFormatting.WHITE, ChatFormatting.BOLD),
-					Component.literal(dressed(st) ? "Nothing on it has a story" : "Entity").withStyle(ChatFormatting.GRAY), List.of());
-		}
-		// One story all over (a set put together): the story is the name of the card
-		Set<String> stories = new LinkedHashSet<>();
-		boolean allParts = true;
-		for (ItemStack s : told) {
-			String story = stamp(s).getStringOr("story", "");
-			if (story.isEmpty()) allParts = false;
-			else stories.add(story);
-		}
-		boolean oneStory = allParts && stories.size() == 1;
-		Component name, sub;
-		if (oneStory) {
-			String story = stories.iterator().next();
-			Found.Text info = Found.STORIES.get(story);
-			name = Component.literal("✦ " + (info == null ? story : info.title())).withStyle(s -> s.withColor(Found.HEAD).withBold(true));
-			String parts = told.size() + (info == null ? "" : " of " + info.parts()) + " parts";
-			sub = Component.literal((own == null ? "" : own.getString() + " · ") + parts).withStyle(ChatFormatting.GRAY);
-		} else {
-			name = own != null ? own.copy().withStyle(ChatFormatting.WHITE, ChatFormatting.BOLD)
-					: Component.literal("Armour stand").withStyle(ChatFormatting.WHITE, ChatFormatting.BOLD);
-			sub = Component.literal(told.size() == 1 ? "1 thing with a story" : told.size() + " things with a story").withStyle(ChatFormatting.GRAY);
-		}
-		return new Look.Card(new ItemStack(Items.ARMOR_STAND), Found.HEAD, name, sub, fit(told, oneStory));
+		Look.Card card = card(items, own, "Armour stand", new ItemStack(Items.ARMOR_STAND), st.level().registryAccess());
+		if (card != null || !all) return card;
+		return new Look.Card(new ItemStack(Items.ARMOR_STAND), -1,
+				Component.literal(st.getDisplayName().getString()).withStyle(ChatFormatting.WHITE, ChatFormatting.BOLD),
+				Component.literal(dressed(st) ? "Nothing on it has a story" : "Entity").withStyle(ChatFormatting.GRAY), List.of());
 	}
-
-	/** Where a piece was found: on a line of its own, behind its name, or left out. */
-	static final int OWN_LINE = 1, BEHIND_NAME = 2, LEFT_OUT = 0;
 
 	/**
-	 * As many rows as the card can hold: first everything, then where behind the name and wider lines, then without
-	 * where, then shorter texts.
+	 * The card of whatever shows things off (an armour stand, a mannequin, a pedestal): with one story on it, its title,
+	 * how many of its parts are there, what the story is about and the names of its parts ("???" for the missing ones);
+	 * with more, a line per story. Never the words of each thing: those are for its book. Null when nothing on it has
+	 * words of its own.
 	 */
-	static List<Look.Row> fit(List<ItemStack> told, boolean oneStory) {
-		int budget = Math.max(6, Glyphs.maxPanel - 3);
-		int[][] tries = {{40, OWN_LINE, 99}, {50, BEHIND_NAME, 99}, {50, LEFT_OUT, 99}, {50, LEFT_OUT, 3}, {50, LEFT_OUT, 2}, {50, LEFT_OUT, 1}};
-		List<Look.Row> rows = List.of();
-		for (int[] t : tries) {
-			rows = rows(told, oneStory, t[0], t[1], t[2]);
-			if (rows.size() <= budget) return rows;
-		}
-		return new ArrayList<>(rows.subList(0, budget));
-	}
-
-	static List<Look.Row> rows(List<ItemStack> told, boolean oneStory, int wrap, int where, int maxText) {
-		List<Look.Row> out = new ArrayList<>();
-		for (ItemStack s : told) {
+	static @Nullable Look.Card card(List<ItemStack> items, @Nullable Component own, String kind, ItemStack icon,
+			net.minecraft.core.RegistryAccess access) {
+		Map<String, Set<Integer>> stories = new LinkedHashMap<>();
+		List<ItemStack> loose = new ArrayList<>();
+		for (ItemStack s : items) {
+			if (s.isEmpty()) continue;
+			// (a part stamped earlier gets its right text first)
+			if (Found.has(s, Found.STAMP)) Found.fix(null, s, access);
 			CompoundTag stamp = stamp(s);
 			String story = stamp.getStringOr("story", "");
-			int part = stamp.getIntOr("part", 0);
-			MutableComponent head = s.getHoverName().copy();
-			if (head.getStyle().getColor() == null) head = head.withStyle(ChatFormatting.WHITE);
-			head = Component.empty().append(head.withStyle(st -> st.withItalic(false)));
-			if (!story.isEmpty()) {
-				Found.Text info = Found.STORIES.get(story);
-				String what = oneStory ? "part " + part : (info == null ? story : info.title()) + " · part " + part;
-				head.append(Component.literal("  " + what).withStyle(st -> st.withColor(Found.HEAD)));
-			}
-			String at = stamp.getStringOr("where", "");
-			if (where == BEHIND_NAME && !at.isEmpty()) {
-				String place = at.startsWith("Found ") ? at.substring(6) : at.substring(0, 1).toLowerCase(java.util.Locale.ROOT) + at.substring(1);
-				head.append(Component.literal("  " + place + ", day " + stamp.getIntOr("day", 0)).withStyle(st -> st.withColor(Found.WHERE)));
-			}
-			out.add(Look.Row.text(story.isEmpty() ? "chest" : "star", story.isEmpty() ? "▪" : "✦", "", head));
-			List<String> text = text(s, wrap);
-			if (text.size() > maxText) {
-				text = new ArrayList<>(text.subList(0, maxText));
-				text.set(maxText - 1, text.get(maxText - 1).replaceAll("[\\s,.;:!?]+$", "") + "…");
-			}
-			for (String l : text) out.add(Look.Row.text(Look.INDENT, " ", "", Lore.line(l, Found.TEXT, true)));
-			for (Component w : Lore.get(s, Lore.OWN)) out.add(Look.Row.text(Look.INDENT, " ", "", w.copy()));
-			if (where == OWN_LINE && !at.isEmpty()) {
-				String line = at + " · day " + stamp.getIntOr("day", 0) + (stamp.getStringOr("by", "").isEmpty() ? "" : " · " + stamp.getStringOr("by", ""));
-				out.add(Look.Row.text(Look.INDENT, " ", "", Lore.line(line, Found.WHERE, false)));
+			if (!story.isEmpty() && Found.STORIES.containsKey(story)) {
+				stories.computeIfAbsent(story, k -> new java.util.TreeSet<>()).add(stamp.getIntOr("part", 0));
+			} else if (told(s)) {
+				loose.add(s);
 			}
 		}
+		if (stories.isEmpty() && loose.isEmpty()) return null;
+		int budget = Math.max(6, Glyphs.maxPanel - 3);
+		List<Look.Row> rows = new ArrayList<>();
+		if (stories.size() == 1 && loose.isEmpty()) {
+			var e = stories.entrySet().iterator().next();
+			Found.Text info = Found.STORIES.get(e.getKey());
+			Component name = Component.literal("✦ " + info.title()).withStyle(st -> st.withColor(Found.HEAD).withBold(true));
+			Component sub = Component.literal((own == null ? "" : own.getString() + " · ") + e.getValue().size() + " of " + info.parts() + " parts")
+					.withStyle(ChatFormatting.GRAY);
+			List<Look.Row> names = names(e.getKey(), e.getValue(), info.parts());
+			String intro = Found.INTROS.get(e.getKey());
+			if (intro != null) {
+				List<String> lines = Lore.wrap(intro, 44);
+				int room = Math.max(2, budget - names.size() - 1);
+				if (lines.size() > room) {
+					lines = new ArrayList<>(lines.subList(0, room));
+					lines.set(room - 1, lines.get(room - 1).replaceAll("[\\s,.;:!?]+$", "") + "…");
+				}
+				for (String l : lines) rows.add(Look.Row.text(Look.INDENT, " ", "", Lore.line(l, Found.TEXT, true)));
+			}
+			rows.addAll(names);
+			return new Look.Card(icon, Found.HEAD, name, sub, rows.size() > budget ? new ArrayList<>(rows.subList(0, budget)) : rows);
+		}
+		Component name = own != null ? own.copy().withStyle(ChatFormatting.WHITE, ChatFormatting.BOLD)
+				: Component.literal(kind).withStyle(ChatFormatting.WHITE, ChatFormatting.BOLD);
+		int things = loose.size();
+		for (Set<Integer> parts : stories.values()) things += parts.size();
+		Component sub = Component.literal((stories.isEmpty() ? "" : stories.size() + (stories.size() == 1 ? " story · " : " stories · "))
+				+ things + (things == 1 ? " thing with a story" : " things with a story")).withStyle(ChatFormatting.GRAY);
+		for (var e : stories.entrySet()) {
+			Found.Text info = Found.STORIES.get(e.getKey());
+			rows.add(Look.Row.text("star", "✦", "", Component.literal(info.title()).withStyle(st -> st.withColor(Found.HEAD))
+					.append(Component.literal("  " + e.getValue().size() + " of " + info.parts()).withStyle(ChatFormatting.GRAY))));
+		}
+		for (ItemStack s : loose) {
+			MutableComponent head = s.getHoverName().copy();
+			if (head.getStyle().getColor() == null) head = head.withStyle(ChatFormatting.WHITE);
+			rows.add(Look.Row.text("chest", "▪", "", Component.empty().append(head.withStyle(st -> st.withItalic(false)))));
+		}
+		return new Look.Card(icon, Found.HEAD, name, sub, rows.size() > budget ? new ArrayList<>(rows.subList(0, budget)) : rows);
+	}
+
+	/** The names of a story's parts, a few to a row: the ones here in gold, "???" for the others. */
+	static List<Look.Row> names(String story, Set<Integer> here, int count) {
+		List<Look.Row> out = new ArrayList<>();
+		Map<Integer, String> byPart = new java.util.HashMap<>();
+		for (Found.Text t : Found.PIECES) if (story.equals(t.story())) byPart.put(t.part(), t.name());
+		MutableComponent row = Component.empty();
+		int width = 0;
+		for (int i = 1; i <= count; i++) {
+			boolean has = here.contains(i);
+			String n = has ? byPart.getOrDefault(i, "?") : "???";
+			if (width > 0 && width + n.length() + 3 > 44) {
+				out.add(Look.Row.text("star", "✦", "", row));
+				row = Component.empty();
+				width = 0;
+			}
+			if (width > 0) row.append(Component.literal(" · ").withStyle(ChatFormatting.DARK_GRAY));
+			row.append(Component.literal(n).withStyle(has ? ChatFormatting.WHITE : ChatFormatting.DARK_GRAY));
+			width += n.length() + 3;
+		}
+		if (width > 0) out.add(Look.Row.text("star", "✦", "", row));
 		return out;
 	}
 
@@ -170,8 +177,8 @@ final class Stand {
 		double mid = e.getY() + e.getBbHeight() * 0.55;
 		double by = e.getBbWidth() / 2 + 0.3;
 		// What it holds sticks out of its box (a sword, a rod): the card stays clear of that too
-		double reach = e instanceof ArmorStand st && (!st.getItemBySlot(EquipmentSlot.MAINHAND).isEmpty()
-				|| !st.getItemBySlot(EquipmentSlot.OFFHAND).isEmpty()) ? 0.6 : 0;
+		double reach = e instanceof net.minecraft.world.entity.LivingEntity le && (!le.getItemBySlot(EquipmentSlot.MAINHAND).isEmpty()
+				|| !le.getItemBySlot(EquipmentSlot.OFFHAND).isEmpty() || Showcase.ours(e)) ? 0.6 : 0;
 		// How far the card hangs from your eye (beside the stand, pulled towards you), and as far as the stand
 		Vec3 spot = Look.beside(eye, e, mid);
 		double dist = Math.max(0.35, eye.distanceTo(spot));

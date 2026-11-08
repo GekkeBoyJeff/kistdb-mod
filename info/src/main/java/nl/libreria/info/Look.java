@@ -399,7 +399,7 @@ final class Look {
 			Entity e = eh.getEntity();
 			Card card = describeEntity(p, e, all);
 			if (card == null) return null;
-			if (e instanceof ArmorStand) return Stand.target(eye, dir, e, card, Pack.has(p));
+			if (e instanceof ArmorStand || Showcase.ours(e)) return Stand.target(eye, dir, e, card, Pack.has(p));
 			// Above the head. The vanilla name tag (players, and any mob with its own name such as a
 			// named villager) floats half a block above the head while you look at it, so the card
 			// goes above that; players also get room for a scoreboard line under their name.
@@ -551,6 +551,7 @@ final class Look {
 
 	static @Nullable Card describeEntity(ServerPlayer viewer, Entity e, boolean all) {
 		if (e instanceof ArmorStand stand) return Stand.card(stand, all);
+		if (e instanceof net.minecraft.world.entity.decoration.Mannequin m && Showcase.ours(m)) return Showcase.mannequinCard(m);
 		List<Row> rows = new ArrayList<>();
 		if (e instanceof ServerPlayer other) {
 			// Players: who they are and how far they got (no health)
@@ -616,6 +617,8 @@ final class Look {
 	// ---------------------------------------------------------------- blocks
 
 	static @Nullable Card describeBlock(ServerPlayer p, ServerLevel level, BlockPos pos, boolean all) {
+		Card pedestal = Showcase.pedestalCard(level, pos);
+		if (pedestal != null) return pedestal;
 		BlockState st = level.getBlockState(pos);
 		if (st.isAir()) return null;
 		Block block = st.getBlock();

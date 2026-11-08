@@ -161,6 +161,57 @@ final class InfoTests {
 			SelfTests.check(Found.fix(null, sword, access) && Stand.stamp(sword).getStringOr("sig", "").equals(Found.sig(Found.byId("a:lantern:1"))),
 					"written again");
 		});
+		SelfTests.register("info.showcase", level -> {
+			SelfTests.check("mannequin".equals(Showcase.kindOf(Showcase.item("mannequin"))) && "pedestal".equals(Showcase.kindOf(Showcase.item("pedestal")))
+					&& Showcase.kindOf(new ItemStack(Items.ARMOR_STAND)) == null, "the crafted items");
+			var recipes = level.getServer().getRecipeManager();
+			for (String r : new String[] {"mannequin", "story_pedestal"}) {
+				SelfTests.check(recipes.byKey(net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.RECIPE,
+						net.minecraft.resources.Identifier.fromNamespaceAndPath("libreria", r))).isPresent(), "the recipe " + r);
+			}
+			// A mannequin wears every part of the Lantern Keeper: a hood and six things to hold
+			BlockPos at = new BlockPos(52, 121, 44);
+			var m = Showcase.debugMannequin(level, at, 0, "lantern");
+			SelfTests.check(m != null, "a mannequin");
+			if (m == null) return;
+			try {
+				long held = Showcase.all(m).stream().filter(x -> !x.isEmpty()).count();
+				SelfTests.check(held == 7 && Showcase.stories(Showcase.all(m)).get("lantern").size() == 7, "the whole story on it: " + held);
+				SelfTests.check(Showcase.get(m, Showcase.Spot.HEAD).is(Items.LEATHER_HELMET) && !Showcase.get(m, Showcase.Spot.BACK_L).isEmpty()
+						&& !Showcase.get(m, Showcase.Spot.HIP_L).isEmpty(), "armour worn, the rest in its hands, on its back and hips");
+				Look.Card card = Showcase.mannequinCard(m);
+				SelfTests.check(card.name().getString().equals("✦ The Lantern Keeper") && card.subtitle().getString().equals("7 of 7 parts"),
+						"its card: " + card.name().getString() + " / " + card.subtitle().getString());
+				SelfTests.check(Showcase.spotFor(m, new ItemStack(Items.LEATHER_HELMET)) == Showcase.Spot.GROUND_L, "a second hood: at its feet");
+				FakePlayer fp = FakePlayer.get(level);
+				fp.getInventory().clearContent();
+				fp.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, new ItemStack(Items.SHEARS));
+				Showcase.dress(fp, m);
+				SelfTests.check(!Showcase.get(m, Showcase.Spot.GROUND_L).isEmpty() && fp.getMainHandItem().isEmpty(), "shears: the last spot left");
+				SelfTests.check(Showcase.spotFor(m, new ItemStack(Items.BOW)) == Showcase.Spot.GROUND_R, "one spot to go");
+			} finally {
+				m.discard();
+			}
+			// A pedestal with the six swords of the Charred Oath
+			BlockPos pp = new BlockPos(54, 121, 44);
+			var ped = Showcase.debugPedestal(level, pp, 0, "charred");
+			try {
+				SelfTests.check(Showcase.items(level, ped).size() == 6 && level.getBlockState(pp).is(Showcase.PEDESTAL), "six swords on a pedestal");
+				Look.Card card = Showcase.pedestalCard(level, pp);
+				SelfTests.check(card != null && card.name().getString().equals("✦ The Charred Oath"), "its card: " + (card == null ? null : card.name().getString()));
+				FakePlayer fp = FakePlayer.get(level);
+				fp.setShiftKeyDown(true);
+				fp.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+				Showcase.usePedestal(fp, level, ped);
+				fp.setShiftKeyDown(false);
+				SelfTests.check(Showcase.items(level, ped).size() == 5 && fp.getInventory().countItem(Items.STONE_SWORD) == 1, "the last one taken off");
+				fp.getInventory().clearContent();
+			} finally {
+				Showcase.removePedestal(level, ped, false);
+				level.setBlock(pp, net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), 3);
+				for (var e : level.getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class, new net.minecraft.world.phys.AABB(pp).inflate(2))) e.discard();
+			}
+		});
 		SelfTests.register("info.look-stand", level -> {
 			// An armour stand wearing a story: the card tells all of it, and hangs beside the stand, not in front of it
 			var stand = net.minecraft.world.entity.EntityTypes.ARMOR_STAND.create(level, net.minecraft.world.entity.EntitySpawnReason.COMMAND);
@@ -175,9 +226,14 @@ final class InfoTests {
 					"a set of one story: " + (card == null ? null : card.name().getString() + " / " + card.subtitle().getString()));
 			if (card != null) {
 				String all = String.join("\n", card.rows().stream().map(r -> r.value().getString()).toList());
-				// The whole text (wrapped differently perhaps) and where it was found
-				String whole = Stand.text(stand.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.HEAD), 1000).get(0);
-				SelfTests.check(all.replace("\n", " ").contains(whole) && all.contains("day 3"), "the whole story on the card: " + all);
+				// What the story is about, and the names of its parts (the ones not on it as ???); never each part's own words
+				String story = Stand.stamp(stand.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.HEAD)).getStringOr("story", "");
+				String intro = Found.INTROS.getOrDefault(story, "");
+				String helm = Found.byId("a:" + story + ":1") == null ? "" : Found.byId("a:" + story + ":1").name();
+				SelfTests.check((intro.isEmpty() || all.contains(intro.substring(0, Math.min(20, intro.length())))) && all.contains(helm)
+						&& all.contains("???"), "the story on the card: " + all);
+				String words = Stand.text(stand.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.HEAD), 1000).get(0);
+				SelfTests.check(!all.replace("\n", " ").contains(words), "not each part's words");
 				SelfTests.check(card.rows().size() <= Math.max(6, nl.libreria.core.gui.Glyphs.maxPanel - 3), "fits its panel: " + card.rows().size());
 				org.slf4j.LoggerFactory.getLogger("Libreria found").info("STAND-CARD {} rows:\n{}", card.rows().size(), all);
 			}
@@ -222,8 +278,8 @@ final class InfoTests {
 			seen.partInfo.put(story + ":1", "Found in a shipwreck|12|Reader");
 			int[] at = new int[parts.size()];
 			Found.Seen s2 = seen;
-			LoreBook.storyBook(s2, story, parts, seen.parts.get(story), at);
-			nl.libreria.core.gui.Book book = LoreBook.storyBook(s2, story, parts, seen.parts.get(story), at);
+			LoreBook.storyBook(s2, story, parts, seen.parts.get(story), at, false);
+			nl.libreria.core.gui.Book book = LoreBook.storyBook(s2, story, parts, seen.parts.get(story), at, false);
 			java.util.List<java.util.List<Component>> pages = book.layout();
 			for (int i = 0; i < parts.size(); i++) {
 				SelfTests.check(at[i] >= 2 && at[i] <= pages.size() && pages.get(at[i] - 1).get(0).getString().equals("Part " + (i + 1)),
