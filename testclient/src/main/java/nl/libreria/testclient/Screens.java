@@ -283,7 +283,8 @@ public final class Screens implements FabricClientGameTest {
 					run(server, "summon minecraft:item " + (x - 3.5 + i) + " " + (y + 0.2) + " " + (z + 3) + " {PickupDelay:32767,Age:-32768,NoGravity:1b,Motion:[0d,0d,0d],Item:{id:\"minecraft:" + tools[i][0]
 							+ "\",count:1,components:{\"minecraft:enchantments\":{" + tools[i][1].replace(":", ":").replace(",", ",") + "}}}}");
 				ctx.getInput().lookAt(0, 30);
-				ctx.waitTicks(15);
+				// (long enough for the beams over rare drops: they come once an item lies still)
+				ctx.waitTicks(60);
 				ctx.takeScreenshot("fxtool_ground");
 				run(server, "kill @e[type=minecraft:item]");
 				ctx.getInput().lookAt(0, 0);
