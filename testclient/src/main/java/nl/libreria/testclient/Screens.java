@@ -1259,8 +1259,8 @@ public final class Screens implements FabricClientGameTest {
 				ctx.waitTicks(4);
 				key(ctx, "pressKey", ctx.computeOnClient(mc -> mc.options.keyChat));
 				ctx.waitTicks(6);
-				int x = ctx.computeOnClient(mc -> 4 + mc.font.width("<Jeffie> ") + mc.font.width("[Sharp Blade]") / 2);
-				ctx.getInput().setCursorPos(x * scale, (h - 44) * scale);
+				int cx = ctx.computeOnClient(mc -> 4 + mc.font.width("<Jeffie> ") + mc.font.width("[Sharp Blade]") / 2);
+				ctx.getInput().setCursorPos(cx * scale, (h - 44) * scale);
 				ctx.waitTicks(6);
 				noToasts(ctx);
 				ctx.takeScreenshot("chat_item_link");
@@ -1693,7 +1693,10 @@ public final class Screens implements FabricClientGameTest {
 			// try the other shape
 		}
 		try {
-			var type = mouse ? com.mojang.blaze3d.platform.InputConstants.Type.MOUSE : com.mojang.blaze3d.platform.InputConstants.Type.KEYSYM;
+			com.mojang.blaze3d.platform.InputConstants.Type type = null;
+			for (var t : com.mojang.blaze3d.platform.InputConstants.Type.values()) {
+				if (mouse ? t.name().equals("MOUSE") : t.name().startsWith("KEY")) type = t;
+			}
 			input.getClass().getMethod(what, com.mojang.blaze3d.platform.InputConstants.Key.class).invoke(input, type.getOrCreate(code));
 		} catch (ReflectiveOperationException | RuntimeException e) {
 			LOG.warn("Could not {} {}: {}", what, code, e.toString());
