@@ -22,6 +22,8 @@ jobs:
         run: |
           chmod +x ./gradlew
           set -o pipefail
+          # Gradle's own download sometimes times out: try it a few times before the build
+          for i in 1 2 3 4 5; do ./gradlew --version --no-daemon > /dev/null 2>&1 && break; echo "Gradle download failed, try $i"; sleep 20; done
           ./gradlew build --continue --stacktrace --no-daemon 2>&1 | tee build.log
       - name: smoke test (start a real 26.3 server)
         id: smoke
