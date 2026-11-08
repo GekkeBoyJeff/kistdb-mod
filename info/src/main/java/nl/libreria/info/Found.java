@@ -767,6 +767,7 @@ final class Found {
 		load();
 		provide();
 		net.fabricmc.fabric.api.loot.v3.LootTableEvents.MODIFY_DROPS.register((entry, context, drops) -> {
+			if (!InfoMod.MODULE.on()) return;
 			try {
 				entry.unwrapKey().ifPresent(key -> onLoot(key.identifier().getPath(), context, drops));
 			} catch (RuntimeException e) {
@@ -774,6 +775,7 @@ final class Found {
 			}
 		});
 		net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.ALLOW_DEATH.register((entity, source, amount) -> {
+			if (!InfoMod.MODULE.on()) return true;
 			try {
 				if (source.getEntity() instanceof ServerPlayer killer) onDeath(entity, killer);
 			} catch (RuntimeException e) {

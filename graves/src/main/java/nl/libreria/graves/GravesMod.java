@@ -124,6 +124,7 @@ public final class GravesMod implements ModInitializer {
 			server = null;
 		});
 		ServerTickEvents.END_SERVER_TICK.register(s -> {
+			if (!GravesMod.MODULE.on()) return;
 			if (s.getTickCount() % 20 == 0) refreshDisplays(s);
 		});
 
@@ -137,6 +138,7 @@ public final class GravesMod implements ModInitializer {
 					pl -> beam(pl, g));
 		});
 		ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
+			if (!GravesMod.MODULE.on()) return;
 			if (!alive) {
 				Grave fresh = newestOf(newPlayer);
 				if (fresh != null && System.currentTimeMillis() - fresh.created < 60_000) nl.libreria.core.Tips.once(newPlayer, TIP_GRAVE);
@@ -158,7 +160,7 @@ public final class GravesMod implements ModInitializer {
 		});
 
 		CommandRegistrationCallback.EVENT.register((dispatcher, registry, env) -> dispatcher.register(
-				Commands.literal("grave").executes(ctx -> {
+				Commands.literal("grave").requires(MODULE.available()).executes(ctx -> {
 					listGraves(ctx.getSource().getPlayerOrException());
 					return 1;
 				}).then(Commands.literal("beam").executes(ctx -> {

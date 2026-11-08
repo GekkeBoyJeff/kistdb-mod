@@ -163,11 +163,13 @@ public final class ClaimsMod implements ModInitializer {
 				"Who may build in your land, and whether visitors may use doors.");
 
 		PlayerBlockBreakEvents.BEFORE.register((world, player, pos, state, be) -> {
+			if (!ClaimsMod.MODULE.on()) return true;
 			if (!(player instanceof ServerPlayer sp) || allowed(sp, world, pos, Action.BUILD)) return true;
 			deny(sp, pos);
 			return false;
 		});
 		UseBlockCallback.EVENT.register((player, world, hand, hit) -> {
+			if (!ClaimsMod.MODULE.on()) return net.minecraft.world.InteractionResult.PASS;
 			if (world.isClientSide() || !(player instanceof ServerPlayer sp)) return InteractionResult.PASS;
 			if (ClaimView.isOpen(sp)) return InteractionResult.FAIL;
 			BlockPos pos = hit.getBlockPos();
@@ -180,6 +182,7 @@ public final class ClaimsMod implements ModInitializer {
 			return InteractionResult.PASS;
 		});
 		UseItemCallback.EVENT.register((player, world, hand) -> {
+			if (!ClaimsMod.MODULE.on()) return net.minecraft.world.InteractionResult.PASS;
 			if (world.isClientSide() || !(player instanceof ServerPlayer sp)) return InteractionResult.PASS;
 			// Land map open: right-click releases the chunk under the crosshair, nothing else happens
 			if (ClaimView.isOpen(sp)) {
@@ -197,10 +200,12 @@ public final class ClaimsMod implements ModInitializer {
 			return InteractionResult.PASS;
 		});
 		AttackEntityCallback.EVENT.register((player, world, hand, entity, hit) -> {
+			if (!ClaimsMod.MODULE.on()) return net.minecraft.world.InteractionResult.PASS;
 			if (world.isClientSide() || !(player instanceof ServerPlayer sp) || !protectedEntity(entity)) return InteractionResult.PASS;
 			return allowed(sp, world, entity.blockPosition(), Action.BUILD) ? InteractionResult.PASS : deny(sp, entity.blockPosition());
 		});
 		UseEntityCallback.EVENT.register((player, world, hand, entity, hit) -> {
+			if (!ClaimsMod.MODULE.on()) return net.minecraft.world.InteractionResult.PASS;
 			if (world.isClientSide() || !(player instanceof ServerPlayer sp) || !protectedEntity(entity)) return InteractionResult.PASS;
 			// Handelen met dorpelingen mag altijd
 			if (entity instanceof AbstractVillager) return InteractionResult.PASS;
@@ -211,7 +216,7 @@ public final class ClaimsMod implements ModInitializer {
 		// The land map key (sneak + swap hands), and its button right of the hotbar
 		nl.libreria.core.Hotkeys.register(ClaimView::onKey);
 		Hud.setHotbarButton(ClaimView::hotbarButton);
-		nl.libreria.core.Services.provideMenu(nl.libreria.core.Services.MENU_LAND_MAP, ClaimsMod::openMap);
+		nl.libreria.core.Services.provideMenu(nl.libreria.core.Services.MENU_LAND_MAP, MODULE.gate(ClaimsMod::openMap));
 		nl.libreria.core.gui.Markers.addSource(ClaimsMod::compassMarker);
 		nl.libreria.core.Services.provideLand(new nl.libreria.core.Services.Land() {
 			@Override
@@ -227,10 +232,12 @@ public final class ClaimsMod implements ModInitializer {
 		});
 		// Getting hurt closes the land map at once
 		net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.AFTER_DAMAGE.register((entity, source, base, taken, blocked) -> {
+			if (!ClaimsMod.MODULE.on()) return;
 			if (entity instanceof ServerPlayer sp && ClaimView.isOpen(sp)) ClaimView.close(sp, true);
 		});
 		net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STOPPING.register(server -> ClaimView.closeAll());
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
+			if (!ClaimsMod.MODULE.on()) return;
 			int tick = server.getTickCount();
 			if (tick % 10 == 5) LandMapItem.tick(server, tick);
 			if (tick % 10 != 0) return;
@@ -244,6 +251,7 @@ public final class ClaimsMod implements ModInitializer {
 			}
 		});
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
+			if (!ClaimsMod.MODULE.on()) return;
 			UUID id = handler.player.getUUID();
 			if (!STORE.get().tipped.contains(id)) TIP_AT.put(id, server.getTickCount() + TIP_DELAY);
 		});
@@ -258,7 +266,7 @@ public final class ClaimsMod implements ModInitializer {
 		});
 
 		CommandRegistrationCallback.EVENT.register((dispatcher, registry, env) -> dispatcher.register(
-				Commands.literal("claim").executes(ctx -> claimHere(ctx.getSource().getPlayerOrException()))
+				Commands.literal("claim").requires(MODULE.available()).executes(ctx -> claimHere(ctx.getSource().getPlayerOrException()))
 						.then(Commands.literal("here").executes(ctx -> claimHere(ctx.getSource().getPlayerOrException())))
 						.then(Commands.literal("map").executes(ctx -> {
 							ClaimView.open(ctx.getSource().getPlayerOrException());

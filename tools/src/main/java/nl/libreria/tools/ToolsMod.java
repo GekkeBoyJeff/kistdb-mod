@@ -85,6 +85,7 @@ public final class ToolsMod implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		AttackBlockCallback.EVENT.register((player, level, hand, pos, dir) -> {
+			if (!ToolsMod.MODULE.on()) return net.minecraft.world.InteractionResult.PASS;
 			if (level.isClientSide() || !(player instanceof ServerPlayer sp) || sp.isSpectator() || sp.isCreative()) return InteractionResult.PASS;
 			state(sp).hudUntil = now + 50;
 			// Only now, when you actually start mining, tell you if this tool won't drop the block
@@ -92,10 +93,12 @@ public final class ToolsMod implements ModInitializer {
 			return guard(sp) ? InteractionResult.PASS : InteractionResult.FAIL;
 		});
 		PlayerBlockBreakEvents.BEFORE.register((level, player, pos, state, be) -> {
+			if (!ToolsMod.MODULE.on()) return true;
 			if (level.isClientSide() || !(player instanceof ServerPlayer sp) || sp.isCreative()) return true;
 			return guard(sp);
 		});
 		PlayerBlockBreakEvents.AFTER.register((level, player, pos, state, be) -> {
+			if (!ToolsMod.MODULE.on()) return;
 			if (level.isClientSide() || !(player instanceof ServerPlayer sp)) return;
 			state(sp).hudUntil = now + 50;
 			afterUse(sp);
@@ -109,12 +112,14 @@ public final class ToolsMod implements ModInitializer {
 			}
 		});
 		AttackEntityCallback.EVENT.register((player, level, hand, entity, hit) -> {
+			if (!ToolsMod.MODULE.on()) return net.minecraft.world.InteractionResult.PASS;
 			if (level.isClientSide() || !(player instanceof ServerPlayer sp) || sp.isSpectator() || sp.isCreative()) return InteractionResult.PASS;
 			if (Tools.kind(sp.getMainHandItem()) == null) return InteractionResult.PASS;
 			state(sp).hudUntil = now + 50;
 			return guard(sp) ? InteractionResult.PASS : InteractionResult.FAIL;
 		});
 		UseBlockCallback.EVENT.register((player, level, hand, hit) -> {
+			if (!ToolsMod.MODULE.on()) return net.minecraft.world.InteractionResult.PASS;
 			if (level.isClientSide() || !(player instanceof ServerPlayer sp) || sp.isSpectator()) return InteractionResult.PASS;
 			watchStack(sp, hand);
 			if (hand == InteractionHand.MAIN_HAND && !sp.isCreative() && Tools.kind(sp.getMainHandItem()) != null && !guard(sp)) {
@@ -123,6 +128,7 @@ public final class ToolsMod implements ModInitializer {
 			return InteractionResult.PASS;
 		});
 		UseItemCallback.EVENT.register((player, level, hand) -> {
+			if (!ToolsMod.MODULE.on()) return net.minecraft.world.InteractionResult.PASS;
 			if (level.isClientSide() || !(player instanceof ServerPlayer sp) || sp.isSpectator()) return InteractionResult.PASS;
 			watchStack(sp, hand);
 			if (hand == InteractionHand.MAIN_HAND && !sp.isCreative() && Tools.kind(sp.getMainHandItem()) != null && !guard(sp)) {

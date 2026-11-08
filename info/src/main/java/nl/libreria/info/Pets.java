@@ -96,6 +96,7 @@ final class Pets {
 
 	static void init() {
 		net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents.ENTITY_LOAD.register((e, level) -> safely(() -> {
+			if (!InfoMod.MODULE.on()) return;
 			// Pets that were already tamed: written down (and named) quietly
 			if (owner(e) != null) see(e, false);
 		}));

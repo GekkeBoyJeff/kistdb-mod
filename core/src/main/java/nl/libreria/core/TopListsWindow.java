@@ -88,8 +88,7 @@ public final class TopListsWindow extends CanvasWindow {
 		List<Completion.Place> r = Completion.ranking(server(), board);
 		for (Completion.Place p : r) {
 			if (!p.who().equals(this.player.getUUID())) continue;
-			int rank = Completion.rank(r, p.who());
-			return Completion.show(board, p.value(), p.total()) + "  #" + rank;
+			return "#" + Completion.rank(r, p.who());
 		}
 		return "";
 	}
@@ -157,11 +156,7 @@ public final class TopListsWindow extends CanvasWindow {
 
 	private void bottom(Canvas c, int pages, String right) {
 		if (pages > 1) {
-			ProgressWindow.small(c, 0, 3, "Back");
-			if (this.page > 0) ProgressWindow.small(c, 3, 1, "‹");
-			c.centred((this.page + 1) + "/" + pages, Canvas.cellX(4) + 9, Canvas.cellY(9) + 5, Glyphs.muted);
-			if (this.page < pages - 1) ProgressWindow.small(c, 5, 1, "›");
-			if (right != null) ProgressWindow.small(c, 6, 3, right);
+			ProgressWindow.pager(c, this.page, pages, right);
 		} else if (right != null) {
 			ProgressWindow.small(c, 0, 4, "Back");
 			ProgressWindow.small(c, 4, 5, right);
@@ -213,6 +208,11 @@ public final class TopListsWindow extends CanvasWindow {
 						: col != null ? col.about() : k != null ? k.about() : "";
 				for (String l : Canvas.wrap(about, 180)) lore.add(Ui.text(l, ChatFormatting.GRAY));
 				List<Completion.Place> r = Completion.ranking(server(), b);
+				for (Completion.Place me : r) {
+					if (me.who().equals(this.player.getUUID())) {
+						lore.add(Ui.text("You: " + Completion.show(b, me.value(), me.total()) + " · #" + Completion.rank(r, me.who()), ChatFormatting.AQUA));
+					}
+				}
 				for (int j = 0; j < 3 && j < r.size(); j++) {
 					Completion.Place p = r.get(j);
 					lore.add(Ui.text((j + 1) + ". " + p.name() + "  " + Completion.show(b, p.value(), p.total()),
@@ -262,8 +262,8 @@ public final class TopListsWindow extends CanvasWindow {
 
 	private void pager(int pages, Component back, Component right, List<Component> rightLore, Consumer<ServerPlayer> rightAction) {
 		if (pages > 1) {
-			area(0, 9, 3, 1, back, List.of(), this.back);
-			if (this.page > 0) area(3, 9, 1, 1, Ui.text("Previous page", ChatFormatting.WHITE), List.of(), q -> turn(-1));
+			area(0, 9, 2, 1, back, List.of(), this.back);
+			if (this.page > 0) area(2, 9, 1, 1, Ui.text("Previous page", ChatFormatting.WHITE), List.of(), q -> turn(-1));
 			if (this.page < pages - 1) area(5, 9, 1, 1, Ui.text("Next page", ChatFormatting.WHITE), List.of(), q -> turn(1));
 			if (right != null) area(6, 9, 3, 1, right, rightLore, rightAction);
 		} else if (right != null) {

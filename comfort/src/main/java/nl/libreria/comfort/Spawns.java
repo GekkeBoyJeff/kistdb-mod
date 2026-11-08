@@ -83,6 +83,7 @@ final class Spawns {
 	static void init() {
 		// A torch used on nothing (in the air): vanilla does nothing then, so it's free
 		UseItemCallback.EVENT.register((player, world, hand) -> {
+			if (!ComfortMod.MODULE.on()) return net.minecraft.world.InteractionResult.PASS;
 			if (world.isClientSide() || !(player instanceof ServerPlayer sp) || sp.isSpectator()) return InteractionResult.PASS;
 			ItemStack stack = sp.getItemInHand(hand);
 			if (!isTorch(stack.getItem()) || !TORCH.get(sp)) return InteractionResult.PASS;

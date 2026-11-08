@@ -32,6 +32,7 @@ public final class Tracker {
 	}
 
 	static InteractionResult onUseBlock(Player player, Level world, InteractionHand hand, BlockHitResult hit) {
+		if (!ChestsMod.MODULE.on()) return InteractionResult.PASS;
 		if (world.isClientSide() || hand != InteractionHand.MAIN_HAND || !(player instanceof ServerPlayer sp) || sp.isSpectator()) {
 			return InteractionResult.PASS;
 		}
@@ -63,6 +64,7 @@ public final class Tracker {
 	}
 
 	static InteractionResult onAttackBlock(Player player, Level world, InteractionHand hand, BlockPos pos, Direction direction) {
+		if (!ChestsMod.MODULE.on()) return InteractionResult.PASS;
 		if (world.isClientSide() || !(player instanceof ServerPlayer sp) || sp.isSpectator()) return InteractionResult.PASS;
 		if (!sp.isShiftKeyDown() || !sp.getMainHandItem().isEmpty() || !ChestsMod.SNEAK_NOINDEX.get(sp)) return InteractionResult.PASS;
 		if (!Containers.isStorage(world.getBlockEntity(pos))) return InteractionResult.PASS;

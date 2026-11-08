@@ -28,6 +28,7 @@ final class VillagerNames {
 		// Both run inside chunk loading and combat: a naming hiccup is logged and the villager stays nameless, it
 		// never takes the server down
 		ServerEntityEvents.ENTITY_LOAD.register((entity, level) -> {
+			if (!InfoMod.MODULE.on()) return;
 			if (!(entity instanceof Villager v)) return;
 			try {
 				if (!ENABLED.get() || v.hasCustomName() || v.entityTags().contains(TAG)) return;
@@ -52,6 +53,7 @@ final class VillagerNames {
 					}
 		});
 		ServerLivingEntityEvents.AFTER_DEATH.register((entity, source) -> {
+			if (!InfoMod.MODULE.on()) return;
 			if (!(entity instanceof Villager v)) return;
 			try {
 				if (v.entityTags().contains(TAG)) Names.releaseVillager(v.getUUID());

@@ -1179,6 +1179,23 @@ public final class Screens implements FabricClientGameTest {
 			menu(ctx, server, player, "own_board_tasted", p -> nl.libreria.core.TopListsWindow.board(p, "tasted", nl.libreria.core.ProgressWindow::open));
 			menu(ctx, server, player, "own_progress_other", p -> nl.libreria.core.ProgressWindow.open(p, anna, "Top lists",
 					nl.libreria.core.ProgressWindow::open));
+			// Chat: your nickname, in its colour, before what you say
+			safe("chat_nick", () -> {
+				server.runOnServer(s -> {
+					var nd = nl.libreria.nicknames.NicknamesMod.STORE.get(player);
+					nd.nick = "Jeffie";
+					nd.color = "green";
+				});
+				ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.FULL));
+				ctx.runOnClient(mc -> mc.getConnection().sendChat("Hello everyone!"));
+				ctx.waitTicks(20);
+				noToasts(ctx);
+				ctx.takeScreenshot("chat_nick");
+				ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.HIDDEN));
+				server.runOnServer(s -> {
+					nl.libreria.nicknames.NicknamesMod.STORE.get(player).nick = "";
+				});
+			});
 			// With the mouse on a row: its tooltip
 			safe("own_progress_hover", () -> {
 				server.runOnServer(s -> nl.libreria.core.ProgressWindow.open(player, nl.libreria.core.Completion.Tab.DO));

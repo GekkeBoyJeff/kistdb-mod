@@ -12,6 +12,20 @@ final class CollectorTests {
 	}
 
 	static void register() {
+		SelfTests.register("collector.switch", level -> {
+			FakePlayer p = FakePlayer.get(level);
+			var on = nl.libreria.core.ServerSetting.all().stream().filter(x -> x.fullKey().equals("collector.on")).findFirst().orElse(null);
+			SelfTests.check(on instanceof nl.libreria.core.ServerSetting.Toggle, "the collector has an on/off switch");
+			if (!(on instanceof nl.libreria.core.ServerSetting.Toggle t)) return;
+			SelfTests.check(CollectorMod.MODULE.on() && CollectorMod.SHOW_TITLE.get(p), "on");
+			t.set(false);
+			SelfTests.check(!CollectorMod.MODULE.on() && !CollectorMod.SHOW_TITLE.get(p), "off: its settings are off too");
+			SelfTests.check(nl.libreria.core.Module.hubEntries(nl.libreria.core.Domain.PROGRESS).stream().noneMatch(e -> e.module() == CollectorMod.MODULE)
+					&& nl.libreria.core.Module.hubEntries(nl.libreria.core.Domain.YOU).stream().noneMatch(e -> e.module() == CollectorMod.MODULE),
+					"off: no buttons");
+			t.set(true);
+			SelfTests.check(CollectorMod.MODULE.on(), "on again");
+		});
 		SelfTests.register("collector.completion", level -> {
 			if (Catalog.all().isEmpty()) Catalog.build();
 			java.util.function.Function<String, java.util.Set<String>> keys = id -> {

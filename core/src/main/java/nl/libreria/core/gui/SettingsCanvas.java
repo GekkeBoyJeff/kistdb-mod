@@ -293,8 +293,8 @@ public final class SettingsCanvas extends CanvasWindow {
 						List.of(Ui.text("Every setting here back to how it was at the start.", ChatFormatting.GRAY)), p -> {
 							for (SettingsWindow.Section s : SettingsWindow.sections(this.domain)) {
 								for (Setting x : s.settings()) {
-									if (x instanceof Setting.Toggle t) t.set(p, t.def);
-									else if (x instanceof Setting.Choice ch) ch.set(p, ch.defaultValue());
+									if (x instanceof Setting.Toggle t) t.set(p, t.start());
+									else if (x instanceof Setting.Choice ch) ch.set(p, ch.start());
 								}
 							}
 							Notify.whisper(p, "Back to the defaults", ChatFormatting.GRAY);

@@ -24,8 +24,8 @@ public final class CollectionWindow extends CanvasWindow {
 	/** Rows of the grid: the chest's five under the card and the three of the inventory. */
 	private static final int[] GRID = {1, 2, 3, 4, 5, 6, 7, 8};
 	private static final int PER_PAGE = GRID.length * 9;
-	/** The Libreria pack's dark veil over an item (custom model data flag 1, as for a search). */
-	private static final List<Boolean> DIM = List.of(false, true);
+	/** The Libreria pack's deep shade over an item (custom model data flag 2): what you don't have yet. */
+	private static final List<Boolean> DIM = List.of(false, false, true);
 
 	private final UUID who;
 	private final String name;
@@ -107,11 +107,7 @@ public final class CollectionWindow extends CanvasWindow {
 		if (this.entries.isEmpty()) c.centred("Nothing here on this server yet.", 88, Canvas.cellY(3) + 5, Glyphs.muted);
 		int pages = pages();
 		if (pages > 1) {
-			ProgressWindow.small(c, 0, 3, "Back");
-			if (this.page > 0) ProgressWindow.small(c, 3, 1, "‹");
-			c.centred((this.page + 1) + "/" + pages, Canvas.cellX(4) + 9, Canvas.cellY(9) + 5, Glyphs.muted);
-			if (this.page < pages - 1) ProgressWindow.small(c, 5, 1, "›");
-			ProgressWindow.small(c, 6, 3, "Top list");
+			ProgressWindow.pager(c, this.page, pages, "Top list");
 		} else {
 			ProgressWindow.small(c, 0, 4, "Back");
 			ProgressWindow.small(c, 4, 5, "Top list");
@@ -160,8 +156,8 @@ public final class CollectionWindow extends CanvasWindow {
 		List<Component> topLore = List.of(Ui.text("Who has the most " + this.col.name.toLowerCase(java.util.Locale.ROOT) + ".", ChatFormatting.GRAY));
 		Consumer<ServerPlayer> toTop = q -> TopListsWindow.board(q, this.col.id, reopen());
 		if (pages() > 1) {
-			area(0, 9, 3, 1, back, List.of(), this.back);
-			if (this.page > 0) area(3, 9, 1, 1, Ui.text("Previous page", ChatFormatting.WHITE), List.of(), q -> turn(-1));
+			area(0, 9, 2, 1, back, List.of(), this.back);
+			if (this.page > 0) area(2, 9, 1, 1, Ui.text("Previous page", ChatFormatting.WHITE), List.of(), q -> turn(-1));
 			if (this.page < pages() - 1) area(5, 9, 1, 1, Ui.text("Next page", ChatFormatting.WHITE), List.of(), q -> turn(1));
 			area(6, 9, 3, 1, top, topLore, toTop);
 		} else {

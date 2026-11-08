@@ -3,6 +3,7 @@ package nl.libreria.core;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Item;
 
@@ -49,11 +50,63 @@ public abstract sealed class Setting permits Setting.Toggle, Setting.Choice {
 	}
 
 	int raw(ServerPlayer player, int def) {
+		Integer f = forced();
+		if (f != null) return f;
 		Integer v = STORE.get(player).values.get(fullKey());
-		return v == null ? def : v;
+		return v == null ? serverDefault(def) : v;
+	}
+
+	// ---------------------------------------------------------------- what the server decides (operators)
+
+	private static Map<String, String> house() {
+		ServerSetting.Data d = ServerSetting.STORE.get();
+		if (d.values == null) d.values = new HashMap<>();
+		return d.values;
+	}
+
+	/** The value an operator set for everybody (players can't change it then), or null: each player chooses. */
+	public @org.jetbrains.annotations.Nullable Integer forced() {
+		String v = house().get("force." + fullKey());
+		try {
+			return v == null ? null : Integer.valueOf(v);
+		} catch (NumberFormatException e) {
+			return null;
+		}
+	}
+
+	/** Is this decided by the server for everybody? */
+	public boolean isForced() {
+		return forced() != null;
+	}
+
+	/** What players start with (an operator may have changed what the module ships with). */
+	int serverDefault(int def) {
+		String v = house().get("default." + fullKey());
+		try {
+			return v == null ? def : Integer.parseInt(v);
+		} catch (NumberFormatException e) {
+			return def;
+		}
+	}
+
+	/** Operators: {@code forced} for everybody (null: each player chooses), and what players start with (null: as shipped). */
+	public void house(@org.jetbrains.annotations.Nullable Integer forced, @org.jetbrains.annotations.Nullable Integer start) {
+		Map<String, String> m = house();
+		boolean changed = !java.util.Objects.equals(m.get("force." + fullKey()), forced == null ? null : forced.toString())
+				|| !java.util.Objects.equals(m.get("default." + fullKey()), start == null ? null : start.toString());
+		if (forced == null) m.remove("force." + fullKey());
+		else m.put("force." + fullKey(), forced.toString());
+		if (start == null) m.remove("default." + fullKey());
+		else m.put("default." + fullKey(), start.toString());
+		if (!changed) return;
+		ServerSetting.STORE.markDirty();
+		// Everybody online gets what changed (packs, buttons…)
+		MinecraftServer server = Libreria.server();
+		if (server != null) for (ServerPlayer p : server.getPlayerList().getPlayers()) for (var l : this.listeners) l.accept(p);
 	}
 
 	void setRaw(ServerPlayer player, int value) {
+		if (isForced()) return;
 		Integer old = STORE.get(player).values.put(fullKey(), value);
 		STORE.markDirty(player);
 		if (old == null || old != value) for (java.util.function.Consumer<ServerPlayer> l : this.listeners) l.accept(player);
@@ -67,8 +120,10 @@ public abstract sealed class Setting permits Setting.Toggle, Setting.Choice {
 	}
 
 	int raw(java.util.UUID id, int def) {
+		Integer f = forced();
+		if (f != null) return f;
 		Integer v = STORE.get(id).values.get(fullKey());
-		return v == null ? def : v;
+		return v == null ? serverDefault(def) : v;
 	}
 
 	/** Tekst van de huidige waarde, voor het menu. */
@@ -90,12 +145,17 @@ public abstract sealed class Setting permits Setting.Toggle, Setting.Choice {
 		}
 
 		public boolean get(ServerPlayer player) {
-			return raw(player, this.def ? 1 : 0) != 0;
+			return this.module.on() && raw(player, this.def ? 1 : 0) != 0;
+		}
+
+		/** What players start with on this server. */
+		public boolean start() {
+			return serverDefault(this.def ? 1 : 0) != 0;
 		}
 
 		/** Ook bruikbaar voordat de speler echt in de wereld is (bijvoorbeeld tijdens het inloggen). */
 		public boolean get(java.util.UUID id) {
-			return raw(id, this.def ? 1 : 0) != 0;
+			return this.module.on() && raw(id, this.def ? 1 : 0) != 0;
 		}
 
 		public void set(ServerPlayer player, boolean value) {
@@ -164,6 +224,11 @@ public abstract sealed class Setting permits Setting.Toggle, Setting.Choice {
 
 		public int defaultValue() {
 			return this.values[this.defIndex];
+		}
+
+		/** What players start with on this server. */
+		public int start() {
+			return serverDefault(this.values[this.defIndex]);
 		}
 
 		@Override

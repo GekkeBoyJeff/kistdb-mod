@@ -62,6 +62,7 @@ public final class Wanted {
 
 	/** You searched for this (and a chest with it lights up, or you carry it). */
 	public static void start(ServerPlayer p, @Nullable ItemStack what) {
+		if (!ChestsMod.MODULE.on()) return;
 		if (what == null || what.isEmpty()) return;
 		HUNTS.put(p.getUUID(), new Hunt(what.getItem(), now(p) + TICKS));
 		ItemView.resend(p);
@@ -133,6 +134,7 @@ public final class Wanted {
 	}
 
 	private static ItemStack view(ServerPlayer viewer, AbstractContainerMenu menu, int slot, ItemStack stack) {
+		if (!ChestsMod.MODULE.on()) return stack;
 		Hunt h = HUNTS.get(viewer.getUUID());
 		if (h == null || ItemView.creative(viewer) || !real(viewer, menu)) return stack;
 		return view(stack, h.item, menu, slot, Pack.has(viewer));

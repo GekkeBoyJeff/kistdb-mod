@@ -29,7 +29,7 @@ public final class ChestCommands {
 	}
 
 	static void register(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext context, Commands.CommandSelection selection) {
-		dispatcher.register(Commands.literal("chest")
+		dispatcher.register(Commands.literal("chest").requires(ChestsMod.MODULE.available())
 				.executes(c -> {
 					ChestSearch.open(c.getSource().getPlayerOrException());
 					return 1;

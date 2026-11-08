@@ -193,7 +193,7 @@ final class Details {
 
 	static void init() {
 		loadTips();
-		ItemView.add((viewer, menu, slot, stack) -> view(viewer, stack));
+		ItemView.add((viewer, menu, slot, stack) -> InfoMod.MODULE.on() ? view(viewer, stack) : stack);
 		ItemView.cleaner(Details::clean);
 		ON.onChange(ItemView::resend);
 	}

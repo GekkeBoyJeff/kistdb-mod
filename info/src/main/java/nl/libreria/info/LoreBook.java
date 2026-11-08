@@ -36,7 +36,7 @@ final class LoreBook {
 				"Every story you found a part of, and everything you found, to read again.");
 		InfoMod.MODULE.commands(Domain.PROGRESS, "/lore – the lore book: stories and everything you found");
 		net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback.EVENT.register((dispatcher, registry, env) ->
-				dispatcher.register(Commands.literal("lore").executes(ctx -> {
+				dispatcher.register(Commands.literal("lore").requires(InfoMod.MODULE.available()).executes(ctx -> {
 					open(ctx.getSource().getPlayerOrException());
 					return 1;
 				})));

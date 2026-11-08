@@ -15,6 +15,25 @@ final class CoreTests {
 	}
 
 	static void register() {
+		SelfTests.register("core.house", level -> {
+			FakePlayer p = FakePlayer.get(level);
+			Setting.STORE.get(p).values.remove(Tips.ENABLED.fullKey());
+			SelfTests.check(Tips.ENABLED.get(p), "on as shipped");
+			Tips.ENABLED.house(0, null);
+			SelfTests.check(!Tips.ENABLED.get(p) && Tips.ENABLED.isForced(), "off for everybody");
+			Tips.ENABLED.set(p, true);
+			SelfTests.check(!Tips.ENABLED.get(p), "a player can't turn it on then");
+			SelfTests.check(nl.libreria.core.gui.SettingsWindow.sections(Tips.ENABLED.domain()).stream()
+					.noneMatch(sec -> sec.settings().contains(Tips.ENABLED)), "and doesn't see it");
+			Tips.ENABLED.house(null, 0);
+			Setting.STORE.get(p).values.remove(Tips.ENABLED.fullKey());
+			SelfTests.check(!Tips.ENABLED.get(p) && Tips.ENABLED.start() == false, "off at first for a new player");
+			Tips.ENABLED.set(p, true);
+			SelfTests.check(Tips.ENABLED.get(p), "who may turn it on");
+			Tips.ENABLED.house(null, null);
+			Setting.STORE.get(p).values.remove(Tips.ENABLED.fullKey());
+			SelfTests.check(Tips.ENABLED.get(p) && !Tips.ENABLED.isForced(), "back as shipped");
+		});
 		SelfTests.register("core.completion", level -> {
 			net.minecraft.server.MinecraftServer s = level.getServer();
 			SelfTests.check(Completion.all().size() >= 5, "collections: " + Completion.all().size());

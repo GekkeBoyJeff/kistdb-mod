@@ -140,8 +140,8 @@ public final class ProgressWindow extends CanvasWindow {
 		int x0 = Canvas.cellX(1) + 4, w = Canvas.cellX(9) - Canvas.CARD_MARGIN - x0;
 		c.line(x0, row, w, tint);
 		int left = x0 + 6, right = x0 + w - 6, y = Canvas.cellY(row) + 4;
-		String value = Ui.n(have) + "/" + Ui.n(total);
-		int vw = Glyphs.width(Component.literal(value)) + 8;
+		String value = have + "/" + total;
+		int vw = Glyphs.width(Component.literal(value)) + 6;
 		c.right(value, right - 9, y, done ? StartWindow.TEXT : Glyphs.muted);
 		c.text(Canvas.fit(col.name, right - left - 10 - vw), left, y, StartWindow.TEXT);
 		c.text("›", right - 3, y, Glyphs.muted);
@@ -166,6 +166,15 @@ public final class ProgressWindow extends CanvasWindow {
 		c.text(" › ", x, 5, Glyphs.muted);
 		x += Glyphs.width(Component.literal(" › "));
 		c.text(Canvas.fit(last, 168 - x), x, 5, StartWindow.TEXT);
+	}
+
+	/** The bottom row with pages: Back, ‹, "2/22", ›, and a button on the right (or nothing there). */
+	static void pager(Canvas c, int page, int pages, String right) {
+		small(c, 0, 2, "Back");
+		if (page > 0) small(c, 2, 1, "‹");
+		c.centred((page + 1) + "/" + pages, Canvas.cellX(3) + 18, Canvas.cellY(9) + 5, Glyphs.muted);
+		if (page < pages - 1) small(c, 5, 1, "›");
+		if (right != null) small(c, 6, 3, right);
 	}
 
 	/** A small button in the bottom row. */

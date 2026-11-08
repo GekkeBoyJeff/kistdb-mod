@@ -64,7 +64,7 @@ public final class NoGlint {
 	}
 
 	static void init() {
-		ItemView.add((viewer, menu, slot, stack) -> !viewer.isCreative() && Pack.has(viewer) ? view(stack) : stack);
+		ItemView.add((viewer, menu, slot, stack) -> GlintMod.MODULE.on() && !viewer.isCreative() && Pack.has(viewer) ? view(stack) : stack);
 		ItemView.cleaner(NoGlint::clean);
 	}
 }

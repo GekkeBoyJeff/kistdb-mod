@@ -31,11 +31,15 @@ public final class AdminWindow {
 				.text(Ui.text("Rules for everybody on this server. Only operators see this window. Grouped by the part of "
 						+ "Libreria (the module) they belong to.", ChatFormatting.GRAY));
 		for (Module m : Module.all()) {
-			if (m.serverSettings().isEmpty() && m.adminButtons().isEmpty()) continue;
+			if (m.serverSettings().isEmpty() && m.adminButtons().isEmpty() && m.settings().isEmpty()) continue;
 			List<String> names = new ArrayList<>();
 			for (ServerSetting s : m.serverSettings()) names.add(s.label + ": " + s.display());
+			int forced = 0;
+			for (nl.libreria.core.Setting st : m.settings()) if (st.isForced()) forced++;
+			if (!m.settings().isEmpty()) names.add(m.settings().size() + " players' settings" + (forced > 0 ? ", " + forced + " set for everybody" : ""));
 			for (Module.SettingsButton b : m.adminButtons()) names.add(b.label());
-			w.button(Ui.text(m.name, ChatFormatting.WHITE), Ui.text(String.join("\n", names), ChatFormatting.GRAY), (p, v) -> open(p, m));
+			Component name = m.on() ? Ui.text(m.name, ChatFormatting.WHITE) : Ui.text(m.name + " · turned off", ChatFormatting.RED);
+			w.button(name, Ui.text(String.join("\n", names), ChatFormatting.GRAY), (p, v) -> open(p, m));
 		}
 		w.back(SettingsWindow::open).show(player);
 	}
@@ -52,12 +56,47 @@ public final class AdminWindow {
 				case ServerSetting.Text t -> w.field(s.key, label, t.get(), t.maxLength);
 			}
 		}
+		// The players' own settings: each player chooses (starting at what you set here), or one value for everybody
+		if (!module.settings().isEmpty()) {
+			w.text(Ui.text("Players' settings: let each player choose (and what they start with), or set it for everybody. "
+					+ "Set for everybody, a setting is no longer in the players' settings.", ChatFormatting.GRAY));
+		}
+		for (nl.libreria.core.Setting st : module.settings()) {
+			Component label = Ui.text(nl.libreria.core.Keys.plain(st.label), ChatFormatting.WHITE);
+			List<String> ids = new ArrayList<>();
+			List<Component> names = new ArrayList<>();
+			String now;
+			switch (st) {
+				case nl.libreria.core.Setting.Toggle t -> {
+					ids.addAll(List.of("p1", "p0", "a1", "a0"));
+					names.add(Ui.text("Each player · on at first", ChatFormatting.WHITE));
+					names.add(Ui.text("Each player · off at first", ChatFormatting.WHITE));
+					names.add(Ui.text("On for everybody", ChatFormatting.GREEN));
+					names.add(Ui.text("Off for everybody", ChatFormatting.RED));
+					Integer f = t.forced();
+					now = f != null ? "a" + (f != 0 ? 1 : 0) : "p" + (t.start() ? 1 : 0);
+				}
+				case nl.libreria.core.Setting.Choice c -> {
+					for (int i = 0; i < c.size(); i++) {
+						ids.add("p" + c.valueAt(i));
+						names.add(Ui.text("Each player · " + c.labelAt(i) + " at first", ChatFormatting.WHITE));
+					}
+					for (int i = 0; i < c.size(); i++) {
+						ids.add("a" + c.valueAt(i));
+						names.add(Ui.text(c.labelAt(i) + " for everybody", ChatFormatting.GOLD));
+					}
+					Integer f = c.forced();
+					now = f != null ? "a" + f : "p" + c.start();
+				}
+			}
+			w.choice("ps_" + st.key, label, ids, names, now);
+		}
 		for (Module.SettingsButton b : module.adminButtons()) {
 			w.button(Ui.text(b.label() + " ▸", ChatFormatting.AQUA), Ui.text(b.tooltip(), ChatFormatting.GRAY), (p, v) -> {
 				if (allowed(p)) b.action().accept(p);
 			});
 		}
-		if (module.serverSettings().isEmpty()) {
+		if (module.serverSettings().isEmpty() && module.settings().isEmpty()) {
 			w.back(AdminWindow::open).show(player);
 			return;
 		}
@@ -78,6 +117,7 @@ public final class AdminWindow {
 		w.button(Ui.text("Defaults", ChatFormatting.YELLOW), Ui.text("Back to what the module ships with", ChatFormatting.GRAY), (p, v) -> {
 			if (!allowed(p)) return;
 			for (ServerSetting s : module.serverSettings()) s.reset();
+			for (nl.libreria.core.Setting st : module.settings()) st.house(null, null);
 			Libreria.LOG.info("{} reset the server settings of {}", p.getName().getString(), module.name);
 			open(p, module);
 		});
@@ -123,6 +163,34 @@ public final class AdminWindow {
 				changed++;
 				Libreria.LOG.info("{} set {} to {}", p.getName().getString(), s.fullKey(), s.display());
 			}
+		}
+		for (nl.libreria.core.Setting st : module.settings()) {
+			String pick = v.text("ps_" + st.key, "");
+			if (pick.length() < 2) continue;
+			int value;
+			try {
+				value = Integer.parseInt(pick.substring(1));
+			} catch (NumberFormatException e) {
+				continue;
+			}
+			Integer forcedBefore = st.forced();
+			boolean everybody = pick.charAt(0) == 'a';
+			int shipped = switch (st) {
+				case nl.libreria.core.Setting.Toggle t -> t.def ? 1 : 0;
+				case nl.libreria.core.Setting.Choice c -> c.defaultValue();
+			};
+			Integer startBefore = switch (st) {
+				case nl.libreria.core.Setting.Toggle t -> t.start() ? 1 : 0;
+				case nl.libreria.core.Setting.Choice c -> c.start();
+			};
+			Integer forced = everybody ? value : null;
+			// What players start with stays as it was when it's set for everybody (so "each player" again finds it back)
+			Integer start = everybody ? (startBefore == shipped ? null : startBefore) : (value == shipped ? null : value);
+			if (java.util.Objects.equals(forcedBefore, forced) && java.util.Objects.equals(startBefore, start == null ? shipped : start)) continue;
+			st.house(forced, start);
+			changed++;
+			Libreria.LOG.info("{} set the players' setting {} to {}", p.getName().getString(), st.fullKey(),
+					everybody ? value + " for everybody" : "each player, starting at " + value);
 		}
 		return changed;
 	}

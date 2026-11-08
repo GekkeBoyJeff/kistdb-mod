@@ -101,6 +101,7 @@ final class Weapons {
 
 	static void init() {
 		net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.AFTER_DEATH.register((entity, source) -> {
+			if (!InfoMod.MODULE.on()) return;
 			try {
 				if (ENABLED.get()) onKill(entity, source);
 			} catch (RuntimeException e) {

@@ -30,6 +30,7 @@ final class Describe {
 
 	static void init() {
 		UseBlockCallback.EVENT.register((player, world, hand, hit) -> {
+			if (!InfoMod.MODULE.on()) return net.minecraft.world.InteractionResult.PASS;
 			if (world.isClientSide() || hand != InteractionHand.MAIN_HAND || !(player instanceof ServerPlayer p)) return InteractionResult.PASS;
 			if (!world.getBlockState(hit.getBlockPos()).is(BlockTags.ANVIL)) return InteractionResult.PASS;
 			ItemStack held = p.getMainHandItem();

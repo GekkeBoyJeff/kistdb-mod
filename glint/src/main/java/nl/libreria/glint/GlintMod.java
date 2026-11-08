@@ -99,7 +99,7 @@ public final class GlintMod implements ModInitializer {
 		MODULE.hubEntry(nl.libreria.core.Domain.YOU, 30, Items.BLAZE_POWDER, "Effects", EffectsWindow::open,
 				"Particles from enchanted gear: how many you see, and where.");
 		MODULE.settingsButton("Choose effects", "Flames yes, smoke no: per effect", EffectsGui::open);
-		nl.libreria.core.Services.provideMenu(nl.libreria.core.Services.MENU_EFFECTS, EffectsWindow::open);
+		nl.libreria.core.Services.provideMenu(nl.libreria.core.Services.MENU_EFFECTS, MODULE.gate(EffectsWindow::open));
 
 		// Vroeg, zodat de pakketjes klaar zijn voordat de eerste speler inlogt
 		ServerLifecycleEvents.SERVER_STARTING.register(GlintMod::hostOffPacks);
@@ -115,6 +115,7 @@ public final class GlintMod implements ModInitializer {
 		GLASS.onChange(p -> setOffPack(p, "glass", !GLASS.get(p)));
 
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
+			if (!GlintMod.MODULE.on()) return;
 			if (server.getTickCount() % Aura.RUN == 0) Aura.tick(server);
 			long t0 = System.nanoTime();
 			Fx.tick(server);

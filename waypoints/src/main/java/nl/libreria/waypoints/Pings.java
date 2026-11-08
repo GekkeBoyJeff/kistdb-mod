@@ -61,7 +61,7 @@ final class Pings {
 	static void init() {
 		// sneak + Q (the drop key, whatever the player put it on): at any distance; the drop doesn't happen
 		Hotkeys.register((player, key, sneaking) -> {
-			if (!sneaking || key == Hotkeys.Key.SWAP_HANDS) return false;
+			if (!WaypointsMod.MODULE.on() || !sneaking || key == Hotkeys.Key.SWAP_HANDS) return false;
 			int mode = WaypointsMod.PING_KEY.get(player);
 			if (mode != 0 && mode != 1) return false;
 			ping(player);
@@ -178,6 +178,7 @@ final class Pings {
 	}
 
 	static void tick(MinecraftServer server) {
+		if (!WaypointsMod.MODULE.on()) return;
 		if (server.getTickCount() % 20 != 7 || ACTIVE.isEmpty()) return;
 		long now = System.currentTimeMillis();
 		ACTIVE.values().removeIf(p -> p.until() < now);

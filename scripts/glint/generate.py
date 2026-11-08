@@ -767,8 +767,8 @@ def frame_node(item, rarity):
 
 # Flags the server sets on an item, only in what one player's client sees (custom_model_data flags): the thing they
 # searched for lights up (a glow behind it, a pulsing border instead of its grade frame), the rest of the chest it lies
-# in dims
-WANTED_FLAG, DIM_FLAG = 0, 1
+# in dims. And a deep shade: what you don't have yet in a collection (Progress), a silhouette in front of anything
+WANTED_FLAG, DIM_FLAG, SHADE_FLAG = 0, 1, 2
 
 
 def placed(model, z):
@@ -788,6 +788,7 @@ def with_frame(model, item, rarity):
         model,
         flag(WANTED_FLAG, placed(f'{NS}:item/frame/wanted', 0.12), frame_node(item, rarity)),
         flag(DIM_FLAG, placed(f'{NS}:item/frame/dim', 0.6)),
+        flag(SHADE_FLAG, placed(f'{NS}:item/frame/shade', 1.5)),
     ]}
     return {'type': 'minecraft:select', 'property': 'minecraft:display_context', 'cases': [{'when': 'gui', 'model': gui}],
             'fallback': model}
@@ -816,7 +817,8 @@ def wanted_textures():
                 border.putpixel((x, 16 * f + y), (255, 250, 220, int(140 + 108 * t)))
     # (alpha 249-254 is a code for the glint shader: never in these)
     dim = Image.new('RGBA', (16, 16), (8, 8, 12, 150))
-    return {'wanted_glow': (glow, None), 'wanted': (border, 2), 'dim': (dim, None)}
+    shade = Image.new('RGBA', (16, 16), (14, 15, 20, 212))
+    return {'wanted_glow': (glow, None), 'wanted': (border, 2), 'dim': (dim, None), 'shade': (shade, None)}
 
 
 # ------------------------------------------------------------------ uitvoer

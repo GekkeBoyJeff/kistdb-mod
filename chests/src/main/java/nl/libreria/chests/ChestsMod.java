@@ -90,9 +90,9 @@ public final class ChestsMod implements ModInitializer {
 			if (Sorter.sortPlayer(p)) nl.libreria.core.Notify.whisper(p, "✔ Your inventory is sorted", net.minecraft.ChatFormatting.GREEN);
 			else nl.libreria.core.Notify.whisper(p, "Your inventory is too full to sort", net.minecraft.ChatFormatting.GRAY);
 		};
-		Hub.setEdgeButton(QuickStack::run, p -> {
+		Hub.setEdgeButton(MODULE.gate(QuickStack::run), MODULE.gate(p -> {
 			if (!ChestSearch.fromInventory(p)) sort.accept(p);
-		});
+		}));
 		MODULE.hubEntry(Domain.YOU, 40, Items.SPYGLASS, "Your items", ChestSearch::open,
 				"Everything on you and in your chests, searchable. Click one and its chest lights up.",
 				"Also: {inventory}, then right-click beside it.");
@@ -125,8 +125,8 @@ public final class ChestsMod implements ModInitializer {
 			nl.libreria.chests.gui.Locate.go(player, item, hits);
 			return !hits.isEmpty();
 		});
-		Services.provideMenu(Services.MENU_CHESTS, p -> ItemSearch.open(p, ""));
-		Services.provideMenu(Services.ACTION_SORT, Sorter::sortPlayer);
+		Services.provideMenu(Services.MENU_CHESTS, MODULE.gate(p -> ItemSearch.open(p, "")));
+		Services.provideMenu(Services.ACTION_SORT, MODULE.gate(Sorter::sortPlayer));
 		ChestsTests.register();
 		LOG.info("Libreria Chests loaded");
 	}
@@ -136,6 +136,7 @@ public final class ChestsMod implements ModInitializer {
 	 * survival stuurt de game die in een venster niet naar de server.)
 	 */
 	private static boolean onClick(ServerPlayer player, AbstractContainerMenu menu, int slot, ContainerInput input, int button) {
+		if (!MODULE.on()) return false;
 		if (slot < 0 || slot >= menu.slots.size()) return false;
 		if (SortButton.supports(menu) && SortButton.onClick(player, menu, slot, input, button)) return true;
 		boolean supported = menu == player.inventoryMenu || menu instanceof ChestMenu || menu instanceof ShulkerBoxMenu;
@@ -157,6 +158,7 @@ public final class ChestsMod implements ModInitializer {
 	}
 
 	private static void tick(MinecraftServer server) {
+		if (!MODULE.on()) return;
 		int tick = server.getTickCount();
 		for (ServerPlayer player : server.getPlayerList().getPlayers()) {
 			Tracker.tick(player, tick);

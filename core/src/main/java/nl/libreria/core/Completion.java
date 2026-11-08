@@ -418,7 +418,7 @@ public final class Completion {
 	/** A number as a board shows it: "38/41", "41%", "12 h". */
 	public static String show(String board, long value, int total) {
 		if (OVERALL.equals(board)) return percent(value / 1000.0) + "%";
-		if (get(board) != null) return Ui.n(value) + "/" + Ui.n(total);
+		if (get(board) != null) return value + "/" + total;
 		Counter k = counter(board);
 		return k != null ? k.format().apply(value) : Ui.n(value);
 	}

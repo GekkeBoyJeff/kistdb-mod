@@ -358,6 +358,7 @@ final class ClaimView {
 	 * the real items you can't see). Otherwise the land map key opens it.
 	 */
 	static boolean onKey(ServerPlayer p, Hotkeys.Key key, boolean sneaking) {
+		if (!ClaimsMod.MODULE.on()) return false;
 		View v = VIEWS.get(p.getUUID());
 		if (v != null) {
 			emptyHands(p);
@@ -397,6 +398,7 @@ final class ClaimView {
 	// ---------------------------------------------------------------- every tick
 
 	static void tick(MinecraftServer server) {
+		if (!ClaimsMod.MODULE.on()) return;
 		for (View v : new ArrayList<>(VIEWS.values())) {
 			ServerPlayer p = v.p;
 			if (p.hasDisconnected() || p.isRemoved() || p.level() != v.level || p.isDeadOrDying()) {

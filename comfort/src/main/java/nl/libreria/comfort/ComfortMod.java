@@ -48,6 +48,7 @@ public final class ComfortMod implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		UseBlockCallback.EVENT.register((player, world, hand, hit) -> {
+			if (!ComfortMod.MODULE.on()) return net.minecraft.world.InteractionResult.PASS;
 			if (world.isClientSide() || hand != InteractionHand.MAIN_HAND || !(player instanceof ServerPlayer sp) || sp.isSpectator()) {
 				return InteractionResult.PASS;
 			}
@@ -66,6 +67,7 @@ public final class ComfortMod implements ModInitializer {
 			return InteractionResult.PASS;
 		});
 		net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents.END_SERVER_TICK.register(server -> {
+			if (!ComfortMod.MODULE.on()) return;
 			tickDoors();
 			Sleep.tick(server);
 			Spawns.tick(server);

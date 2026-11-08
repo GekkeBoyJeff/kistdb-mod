@@ -217,6 +217,7 @@ final class Secrets {
 
 	static void init() {
 		ServerLivingEntityEvents.ALLOW_DEATH.register((entity, source, amount) -> {
+			if (!CollectorMod.MODULE.on()) return true;
 			try {
 				if (entity instanceof ServerPlayer p) beforeDeath(p, source);
 			} catch (RuntimeException e) {
@@ -225,6 +226,7 @@ final class Secrets {
 			return true;
 		});
 		ServerLivingEntityEvents.AFTER_DEATH.register((entity, source) -> {
+			if (!CollectorMod.MODULE.on()) return;
 			try {
 				if (entity instanceof ServerPlayer p) afterDeath(p, source);
 				else onKill(entity, source);
@@ -233,11 +235,13 @@ final class Secrets {
 			}
 		});
 		ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
+			if (!CollectorMod.MODULE.on()) return;
 			Watch w = watch(newPlayer);
 			w.respawnTick = newPlayer.level().getServer().getTickCount();
 			w.lastFall = 0;
 		});
 		UseEntityCallback.EVENT.register((player, world, hand, entity, hit) -> {
+			if (!CollectorMod.MODULE.on()) return net.minecraft.world.InteractionResult.PASS;
 			if (!world.isClientSide() && hand == InteractionHand.MAIN_HAND && player instanceof ServerPlayer sp) {
 				try {
 					onUse(sp, entity);
@@ -248,10 +252,12 @@ final class Secrets {
 			return InteractionResult.PASS;
 		});
 		AttackEntityCallback.EVENT.register((player, world, hand, entity, hit) -> {
+			if (!CollectorMod.MODULE.on()) return net.minecraft.world.InteractionResult.PASS;
 			if (!world.isClientSide() && player instanceof ServerPlayer sp && type(entity).equals("villager")) award(sp, "onbeleefd");
 			return InteractionResult.PASS;
 		});
 		ServerMessageEvents.CHAT_MESSAGE.register((message, sender, params) -> {
+			if (!CollectorMod.MODULE.on()) return;
 			String text = message.signedContent().trim();
 			award(sender, "hallo");
 			if (text.equalsIgnoreCase("gg")) award(sender, "gg");

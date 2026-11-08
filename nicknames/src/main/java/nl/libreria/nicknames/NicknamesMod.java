@@ -73,7 +73,7 @@ public final class NicknamesMod implements ModInitializer {
 		Nameplate.setName(NicknamesMod::plateName);
 
 		CommandRegistrationCallback.EVENT.register((dispatcher, registry, env) -> dispatcher.register(
-				Commands.literal("nick").executes(ctx -> {
+				Commands.literal("nick").requires(MODULE.available()).executes(ctx -> {
 					NickGui.open(ctx.getSource().getPlayerOrException());
 					return 1;
 				}).then(Commands.literal("reset").executes(ctx -> {
@@ -188,11 +188,12 @@ public final class NicknamesMod implements ModInitializer {
 	}
 
 	private static @Nullable Component plateName(ServerPlayer p) {
-		return styled(p);
+		return MODULE.on() ? styled(p) : null;
 	}
 
 	/** For chat and other messages: the nickname, the real name on hover, and a click opens their profile. */
 	public static @Nullable Component chatName(ServerPlayer p) {
+		if (!MODULE.on()) return null;
 		MutableComponent nick = styled(p);
 		if (nick == null) return null;
 		String real = p.getName().getString();

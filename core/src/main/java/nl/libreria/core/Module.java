@@ -81,7 +81,36 @@ public final class Module {
 	public static Module register(String id, String name, Item icon, String... description) {
 		Module m = new Module(id, name, icon, List.of(description));
 		MODULES.put(id, m);
+		// Every part but the core can be switched off for everybody (a bug, or not wanted here)
+		if (!id.equals("libreria")) {
+			m.enabled = m.serverToggle("on", "Turned on", icon, true, "Off: " + name + " stops for everybody", "(its buttons, commands and what it does)",
+					"until it is turned on again.");
+			m.enabled.onChange(() -> {
+				var server = Libreria.server();
+				if (server != null) for (var p : server.getPlayerList().getPlayers()) server.getCommands().sendCommands(p);
+			});
+		}
 		return m;
+	}
+
+	private ServerSetting.Toggle enabled;
+
+	/** Is this part of Libreria turned on (an operator can turn any part but the core off for everybody)? */
+	public boolean on() {
+		return this.enabled == null || this.enabled.get();
+	}
+
+	/** {@code action}, or (while this part is turned off) a short card that says so. */
+	public Consumer<ServerPlayer> gate(Consumer<ServerPlayer> action) {
+		return p -> {
+			if (on()) action.accept(p);
+			else Notify.warn(p, net.minecraft.world.item.Items.BARRIER, "Turned off", this.name + " is turned off on this server.");
+		};
+	}
+
+	/** For a command: only there while this part is turned on. */
+	public java.util.function.Predicate<net.minecraft.commands.CommandSourceStack> available() {
+		return src -> on();
 	}
 
 	/** Alle modules, met de algemene Libreria-instellingen altijd eerst. */
@@ -179,7 +208,7 @@ public final class Module {
 	/** The buttons of one domain page, in order. */
 	public static List<HubEntry> hubEntries(Domain domain) {
 		List<HubEntry> out = new ArrayList<>();
-		for (HubEntry e : allHubEntries()) if (e.domain() == domain) out.add(e);
+		for (HubEntry e : allHubEntries()) if (e.domain() == domain && e.module().on()) out.add(e);
 		return out;
 	}
 

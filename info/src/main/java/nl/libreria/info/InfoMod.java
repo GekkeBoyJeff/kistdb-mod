@@ -150,8 +150,8 @@ public final class InfoMod implements ModInitializer {
 	public void onInitialize() {
 		MODULE.hubEntry(Domain.PROGRESS, 20, Items.WRITABLE_BOOK, "Statistics", StatsGui::open,
 				"Playtime, distances, kills, most mined blocks and more, with the top players.");
-		Services.provideMenu(Services.MENU_STATS, StatsGui::open);
-		Services.provideMenu(Services.MENU_JOURNAL, Places::journal);
+		Services.provideMenu(Services.MENU_STATS, MODULE.gate(StatsGui::open));
+		Services.provideMenu(Services.MENU_JOURNAL, MODULE.gate(Places::journal));
 		Services.provideDiscoveries(new Services.Discoveries() {
 			@Override
 			public int places(ServerPlayer player) {
@@ -195,7 +195,7 @@ public final class InfoMod implements ModInitializer {
 			int n = Discoveries.firstsOf(who);
 			return n == 0 ? null : nl.libreria.core.Ui.n(n);
 		});
-		Services.provideMenu(Services.MENU_PETS, Pets::open);
+		Services.provideMenu(Services.MENU_PETS, MODULE.gate(Pets::open));
 		MODULE.hubEntry(Domain.PLACES, 80, Items.LEAD, "Your pets", Pets::open,
 				"Your tamed animals and where they are; click one to be shown the way.");
 		MODULE.hubEntry(Domain.PLACES, 90, Items.WRITABLE_BOOK, "Journal", Places::journal,
@@ -214,6 +214,7 @@ public final class InfoMod implements ModInitializer {
 		MODULE.commands(Domain.PROGRESS, "/stats – your statistics");
 		MODULE.commands(Domain.PLACES, "/journal – places you found", "/pets – your pets and where they are");
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
+			if (!InfoMod.MODULE.on()) return;
 			int tick = server.getTickCount();
 			if (tick % 2 == 0) Look.tick(server);
 			if (tick % 10 == 5) Held.tick(server);
@@ -225,6 +226,7 @@ public final class InfoMod implements ModInitializer {
 		});
 
 		UseEntityCallback.EVENT.register((player, world, hand, entity, hit) -> {
+			if (!InfoMod.MODULE.on()) return net.minecraft.world.InteractionResult.PASS;
 			if (!world.isClientSide() && hand == InteractionHand.MAIN_HAND && player instanceof ServerPlayer sp
 					&& sp.isShiftKeyDown() && sp.getMainHandItem().isEmpty()
 					&& entity instanceof AbstractHorse horse && HORSE.get(sp)) {
@@ -234,11 +236,11 @@ public final class InfoMod implements ModInitializer {
 		});
 
 		CommandRegistrationCallback.EVENT.register((dispatcher, registry, env) -> {
-			dispatcher.register(Commands.literal("pets").executes(ctx -> {
+			dispatcher.register(Commands.literal("pets").requires(MODULE.available()).executes(ctx -> {
 				Pets.open(ctx.getSource().getPlayerOrException());
 				return 1;
 			}));
-			dispatcher.register(Commands.literal("journal").executes(ctx -> {
+			dispatcher.register(Commands.literal("journal").requires(MODULE.available()).executes(ctx -> {
 				Places.journal(ctx.getSource().getPlayerOrException());
 				return 1;
 			}));
@@ -254,7 +256,7 @@ public final class InfoMod implements ModInitializer {
 				return 1;
 			})));
 			for (String name : new String[] {"stats", "statistics"}) {
-				dispatcher.register(Commands.literal(name).executes(ctx -> {
+				dispatcher.register(Commands.literal(name).requires(MODULE.available()).executes(ctx -> {
 					StatsGui.open(ctx.getSource().getPlayerOrException());
 					return 1;
 				}));

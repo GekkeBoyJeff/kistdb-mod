@@ -136,9 +136,9 @@ public final class CollectorMod implements ModInitializer {
 		MODULE.commands(Domain.YOU, "/showcase – choose the achievements on your profile");
 		MODULE.hubEntry(Domain.YOU, 20, Items.NAME_TAG, "Title", AchievementsGui::openTitles,
 				"Choose the title that floats above your name.");
-		Services.provideMenu(Services.MENU_ACHIEVEMENTS, AchievementsGui::open);
-		Services.provideMenu(Services.MENU_GOAL, nl.libreria.collector.gui.GoalWindow::open);
-		Services.provideMenu(Services.MENU_RECORDS, nl.libreria.collector.gui.RecordsWindow::open);
+		Services.provideMenu(Services.MENU_ACHIEVEMENTS, MODULE.gate(AchievementsGui::open));
+		Services.provideMenu(Services.MENU_GOAL, MODULE.gate(nl.libreria.collector.gui.GoalWindow::open));
+		Services.provideMenu(Services.MENU_RECORDS, MODULE.gate(nl.libreria.collector.gui.RecordsWindow::open));
 		CollectorCollections.init();
 		Services.provideProgress(new Services.Progress() {
 			@Override
@@ -189,7 +189,7 @@ public final class CollectorMod implements ModInitializer {
 				return c == null ? -1 : c.getValue();
 			}
 		});
-		Nameplate.addLine("collector.title", 10, CollectorMod::title);
+		Nameplate.addLine("collector.title", 10, p -> MODULE.on() ? title(p) : null);
 
 		// Build the catalogue once tags are loaded, then show everything in the vanilla advancements screen (L)
 		ServerLifecycleEvents.SERVER_STARTED.register(server -> {
@@ -202,6 +202,7 @@ public final class CollectorMod implements ModInitializer {
 			Advancements.inject(server);
 		});
 		net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
+			if (!CollectorMod.MODULE.on()) return;
 			ServerPlayer p = handler.player;
 			Trophies.migrate(p);
 			Records.toldOfRecount(p);
@@ -212,6 +213,7 @@ public final class CollectorMod implements ModInitializer {
 			Advancements.sync(p);
 		});
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
+			if (!CollectorMod.MODULE.on()) return;
 			int t = server.getTickCount();
 			if (t % 20 == 7) scanAll(server);
 			if (t % 100 == 13) checkAll(server);
@@ -224,33 +226,34 @@ public final class CollectorMod implements ModInitializer {
 		ServerLifecycleEvents.SERVER_STOPPING.register(server -> Banner.clear());
 		net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> Secrets.forget(handler.player.getUUID()));
 		ServerEntityEvents.ENTITY_LOAD.register((entity, level) -> {
+			if (!CollectorMod.MODULE.on()) return;
 			if (entity instanceof Villager baby) onVillagerAdded(level, baby);
 		});
 
 		CommandRegistrationCallback.EVENT.register((dispatcher, registry, env) -> {
 			for (String name : new String[] {"achievements", "collection"}) {
-				dispatcher.register(Commands.literal(name).executes(ctx -> {
+				dispatcher.register(Commands.literal(name).requires(MODULE.available()).executes(ctx -> {
 					AchievementsGui.open(ctx.getSource().getPlayerOrException());
 					return 1;
 				}));
 			}
 			for (String name : new String[] {"goal", "goals"}) {
-				dispatcher.register(Commands.literal(name).executes(ctx -> {
+				dispatcher.register(Commands.literal(name).requires(MODULE.available()).executes(ctx -> {
 					nl.libreria.collector.gui.GoalWindow.open(ctx.getSource().getPlayerOrException());
 					return 1;
 				}));
 			}
-			dispatcher.register(Commands.literal("records").executes(ctx -> {
+			dispatcher.register(Commands.literal("records").requires(MODULE.available()).executes(ctx -> {
 				nl.libreria.collector.gui.RecordsWindow.open(ctx.getSource().getPlayerOrException());
 				return 1;
 			}));
-			dispatcher.register(Commands.literal("showcase").executes(ctx -> {
+			dispatcher.register(Commands.literal("showcase").requires(MODULE.available()).executes(ctx -> {
 				ServerPlayer p = ctx.getSource().getPlayerOrException();
 				nl.libreria.collector.gui.ShowcaseWindow.open(p, 0, q -> nl.libreria.core.ProfileWindow.open(q, q.getUUID(), "",
 						r -> nl.libreria.core.Start.domain(r, Domain.YOU)));
 				return 1;
 			}));
-			dispatcher.register(Commands.literal("titles").executes(ctx -> {
+			dispatcher.register(Commands.literal("titles").requires(MODULE.available()).executes(ctx -> {
 				AchievementsGui.openTitles(ctx.getSource().getPlayerOrException());
 				return 1;
 			}).then(Commands.literal("set").then(Commands.argument("achievement", com.mojang.brigadier.arguments.StringArgumentType.word())

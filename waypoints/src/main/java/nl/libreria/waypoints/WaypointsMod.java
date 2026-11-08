@@ -89,18 +89,20 @@ public final class WaypointsMod implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		ServerLivingEntityEvents.AFTER_DEATH.register((entity, source) -> {
+			if (!WaypointsMod.MODULE.on()) return;
 			if (entity instanceof ServerPlayer p) onDeath(p);
 		});
 		ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
+			if (!WaypointsMod.MODULE.on()) return;
 			if (!alive) onRespawn(newPlayer);
 		});
 		// Only when you can actually be shown the way (not when you died in another dimension)
 		Services.addDeathAction(p -> deathPoint(p) == null || !deathPoint(p).dim.equals(dimOf(p.level())) ? null
 				: new Services.DeathAction("Show the way back", "A beam to where you died", WaypointsMod::goDeath));
 		CommandRegistrationCallback.EVENT.register((dispatcher, context, selection) -> {
-			dispatcher.register(Commands.literal("deathpoint").executes(c -> goDeath(c.getSource().getPlayerOrException()) ? 1 : 0));
+			dispatcher.register(Commands.literal("deathpoint").requires(MODULE.available()).executes(c -> goDeath(c.getSource().getPlayerOrException()) ? 1 : 0));
 			// /ping: ping where you look; /ping show <player>: the way to their ping; /ping clear: take yours away
-			dispatcher.register(Commands.literal("ping")
+			dispatcher.register(Commands.literal("ping").requires(MODULE.available())
 					.executes(c -> Pings.ping(c.getSource().getPlayerOrException()) ? 1 : 0)
 					.then(Commands.literal("show").then(Commands.argument("player", EntityArgument.player())
 							.executes(c -> Pings.show(c.getSource().getPlayerOrException(), EntityArgument.getPlayer(c, "player").getUUID()) ? 1 : 0)))

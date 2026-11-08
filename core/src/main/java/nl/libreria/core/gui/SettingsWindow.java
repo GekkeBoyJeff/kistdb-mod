@@ -43,11 +43,12 @@ public final class SettingsWindow {
 	public static List<Section> sections(Domain d) {
 		Map<String, Section> out = new LinkedHashMap<>();
 		for (Setting s : Module.allSettings()) {
-			if (s.domain() != d) continue;
+			// What the server decided for everybody isn't a player's to change, so it isn't shown
+			if (s.domain() != d || s.isForced() || !s.module.on()) continue;
 			out.computeIfAbsent(s.section(), k -> new Section(d, k, new ArrayList<>(), new ArrayList<>())).settings().add(s);
 		}
 		for (Module m : Module.all()) {
-			if (m.domain() != d || m.settingsButtons().isEmpty()) continue;
+			if (m.domain() != d || m.settingsButtons().isEmpty() || !m.on()) continue;
 			String name = m.settings().stream().filter(s -> s.domain() == d).map(Setting::section).findFirst().orElse(m.name);
 			out.computeIfAbsent(name, k -> new Section(d, k, new ArrayList<>(), new ArrayList<>())).buttons().addAll(m.settingsButtons());
 		}
@@ -154,7 +155,7 @@ public final class SettingsWindow {
 			w.button(Ui.text("Defaults", ChatFormatting.YELLOW), Ui.text("Back to how they were at the start", ChatFormatting.GRAY),
 					(p, v) -> {
 						for (Setting s : section.settings()) {
-							if (s instanceof Setting.Toggle t) t.set(p, t.def);
+							if (s instanceof Setting.Toggle t) t.set(p, t.start());
 							else if (s instanceof Setting.Choice c) c.set(p, c.defaultValue());
 						}
 						nl.libreria.core.Notify.whisper(p, "Back to the defaults", ChatFormatting.GRAY);

@@ -98,6 +98,7 @@ final class Stands {
 
 	static void init() {
 		UseEntityCallback.EVENT.register((player, world, hand, entity, hit) -> {
+			if (!ComfortMod.MODULE.on()) return net.minecraft.world.InteractionResult.PASS;
 			if (world.isClientSide() || !(player instanceof ServerPlayer sp) || sp.isSpectator()) return InteractionResult.PASS;
 			// A hidden frame is locked: the click goes through it to the block behind (sneak + empty hand still shows it)
 			if (entity instanceof ItemFrame locked && locked(locked) && !(sp.isShiftKeyDown() && sp.getMainHandItem().isEmpty() && EDIT.get(sp))) {
@@ -131,6 +132,7 @@ final class Stands {
 		});
 		// A hidden frame that loses its item shows again (else it's an invisible thing on the wall nobody finds)
 		AttackEntityCallback.EVENT.register((player, world, hand, entity, hit) -> {
+			if (!ComfortMod.MODULE.on()) return net.minecraft.world.InteractionResult.PASS;
 			if (world.isClientSide() || !(entity instanceof ItemFrame frame) || !frame.isInvisible()) return InteractionResult.PASS;
 			world.getServer().execute(() -> {
 				if (frame.isAlive() && frame.getItem().isEmpty()) frame.setInvisible(false);
