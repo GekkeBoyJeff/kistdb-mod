@@ -1673,6 +1673,15 @@ def main():
     anvil_field()
     inventory_tab()
     hotbar_font()
+    # Minecraft's own screens and the book in the same look (they live under assets/minecraft too, wiped above)
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import book as book_screen
+    import containers as container_screens
+    container_screens.OUT = OUT
+    container_screens.main()
+    path = os.path.join(OUT, 'assets/minecraft/textures/gui/book.png')
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    book_screen.book().save(path)
     meta = {"hudLines": HUD_LINES, "icons": icon_map, 'lineHeight': LH, 'padX': PAD_X, 'padTop': PAD_TOP, 'padBottom': PAD_BOTTOM,
             'panelLines': [min(PANEL_LINES), max(PANEL_LINES)], 'themes': list(THEMES), 'glyphs': glyphs,
             'look': {'title': LOOK['title'], 'titleShadow': LOOK['title_shadow'], 'neutral': LOOK['neutral'], 'muted': LOOK['muted']}, 'iconY': ICON_Y,

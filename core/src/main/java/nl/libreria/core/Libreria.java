@@ -54,6 +54,7 @@ public final class Libreria implements ModInitializer {
 		Welcome.init();
 		Afk.init();
 		Tab.init();
+		ServerList.init();
 		nl.libreria.core.gui.Markers.addSource(p -> {
 			var m = Guide.marker(p);
 			return m == null ? java.util.List.of() : java.util.List.of(m);

@@ -167,8 +167,11 @@ public final class NicknamesMod implements ModInitializer {
 	/** Alleen de opgemaakte nickname (of null zonder nickname). */
 	public static @Nullable MutableComponent styled(ServerPlayer p) {
 		Data d = STORE.get(p);
-		if (d.nick.isEmpty()) return null;
-		return paint(d.nick, colorOf(p, d), d.bold && unlocked(p) >= BOLD_RARITY);
+		Color c = colorOf(p, d);
+		boolean bold = d.bold && unlocked(p) >= BOLD_RARITY;
+		// Without a nickname your own name, in your colour (when you chose one)
+		if (d.nick.isEmpty()) return c == COLORS.get(0) && !bold ? null : paint(p.getName().getString(), c, bold);
+		return paint(d.nick, c, bold);
 	}
 
 	static MutableComponent paint(String text, Color c, boolean bold) {
@@ -197,16 +200,20 @@ public final class NicknamesMod implements ModInitializer {
 		MutableComponent nick = styled(p);
 		if (nick == null) return null;
 		String real = p.getName().getString();
+		boolean own = STORE.get(p).nick.isEmpty();
+		MutableComponent hover = own ? Component.literal("Click: their profile").withStyle(ChatFormatting.YELLOW)
+				: Component.literal("Real name: " + real).withStyle(ChatFormatting.GRAY)
+						.append(Component.literal("\nClick: their profile").withStyle(ChatFormatting.YELLOW));
 		return Component.empty().append(nick).withStyle(s -> s
-				.withHoverEvent(new HoverEvent.ShowText(Component.literal("Real name: " + real).withStyle(ChatFormatting.GRAY)
-						.append(Component.literal("\nClick: their profile").withStyle(ChatFormatting.YELLOW))))
+				.withHoverEvent(new HoverEvent.ShowText(hover))
 				.withClickEvent(new ClickEvent.RunCommand("/profile " + real))
 				.withInsertion(real));
 	}
 
 	public static @Nullable Component tabName(ServerPlayer p) {
+		if (!MODULE.on()) return null;
 		MutableComponent nick = styled(p);
-		if (nick == null) return null;
+		if (nick == null || STORE.get(p).nick.isEmpty()) return nick;
 		return nick.append(Component.literal(" (" + p.getName().getString() + ")").withStyle(ChatFormatting.DARK_GRAY));
 	}
 }

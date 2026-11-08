@@ -47,7 +47,10 @@ public final class AdminWindow {
 	public static void open(ServerPlayer player, Module module) {
 		if (!allowed(player)) return;
 		Window w = Window.path("Settings", "Server settings", module.name);
-		w.item(new ItemStack(module.icon), Ui.text("Server-wide: this changes it for every player.", ChatFormatting.GRAY));
+		w.item(new ItemStack(module.icon), Ui.text(module.settings().isEmpty() ? "Server-wide: this changes it for every player."
+				: "Server-wide: this changes it for every player. Under the house rules, the players' own settings: let each "
+						+ "player choose (and what they start with), or set it for everybody (then it's no longer in their settings).",
+				ChatFormatting.GRAY));
 		for (ServerSetting s : module.serverSettings()) {
 			Component label = Ui.text(s.label, ChatFormatting.WHITE);
 			switch (s) {
@@ -57,10 +60,6 @@ public final class AdminWindow {
 			}
 		}
 		// The players' own settings: each player chooses (starting at what you set here), or one value for everybody
-		if (!module.settings().isEmpty()) {
-			w.text(Ui.text("Players' settings: let each player choose (and what they start with), or set it for everybody. "
-					+ "Set for everybody, a setting is no longer in the players' settings.", ChatFormatting.GRAY));
-		}
 		for (nl.libreria.core.Setting st : module.settings()) {
 			Component label = Ui.text(nl.libreria.core.Keys.plain(st.label), ChatFormatting.WHITE);
 			List<String> ids = new ArrayList<>();

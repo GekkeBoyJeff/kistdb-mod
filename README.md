@@ -44,6 +44,11 @@ And the modules help each other. A few examples:
    search and supply ranges, the sleep percentage, AFK time, the tab list title, the welcome line, links (Discord,
    website, rules, live map, vote), leaderboards, how many foes a weapon needs to earn a name, and whether villagers and
    pets get names. Changes apply at once; no config files, no restart.
+   **Every part** (chests, tools, claims, pings, graves, info, comfort, collector, nicknames, glint) has a **Turned on**
+   switch: off, its buttons, commands and what it does stop for everybody (for a bug, or what you don't want here).
+   **Every player setting** can be left to each player (and you choose what they start with) or set **for everybody**;
+   then it's no longer in the players' settings. The server list text (two lines, `&` colours) and the server icon
+   (Libreria's, when the server has none) are set here too.
 
 ## Modules
 
@@ -79,6 +84,12 @@ With the pack you get:
   picture beside each row, switches you flip with one click. The cells underneath are invisible click spots, so a card
   works wherever you point at it. Your inventory is hidden while such a window is open. Without the pack the same
   pages are dialogs.
+- **Minecraft's own screens** (chests, furnaces, the crafting table, anvils, the enchanting table, brewing stands,
+  villagers, the inventory and the recipe book) in parchment with a bronze edge and walnut slots: only their colours
+  change (light enough for the grey titles Minecraft draws). **Books** (the lore book, written books, book and quill):
+  walnut leather, a bronze rim, gold corners and a small gold diamond under the text.
+- **Rare drops glow**: uncommon, rare and epic items on the ground glow in their rarity's colour (an operator can turn
+  it off). **The tab list** shows each player's title after their name.
 - **Menus** (chests, achievements, statistics …) on the same dark panel: the menu's items float on a tray, the bottom
   row of buttons is a band of its own, your inventory keeps real slots, and tooltips get the same panel. Coloured panes
   become little plaques. The "Inventory" line above your inventory is gone in every screen.

@@ -1196,6 +1196,39 @@ public final class Screens implements FabricClientGameTest {
 					nl.libreria.nicknames.NicknamesMod.STORE.get(player).nick = "";
 				});
 			});
+			// The tab list: titles after the names
+			safe("tab_list", () -> {
+				noToasts(ctx);
+				key(ctx, "holdKey", ctx.computeOnClient(mc -> mc.options.keyPlayerList));
+				ctx.waitTicks(10);
+				ctx.takeScreenshot("tab_list");
+				key(ctx, "releaseKey", ctx.computeOnClient(mc -> mc.options.keyPlayerList));
+			});
+			// Minecraft's own screens in the Libreria look: a furnace and a crafting table
+			safe("vanilla_screens", () -> {
+				var pos = player.blockPosition().relative(player.getDirection(), 2);
+				server.runOnServer(s -> {
+					player.level().setBlockAndUpdate(pos, net.minecraft.world.level.block.Blocks.FURNACE.defaultBlockState());
+					var st = player.level().getBlockState(pos);
+					player.openMenu(st.getMenuProvider(player.level(), pos));
+				});
+				ctx.waitTicks(10);
+				ctx.getInput().setCursorPos(2, 2);
+				noToasts(ctx);
+				ctx.takeScreenshot("vanilla_furnace");
+				close(ctx, server, player);
+				server.runOnServer(s -> {
+					player.level().setBlockAndUpdate(pos, net.minecraft.world.level.block.Blocks.CRAFTING_TABLE.defaultBlockState());
+					var st = player.level().getBlockState(pos);
+					player.openMenu(st.getMenuProvider(player.level(), pos));
+				});
+				ctx.waitTicks(10);
+				ctx.getInput().setCursorPos(2, 2);
+				noToasts(ctx);
+				ctx.takeScreenshot("vanilla_crafting");
+				close(ctx, server, player);
+				server.runOnServer(s -> player.level().setBlockAndUpdate(pos, net.minecraft.world.level.block.Blocks.AIR.defaultBlockState()));
+			});
 			// With the mouse on a row: its tooltip
 			safe("own_progress_hover", () -> {
 				server.runOnServer(s -> nl.libreria.core.ProgressWindow.open(player, nl.libreria.core.Completion.Tab.DO));

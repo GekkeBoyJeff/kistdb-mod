@@ -95,6 +95,7 @@ public final class GlintMod implements ModInitializer {
 	public void onInitialize() {
 		loadFamilies();
 		assetsAdded = Pack.addAssets("libreria_glint");
+		DropGlow.init();
 
 		MODULE.hubEntry(nl.libreria.core.Domain.YOU, 30, Items.BLAZE_POWDER, "Effects", EffectsWindow::open,
 				"Particles from enchanted gear: how many you see, and where.");
