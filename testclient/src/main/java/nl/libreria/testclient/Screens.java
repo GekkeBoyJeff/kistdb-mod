@@ -1225,20 +1225,18 @@ public final class Screens implements FabricClientGameTest {
 				int left = (w - 176) / 2, top = (h - 166) / 2;
 				ctx.getInput().setCursorPos((left + 16) * scale, (top + 92) * scale);
 				ctx.waitTicks(4);
-				// Shift held, and a right-click with Shift in it, straight into the screen: what the game does with a real one
-				raw(ctx, "holdKey", 340, false);
-				ctx.waitTicks(2);
+				// A right-click with Shift in it, straight into the screen: what the game does with a real one
+				// (26.x numbers mouse buttons from 1: 1 left, 2 middle, 3 right; modifier 1 = Shift)
 				String screen = ctx.computeOnClient(mc -> {
-					if (!(mc.screen instanceof net.minecraft.client.gui.screens.inventory.AbstractContainerScreen<?> scr)) return String.valueOf(mc.screen);
+					var open = mc.gui.screen();
+					if (!(open instanceof net.minecraft.client.gui.screens.inventory.AbstractContainerScreen<?> scr)) return String.valueOf(open);
 					var ev = new net.minecraft.client.input.MouseButtonEvent(left + 16, top + 92,
-							new net.minecraft.client.input.MouseButtonInfo(1, org.lwjgl.glfw.GLFW.GLFW_MOD_SHIFT));
+							new net.minecraft.client.input.MouseButtonInfo(3, 1));
 					scr.mouseClicked(ev, false);
 					scr.mouseReleased(ev);
-					return scr.getClass().getSimpleName();
+					return scr.getClass().getSimpleName() + " (shift " + ev.hasShiftDown() + ")";
 				});
-				ctx.waitTicks(2);
-				raw(ctx, "releaseKey", 340, false);
-				ctx.waitTicks(8);
+				ctx.waitTicks(10);
 				boolean real = server.computeOnServer(s -> nl.libreria.core.ItemLink.shown) > before;
 				String state = server.computeOnServer(s -> me.apply(s).getInventory().getItem(9).getHoverName().getString()
 						+ " / carried " + me.apply(s).inventoryMenu.getCarried().getHoverName().getString());

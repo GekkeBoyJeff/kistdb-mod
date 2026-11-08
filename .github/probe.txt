@@ -1,6 +1,2 @@
 net.minecraft.world.scores.PlayerTeam
 ? TeamColor
-!net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
-net.minecraft.client.input.MouseButtonEvent
-net.minecraft.client.input.MouseButtonInfo
-? gametest.*Input
