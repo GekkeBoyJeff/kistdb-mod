@@ -48,7 +48,7 @@ public final class ToolsMod implements ModInitializer {
 			"Save good tools with a break limit: Settings › Items.");
 	static final nl.libreria.core.Tips.Tip TIP_LIMIT = nl.libreria.core.Tips.register("tool_limit", nl.libreria.core.Domain.YOU,
 			Items.ANVIL, "Break limit", "This tool stops before it breaks, so you can repair it.",
-			"Change the limit in Settings › Items › Tools & refills.");
+			"Change the limit in Settings › You › Tools & refills.");
 	public static final Setting.Toggle SWAP = MODULE.toggle("wissel", "Auto-swap to next tool", true, Items.IRON_PICKAXE,
 			"When your tool breaks (or reaches your", "break limit), the next one from your", "inventory is put in your hand.");
 	public static final Setting.Choice KEEP = MODULE.choice("grens", "Break limit", Items.ANVIL, 0,

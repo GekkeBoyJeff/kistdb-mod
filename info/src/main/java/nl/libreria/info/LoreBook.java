@@ -19,7 +19,7 @@ import nl.libreria.core.dialog.Dialogs;
 import nl.libreria.core.gui.Book;
 
 /**
- * The lore book (Items › Lore book, /lore), in the game's own book screen: the contents (every story you found a part
+ * The lore book (Progress › Lore book, /lore), in the game's own book screen: the contents (every story you found a part
  * of, a link each), a book per story (what it is, its parts, a page per part, the ones you haven't found as "???"), and
  * a book of everything you found yourself, newest first, with its text, where and when.
  */

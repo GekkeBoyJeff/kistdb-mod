@@ -169,17 +169,20 @@ final class Stand {
 		float[] d = Look.dims(card, pack);
 		double mid = e.getY() + e.getBbHeight() * 0.55;
 		double by = e.getBbWidth() / 2 + 0.3;
+		// What it holds sticks out of its box (a sword, a rod): the card stays clear of that too
+		double reach = e instanceof ArmorStand st && (!st.getItemBySlot(EquipmentSlot.MAINHAND).isEmpty()
+				|| !st.getItemBySlot(EquipmentSlot.OFFHAND).isEmpty()) ? 0.6 : 0;
 		// How far the card hangs from your eye (beside the stand, pulled towards you), and as far as the stand
-		Vec3 spot = Look.beside(eye, e, mid);
+		Vec3 spot = Look.beside(eye, e, mid, reach);
 		double dist = Math.max(0.35, eye.distanceTo(spot));
-		double near = Math.max(0.35, Look.hang(eye, e, mid, by).distanceTo(eye));
+		double near = Math.max(0.35, Look.hang(eye, e, mid, by, reach).distanceTo(eye));
 		// At most about 33 degrees tall and 37 wide: even a step away the whole story fits, above your hand (the text
 		// stays readable)
 		float size = (float) Math.max(0.08, Math.min(1.0, Math.min(0.6 * near / d[1], 0.75 * near / d[0])));
 		// How tall it looks, measured at the stand
 		double tall = d[1] * size * dist / near;
 		double bottom = Math.max(e.getY() + 0.02, mid - tall / 2);
-		Vec3 at = Look.keepOnScreen(eye, dir, Look.hang(eye, e, bottom, by), d[1] * size, Look.DOWN_TALL);
+		Vec3 at = Look.keepOnScreen(eye, dir, Look.hang(eye, e, bottom, by, reach), d[1] * size, Look.DOWN_TALL);
 		return new Look.Target(at, card, false, size, 1);
 	}
 

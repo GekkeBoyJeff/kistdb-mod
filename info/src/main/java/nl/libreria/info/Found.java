@@ -59,7 +59,7 @@ final class Found {
 	static final int TEXT = 0xC8AFEB, HEAD = 0xF0C86E, WHERE = 0x6E6E6E;
 	static final nl.libreria.core.Tips.Tip TIP = nl.libreria.core.Tips.register("found_story", nl.libreria.core.Domain.PROGRESS,
 			net.minecraft.world.item.Items.WRITTEN_BOOK, "A part of a story", "Some found gear belongs to a longer story:",
-			"find the other parts. Read them in Items › Lore book.");
+			"find the other parts. Read them in Progress › Lore book.");
 
 	/** One text: a line, a part of a story, or one combination of a family. */
 	record Text(String id, Set<String> kinds, String where, String text, @Nullable String name, @Nullable String story,
