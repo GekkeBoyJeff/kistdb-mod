@@ -1074,7 +1074,7 @@ public final class Screens implements FabricClientGameTest {
 			// Libreria's own start window (drawn by the pack), then with the mouse on the Items card
 			menu(ctx, server, player, "own_start", nl.libreria.core.StartWindow::open);
 			for (var d : nl.libreria.core.Domain.values()) {
-				menu(ctx, server, player, "own_domain_" + d.word, p -> nl.libreria.core.DomainWindow.open(p, d));
+				menu(ctx, server, player, "own_domain_" + d.word, p -> nl.libreria.core.Start.domain(p, d));
 			}
 			menu(ctx, server, player, "own_settings", nl.libreria.core.gui.SettingsCanvas::open);
 			menu(ctx, server, player, "own_places", p -> nl.libreria.core.gui.PlacesWindow.open(p, null, 0));
@@ -1133,7 +1133,67 @@ public final class Screens implements FabricClientGameTest {
 				cd.recordsHeld.add("fall");
 			});
 			menu(ctx, server, player, "own_domain_me_new", p -> nl.libreria.core.DomainWindow.open(p, nl.libreria.core.Domain.YOU));
-			menu(ctx, server, player, "own_domain_progress_goal", p -> nl.libreria.core.DomainWindow.open(p, nl.libreria.core.Domain.PROGRESS));
+			// Progress: some of our own (tasted, crafted, defeated…), others with more and less, then every screen of it
+			server.runOnServer(s -> {
+				for (var it : new net.minecraft.world.item.Item[] {net.minecraft.world.item.Items.BREAD, net.minecraft.world.item.Items.APPLE, net.minecraft.world.item.Items.COOKED_BEEF, net.minecraft.world.item.Items.COOKIE, net.minecraft.world.item.Items.CARROT,
+						net.minecraft.world.item.Items.BAKED_POTATO, net.minecraft.world.item.Items.MELON_SLICE, net.minecraft.world.item.Items.HONEY_BOTTLE, net.minecraft.world.item.Items.COOKED_SALMON}) {
+					player.awardStat(net.minecraft.stats.Stats.ITEM_USED.get(it), 3);
+				}
+				for (var it : new net.minecraft.world.item.Item[] {net.minecraft.world.item.Items.CRAFTING_TABLE, net.minecraft.world.item.Items.CHEST, net.minecraft.world.item.Items.FURNACE, net.minecraft.world.item.Items.TORCH, net.minecraft.world.item.Items.STICK,
+						net.minecraft.world.item.Items.OAK_PLANKS, net.minecraft.world.item.Items.WOODEN_PICKAXE, net.minecraft.world.item.Items.STONE_PICKAXE, net.minecraft.world.item.Items.IRON_PICKAXE, net.minecraft.world.item.Items.BREAD}) {
+					player.awardStat(net.minecraft.stats.Stats.ITEM_CRAFTED.get(it), 2);
+				}
+				for (var t : new net.minecraft.world.entity.EntityType<?>[] {net.minecraft.world.entity.EntityType.ZOMBIE,
+						net.minecraft.world.entity.EntityType.SKELETON, net.minecraft.world.entity.EntityType.CREEPER,
+						net.minecraft.world.entity.EntityType.SPIDER}) {
+					player.awardStat(net.minecraft.stats.Stats.ENTITY_KILLED.get(t), 4);
+				}
+				player.awardStat(net.minecraft.stats.Stats.BLOCK_MINED.get(net.minecraft.world.level.block.Blocks.COAL_ORE), 12);
+				player.awardStat(net.minecraft.stats.Stats.BLOCK_MINED.get(net.minecraft.world.level.block.Blocks.IRON_ORE), 5);
+				var cd = nl.libreria.collector.CollectorMod.STORE.get(player);
+				cd.bred.addAll(java.util.List.of("cow", "sheep", "pig"));
+				cd.tamed.add("wolf");
+				cd.traded.addAll(java.util.List.of("librarian", "farmer"));
+				cd.fished.addAll(java.util.List.of("cod", "salmon", "bowl"));
+				cd.discs.add("music_disc_cat");
+				cd.enchantments.addAll(java.util.List.of("minecraft:sharpness", "minecraft:unbreaking", "minecraft:efficiency"));
+				nl.libreria.core.Completion.snap(s, player.getUUID());
+				java.util.Map<String, Integer> annaHas = new java.util.HashMap<>(), bramHas = new java.util.HashMap<>();
+				for (var c : nl.libreria.core.Completion.all()) {
+					annaHas.put(c.id, c.total() * 41 / 100);
+					bramHas.put(c.id, c.total() * 12 / 100);
+				}
+				annaHas.put("tasted", 38);
+				bramHas.put("tasted", 15);
+				nl.libreria.core.Completion.debugSnap(anna, "Anna", annaHas, java.util.Map.of("playtime", 72000L * 41, "cured", 6L));
+				nl.libreria.core.Completion.debugSnap(bram, "Bram", bramHas, java.util.Map.of("playtime", 72000L * 9, "cured", 1L));
+				nl.libreria.core.Completion.debugSnap(sanne, "Sanne", java.util.Map.of("tasted", 4, "bred", 2), java.util.Map.of("playtime", 72000L * 2));
+			});
+			menu(ctx, server, player, "own_progress", p -> nl.libreria.core.ProgressWindow.open(p, nl.libreria.core.Completion.Tab.COLLECT));
+			menu(ctx, server, player, "own_progress_do", p -> nl.libreria.core.ProgressWindow.open(p, nl.libreria.core.Completion.Tab.DO));
+			menu(ctx, server, player, "own_progress_explore", p -> nl.libreria.core.ProgressWindow.open(p, nl.libreria.core.Completion.Tab.EXPLORE));
+			menu(ctx, server, player, "own_collection_tasted", p -> nl.libreria.core.CollectionWindow.open(p, p.getUUID(),
+					nl.libreria.core.Completion.get("tasted"), nl.libreria.core.ProgressWindow::open));
+			menu(ctx, server, player, "own_collection_items", p -> nl.libreria.core.CollectionWindow.open(p, p.getUUID(),
+					nl.libreria.core.Completion.get("items"), nl.libreria.core.ProgressWindow::open));
+			menu(ctx, server, player, "own_toplists", p -> nl.libreria.core.TopListsWindow.open(p, nl.libreria.core.ProgressWindow::open));
+			menu(ctx, server, player, "own_board_tasted", p -> nl.libreria.core.TopListsWindow.board(p, "tasted", nl.libreria.core.ProgressWindow::open));
+			menu(ctx, server, player, "own_progress_other", p -> nl.libreria.core.ProgressWindow.open(p, anna, "Top lists",
+					nl.libreria.core.ProgressWindow::open));
+			// With the mouse on a row: its tooltip
+			safe("own_progress_hover", () -> {
+				server.runOnServer(s -> nl.libreria.core.ProgressWindow.open(player, nl.libreria.core.Completion.Tab.DO));
+				ctx.waitTicks(12);
+				noToasts(ctx);
+				double scale = ctx.computeOnClient(mc -> (double) mc.getWindow().getGuiScale());
+				int w = ctx.computeOnClient(mc -> mc.getWindow().getGuiScaledWidth()), h = ctx.computeOnClient(mc -> mc.getWindow().getGuiScaledHeight());
+				int left = (w - 176) / 2, top = (h - 222) / 2;
+				ctx.getInput().setCursorPos((left + 80) * scale, (top + 17 + 18 * 3 + 9) * scale);
+				ctx.waitTicks(5);
+				ctx.takeScreenshot("own_progress_hover");
+				ctx.getInput().setCursorPos(2, 2);
+				close(ctx, server, player);
+			});
 			menu(ctx, server, player, "own_profile", p -> nl.libreria.core.ProfileWindow.open(p, p.getUUID(), "", q -> {
 			}));
 			menu(ctx, server, player, "own_profile_other", p -> nl.libreria.core.ProfileWindow.open(p, anna, "Players",

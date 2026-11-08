@@ -67,6 +67,12 @@ public final class CollectionWindow extends CanvasWindow {
 		new CollectionWindow(viewer, who, col, back).show();
 	}
 
+	/** For the self-tests: the picture of a collection as {@code who} has it, as JSON. */
+	static String picture(ServerPlayer viewer, UUID who, Completion.Collection col) {
+		return new CollectionWindow(viewer, who, col, q -> {
+		}).pictureJson();
+	}
+
 	private boolean own() {
 		return this.who.equals(this.player.getUUID());
 	}

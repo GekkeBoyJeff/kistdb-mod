@@ -20,6 +20,19 @@ final class InfoTests {
 	}
 
 	static void register() {
+		SelfTests.register("info.completion", level -> {
+			java.util.function.Function<String, java.util.Set<String>> keys = id -> {
+				var c = nl.libreria.core.Completion.get(id);
+				java.util.Set<String> out = new java.util.HashSet<>();
+				if (c != null) for (var e : c.entries()) out.add(e.key());
+				return out;
+			};
+			SelfTests.check(keys.apply("stories").size() == Found.STORIES.size() && !Found.STORIES.isEmpty(), "every story");
+			var biomes = keys.apply("biomes");
+			SelfTests.check(biomes.contains("minecraft:plains") && biomes.contains("minecraft:nether_wastes") && !biomes.contains("minecraft:river")
+					&& !biomes.contains("minecraft:the_void"), "biomes: " + biomes.size());
+			SelfTests.check(keys.apply("places").containsAll(java.util.Set.of("Village", "Stronghold")), "places: " + keys.apply("places"));
+		});
 		SelfTests.register("info.places", level -> {
 			PlaceNames.Kind plains = PlaceNames.kind("village_plains");
 			SelfTests.check(plains != null && plains.named() && "Village".equals(plains.label()), "plains village is a named village");

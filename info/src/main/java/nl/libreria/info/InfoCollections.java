@@ -23,21 +23,21 @@ final class InfoCollections {
 	/** Biomes that are only a strip between others: the journal leaves them out, so they aren't to find either. */
 	private static final Set<String> MINOR = Set.of("river", "frozen_river", "beach", "snowy_beach", "stony_shore", "the_void");
 	/** A picture for a biome, by a word in its name (the first that fits). */
-	private static final List<Map.Entry<String, Item>> BIOME_PICTURES = List.of(Map.entry("warm_ocean", Items.BRAIN_CORAL),
-			Map.entry("lukewarm", Items.SEAGRASS), Map.entry("frozen_ocean", Items.ICE), Map.entry("cold_ocean", Items.COD),
-			Map.entry("ocean", Items.KELP), Map.entry("mushroom", Items.RED_MUSHROOM_BLOCK), Map.entry("cherry", Items.CHERRY_SAPLING),
-			Map.entry("pale", Items.PALE_OAK_SAPLING), Map.entry("mangrove", Items.MANGROVE_PROPAGULE), Map.entry("bamboo", Items.BAMBOO),
-			Map.entry("jungle", Items.JUNGLE_SAPLING), Map.entry("savanna", Items.ACACIA_SAPLING), Map.entry("badlands", Items.RED_SAND),
-			Map.entry("desert", Items.SAND), Map.entry("ice_spikes", Items.PACKED_ICE), Map.entry("snowy", Items.SNOW_BLOCK),
-			Map.entry("frozen_peaks", Items.ICE), Map.entry("jagged", Items.SNOWBALL), Map.entry("stony_peaks", Items.CALCITE),
-			Map.entry("grove", Items.POWDER_SNOW_BUCKET), Map.entry("meadow", Items.CORNFLOWER), Map.entry("birch", Items.BIRCH_SAPLING),
-			Map.entry("dark_forest", Items.DARK_OAK_SAPLING), Map.entry("flower", Items.ALLIUM), Map.entry("sunflower", Items.SUNFLOWER),
-			Map.entry("pine", Items.PODZOL), Map.entry("spruce", Items.SPRUCE_SAPLING), Map.entry("taiga", Items.SPRUCE_SAPLING),
-			Map.entry("swamp", Items.LILY_PAD), Map.entry("windswept", Items.GRAVEL), Map.entry("deep_dark", Items.SCULK),
-			Map.entry("dripstone", Items.POINTED_DRIPSTONE), Map.entry("lush", Items.MOSS_BLOCK), Map.entry("sulfur", Items.YELLOW_DYE),
-			Map.entry("crimson", Items.CRIMSON_FUNGUS), Map.entry("warped", Items.WARPED_FUNGUS), Map.entry("soul_sand", Items.SOUL_SAND),
-			Map.entry("basalt", Items.BASALT), Map.entry("nether", Items.NETHERRACK), Map.entry("end_highlands", Items.CHORUS_FLOWER),
-			Map.entry("end", Items.END_STONE), Map.entry("forest", Items.OAK_SAPLING), Map.entry("plains", Items.GRASS_BLOCK));
+	private static final List<Map.Entry<String, String>> BIOME_PICTURES = List.of(Map.entry("warm_ocean", "brain_coral"),
+			Map.entry("lukewarm", "seagrass"), Map.entry("frozen_ocean", "ice"), Map.entry("cold_ocean", "cod"),
+			Map.entry("ocean", "kelp"), Map.entry("mushroom", "red_mushroom_block"), Map.entry("cherry", "cherry_sapling"),
+			Map.entry("pale", "pale_oak_sapling"), Map.entry("mangrove", "mangrove_propagule"), Map.entry("bamboo", "bamboo"),
+			Map.entry("jungle", "jungle_sapling"), Map.entry("savanna", "acacia_sapling"), Map.entry("badlands", "red_sand"),
+			Map.entry("desert", "sand"), Map.entry("ice_spikes", "packed_ice"), Map.entry("snowy", "snow_block"),
+			Map.entry("frozen_peaks", "ice"), Map.entry("jagged", "snowball"), Map.entry("stony_peaks", "calcite"),
+			Map.entry("grove", "powder_snow_bucket"), Map.entry("meadow", "cornflower"), Map.entry("birch", "birch_sapling"),
+			Map.entry("dark_forest", "dark_oak_sapling"), Map.entry("flower", "allium"), Map.entry("sunflower", "sunflower"),
+			Map.entry("pine", "podzol"), Map.entry("spruce", "spruce_sapling"), Map.entry("taiga", "spruce_sapling"),
+			Map.entry("swamp", "lily_pad"), Map.entry("windswept", "gravel"), Map.entry("deep_dark", "sculk"),
+			Map.entry("dripstone", "pointed_dripstone"), Map.entry("lush", "moss_block"), Map.entry("sulfur", "sulfur"),
+			Map.entry("crimson", "crimson_fungus"), Map.entry("warped", "warped_fungus"), Map.entry("soul_sand", "soul_sand"),
+			Map.entry("basalt", "basalt"), Map.entry("nether", "netherrack"), Map.entry("end_highlands", "chorus_flower"),
+			Map.entry("end", "end_stone"), Map.entry("forest", "oak_sapling"), Map.entry("plains", "grass_block"));
 	/** A picture for a kind of place. */
 	private static final Map<String, Item> PLACE_PICTURES = Map.ofEntries(Map.entry("Village", Items.BELL),
 			Map.entry("Pillager Outpost", Items.CROSSBOW), Map.entry("Ancient City", Items.ECHO_SHARD),
@@ -122,7 +122,7 @@ final class InfoCollections {
 			Item picture = Items.GRASS_BLOCK;
 			for (var m : BIOME_PICTURES) {
 				if (id.getPath().contains(m.getKey())) {
-					picture = m.getValue();
+					picture = BuiltInRegistries.ITEM.getOptional(Identifier.withDefaultNamespace(m.getValue())).orElse(Items.GRASS_BLOCK);
 					break;
 				}
 			}

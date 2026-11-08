@@ -12,6 +12,40 @@ final class CollectorTests {
 	}
 
 	static void register() {
+		SelfTests.register("collector.completion", level -> {
+			if (Catalog.all().isEmpty()) Catalog.build();
+			java.util.function.Function<String, java.util.Set<String>> keys = id -> {
+				var c = nl.libreria.core.Completion.get(id);
+				java.util.Set<String> out = new java.util.HashSet<>();
+				if (c != null) for (var e : c.entries()) out.add(e.key());
+				return out;
+			};
+			SelfTests.check(keys.apply("achievements").size() == Catalog.all().size(), "every achievement");
+			SelfTests.check(keys.apply("items").size() == Catalog.allItems().size(), "every item");
+			SelfTests.check(keys.apply("bred").contains("cow") && keys.apply("tamed").containsAll(java.util.Set.of("wolf", "cat", "horse")), "animals");
+			SelfTests.check(keys.apply("traded").containsAll(java.util.Set.of("librarian", "wandering_trader")) && !keys.apply("traded").contains("nitwit"),
+					"traded: " + keys.apply("traded"));
+			var brewed = keys.apply("brewed");
+			SelfTests.check(brewed.containsAll(java.util.Set.of("swiftness", "long_swiftness", "awkward")) && !brewed.contains("water"), "brewed: " + brewed.size());
+			SelfTests.check(keys.apply("fished").size() >= 20 && keys.apply("fished").contains("enchanted_book"), "fished");
+			SelfTests.check(keys.apply("discs").contains("music_disc_cat"), "discs: " + keys.apply("discs").size());
+			SelfTests.check(keys.apply("enchantments").contains("minecraft:sharpness") && keys.apply("trims").contains("minecraft:coast"),
+					"enchantments and trims");
+			// The inventory scan notes enchantments (also on books) and trims
+			CollectorMod.Data d = new CollectorMod.Data();
+			var reg = level.registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.ENCHANTMENT);
+			ItemStack sword = new ItemStack(Items.IRON_SWORD);
+			reg.get(net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.ENCHANTMENT,
+					net.minecraft.resources.Identifier.withDefaultNamespace("sharpness")))
+					.ifPresent(h -> net.minecraft.world.item.enchantment.EnchantmentHelper.updateEnchantments(sword, m -> m.set(h, 2)));
+			SelfTests.check(CollectorCollections.scan(d, sword) && d.enchantments.contains("minecraft:sharpness"), "enchantment noticed");
+			SelfTests.check(!CollectorCollections.scan(d, sword), "only once");
+			// A disc in a jukebox
+			FakePlayer p = FakePlayer.get(level);
+			CollectorCollections.onDisc(p, new ItemStack(Items.MUSIC_DISC_CAT));
+			SelfTests.check(CollectorMod.STORE.get(p).discs.contains("music_disc_cat"), "disc noticed");
+			CollectorMod.STORE.get(p).discs.remove("music_disc_cat");
+		});
 		SelfTests.register("collector.catalog", level -> {
 			if (Catalog.all().isEmpty()) Catalog.build();
 			SelfTests.check(Catalog.allItems().size() > 1000, "more than 1000 collectible items: " + Catalog.allItems().size());

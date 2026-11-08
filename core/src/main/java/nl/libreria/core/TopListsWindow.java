@@ -45,6 +45,14 @@ public final class TopListsWindow extends CanvasWindow {
 		new TopListsWindow(p, board, back).show();
 	}
 
+	/** For the self-tests: the picture of a list (null: every list), as JSON. */
+	static String picture(ServerPlayer p, String board) {
+		TopListsWindow w = new TopListsWindow(p, board, q -> {
+		});
+		w.load();
+		return w.pictureJson();
+	}
+
 	private MinecraftServer server() {
 		return this.player.level().getServer();
 	}

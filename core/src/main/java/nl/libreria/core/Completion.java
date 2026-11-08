@@ -423,6 +423,21 @@ public final class Completion {
 		return k != null ? k.format().apply(value) : Ui.n(value);
 	}
 
+	/** For the self-tests and screenshots: numbers for someone who isn't here (kept as if counted just now). */
+	public static void debugSnap(UUID who, String name, Map<String, Integer> have, Map<String, Long> count) {
+		Snap s = new Snap();
+		s.name = name;
+		s.at = System.currentTimeMillis();
+		s.have.putAll(have);
+		s.count.putAll(count);
+		data().players.put(who, s);
+	}
+
+	/** For the self-tests: forgets someone's numbers. */
+	public static void debugForget(UUID who) {
+		data().players.remove(who);
+	}
+
 	// ---------------------------------------------------------------- keeping the numbers
 
 	/** Players to count once (everybody known, at start, so the lists are complete from the first day). */

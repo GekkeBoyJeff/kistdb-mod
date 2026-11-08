@@ -15,6 +15,55 @@ final class CoreTests {
 	}
 
 	static void register() {
+		SelfTests.register("core.completion", level -> {
+			net.minecraft.server.MinecraftServer s = level.getServer();
+			SelfTests.check(Completion.all().size() >= 5, "collections: " + Completion.all().size());
+			for (Completion.Tab t : Completion.Tab.values()) SelfTests.check(!Completion.of(t).isEmpty(), "something on " + t.label);
+			java.util.function.Function<String, java.util.Set<String>> keys = id -> {
+				Completion.Collection c = Completion.get(id);
+				java.util.Set<String> out = new java.util.HashSet<>();
+				if (c != null) for (Completion.Entry e : c.entries()) out.add(e.key());
+				return out;
+			};
+			var tasted = keys.apply("tasted");
+			SelfTests.check(tasted.containsAll(Set.of("minecraft:bread", "minecraft:cake", "minecraft:potion", "minecraft:milk_bucket"))
+					&& !tasted.contains("minecraft:splash_potion") && !tasted.contains("minecraft:stone"), "tasted: " + tasted.size());
+			var crafted = keys.apply("crafted");
+			SelfTests.check(crafted.contains("minecraft:crafting_table") && crafted.contains("minecraft:chest") && crafted.size() > 300
+					&& !crafted.contains("minecraft:egg"), "crafted: " + crafted.size());
+			var defeated = keys.apply("defeated");
+			SelfTests.check(defeated.contains("minecraft:zombie") && defeated.contains("minecraft:warden") && !defeated.contains("minecraft:giant")
+					&& !defeated.contains("minecraft:cow"), "defeated: " + defeated.size());
+			var adv = keys.apply("advancements");
+			SelfTests.check(adv.size() > 50 && adv.contains("minecraft:story/mine_stone"), "advancements: " + adv.size());
+			SelfTests.check(keys.apply("mined").contains("minecraft:diamond_ore"), "mined");
+			// Numbers and places
+			SelfTests.check(Completion.percent(0.999) == 99 && Completion.percent(1) == 100 && Completion.percent(0.5) == 50, "percent");
+			SelfTests.check(Completion.show("tasted", 9, 41).equals("9/41") && Completion.show(Completion.OVERALL, 412, 1000).equals("41%"),
+					"shown: " + Completion.show("tasted", 9, 41));
+			UUID tess = UUID.fromString("00000000-0000-0000-0000-0000000000c1"), ruud = UUID.fromString("00000000-0000-0000-0000-0000000000c2");
+			long now = System.currentTimeMillis();
+			Players.note(tess, "Tess", now, now);
+			Players.note(ruud, "Ruud", now, now);
+			Completion.Snap counted = Completion.snap(s, tess);
+			SelfTests.check(counted.have.getOrDefault("tasted", -1) == 0 && Completion.overall(counted) == 0, "nothing done yet");
+			Completion.debugSnap(tess, "Tess", java.util.Map.of("tasted", 9), java.util.Map.of("playtime", 72000L * 3));
+			Completion.debugSnap(ruud, "Ruud", java.util.Map.of("tasted", 30), java.util.Map.of("playtime", 72000L));
+			var board = Completion.ranking(s, "tasted");
+			SelfTests.check(Completion.rank(board, ruud) < Completion.rank(board, tess), "more tasted, higher place");
+			var hours = Completion.ranking(s, "playtime");
+			SelfTests.check(Completion.rank(hours, tess) < Completion.rank(hours, ruud) && Completion.show("playtime", 72000L * 3, 0).equals("3 h"),
+					"counters rank too");
+			// The windows draw
+			FakePlayer p = FakePlayer.get(level);
+			for (Completion.Tab t : Completion.Tab.values()) SelfTests.check(ProgressWindow.picture(p, tess, t).length() > 100, "progress " + t.label);
+			SelfTests.check(CollectionWindow.picture(p, tess, Completion.get("tasted")).length() > 100, "a collection");
+			SelfTests.check(TopListsWindow.picture(p, null).length() > 100 && TopListsWindow.picture(p, "tasted").length() > 100, "top lists");
+			Completion.debugForget(tess);
+			Completion.debugForget(ruud);
+			Players.forget(tess);
+			Players.forget(ruud);
+		});
 		SelfTests.register("core.chronicle", level -> {
 			Chronicle.Data d = Chronicle.data();
 			int before = d.entries.size();

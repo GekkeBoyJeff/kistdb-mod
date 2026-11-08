@@ -49,6 +49,20 @@ public final class ProgressWindow extends CanvasWindow {
 		open(p, p.getUUID(), "", Start::open);
 	}
 
+	/** Your own progress, on {@code tab}. */
+	public static void open(ServerPlayer p, Completion.Tab tab) {
+		LAST.put(p.getUUID(), tab);
+		open(p);
+	}
+
+	/** For the self-tests: the picture of someone's progress, as JSON. */
+	static String picture(ServerPlayer viewer, UUID who, Completion.Tab tab) {
+		ProgressWindow w = new ProgressWindow(viewer, who, "Test", "Top lists", q -> {
+		});
+		w.tab = tab;
+		return w.pictureJson();
+	}
+
 	/** {@code who}'s progress, opened from {@code via} ("Top lists", "Players"…; "" for your own from the start screen). */
 	public static void open(ServerPlayer viewer, UUID who, String via, Consumer<ServerPlayer> back) {
 		Players.Known k = Players.get(viewer.level().getServer(), who);
