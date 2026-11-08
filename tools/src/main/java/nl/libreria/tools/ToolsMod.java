@@ -45,7 +45,7 @@ public final class ToolsMod implements ModInitializer {
 
 	static final nl.libreria.core.Tips.Tip TIP_SWAP = nl.libreria.core.Tips.register("tool_swap", nl.libreria.core.Domain.YOU,
 			Items.IRON_PICKAXE, "The next tool, in your hand", "When a tool runs out, Libreria hands you the next one.",
-			"Save good tools with a break limit: Settings › Items.");
+			"Save good tools with a break limit: Settings › You.");
 	static final nl.libreria.core.Tips.Tip TIP_LIMIT = nl.libreria.core.Tips.register("tool_limit", nl.libreria.core.Domain.YOU,
 			Items.ANVIL, "Break limit", "This tool stops before it breaks, so you can repair it.",
 			"Change the limit in Settings › You › Tools & refills.");
