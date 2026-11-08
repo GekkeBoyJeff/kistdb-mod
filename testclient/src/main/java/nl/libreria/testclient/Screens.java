@@ -1199,8 +1199,9 @@ public final class Screens implements FabricClientGameTest {
 			});
 			// An item in chat: Shift + right-click it in your inventory (real input, as a player does it), then hover it in chat
 			safe("chat_item_link", () -> {
+				java.util.function.Function<net.minecraft.server.MinecraftServer, ServerPlayer> me = s -> s.getPlayerList().getPlayer(player.getUUID());
 				server.runOnServer(s -> {
-					var nd = nl.libreria.nicknames.NicknamesMod.STORE.get(player);
+					var nd = nl.libreria.nicknames.NicknamesMod.STORE.get(me.apply(s));
 					nd.nick = "Jeffie";
 					nd.color = "green";
 					var sword = new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.DIAMOND_SWORD);
@@ -1212,7 +1213,7 @@ public final class Screens implements FabricClientGameTest {
 								.ifPresent(h -> net.minecraft.world.item.enchantment.EnchantmentHelper.updateEnchantments(sword,
 										m -> m.set(h, e.equals("sharpness") ? 5 : e.equals("unbreaking") ? 3 : 1)));
 					}
-					player.getInventory().setItem(9, sword);
+					me.apply(s).getInventory().setItem(9, sword);
 				});
 				ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.FULL));
 				int before = server.computeOnServer(s -> nl.libreria.core.ItemLink.shown);
@@ -1224,35 +1225,36 @@ public final class Screens implements FabricClientGameTest {
 				int left = (w - 176) / 2, top = (h - 166) / 2;
 				ctx.getInput().setCursorPos((left + 16) * scale, (top + 92) * scale);
 				ctx.waitTicks(4);
+				// Shift held, and a right-click with Shift in it, straight into the screen: what the game does with a real one
 				raw(ctx, "holdKey", 340, false);
 				ctx.waitTicks(2);
-				raw(ctx, "pressMouse", 1, true);
+				String screen = ctx.computeOnClient(mc -> {
+					if (!(mc.screen instanceof net.minecraft.client.gui.screens.inventory.AbstractContainerScreen<?> scr)) return String.valueOf(mc.screen);
+					var ev = new net.minecraft.client.input.MouseButtonEvent(left + 16, top + 92,
+							new net.minecraft.client.input.MouseButtonInfo(1, org.lwjgl.glfw.GLFW.GLFW_MOD_SHIFT));
+					scr.mouseClicked(ev, false);
+					scr.mouseReleased(ev);
+					return scr.getClass().getSimpleName();
+				});
 				ctx.waitTicks(2);
 				raw(ctx, "releaseKey", 340, false);
 				ctx.waitTicks(8);
 				boolean real = server.computeOnServer(s -> nl.libreria.core.ItemLink.shown) > before;
+				String state = server.computeOnServer(s -> me.apply(s).getInventory().getItem(9).getHoverName().getString()
+						+ " / carried " + me.apply(s).inventoryMenu.getCarried().getHoverName().getString());
 				if (!real) {
-					// The test input couldn't hold Shift: send the click the screen would send
-					ctx.runOnClient(mc -> {
-						for (var m : mc.gameMode.getClass().getMethods()) {
-							var t = m.getParameterTypes();
-							if (t.length == 5 && t[0] == int.class && t[1] == int.class && t[2] == int.class
-									&& t[3] == net.minecraft.world.inventory.ContainerInput.class) {
-								try {
-									m.invoke(mc.gameMode, mc.player.inventoryMenu.containerId, 9, 1,
-											net.minecraft.world.inventory.ContainerInput.QUICK_MOVE, mc.player);
-								} catch (ReflectiveOperationException e) {
-									LOG.warn("Could not click: {}", e.toString());
-								}
-								break;
-							}
+					// For the pictures: what the click should have done
+					server.runOnServer(s -> {
+						ServerPlayer p = me.apply(s);
+						if (!p.inventoryMenu.getCarried().isEmpty()) {
+							p.getInventory().setItem(9, p.inventoryMenu.getCarried());
+							p.inventoryMenu.setCarried(net.minecraft.world.item.ItemStack.EMPTY);
 						}
+						nl.libreria.core.ItemLink.onClick(p, p.inventoryMenu, 9, net.minecraft.world.inventory.ContainerInput.QUICK_MOVE, 1);
 					});
 					ctx.waitTicks(8);
 				}
-				LOG.info("LIBRERIA-LINK real input {}, shown {} → {}, slot 9 still {}", real, before,
-						server.computeOnServer(s -> nl.libreria.core.ItemLink.shown),
-						server.computeOnServer(s -> player.getInventory().getItem(9).getHoverName().getString()));
+				LOG.info("LIBRERIA-LINK screen {}, Shift + right-click sent the link: {}; after the click: {}", screen, real, state);
 				noToasts(ctx);
 				ctx.takeScreenshot("inventory_item_link");
 				ctx.setScreen(() -> null);
@@ -1268,8 +1270,8 @@ public final class Screens implements FabricClientGameTest {
 				ctx.waitTicks(3);
 				ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.HIDDEN));
 				server.runOnServer(s -> {
-					nl.libreria.nicknames.NicknamesMod.STORE.get(player).nick = "";
-					player.getInventory().setItem(9, net.minecraft.world.item.ItemStack.EMPTY);
+					nl.libreria.nicknames.NicknamesMod.STORE.get(me.apply(s)).nick = "";
+					me.apply(s).getInventory().setItem(9, net.minecraft.world.item.ItemStack.EMPTY);
 				});
 			});
 			// The tab list: titles after the names

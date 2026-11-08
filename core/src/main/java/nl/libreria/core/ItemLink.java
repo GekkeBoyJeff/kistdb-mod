@@ -45,7 +45,7 @@ public final class ItemLink {
 		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> LAST.remove(handler.player.getUUID()));
 	}
 
-	static boolean onClick(ServerPlayer player, AbstractContainerMenu menu, int slotIndex, ContainerInput input, int button) {
+	public static boolean onClick(ServerPlayer player, AbstractContainerMenu menu, int slotIndex, ContainerInput input, int button) {
 		if (input != ContainerInput.QUICK_MOVE || button != 1) return false;
 		if (slotIndex < 0 || slotIndex >= menu.slots.size()) return false;
 		// Libreria's own windows decide for themselves what their clicks do
