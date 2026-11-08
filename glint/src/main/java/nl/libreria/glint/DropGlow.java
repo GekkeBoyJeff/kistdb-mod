@@ -77,12 +77,13 @@ final class DropGlow {
 		drop(item);
 		if (r == null) return;
 		ElementHolder holder = new ElementHolder();
-		ItemDisplayElement glow = new ItemDisplayElement(Fx.sprite("glow", COLOURS.get(r)));
+		// A soft haze round the item (not a disc: the item stays clear in the middle of it)
+		ItemDisplayElement glow = new ItemDisplayElement(Fx.sprite("haze", COLOURS.get(r)));
 		glow.setItemDisplayContext(ItemDisplayContext.FIXED);
 		glow.setBillboardMode(Display.BillboardConstraints.CENTER);
 		glow.setBrightness(new Brightness(15, 15));
-		glow.setScale(new Vector3f(r == Rarity.EPIC ? 0.95f : r == Rarity.RARE ? 0.85f : 0.75f));
-		glow.setOffset(new Vec3(0, 0.32, 0));
+		glow.setScale(new Vector3f(r == Rarity.EPIC ? 1.5f : r == Rarity.RARE ? 1.3f : 1.1f));
+		glow.setOffset(new Vec3(0, 0.42, 0));
 		glow.setViewRange(0.5f);
 		holder.addElement(glow);
 		EntityAttachment.ofTicking(holder, item);
