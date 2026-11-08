@@ -83,8 +83,9 @@ class Palette:
         px = lambda x, y: v.getpixel((x, y))  # noqa: E731
         inside = [px(x, y) for y in range(1, 15) for x in range(1, 15) if px(x, y)[3]]
         self.clear = name == 'glass'
-        # clear glass is see-through inside: only the glints show
-        self.inner = Counter(inside).most_common(1)[0][0] if inside and not self.clear else (0, 0, 0, 0)
+        # clear glass: a light glassy tint inside (fully see-through it looked like nothing at all, with or without
+        # shaders), stained glass keeps vanilla's colour
+        self.inner = Counter(inside).most_common(1)[0][0] if inside and not self.clear else (190, 222, 228, 46)
         side = lambda pts: Counter(px(x, y) for x, y in pts).most_common(1)[0][0]  # noqa: E731
         self.top = side([(x, 0) for x in range(1, 15)])
         self.bottom = side([(x, 15) for x in range(1, 15)])
@@ -92,7 +93,7 @@ class Palette:
         self.right = side([(15, y) for y in range(1, 15)])
         self.corner = {UP_LEFT: px(0, 0), UP_RIGHT: px(15, 0), DOWN_LEFT: px(0, 15), DOWN_RIGHT: px(15, 15)}
         if self.clear:
-            self.glints = [(208, 234, 233, 200), (168, 208, 217, 150)]
+            self.glints = [(208, 234, 233, 215), (168, 208, 217, 170)]
         else:
             hi = self.top
             self.glints = [hi, self.inner[:3] + ((self.inner[3] + hi[3]) // 2,)]
