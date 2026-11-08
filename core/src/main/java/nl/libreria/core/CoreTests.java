@@ -98,6 +98,10 @@ final class CoreTests {
 			Completion.debugSnap(ruud, "Ruud", java.util.Map.of("tasted", 30), java.util.Map.of("playtime", 72000L));
 			var board = Completion.ranking(s, "tasted");
 			SelfTests.check(Completion.rank(board, ruud) < Completion.rank(board, tess), "more tasted, higher place");
+			Completion.debugSnap(tess, "Tess", java.util.Map.of("tasted", 9, "mined", 0), java.util.Map.of("playtime", 72000L * 3));
+			SelfTests.check(Completion.rank(Completion.ranking(s, "tasted"), tess) > 0, "something: a place");
+			SelfTests.check(Completion.ranking(s, "tasted").stream().noneMatch(pl -> pl.value() <= 0)
+					&& Completion.rank(Completion.ranking(s, "mined"), tess) == 0, "0 is no place (not a shared #1)");
 			var hours = Completion.ranking(s, "playtime");
 			SelfTests.check(Completion.rank(hours, tess) < Completion.rank(hours, ruud) && Completion.show("playtime", 72000L * 3, 0).equals("3 h"),
 					"counters rank too");

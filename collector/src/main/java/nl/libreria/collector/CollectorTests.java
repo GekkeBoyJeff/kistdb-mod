@@ -318,6 +318,33 @@ final class CollectorTests {
 					&& Records.count(swap, bram, anna.toString()) && !Records.count(swap, bram, anna.toString()), "passing it back and forth counts once each");
 			java.util.UUID cas = java.util.UUID.nameUUIDFromBytes("trophy-cas".getBytes());
 			SelfTests.check(Records.count(swap, anna, cas.toString()) && Records.count(swap, anna, ""), "taking it from someone else does count");
+			// Only a record taken from someone counts for the ladder (the first holder took it from nobody)
+			Records.Rec keepSpeed = Records.get(Records.Kind.SPEED);
+			Records.debugSet(Records.Kind.SPEED, cas, "Cas", 40, null, 0);
+			Records.Rec speed = Records.get(Records.Kind.SPEED);
+			speed.takenFrom = new java.util.HashMap<>();
+			speed.takenFrom.put(cas.toString(), new java.util.ArrayList<>(java.util.List.of("", "?", cas.toString())));
+			SelfTests.check(Records.taken(cas) == 0, "the first holder, an unknown one or yourself: nothing taken");
+			CollectorMod.Data casData = CollectorMod.STORE.get(cas);
+			casData.earned.put("records.1", now);
+			casData.earned.put("records.5", now);
+			casData.recordsTaken = 5;
+			Records.lower(level.getServer(), cas, java.util.List.of(), new java.util.HashSet<>());
+			SelfTests.check(!casData.earned.containsKey("records.1") && !casData.earned.containsKey("records.5") && casData.recordsTaken == 0,
+					"grades against nobody go again (Hall of Famer alone on the server)");
+			speed.takenFrom.get(cas.toString()).add(anna.toString());
+			SelfTests.check(Records.taken(cas) == 1, "taken from Anna: one");
+			Catalog.fresh();
+			Achievement first = Catalog.get("records.1");
+			SelfTests.check(first != null && first.description().contains("from someone"), "the ladder says so");
+			casData.earned.clear();
+			casData.recountedFrom = 0;
+			if (keepSpeed == null) Records.forget(Records.Kind.SPEED);
+			else {
+				Records.debugSet(Records.Kind.SPEED, keepSpeed.who, keepSpeed.name, keepSpeed.value, keepSpeed.before == null ? null : keepSpeed.beforeName,
+						keepSpeed.beforeValue);
+				Records.get(Records.Kind.SPEED).takenFrom = keepSpeed.takenFrom;
+			}
 			// The recount: a record passed back and forth 40 times between two players counts once each
 			java.util.List<nl.libreria.core.Chronicle.Entry> lines = new java.util.ArrayList<>();
 			long t0 = now - 100 * 60 * min;

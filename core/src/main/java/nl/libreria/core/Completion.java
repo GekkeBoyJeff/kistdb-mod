@@ -410,13 +410,18 @@ public final class Completion {
 			} else {
 				continue;
 			}
+			// Nothing yet is no place: with everybody at 0 nobody is #1
+			if (v <= 0) continue;
 			out.add(new Place(e.getKey(), name, v, total));
 		}
 		out.sort(Comparator.comparingLong(Place::value).reversed().thenComparing(p -> p.name().toLowerCase(java.util.Locale.ROOT)));
 		return out;
 	}
 
-	/** {@code who}'s place on a board (1 = best; the same number shares a place), or 0 when they aren't on it. */
+	/**
+	 * {@code who}'s place on a board (1 = best; the same number shares a place), or 0 when they aren't on it (nothing
+	 * yet: 0 of something is no place, not a shared first one).
+	 */
 	public static int rank(List<Place> ranking, UUID who) {
 		long mine = -1;
 		for (Place p : ranking) if (p.who().equals(who)) mine = p.value();

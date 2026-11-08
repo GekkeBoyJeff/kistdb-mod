@@ -173,6 +173,7 @@ public final class Records {
 	/** Every ten seconds: announce the records whose new holder has waited long enough. */
 	static void tick(net.minecraft.server.MinecraftServer server) {
 		if (data().fixed < 2) recount(server);
+		if (data().fixed < 3) settle(server);
 		long now = System.currentTimeMillis();
 		for (Kind k : Kind.values()) {
 			Rec r = data().records.get(k.id);
@@ -302,12 +303,99 @@ public final class Records {
 		}
 	}
 
+	/**
+	 * How many records {@code who} took from somebody else, each record once per holder: what the "Take server records"
+	 * ladder counts, always from the records themselves. Being the first to hold a record (nobody had it: nothing was
+	 * taken) doesn't count, so playing alone, or before anyone else did anything, earns no grades.
+	 */
+	public static int taken(UUID who) {
+		String me = who.toString();
+		int n = 0;
+		for (Rec r : data().records.values()) {
+			if (r.takenFrom == null) continue;
+			java.util.List<String> mine = r.takenFrom.get(me);
+			if (mine == null) continue;
+			for (String from : mine) if (fromSomebody(from, me)) n++;
+		}
+		return n;
+	}
+
+	/** A holder it was taken from: not "" (nobody had it), not "?" (unknown, from before the chronicle), not yourself. */
+	static boolean fromSomebody(String from, String me) {
+		return from != null && !from.isEmpty() && !from.equals("?") && !from.equals(me);
+	}
+
+	/**
+	 * Once: records you were the first to hold counted for the ladder too, so somebody alone on a new server climbed it
+	 * to Hall of Famer against nobody. Every player's grades are counted again by today's rule (only records taken from
+	 * someone else); grades that weren't earned that way go again, with their lines in the chronicle and the title (it
+	 * falls back to the rarest one left).
+	 */
+	static void settle(net.minecraft.server.MinecraftServer server) {
+		Data d = data();
+		d.fixed = 3;
+		STORE.markDirty();
+		try {
+			java.util.List<Chronicle.Entry> all = Chronicle.all();
+			java.util.Set<Chronicle.Entry> drop = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+			java.util.Set<UUID> everyone = new java.util.LinkedHashSet<>();
+			for (nl.libreria.core.Players.Known k : nl.libreria.core.Players.all(server)) everyone.add(k.id());
+			for (Rec r : d.records.values()) {
+				if (r.takenFrom == null) continue;
+				for (String id : r.takenFrom.keySet()) {
+					try {
+						everyone.add(UUID.fromString(id));
+					} catch (IllegalArgumentException ignored) {
+						// not a player id
+					}
+				}
+			}
+			int lowered = 0;
+			for (UUID who : everyone) {
+				if (lower(server, who, all, drop)) lowered++;
+			}
+			if (!drop.isEmpty()) Chronicle.forget(drop::contains);
+			nl.libreria.core.Libreria.LOG.info("Records: only records taken from someone count now; {} players had grades they hadn't earned that way,"
+					+ " {} chronicle lines went", lowered, drop.size());
+		} catch (RuntimeException ex) {
+			nl.libreria.core.Libreria.LOG.warn("Records: settling the ladder failed", ex);
+		}
+	}
+
+	/**
+	 * Brings one player's record ladder down to {@link #taken}: the count, the grades above it (and their chronicle lines,
+	 * added to {@code drop}). @return whether anything went
+	 */
+	static boolean lower(net.minecraft.server.MinecraftServer server, UUID who, java.util.List<Chronicle.Entry> all, java.util.Set<Chronicle.Entry> drop) {
+		int n = taken(who);
+		CollectorMod.Data cd = CollectorMod.STORE.get(who);
+		boolean changed = false;
+		for (Achievement a : Catalog.all()) {
+			if (!a.id().startsWith("records.") || a.target() <= n || cd.earned.remove(a.id()) == null) continue;
+			changed = true;
+			String quoted = "\"" + a.name() + "\"";
+			for (Chronicle.Entry c : all) {
+				if (who.equals(c.who) && Chronicle.Kind.ACHIEVEMENT.name().equals(c.kind) && c.text != null && c.text.contains(quoted)) drop.add(c);
+			}
+		}
+		if (!changed && cd.recordsTaken <= n) return false;
+		if (cd.recountedFrom == 0 && cd.recordsTaken > n) cd.recountedFrom = cd.recordsTaken;
+		cd.recordsTaken = n;
+		CollectorMod.STORE.markDirty(who);
+		ServerPlayer p = server.getPlayerList().getPlayer(who);
+		if (p != null) {
+			Advancements.sync(p);
+			toldOfRecount(p);
+		}
+		return true;
+	}
+
 	/** At login, once after the recount: a card saying why the record ladder went down. */
 	static void toldOfRecount(ServerPlayer p) {
 		CollectorMod.Data cd = CollectorMod.STORE.get(p);
 		if (cd.recountedFrom <= 0) return;
 		nl.libreria.core.Notify.info(p, Items.GOLD_BLOCK, "Records recounted: " + cd.recountedFrom + " → " + cd.recordsTaken,
-				"A record counts once per holder you take it from.");
+				"A record counts when you take it from someone else.");
 		cd.recountedFrom = 0;
 		CollectorMod.STORE.markDirty(p);
 	}
@@ -335,7 +423,7 @@ public final class Records {
 		r.toldAt = now;
 		if (count(r, who, from)) {
 			CollectorMod.Data cd = CollectorMod.STORE.get(who);
-			cd.recordsTaken++;
+			cd.recordsTaken = taken(who);
 			cd.recordsHeld.add(k.id);
 			CollectorMod.STORE.markDirty(who);
 			if (p != null) CollectorMod.check(p);
@@ -405,8 +493,8 @@ public final class Records {
 	/** A ladder for taking records (holding one is a trophy, not a title). */
 	static void build() {
 		Category c = Category.SAMEN;
-		Catalog.Counter taken = new Catalog.Counter((p, d) -> d.recordsTaken);
-		Catalog.ladder(c, "records", Items.GOLD_BLOCK, "Set a server record|Take %,d server records (each record once per holder)", taken, 1,
+		Catalog.Counter taken = new Catalog.Counter((p, d) -> taken(p.getUUID()));
+		Catalog.ladder(c, "records", Items.GOLD_BLOCK, "Take a server record from someone|Take %,d server records from others (each record once per holder)", taken, 1,
 				Catalog.r(Rarity.RARE, Rarity.EPIC, Rarity.LEGENDARY), 1, "Record Breaker", 5, "Hall of Famer", 20, "Living Legend");
 	}
 
