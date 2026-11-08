@@ -41,12 +41,6 @@ found = set().union(*where_items.values())
 problems = []
 for item in sorted(FINDABLE - found): problems.append(f'{item} is listed as findable but nothing gives it')
 stories = 0; parts = 0; per_item = collections.Counter()
-def slot(item):
-    for a in ('helmet', 'chestplate', 'leggings', 'boots'):
-        if item.endswith(a): return a
-    return 'hand'
-# A whole story fits on one armour stand: one of each armour piece, two things held
-worn = collections.defaultdict(collections.Counter)
 for f in sorted(os.listdir(D)):
     if not f.startswith('arcs'): continue
     story = None
@@ -57,13 +51,10 @@ for f in sorted(os.listdir(D)):
         if not line or line.startswith('#') or line.count('|') < 2: continue
         head, name, text = [x.strip() for x in line.split('|', 2)]
         item, _, where = head.partition('@')
-        parts += 1; per_item[item] += 1; worn[(f, story)][slot(item)] += 1
+        parts += 1; per_item[item] += 1
         if item not in FINDABLE: problems.append(f'{f}:{n} {story}: "{item}" is never found')
         elif where and item not in where_items.get(where, set()): problems.append(f'{f}:{n} {story}: {item} is never found @{where}')
         if len(text) > 300: problems.append(f'{f}:{n} {story}: text too long ({len(text)})')
-for (f, story), c in worn.items():
-    if any(c[a] > 1 for a in ('helmet', 'chestplate', 'leggings', 'boots')) or c['hand'] > 2:
-        problems.append(f'{f} {story}: does not fit one armour stand ({dict(c)})')
 for p in problems: print('PROBLEM', p)
 print(f'{stories} stories, {parts} parts; parts per item:', ', '.join(f'{k} {v}' for k, v in per_item.most_common()))
 sys.exit(1 if problems else 0)

@@ -2,14 +2,14 @@
 
 @ goldsmith | The Goldsmith Who Made Tools
 golden_pickaxe@ruined_portal | The Pick He Was Laughed At For | Ferro the goldsmith made tools of gold, which everybody knows is foolish. "They break," said the miners. "Yes," said Ferro, "but have you ever seen anything so pretty break?"
-golden_boots@ruined_portal | The Slippers for the Princess | The princess ordered golden slippers to dance once at her coronation. She danced once. Ferro had made them to last exactly one dance. They lasted exactly one dance.
-golden_chestplate@ruined_portal | The Plate That Fed No One | Ferro's apprentice asked him why. Ferro said a farmer worked his whole life in ugly clothes, and once, just once, he should wear something beautiful while he did it. He gave this to a farmer.
+golden_shovel@ruined_portal | The Shovel for the Princess | The princess ordered a golden shovel to plant a single tulip at her coronation. She used it once. Ferro had made it to last exactly one tulip. It lasted exactly one tulip.
+golden_hoe@ruined_portal | The Hoe That Fed No One | Ferro's apprentice asked him why. Ferro said a farmer worked his whole life with ugly tools, and once, just once, he should hold something beautiful while he did it. He gave this to a farmer.
 golden_axe@ruined_portal | The Last Commission | His last piece: a golden axe for his own coffin, "so I can chop my way out if I change my mind". They buried it with him. Then a portal opened under the graveyard, and here it is.
 
 @ deepspear | The Spear of the Drowned Princess
 diamond_spear@end_city | The Spear That Went Up | A princess of the sea once threw a diamond spear so high it never came down. Sailors say it reached the islands in the sky. Sailors say a lot. This time, apparently, sailors were right.
-leather_chestplate@buried | Her Old Coat | Before the diamond spear, she wore this to swim out to the reef. She buried it on an island with a map, so that one day a child would find it and want to be a princess of the sea too.
-stone_spear@shipwreck | Her First Spear | Before all that, she had this: a stone point bound to a stick with seaweed, made when she was six. She speared her first fish with it. The fish, to be fair, had been dead a while.
+iron_spear@buried | Her Old Spear | Before the diamond one, she had this. She buried it on an island with a map, so that one day a child would find it and want to be a princess of the sea too.
+stone_spear@shipwreck | Her First Spear | Before the iron one, she had this: a stone point bound to a stick with seaweed, made when she was six. She speared her first fish with it. The fish, to be fair, had been dead a while.
 
 @ chaindad | My Father's Chainmail
 chainmail_helmet | His Helmet | My father wore chainmail because he couldn't afford iron, and told everyone he preferred it "for the breeze". He said it so often that by the end he believed it. So did I.
@@ -19,18 +19,19 @@ chainmail_boots | His Boots, My Boots | They fit me now. I wear them on the anni
 
 @ woodcarver | The Old Woodcarver of Hollin
 wooden_axe@village | The Carving Axe | Old Hollin carved every toy for every child in the village, for fifty years, with this tiny axe. Wooden knights, wooden dragons, wooden cows with too many legs because he was tired.
-leather_chestplate | The Coat She Made Him | His wife made him a proper coat for their thirtieth anniversary. He never wore it. He said it was too nice. It hung by the fireplace next to her picture, and he carved beside it every night.
+copper_axe | The Axe She Gave Him | His wife gave him a proper copper axe on their thirtieth anniversary. He never used it. He said it was too nice. It hung over the fireplace, green, next to her picture.
+stone_axe | The Spare He Lent Out | Any child who wanted to learn carving could borrow this. Most of them cut their thumb on the first day. All of them came back on the second. That's how you know who'll be a carver.
 iron_axe | The Axe of the Last Toy | His last carving: a little wooden figure of a man with a pipe, sitting on a bench, watching children play. Everyone knew who it was. It sits on the bench in the square now, in the rain.
 
 @ spearfisher | The Spear-Fishers of Kelp Point
 copper_spear | Old Brin's Copper | At Kelp Point they still fish with spears, standing in the shallows at dawn, the way their grandmothers did. Old Brin's spear is green as the water and twice as old as she is.
 iron_spear | Young Tam's Iron | Tam is twelve and has never caught a fish. He stands in the water every morning anyway, very still, very serious. The fish are very fond of Tam. They swim around his ankles.
-leather_boots | The Teaching Boots | Every child at Kelp Point gets a stone spear first, so it doesn't matter if they throw it into the deep, and old boots, so it doesn't matter if they fall in after it. The fish build houses with the spears.
+stone_spear | The Teaching Spear | The first spear every child at Kelp Point gets is stone, so it doesn't matter if they throw it into the deep. Most of them do. The deep is full of stone spears. The fish build houses with them.
 
-@ diamondtools | Mira Stoneheart's Shortcut
+@ diamondtools | The Toolbox of Mira Stoneheart
 diamond_pickaxe | Mira's Pick | Mira Stoneheart was the best miner in the mountains and the worst at keeping her diamonds. She gave most of them away. This pick she kept, because it was the first thing she ever made that was perfect.
-diamond_boots | Mira's Tunnel Boots | She dug a tunnel through the mountain in these, so the children of the far valley could get to school in winter. It took her nine years. The tunnel is still called Mira's Shortcut.
-diamond_helmet | Mira's Helmet | She wore it cutting the beams for the tunnel, one by one, with a child's name carved into each: every child who'd walk through. There are two hundred and twelve names.
+diamond_shovel | Mira's Spade | She dug a tunnel through the mountain with this so the children of the far valley could get to school in winter. It took her nine years. The tunnel is still called Mira's Shortcut.
+diamond_axe | Mira's Axe | She cut the beams for the tunnel with this, one by one, and carved a child's name into each beam, every child who'd walk through. There are two hundred and twelve names.
 diamond_hoe | Mira's Garden Hoe | When she was old she stopped digging and grew strawberries by the tunnel entrance, for the children walking home. She charged one joke per strawberry. The jokes were terrible. The strawberries were excellent.
 
 @ courtfool | The King's Fool

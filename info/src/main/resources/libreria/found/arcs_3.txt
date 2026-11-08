@@ -3,7 +3,7 @@
 @ oldbuilders | The Old Builders
 iron_pickaxe@stronghold | The First Chisel | The Old Builders carved the strongholds before anyone else was born. This is one of their chisels, too heavy for a human hand. Somebody used it anyway, and found a door that wasn't on any plan.
 iron_helmet | The Builder's Brow | Inside the helmet is a plan of a portal frame, drawn by someone who had clearly never seen an eye of ender. They built it anyway. It worked anyway. Nobody knows how.
-iron_leggings | Foundation Greaves | Dug up beneath a ruin older than the ruin above it. The Old Builders built on top of their own buildings, as if they were hiding the first ones.
+iron_shovel | Foundation Spade | Dug up beneath a ruin older than the ruin above it. The Old Builders built on top of their own buildings, as if they were hiding the first ones.
 iron_boots@stronghold | Steps Down | Worn smooth by walking the same stairs for a thousand years. The Old Builders never left the strongholds. Some say they're still on the stairs, very slowly coming up.
 iron_chestplate | Keystone Plate | Shaped from a keystone the Old Builders left in every arch. Pull it out and the arch falls. They made very sure nobody ever would. Then somebody did.
 wooden_hoe@archaeology | The Last Builder's Hoe | Their final work wasn't a stronghold. It was a single pot, buried in the sand with this old hoe beside it, and a message inside: "We were not the first either."
@@ -20,7 +20,7 @@ crossbow@nether | Encore | The Crimson Bard played for piglins in the crimson fo
 golden_helmet@bastion | The Golden Hat | A piglin queen gave the Bard her golden helmet after one especially bad song. Piglins value gold more than anything. She must have loved that song very much.
 golden_sword@nether | Final Verse | The Bard's last song was about a ghast who wanted to be a cloud. The ghast in the audience cried fire. The forest burned. Standing ovation.
 golden_boots@nether | Tour Boots | Worn on a tour of every bastion in the Nether. Seven shows, nine encores, one hoglin stampede. The tour was a huge success. The Bard was never seen again.
-golden_chestplate@nether | The Bard's Last Costume | He wore it for his final show, on a stage by a lava lake. It is scorched all over in little swirls. Piglins say that's the dance. Piglins say he never stopped.
+shield | The Bard's Last Stage | Used as a stage for his final show, by a lava lake. The scorch marks are his footprints, dancing.
 
 @ endkeepers | The Keepers of the Gate
 diamond_sword@end | First Keeper's Blade | When the first adventurers reached the End, they found people already waiting at the gate. The Keepers. Nobody asked who they were keeping out. Nobody asked who they were keeping in.
@@ -31,9 +31,9 @@ diamond_leggings@end_city | The Keeper's Leave | The last Keeper left these behi
 
 @ bluecheese | The Great Cheese Robbery
 iron_pickaxe | The Vault Pick | Three villagers, one pickaxe, and the most valuable cheese wheel in the land. The plan was perfect. The cheese was guarded. By a cat.
-iron_helmet | The Inside Man's Helmet | The guard who let the thieves in was paid in cheese. He swore it was the best day of his life. It was also the last day of his job. They let him keep the helmet.
 leather_boots | The Tiptoe Shoes | The thief who wore these crept past the guards, the dogs and the bell. Then he sneezed. Cheese dust. He should have known.
-leather_leggings | The Rope Man's Trousers | He cut the rope too early. The cheese rolled down the mountain and through three villages, and he ran after it in these. It is still rolling, they say. So is he.
+iron_sword | The Inside Man | The guard who let the thieves in was paid in cheese. He swore it was the best day of his life. It was also the last day of his job.
+shears | The Rope Cutters | They lowered the cheese from the tower on a rope. These cut the rope. Too early. The cheese rolled down the mountain and through three villages. It is still rolling, they say.
 shield | The Getaway Cart | Not a cart, but the shield they used as a sled to escape. It went downhill faster than the cheese. They caught up with the cheese. They ate the evidence.
 
 @ sculkchild | The Child Who Listened
@@ -41,7 +41,7 @@ leather_helmet | Little Ears | A child wandered into the ancient city once and d
 leather_boots | Bare Steps | She'd taken off her boots to be quiet. These are the boots, left at the top of the stairs. The Hollow Choir found them in the morning and sang very softly.
 shield | Her Father's Shield | Her father went down after her with this shield, making all the noise a father makes. She was already on her way back up, holding a candle.
 iron_sword | The Silence | Her father's sword. He never drew it. She told him to put it away; the Warden was only sleeping, and it was having a nice dream.
-leather_chestplate | Her Candle Coat | Her little coat, still smelling of candle wax. She said the Warden dreams about the surface. It wants to see the sun. That's why it's so angry about noise: it's trying to hear the birds.
+bow | What She Heard | She said the Warden dreams about the surface. It wants to see the sun. That's why it's so angry about noise: it's trying to hear the birds.
 
 @ pigrace | The Great Pig Race
 leather_chestplate | The Winning Silks | The Great Pig Race of the Plains had one rule: no rules. The rider in these silks won it, holding a carrot on a stick. The pig ate the carrot at the finish line. The rider still hasn't recovered his dignity.
@@ -52,15 +52,15 @@ leather_leggings | Strider Division | After the pigs unionised, the race moved t
 @ mire | The Witch of Glum Mire
 shears | Agatha's Snips | Agatha of Glum Mire cut herbs, hair and the occasional bad deal with these. Mostly bad deals. She had a lot of customers.
 iron_helmet | The Cauldron Lid | She wore her cauldron's lid as a hat when it rained, which in Glum Mire is always. The lid has absorbed so many potions that it is now, technically, a potion.
-leather_chestplate | The Toad Garden Smock | Agatha grew mushrooms, warts and one lettuce, out of spite, in this smock. The lettuce is still alive. Nobody is allowed to eat it.
+wooden_hoe | The Toad Garden | Agatha grew mushrooms, warts and one lettuce, out of spite. This hoe tended them. The lettuce is still alive. Nobody is allowed to eat it.
 iron_sword | Agatha's Late Husband | She called this sword her late husband. Nobody knows if she meant he'd died, or if he was the sword. With witches, you don't ask.
-leather_leggings | Agatha's Wishing Stockings | She waded into the mire in these, fishing for wishes. She caught three: one for a better cauldron, one for a cat, and one she kept in a jar. The jar is missing.
 leather_boots | Swamp Waders | These boots have been to the bottom of the mire. Agatha says there's a whole village down there, upside down, waving.
+fishing_rod | Agatha's Wishing Line | She fished in the mire for wishes. She caught three. She used one on a better cauldron, one on a cat, and kept the last one in a jar. The jar is missing.
 
 @ clocktower | The Clocktower at Brindle
 iron_pickaxe | The Clockmaker's Pick | The clockmaker of Brindle mined the copper for her tower herself. The tower kept perfect time for fifty years, then struck thirteen once, and stopped.
 iron_helmet | The Bell-Ringer's Helm | The bell-ringer wore this because the bells were very loud. On the night of the thirteenth chime, he heard something under the bells. Something ticking back.
-iron_chestplate | The Hour Plate | Beaten from the clock's hour hand after it fell. A line on the front still points at one o'clock, whichever way the wearer turns.
+iron_sword | The Hand of the Hour | Made from the clock's hour hand after it fell. It still points at one o'clock, whichever way you hold it.
 leather_boots | The Climb | Worn up and down the four hundred steps of the tower every day. On the last day, there were four hundred and one.
 shield | The Clock Face | The old clock face, cut down to a shield. The numbers are wrong: there's a thirteen between the twelve and the one. Nobody remembers painting it.
 
@@ -69,7 +69,7 @@ iron_sword | Legion Blade | A legion of a hundred soldiers marched into Grey Pas
 shield | Legion Shield | Each soldier's shield bore a number. This is number forty-one. Forty-one wrote home every week. The letters say "still marching" for three years.
 iron_helmet | The Captain's Plume | The captain led from the front, which in fog means he was alone for most of it. When the fog lifted, the legion was in a desert. Nobody has explained this.
 iron_boots | March Boots | Worn through a pass, a desert, a jungle and, briefly, the sea. The Legion never stopped marching because nobody gave the order to stop.
-iron_chestplate | The Runner's Plate | Found with a note tucked inside: "Halt." The legion's runner had been carrying it the whole time. He was too polite to interrupt.
+crossbow | The Last Order | Found with a note: "Halt." The legion's runner had been carrying it the whole time. He was too polite to interrupt.
 iron_leggings | Forty-One's Trousers | Forty-one came home eventually, alone, in these. He said the others were still marching. He went back to join them the next morning.
 
 @ hearthmother | The Hearth Mother
@@ -84,4 +84,4 @@ fishing_rod | Line Into the Dark | A fisherman lowered this line down a hole in 
 leather_boots | Dry Boots | The fisherman's boots, left by the hole. Neatly side by side. He always took his boots off before fishing. He said it helped him think.
 iron_helmet | The Lamp He Lowered | He lowered his helmet lamp down the hole first, to see. The light went down and down. Then it went sideways.
 shears | The Cut Line | His daughter cut the line the next day, to stop whatever was pulling. It stopped. Then it started pulling on the shears.
-leather_chestplate | The Daughter's Coat | She went down after him in this, against all advice. She came back up with his lamp, and a look on her face. She never fished again.
+iron_sword | The Daughter's Answer | She went down after him with this, against all advice. She came back with his hat and a look on her face. She never fished again.

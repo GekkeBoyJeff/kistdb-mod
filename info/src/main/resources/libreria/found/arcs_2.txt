@@ -2,7 +2,7 @@
 
 @ gilded | The Gilded Debt
 golden_sword@bastion | Grashk's Tooth | The piglin Grashk lent a human adventurer one gold ingot. The adventurer never paid it back. Grashk has been collecting interest ever since, mostly in teeth.
-golden_leggings@nether | The Collector's Greaves | Grashk's brute cousin collects his debts in these. The debt is still one gold ingot. The interest is now everything you own.
+golden_axe@nether | The Collector's Axe | Grashk's brute cousin collects debts with this. The debt is still one gold ingot. The interest is now everything you own.
 golden_helmet@bastion | The Debtor's Crown | A golden helmet the adventurer left as "security". Grashk wears it on special occasions. Every occasion is special when you're owed money.
 golden_boots@nether | Running From Grashk | The adventurer's boots, lost while running from the bastion. Grashk keeps them on a shelf with a little sign: "nearly".
 crossbow@bastion | The Ledger Bolt | Piglins don't write. Grashk keeps his accounts by firing a bolt into the wall for every day the debt goes unpaid. The wall has fallen down twice.
@@ -14,7 +14,7 @@ leather_helmet | Ashgrove's Cowl | Black with soot from a fortress that was alre
 golden_chestplate@fortress | The Third Skull | Brother Ashgrove offered the Wither two skulls and his word. The Wither wanted a third. This plate was worn by the third.
 leather_boots | Ashgrove's Pilgrimage | He walked barefoot to the portal as penance, then put these on, because the Nether floor is very hot and penance has limits.
 flint_and_steel | The Last Portal | Brother Ashgrove lit his portal with this and said he would be back by supper. Supper was a long time ago. The portal still flickers sometimes.
-leather_leggings | Waiting at the Gate | Back home, Ashgrove's village planted a garden for his return. It is still tended. Somebody comes at night and waters it, and leaves these by the gate. Nobody knows whose they are.
+wooden_hoe | The Village Garden | Back home, Ashgrove's village planted a garden for his return. It is still tended. Somebody comes at night and waters it. Nobody knows who.
 
 @ wren | Captain Wren Holloway
 leather_chestplate | Holloway's Flight Coat | Captain Wren Holloway was the only pirate who sailed the sky. She stole her wings from an End ship, her rockets from a festival and this coat from an admiral. She stole everything, really.
@@ -22,36 +22,37 @@ crossbow | The Sky-Cannon | Wren loaded fireworks into this and fired them at me
 iron_sword | Holloway's Cutlass | She duelled a phantom over the ocean with this and won, mostly by refusing to fall.
 iron_helmet | The Captain's Hat | Not a hat, technically. A helmet she painted to look like a hat. Pirate captains have standards.
 leather_boots | The Long Fall | Wren's boots, from the day the rockets ran out. She is said to have landed in the sea, swum to shore and stolen a boat. Classic Holloway.
-leather_leggings | Holloway's Parrot Breeches | Her crew was all parrots, fished out of the air on a line. They perched on her knees to hear the orders. The breeches remember every one of them. Things were complicated on her ship.
+fishing_rod | Holloway's Anchor | She used this to fish passing parrots out of the air for her crew. Her crew was all parrots. Things were complicated on her ship.
 
 @ glasswidow | The Glass Widow
 iron_pickaxe | Mirelle's Sand Pick | Mirelle made the finest glass in the valley. Her husband went into the Nether to find black sand for a window that would show the other side. He didn't come back.
-leather_chestplate | Mirelle's Apron | Mirelle dug soul sand from the edge of a portal in this apron, to make the window herself. The glass came out dark, and in it, sometimes, she could see him waving.
+iron_shovel | Black Sand | She dug soul sand from the edge of a portal with this, to make the window herself. The glass came out dark, and in it, sometimes, she could see him waving.
 chainmail_helmet | Mirelle's Veil | She wore glass as mourning. Not literally. Mostly. There are shards in the lining.
 iron_sword | The Window-Breaker | One night she broke the dark window to go through it. Behind the glass was only wall. She kept the sword that broke it and never made glass again.
 iron_boots@nether | His Boots | Found in the Nether, by a lava lake, set neatly side by side. As if someone took them off to look at something, and never came back for them.
 
 @ wellroot | The Wellroot Wars
 wooden_hoe | The Turnip Treaty | The villages of Wellroot and Upper Wellroot went to war over whose turnips were bigger. This hoe signed the peace. It was a turnip.
-leather_boots | The Moat-Stepper's Boots | Upper Wellroot dug a moat to keep the Lower Wellrooters out. It was ankle-deep. Everybody stepped over it in boots like these. It was still a point of pride.
-iron_helmet | Lower Wellroot's Finest | The finest helmet in Lower Wellroot. It went to the Wellroot War exactly once, to the peace banquet, where it was used to serve the turnip soup.
+iron_shovel | Upper Wellroot's Moat | Upper Wellroot dug a moat to keep the Lower Wellrooters out. It was knee-deep. Everybody stepped over it. It was still a point of pride.
+iron_sword | Lower Wellroot's Pride | The finest sword in Lower Wellroot. It was used in the Wellroot War exactly once, to cut the ribbon of the peace banquet.
 shield | The Turnip Banner | Painted with a turnip, the proud emblem of Upper Wellroot. Lower Wellroot's emblem was also a turnip. That was the whole problem.
-leather_chestplate | The Archer's Jerkin | The only archer in either village. He fought for both sides on alternate days, and wore this inside out on Tuesdays. He got paid twice. He's the only one who misses the war.
+bow | The Archer of Both Wellroots | The only archer in either village. He fought for both sides on alternate days and got paid twice. He's the only one who misses the war.
 
 @ goat | The Goat Prophet
 iron_helmet | The Prophet's Horns | A helmet with two dents shaped like goat horns. The Goat Prophet rammed the truth into the village elders. They listened, eventually, from the bottom of the hill.
 leather_boots | Mountain Steps | The Goat Prophet's followers climbed the mountain to hear his teachings. The teachings were mostly "mehh". These boots made the climb nine times. Devotion.
 shield | Shield of Doubt | Carried by the only villager who didn't believe in the Goat Prophet. He held this up every time the Prophet charged. It is very dented. He still doesn't believe.
 stone_pickaxe | The Holy Ledge | The Prophet's followers carved him a ledge to stand on with this. He immediately jumped off it. They think it was a metaphor.
-leather_chestplate | The Farmer's Jerkin | The followers grew wheat to feed the Goat Prophet. He ate the wheat, the hoe's handle, the farmer's hat and one corner of this jerkin. The farmer called it a blessing. Through gritted teeth.
+wooden_hoe | The Prophet's Feast | The followers grew wheat with this to feed the Goat Prophet. He ate the wheat, the hoe's handle, and the farmer's hat.
 
 @ marrow | The Seven Debts of Marrow Vane
 iron_sword | The First Debt | Marrow Vane was a sellsword who borrowed seven favours from a swamp witch. This was the first: a blade that never dulls. He swore he'd pay it back. He was lying.
 leather_boots | The Second Debt | Boots that would always find the way home. The witch made them for him. He never went home, so the boots wander on their own now, looking.
 iron_chestplate | The Third Debt | A heart that couldn't be pierced. Marrow wore it into every battle. Nobody ever pierced his heart. Nobody ever reached it, either.
-iron_leggings | The Fourth Debt | Legs that would never tire. He used them once, to outrun the witch's crow, so she wouldn't see him leave. She saw.
+bow | The Fourth Debt | An arrow that never misses. He used it once, on the witch's crow, so she wouldn't see him leave. She saw.
 iron_helmet | The Fifth Debt | A mind that couldn't be read. The witch read it anyway, on the night he came to say he wouldn't pay. She read it out loud.
-iron_axe | The Seventh Debt | The sixth debt was one more day, and he spent it running. The seventh was for his brother, who was sick. The witch helped. Marrow never told anyone that part. The witch did. She wrote it on everything.
+shield | The Sixth Debt | One more day. That's all he asked for. She gave him the shield and the day. He spent the day running.
+iron_axe | The Seventh Debt | The last favour was for his brother, who was sick. The witch helped. Marrow never told anyone that part. The witch did. She's the one who wrote it on everything.
 
 @ tide | The Last Fishermen of Cobble Cove
 fishing_rod | Old Benno's Rod | Benno fished Cobble Cove for sixty years. On his last day the sea gave him a fish so big he let it go out of respect. The fish has been looking for him since.
@@ -65,7 +66,7 @@ diamond_pickaxe | The First Pick | Twelve miners spent a year mining an obsidian
 diamond_chestplate | Heartstone Plate | They fitted a sliver of the obsidian heart into this plate. The wearer never got tired. The wearer never slept again either.
 diamond_sword | Heartcutter | The foreman cut the beating heart free with this. It stopped beating. Then the mountain started.
 diamond_boots | The Collapse | The miners ran when the mountain started beating. These boots made it out. The miner wearing them stopped to look back.
-diamond_helmet | The Foreman's Helm | They buried the obsidian heart back where they found it, and the foreman set his helmet on top, like a gravestone. It's very quiet there now. Miners still won't dig within a mile.
+diamond_shovel | The Burial | They buried the obsidian heart back where they found it. It's very quiet there now. Miners still won't dig within a mile.
 
 @ hollowfield | The Hollowfield Guild
 iron_pickaxe | Membership Card | The Hollowfield Guild of Treasure Seekers had one member: Fennick. He gave himself this pickaxe as a membership card. Membership was free. The pickaxe was not.
@@ -76,18 +77,18 @@ leather_boots | Fennick's Last Dig | Fennick went out for one last dig and never
 
 @ whisperwood | The Whisperwood
 iron_axe | Kett's Axe | The woodcutter Kett was told never to cut the trees of the Whisperwood. He cut one anyway. It whispered his name as it fell. It still does, if you listen to the blade.
-leather_helmet | The Dryad's Hood | Kett made it from the bark of the first tree he felled in the Whisperwood. It keeps the rain off. When the wind blows through it, you hear a sigh.
-leather_chestplate | Kett's Hedging Coat | He wore it to trim the hedges round the Whisperwood, so nobody wandered in. One night, the hedges trimmed back. The tears in it are all leaf-shaped.
+bow | The Dryad's Bow | Made from the first tree Kett felled in the Whisperwood. It shoots true. When it hits, you hear a sigh.
+shears | Leaf-Taker | Used to trim the hedges around the Whisperwood so nobody wandered in. One night, the hedges trimmed back.
 wooden_hoe | The Seedling | Kett tried to make up for it by planting a new tree with this. The tree grew in one night, and its leaves all faced him.
 leather_boots | Kett's Way Out | Kett went into the Whisperwood to apologise. These boots came back out. They walk very quietly now, as if they're afraid of waking something.
 
 @ amberlight | The Amberlight Circus
+crossbow | The Human Cannonball's Crossbow | The Amberlight Circus fired its star act from a giant crossbow. This is the smaller practice version. The practice volunteer was a very surprised chicken.
 golden_helmet | The Ringmaster's Topper | Ringmaster Amberlight wore this every night. Inside it he kept a card that said "keep smiling, they're watching". The audience was mostly zombies by the end.
 iron_sword | The Sword-Swallower's Sword | Swallowed every night for twenty years. It has seen more of the inside of a man than most surgeons. It would rather not talk about it.
-iron_chestplate | The Strongman's Vest | The circus strongman tried to enchant his chains, and lifted the enchanting table instead, with the librarian still on it. This vest was all that fit him afterwards.
-leather_leggings | The Cannonball's Tights | The Amberlight Circus fired its star act from a giant crossbow. These are the human cannonball's tights, singed at the back. The practice volunteer was a very surprised chicken. It did not get tights.
 leather_boots | The Tightrope Boots | The tightrope walker never fell. Not once. On the night of the fire, she walked across the whole burning tent on the rope and out into the dark.
 shears | The Clown's Shears | Used to cut the ribbon on opening night and the rope on closing night. Nobody knows who cut the rope. The clown knows. The clown isn't telling.
+iron_chestplate | The Strongman's Vest | The circus strongman tried to enchant his chains, and lifted the enchanting table instead, with the librarian still on it. This vest was all that fit him afterwards.
 
 @ voidsailor | The Ship That Sailed From Further
 diamond_leggings@end_city | Breeches of the Far Ship | The End ships came from somewhere. The sailors who flew them wore these, and the sailors are gone, and the somewhere is still out there.
@@ -99,6 +100,6 @@ diamond_chestplate@end | Captain's Plate | The captain promised the crew they'd 
 @ beekeeper | The Beekeeper of Honeyhollow
 shears | Agnes's Shears | Agnes kept the bees of Honeyhollow for fifty years and was stung once, by a rude bee she later forgave.
 leather_helmet | The Bee Veil | Agnes's helmet, fitted with a veil. The bees liked her so much they followed her to market. The market did not like them.
-leather_chestplate | Agnes's Smock | When raiders came to Honeyhollow, Agnes didn't fight. She put on this smock, walked out among them and opened the hives. The raiders left in a great hurry. Agnes wasn't stung once.
 wooden_hoe | The Flower Field | She planted fields of flowers for her bees with this. The whole valley still blooms in her colours every spring.
+iron_sword | The Hornet's Answer | When raiders came to Honeyhollow, Agnes didn't fight. She just opened the hives. This sword belonged to the raider who was stung least. He was stung a lot.
 leather_boots | Agnes's Last Walk | On her last day, Agnes walked out to her hives and the bees all came out to meet her. They followed her up the hill. Nobody saw where.

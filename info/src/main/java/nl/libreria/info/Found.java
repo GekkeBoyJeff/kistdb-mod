@@ -95,7 +95,7 @@ final class Found {
 
 	/** Which parts of which stories a player has had in their inventory, and what they found themselves. */
 	static final class Seen {
-		/** Which story numbering this was written in (0: before every story fit one armour stand; see {@link #MOVED}). */
+		/** Which story numbering this was written in (2: the short-lived one of one build, see {@link #BACK}). */
 		public int v;
 		public Map<String, Set<Integer>> parts = new HashMap<>();
 		/** "story:part" → "where|day|by", from the item when the part was first held. */
@@ -107,11 +107,12 @@ final class Found {
 	static final int MAX_FINDS = 2000;
 
 	/**
-	 * The story numbering: 2 since every story fits one armour stand (Nov 2026). Parts that moved are in
-	 * {@code moved.map} ("story:old" → new number, "-" for no longer a part); their old words in {@code retired.map}.
+	 * The story numbering. For one build (Nov 2026, numbering 2) every story was cut down to fit one armour stand; 3 puts
+	 * everything back: {@code v2moved.map} says which part then is which part now ("-": a part made up then, whose words
+	 * are in {@code v2parts.map}). What was stamped before that build was numbered as now already.
 	 */
-	static final int VERSION = 2;
-	static final Map<String, String> MOVED = new HashMap<>();
+	static final int VERSION = 3;
+	static final Map<String, String> BACK = new HashMap<>();
 
 	static final nl.libreria.core.PlayerStore<Seen> SEEN = nl.libreria.core.PlayerStore.create("libreria/stories", Seen.class, () -> {
 		Seen fresh = new Seen();
@@ -121,10 +122,8 @@ final class Found {
 		if (d.parts == null) d.parts = new HashMap<>();
 		if (d.partInfo == null) d.partInfo = new HashMap<>();
 		if (d.finds == null) d.finds = new ArrayList<>();
-		if (d.v < VERSION) {
-			renumber(d);
-			d.v = VERSION;
-		}
+		if (d.v == 2) renumber(d);
+		d.v = VERSION;
 	});
 
 	/** Every text by its id (lines and story parts; family texts are made again from their id). */
@@ -224,15 +223,15 @@ final class Found {
 		BY_ID.clear();
 		for (Text t : LINES) BY_ID.put(t.id(), t);
 		for (Text t : PIECES) BY_ID.put(t.id(), t);
-		MOVED.clear();
+		BACK.clear();
 		try {
-			for (String line : Files.readAllLines(dir.get().resolve("moved.map"), StandardCharsets.UTF_8)) {
+			for (String line : Files.readAllLines(dir.get().resolve("v2moved.map"), StandardCharsets.UTF_8)) {
 				String[] p = line.split(">");
 				if (line.startsWith("#") || p.length != 2) continue;
-				MOVED.put(p[0].trim(), p[1].trim());
+				BACK.put(p[0].trim(), p[1].trim());
 			}
-			// What retired parts said: read again by the lore book and the stand, never handed out
-			for (String line : Files.readAllLines(dir.get().resolve("retired.map"), StandardCharsets.UTF_8)) {
+			// The words of parts that only existed in that build: read again by the lore book and the mannequin, never handed out
+			for (String line : Files.readAllLines(dir.get().resolve("v2parts.map"), StandardCharsets.UTF_8)) {
 				String[] p = line.split("\\|", 4);
 				if (line.startsWith("#") || p.length != 4) continue;
 				String id = p[0].trim();
@@ -665,7 +664,7 @@ final class Found {
 	static boolean fix(@Nullable ServerPlayer holder, ItemStack s, net.minecraft.core.RegistryAccess access) {
 		CustomData cd = s.get(DataComponents.CUSTOM_DATA);
 		if (cd == null) return false;
-		if (renumber(s, access)) return true;
+		if (renumber(s, access) || refresh(s, access)) return true;
 		CompoundTag st = cd.copyTag().getCompoundOrEmpty(STAMP);
 		String id = st.getStringOr("id", "");
 		String kind = kindOf(s);
@@ -701,35 +700,33 @@ final class Found {
 	}
 
 	/**
-	 * An item stamped before every story fit one armour stand: its part gets its new number (and the words and "part n
-	 * of m" that go with it), or, when it's no longer a part, keeps its words without the story. Once per item.
-	 * @return whether the item changed
+	 * An item stamped in the short-lived numbering 2: back to the part it is now (with its words and "part n of m"), or,
+	 * for a part that was made up then, its words without a story. Once per item. @return whether the item changed
 	 */
 	static boolean renumber(ItemStack s, net.minecraft.core.RegistryAccess access) {
 		CustomData cd = s.get(DataComponents.CUSTOM_DATA);
 		if (cd == null) return false;
 		CompoundTag st = cd.copyTag().getCompoundOrEmpty(STAMP);
 		if (st.isEmpty() || st.getIntOr("v", 1) >= VERSION) return false;
-		String story = st.getStringOr("story", "");
-		String to = story.isEmpty() ? null : MOVED.get(story + ":" + st.getIntOr("part", 0));
-		Text now = to == null || to.equals("-") ? null : BY_ID.get("a:" + story + ":" + to);
-		if (now != null) {
-			write(s, now, st.getStringOr("where", "Found"), st.getIntOr("day", 0), st.getStringOr("by", ""), access);
+		String id = st.getStringOr("id", "");
+		String now = st.getIntOr("v", 1) == 2 ? back(id) : id;
+		Text t = now == null ? null : BY_ID.get(now);
+		if (t != null && t.story() != null && on(t, itemOf(s))) {
+			write(s, t, st.getStringOr("where", "Found"), st.getIntOr("day", 0), st.getStringOr("by", ""), access);
 			return true;
 		}
-		String id = st.getStringOr("id", "");
-		boolean retired = to != null;
+		boolean loose = now != null && now.startsWith("x2:");
 		CustomData.update(DataComponents.CUSTOM_DATA, s, root -> {
-			CompoundTag t = root.getCompoundOrEmpty(STAMP).copy();
-			t.putInt("v", VERSION);
-			if (retired) {
-				t.remove("story");
-				t.remove("part");
-				t.putString("id", "x:" + id);
+			CompoundTag tag = root.getCompoundOrEmpty(STAMP).copy();
+			tag.putInt("v", VERSION);
+			if (loose) {
+				tag.remove("story");
+				tag.remove("part");
+				tag.putString("id", now);
 			}
-			root.put(STAMP, t);
+			root.put(STAMP, tag);
 		});
-		if (retired) {
+		if (loose) {
 			List<Component> lines = new ArrayList<>(Lore.get(s, Lore.FOUND));
 			if (!lines.isEmpty() && lines.getFirst().getString().startsWith("✦ ")) lines.removeFirst();
 			Lore.set(s, Lore.FOUND, lines);
@@ -737,12 +734,40 @@ final class Found {
 		return true;
 	}
 
-	/** A lore book from before every story fit one armour stand: the parts it holds by their new numbers. */
+	/**
+	 * What a text id of numbering 2 is now: "x:a:story:n" (a part that was taken out then) is "a:story:n" again,
+	 * "a:story:m" of a story that was changed is its part now, or "x2:a:story:m" when it was made up then.
+	 */
+	static @Nullable String back(String id) {
+		if (id.startsWith("x:a:")) return id.substring(2);
+		if (!id.startsWith("a:")) return id;
+		String to = BACK.get(id.substring(2));
+		if (to == null) return id;
+		return to.equals("-") ? "x2:" + id : "a:" + id.substring(2, id.lastIndexOf(':')) + ":" + to;
+	}
+
+	/** What a story part says now, in short: when it changes (a story got longer, a part new words), items catch up. */
+	static String sig(Text t) {
+		return Integer.toHexString((t.title() + "|" + t.parts() + "|" + t.name() + "|" + t.text()).hashCode());
+	}
+
+	/** A story part whose story changed since it was written (more parts, new words): written again. */
+	static boolean refresh(ItemStack s, net.minecraft.core.RegistryAccess access) {
+		CustomData cd = s.get(DataComponents.CUSTOM_DATA);
+		if (cd == null) return false;
+		CompoundTag st = cd.copyTag().getCompoundOrEmpty(STAMP);
+		Text t = BY_ID.get(st.getStringOr("id", ""));
+		if (t == null || t.story() == null || !on(t, itemOf(s)) || sig(t).equals(st.getStringOr("sig", ""))) return false;
+		write(s, t, st.getStringOr("where", "Found"), st.getIntOr("day", 0), st.getStringOr("by", ""), access);
+		return true;
+	}
+
+	/** A lore book of numbering 2: the parts it holds by their numbers now. */
 	static void renumber(Seen d) {
 		Map<String, Set<Integer>> parts = new HashMap<>();
 		for (var e : d.parts.entrySet()) {
 			for (int part : e.getValue()) {
-				Integer n = moved(e.getKey(), part);
+				Integer n = back(e.getKey(), part);
 				if (n != null) parts.computeIfAbsent(e.getKey(), k -> new HashSet<>()).add(n);
 			}
 		}
@@ -752,7 +777,7 @@ final class Found {
 			int colon = e.getKey().lastIndexOf(':');
 			if (colon < 0) continue;
 			try {
-				Integer n = moved(e.getKey().substring(0, colon), Integer.parseInt(e.getKey().substring(colon + 1)));
+				Integer n = back(e.getKey().substring(0, colon), Integer.parseInt(e.getKey().substring(colon + 1)));
 				if (n != null) info.put(e.getKey().substring(0, colon) + ":" + n, e.getValue());
 			} catch (NumberFormatException ignored) {
 				// not a part
@@ -760,16 +785,14 @@ final class Found {
 		}
 		d.partInfo = info;
 		for (Find f : d.finds) {
-			if (f.id == null || !f.id.startsWith("a:")) continue;
-			String to = MOVED.get(f.id.substring(2));
-			if (to == null) continue;
-			f.id = to.equals("-") ? "x:" + f.id : "a:" + f.id.substring(2, f.id.lastIndexOf(':')) + ":" + to;
+			String now = f.id == null ? null : back(f.id);
+			if (now != null) f.id = now;
 		}
 	}
 
-	/** The new number of an old part, or null when it's no longer a part. */
-	static @Nullable Integer moved(String story, int part) {
-		String to = MOVED.get(story + ":" + part);
+	/** The part now of a part in numbering 2, or null when it was made up then. */
+	static @Nullable Integer back(String story, int part) {
+		String to = BACK.get(story + ":" + part);
 		if (to == null) return part;
 		if (to.equals("-")) return null;
 		try {
@@ -811,6 +834,7 @@ final class Found {
 		stamp.putString("where", where);
 		stamp.putInt("v", VERSION);
 		if (t.story() != null) {
+			stamp.putString("sig", sig(t));
 			stamp.putString("story", t.story());
 			stamp.putInt("part", t.part());
 		}
