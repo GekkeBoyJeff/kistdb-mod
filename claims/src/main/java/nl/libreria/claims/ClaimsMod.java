@@ -142,6 +142,8 @@ public final class ClaimsMod implements ModInitializer {
 		public Map<UUID, Integer> extra = new HashMap<>();
 		/** What each player earned when last seen (play time and points), for the admin window when they're away. */
 		public Map<UUID, Integer> earned = new HashMap<>();
+		/** Explosions a player's claim stopped near them (for "Saved by My Claim"). */
+		public Map<UUID, Integer> saved = new HashMap<>();
 		/** Players who already got the one-time "how to claim" tip. */
 		public Set<UUID> tipped = new HashSet<>();
 	}
@@ -245,6 +247,11 @@ public final class ClaimsMod implements ModInitializer {
 			public boolean mayBuild(ServerPlayer player, ServerLevel level, BlockPos pos) {
 				return allowed(player, level, pos, Action.BUILD);
 			}
+
+			@Override
+			public int saved(java.util.UUID player) {
+				return Grief.saved(player);
+			}
 		});
 		// Getting hurt closes the land map at once
 		net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.AFTER_DAMAGE.register((entity, source, base, taken, blocked) -> {
@@ -279,6 +286,7 @@ public final class ClaimsMod implements ModInitializer {
 			SHOWN.remove(id);
 			HINTED.remove(id);
 			TIP_AT.remove(id);
+			Grief.forget(id);
 		});
 
 		CommandRegistrationCallback.EVENT.register((dispatcher, registry, env) -> dispatcher.register(

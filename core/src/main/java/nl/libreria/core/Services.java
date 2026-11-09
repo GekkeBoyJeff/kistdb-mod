@@ -71,6 +71,11 @@ public final class Services {
 			java.util.UUID owner = ownerAt(level, pos);
 			return owner == null || owner.equals(player.getUUID());
 		}
+
+		/** How many explosions this player's land stopped near them (blocks that would have broken stayed). */
+		default int saved(java.util.UUID player) {
+			return 0;
+		}
 	}
 
 	private static @Nullable Land land;

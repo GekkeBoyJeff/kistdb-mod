@@ -824,6 +824,10 @@ public final class Catalog {
 				100, "Tinkerer", 1000, "Craftsman", 10000, "Artisan", 100000, "Master Crafter", 1000000, "One-Person Factory");
 		ladder(c, "bouw", Items.BRICKS, "Place %,d blocks", used(itemsWhere(id -> item(id) instanceof BlockItem)), 1, r(C, U, R, E, L),
 				500, "Bricklayer", 5000, "Builder", 50000, "Architect", 200000, "Master Builder", 1000000, "World Builder");
+		// With Claims: an explosion went off on your land, near you, and your claim kept every block
+		Services.land().ifPresent(land -> add(new Achievement("land.gered", c, "Saved by My Claim",
+				"An explosion on your land broke nothing: your claim held. Thanks, Jeff!", item("creeper_head"), U,
+				goal(1, (p, d) -> land.saved(p.getUUID())), null)));
 		ladder(c, "fakkel", Items.TORCH, "Place %,d torches", used(itemsOf("torch", "soul_torch", "copper_torch")), 1, r(C, U, R),
 				64, "Torchbearer", 640, "Light Bringer", 5000, "Sunmaker");
 		ladder(c, "spoor", Items.RAIL, "Lay %,d rails", used(itemsOf("rail", "powered_rail", "detector_rail", "activator_rail")), 1, r(C, U),

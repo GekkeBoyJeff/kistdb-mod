@@ -91,6 +91,38 @@ final class ClaimsTests {
 			}
 		});
 
+		SelfTests.register("claims.grief", level -> {
+			java.util.UUID who = java.util.UUID.randomUUID();
+			ChunkPos claimed = new ChunkPos(120, 120), free = new ChunkPos(121, 120);
+			ClaimsMod.STORE.get().claims.remove(ClaimsMod.key(level, free));
+			ClaimsMod.debugClaim(level, claimed, who, "Erik");
+			int y = 120, z = claimed.getMinBlockZ() + 8;
+			BlockPos inside = new BlockPos(claimed.getMaxBlockX() - 1, y, z), outside = new BlockPos(free.getMinBlockX() + 2, y, z);
+			BlockPos boom = new BlockPos(free.getMinBlockX(), y, z);
+			var planks = net.minecraft.world.level.block.Blocks.OAK_PLANKS.defaultBlockState();
+			try {
+				level.setBlockAndUpdate(inside, planks);
+				level.setBlockAndUpdate(outside, planks);
+				net.minecraft.world.entity.decoration.ArmorStand stand = new net.minecraft.world.entity.decoration.ArmorStand(level,
+						inside.getX() + 0.5, y + 1, z + 0.5);
+				level.addFreshEntity(stand);
+				// a blast right on the border, as a creeper would: the claimed side stays whole
+				level.explode(null, boom.getX() + 0.5, y + 0.5, z + 0.5, 4f, net.minecraft.world.level.Level.ExplosionInteraction.TNT);
+				SelfTests.check(level.getBlockState(inside).is(net.minecraft.world.level.block.Blocks.OAK_PLANKS), "a blast breaks nothing in a claim");
+				SelfTests.check(level.getBlockState(outside).isAir(), "but does break free land next to it");
+				SelfTests.check(!stand.isRemoved() && stand.isAlive(), "an armour stand in the claim sits it out");
+				stand.discard();
+				SelfTests.check(Grief.flowsIn(level, outside, inside) && !Grief.flowsIn(level, inside, inside.west()),
+						"lava and water don't flow in from outside (but do inside)");
+				SelfTests.check(Grief.claimed(level, inside) && !Grief.claimed(level, outside), "fire knows what's claimed");
+				SelfTests.check(Grief.guarded(level, inside, null), "a mob can't change claimed blocks");
+			} finally {
+				level.setBlockAndUpdate(inside, net.minecraft.world.level.block.Blocks.AIR.defaultBlockState());
+				level.setBlockAndUpdate(outside, net.minecraft.world.level.block.Blocks.AIR.defaultBlockState());
+				ClaimsMod.STORE.get().claims.remove(ClaimsMod.key(level, claimed));
+			}
+		});
+
 		SelfTests.register("claims.texts", level -> {
 			FakePlayer p = FakePlayer.get(level);
 			SelfTests.check(ClaimsMod.duration(45).equals("45 min"), "duration in minutes");

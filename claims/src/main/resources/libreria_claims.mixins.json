@@ -1,0 +1,17 @@
+{
+	"required": true,
+	"package": "nl.libreria.claims.mixin",
+	"compatibilityLevel": "JAVA_25",
+	"mixins": [
+		"BreakDoorMixin",
+		"EndermanLeaveMixin",
+		"EndermanTakeMixin",
+		"ExplosionMixin",
+		"FarmlandMixin",
+		"FireMixin",
+		"FluidMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}

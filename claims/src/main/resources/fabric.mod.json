@@ -3,13 +3,14 @@
 	"id": "libreria_claims",
 	"version": "${version}",
 	"name": "Libreria Claims",
-	"description": "Protect your base: type /claim in a chunk, or claim chunks on a map. Your budget grows with playtime and achievement points (Collector). Protects against others building, opening chests and touching animals. Server-side; requires Libreria Core.",
+	"description": "Protect your base: type /claim in a chunk, or claim chunks on a map. Your budget grows with playtime and achievement points (Collector). Protects against others building, opening chests and touching animals, and against griefing: explosions, fire, mobs and lava from outside leave claimed land whole. Server-side; requires Libreria Core.",
 	"authors": ["Jeffrey"],
 	"license": "MIT",
 	"environment": "*",
 	"entrypoints": {
 		"main": ["nl.libreria.claims.ClaimsMod"]
 	},
+	"mixins": ["libreria_claims.mixins.json"],
 	"depends": {
 		"minecraft": "~26.3",
 		"fabric-api": "*",
