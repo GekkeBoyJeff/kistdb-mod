@@ -96,7 +96,7 @@ public final class ClaimsMod implements ModInitializer {
 			"A land map button right of your", "hotbar, with its key (Libreria pack).");
 	/** Claimed land as coloured glass on the land map (off: only the names and the golden box); also {swap} on the map. */
 	public static final nl.libreria.core.Setting.Toggle COLOURS = MODULE.toggle("map_colours", "Colours on the land map", true,
-			Items.LIME_STAINED_GLASS, "Claimed land stands on the land map as", "coloured glass: green yours, blue where",
+			Ui.item("lime_stained_glass"), "Claimed land stands on the land map as", "coloured glass: green yours, blue where",
 			"you may build, red someone else's. Off:", "only the names, to see the land itself.", "On the map: {swap} switches it.");
 
 	/** Budget: a start, plus one per so many hours played and per so many achievement points, up to a maximum. */
