@@ -237,19 +237,12 @@ public final class ClaimsAdmin {
 	public static void players(ServerPlayer admin) {
 		if (!allowed(admin)) return;
 		List<Holder> holders = holders();
-		Window w = Window.path("Server settings", "Claims", "Players' land");
-		w.text(Ui.text(holders.isEmpty() ? "Nobody has claimed land yet. Give someone extra chunks by their name below."
-				: "Everyone who has land, most first. Click someone for their land and how much they may claim.", ChatFormatting.GRAY));
-		for (Holder h : holders) {
-			int budget = ClaimsMod.budget(h.id());
-			MutableComponent label = Ui.text(h.name(), 0xFFD966).append(Ui.text(" · " + h.chunks() + " of " + chunks(budget)
-					+ (h.pieces() > 0 ? " · " + h.pieces() + (h.pieces() == 1 ? " piece" : " pieces") : ""), ChatFormatting.WHITE));
-			int extra = ClaimsMod.extra(h.id());
-			String tip = extra == 0 ? "Their land, and how much they may claim" : (extra > 0 ? "+" : "") + extra + " chunks from an operator";
-			w.button(label, Ui.text(tip, ChatFormatting.GRAY), (p, v) -> player(p, h.id()));
-		}
-		w.field("who", Ui.text("Someone else (their name)", ChatFormatting.WHITE), "", 16);
-		w.button(Ui.text("Open their land ▸", ChatFormatting.AQUA), Ui.text("For someone who has no land yet", ChatFormatting.GRAY), (p, v) -> {
+		Window w = Window.path("Server settings", "Claims", "Players' land").wide();
+		w.text(Ui.text(holders.isEmpty() ? "Nobody has claimed land yet. To give someone extra chunks, type their name."
+				: "Everyone who has land, most first. Click someone for their land and how much they may claim; someone "
+						+ "without land: type their name.", ChatFormatting.GRAY));
+		w.field("who", Ui.text("Someone else, by name", ChatFormatting.WHITE), "", 16);
+		w.button(Ui.text("Open the name above ▸", ChatFormatting.AQUA), Ui.text("For someone who has no land yet", ChatFormatting.GRAY), (p, v) -> {
 			String name = v.text("who", "").strip();
 			Players.Known k = name.isEmpty() ? null : Players.byName(p.level().getServer(), name);
 			if (k == null) {
@@ -259,6 +252,17 @@ public final class ClaimsAdmin {
 			}
 			player(p, k.id());
 		});
+		for (Holder h : holders) {
+			int budget = ClaimsMod.budget(h.id());
+			boolean over = h.chunks() > budget;
+			MutableComponent label = Ui.text(h.name(), 0xFFD966).append(Ui.text(" · ", ChatFormatting.GRAY))
+					.append(Ui.text(h.chunks() + " of " + chunks(budget), over ? ChatFormatting.RED : ChatFormatting.WHITE))
+					.append(Ui.text(h.pieces() > 0 ? " · " + h.pieces() + (h.pieces() == 1 ? " piece" : " pieces") : " · no land", ChatFormatting.GRAY));
+			int extra = ClaimsMod.extra(h.id());
+			String tip = (over ? "More than they may claim now (it stays theirs). " : "")
+					+ (extra == 0 ? "Their land, and how much they may claim" : (extra > 0 ? "+" : "") + extra + " chunks from an operator");
+			w.button(label, Ui.text(tip, ChatFormatting.GRAY), (p, v) -> player(p, h.id()));
+		}
 		w.back(p -> nl.libreria.core.gui.AdminWindow.open(p, ClaimsMod.MODULE)).show(admin);
 	}
 
@@ -268,10 +272,12 @@ public final class ClaimsAdmin {
 		String name = nameOf(id);
 		List<Piece> pieces = pieces(id);
 		int owned = ClaimsMod.owned(id), extra = ClaimsMod.extra(id);
-		Window w = Window.path("Claims", "Players' land", name);
+		Window w = Window.path("Claims", "Players' land", name).wide();
 		w.text(Ui.text(budgetSentence(admin.level().getServer(), id, name), ChatFormatting.GRAY));
+		w.text(Ui.text(pieces.isEmpty() ? name + " has no land." : name + "'s land: " + pieces.size() + (pieces.size() == 1 ? " piece" : " pieces")
+				+ " (chunks that touch are one piece). Click one to rename it, go there or release it.", ChatFormatting.GRAY));
 		w.slider("extra", Ui.text("Extra chunks for " + name, ChatFormatting.WHITE), EXTRA_MIN, EXTRA_MAX, 1, extra);
-		w.button(Ui.text("✔ Save", ChatFormatting.GREEN), Ui.text("Give " + name + " these extra chunks", ChatFormatting.GRAY), (p, v) -> {
+		w.button(Ui.text("✔ Save the extra chunks", ChatFormatting.GREEN), Ui.text("On top of what " + name + " earned", ChatFormatting.GRAY), (p, v) -> {
 			if (!allowed(p)) return;
 			int now = Math.max(EXTRA_MIN, Math.min(EXTRA_MAX, v.integer("extra", extra)));
 			if (now != ClaimsMod.extra(id)) {
@@ -282,8 +288,6 @@ public final class ClaimsAdmin {
 			}
 			player(p, id);
 		});
-		w.text(Ui.text(pieces.isEmpty() ? name + " has no land." : name + "'s land: " + pieces.size() + (pieces.size() == 1 ? " piece" : " pieces")
-				+ " (chunks that touch are one piece).", ChatFormatting.GRAY));
 		for (Piece pc : pieces) {
 			ChunkPos m = pc.middle();
 			MutableComponent label = Ui.text(pc.title(), pc.name().isEmpty() ? 0x9A9EA8 : 0xFFFFFF)
@@ -328,7 +332,7 @@ public final class ClaimsAdmin {
 		}
 		ChunkPos m = pc.middle();
 		int x = m.getMinBlockX() + 8, z = m.getMinBlockZ() + 8;
-		Window w = Window.path("Players' land", name, pc.title());
+		Window w = Window.path("Players' land", name, pc.title()).wide();
 		w.text(Ui.text((pc.chunks().size() == 1 ? "1 chunk" : pc.chunks().size() + " chunks that touch each other") + ", around " + x + ", " + z
 				+ " in the " + world(dim) + ". " + name + "'s, " + (pc.name().isEmpty() ? "without a name." : "called " + pc.name() + "."), ChatFormatting.GRAY));
 		w.field("name", Ui.text("Name", ChatFormatting.WHITE), pc.name(), 32);

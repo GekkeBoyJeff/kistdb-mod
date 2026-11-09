@@ -68,6 +68,7 @@ public final class Window {
 	private final List<BiConsumer<ServerPlayer, Values>> callbacks = new ArrayList<>();
 	private @Nullable ActionButton bottom;
 	private int columns = 2;
+	private int buttonWidth = BUTTON;
 
 	private Window(Component title) {
 		this.title = title;
@@ -122,6 +123,13 @@ public final class Window {
 
 	public Window columns(int columns) {
 		this.columns = Math.max(1, columns);
+		return this;
+	}
+
+	/** One button per row, as wide as the window: for lists whose labels are long. Call before adding buttons. */
+	public Window wide() {
+		this.columns = 1;
+		this.buttonWidth = WIDE;
 		return this;
 	}
 
@@ -201,7 +209,7 @@ public final class Window {
 
 	/** A button that calls back with everything filled in. The window closes when it's pressed. */
 	public Window button(Component label, @Nullable Component tooltip, BiConsumer<ServerPlayer, Values> onClick) {
-		this.buttons.add(new ActionButton(new CommonButtonData(label, Optional.ofNullable(tooltip), BUTTON), Optional.of(callback(onClick))));
+		this.buttons.add(new ActionButton(new CommonButtonData(label, Optional.ofNullable(tooltip), this.buttonWidth), Optional.of(callback(onClick))));
 		return this;
 	}
 
@@ -218,7 +226,7 @@ public final class Window {
 		} catch (IllegalArgumentException e) {
 			action = Optional.empty();
 		}
-		this.buttons.add(new ActionButton(new CommonButtonData(label, Optional.ofNullable(tooltip), BUTTON), action));
+		this.buttons.add(new ActionButton(new CommonButtonData(label, Optional.ofNullable(tooltip), this.buttonWidth), action));
 		return this;
 	}
 
