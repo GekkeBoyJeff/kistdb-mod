@@ -149,11 +149,6 @@ final class StoryWall {
 		return new AABB(a, b);
 	}
 
-	/** The whole board (for where its card goes). */
-	static AABB board(Wall w) {
-		return new AABB(at(w, -COLS / 2.0, -ROWS / 2.0, 0), at(w, COLS / 2.0, ROWS / 2.0 + 0.2, 0.2));
-	}
-
 	static @Nullable ServerLevel level(MinecraftServer server, Wall w) {
 		return server.getLevel(net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.DIMENSION, Identifier.parse(w.dim)));
 	}
@@ -352,12 +347,17 @@ final class StoryWall {
 	// ---------------------------------------------------------------- what it looks like
 
 	private static final float DEPTH = 0.06f, FRAME = 0.08f, BAR = 0.06f, RIM = 0.11f;
+	/**
+	 * How far out from the wall the board's elements are anchored (they are drawn back against it): a display takes its
+	 * light from the block it stands in, and in the wall that's dark.
+	 */
+	private static final float OUT = 0.5f;
 	/** The parts of a board, in the holder: the eight things first. */
 	private static final int THINGS = 0, PLATE = SPOTS, TITLE = SPOTS + 1;
 
 	private static BlockDisplayElement slab(BlockState state, float x, float y, float z, float w, float h, float d, float yaw) {
 		BlockDisplayElement e = new BlockDisplayElement(state);
-		e.setTranslation(new Vector3f(x, y, z));
+		e.setTranslation(new Vector3f(x, y, z - OUT));
 		e.setScale(new Vector3f(w, h, d));
 		e.setYaw(yaw);
 		e.setViewRange(0.8f);
@@ -376,7 +376,7 @@ final class StoryWall {
 				e.setItemDisplayContext(ItemDisplayContext.FIXED);
 				e.setViewRange(0.8f);
 				e.setYaw(yaw);
-				e.setTranslation(new Vector3f((float) spotX(i), (float) spotY(i), RIM - 0.02f));
+				e.setTranslation(new Vector3f((float) spotX(i), (float) spotY(i), RIM - 0.02f - OUT));
 				e.setScale(new Vector3f(0.78f));
 				holder.addElement(e);
 			}
@@ -400,7 +400,7 @@ final class StoryWall {
 			for (int c = 1; c < COLS; c++) holder.addElement(slab(rim, c - hw - BAR / 2, -hh, 0, BAR, ROWS, RIM - 0.01f, yaw));
 			for (int r = 1; r < ROWS; r++) holder.addElement(slab(rim, -hw, r - hh - BAR / 2, 0, COLS, BAR, RIM - 0.01f, yaw));
 			// What you click: a box over each spot
-			Vec3 mid = middle(w);
+			Vec3 mid = at(w, 0, 0, OUT);
 			for (int i = 0; i < SPOTS; i++) {
 				final int spot = i;
 				InteractionElement click = new InteractionElement(new VirtualElement.InteractionHandler() {
@@ -447,13 +447,13 @@ final class StoryWall {
 			width = COLS - 0.6f;
 		}
 		BlockDisplayElement plate = (BlockDisplayElement) holder.getElements().get(PLATE);
-		float plateW = Math.max(1.2f, width + 0.3f), plateH = 0.25f * scale + 0.16f;
-		plate.setTranslation(new Vector3f(-plateW / 2, ROWS / 2f - plateH / 2 - 0.02f, RIM - 0.02f));
+		float plateW = Math.max(1.2f, width + 0.3f), plateH = 0.25f * scale + 0.16f, plateY = ROWS / 2f - 0.03f;
+		plate.setTranslation(new Vector3f(-plateW / 2, plateY, RIM - 0.02f - OUT));
 		plate.setScale(new Vector3f(plateW, plateH, 0.04f));
 		TextDisplayElement title = (TextDisplayElement) holder.getElements().get(TITLE);
 		title.setText(text);
 		title.setScale(new Vector3f(scale));
-		title.setTranslation(new Vector3f(0, ROWS / 2f - plateH / 2 - 0.02f + (plateH - 0.25f * scale) / 2 - 0.01f, RIM + 0.025f));
+		title.setTranslation(new Vector3f(0, plateY + (plateH - 0.25f * scale) / 2 - 0.01f, RIM + 0.025f - OUT));
 		holder.tick();
 	}
 
@@ -492,6 +492,11 @@ final class StoryWall {
 			}
 		}
 		return best;
+	}
+
+	/** Where the card of a spot floats without the resource pack: over the board, above its column. */
+	static Vec3 anchor(Wall w, int spot) {
+		return at(w, spotX(spot), ROWS / 2.0 + 0.55, 0.3);
 	}
 
 	/** The card of a spot: what hangs there and which story it's from; a missing part; or an empty spot. */
@@ -572,14 +577,14 @@ final class StoryWall {
 		if (fr.wall == hit.wall() && fr.spot == hit.spot()) return;
 		fr.wall = hit.wall();
 		fr.spot = hit.spot();
-		fr.at = at(hit.wall(), spotX(hit.spot()), spotY(hit.spot()), 0);
+		fr.at = at(hit.wall(), spotX(hit.spot()), spotY(hit.spot()), OUT);
 		float yaw = facing(hit.wall()).toYRot(), half = 0.5f - BAR / 2, t = 0.035f, z = RIM + 0.005f;
 		float[][] bars = {{-half, half - t, 2 * half, t}, {-half, -half, 2 * half, t}, {-half, -half, t, 2 * half}, {half - t, -half, t, 2 * half}};
 		for (int i = 0; i < 4; i++) {
 			BlockDisplayElement bar = (BlockDisplayElement) fr.holder.getElements().get(i);
 			bar.setBlockState(WHITE);
 			bar.setYaw(yaw);
-			bar.setTranslation(new Vector3f(bars[i][0], bars[i][1], z));
+			bar.setTranslation(new Vector3f(bars[i][0], bars[i][1], z - OUT));
 			bar.setScale(new Vector3f(bars[i][2], bars[i][3], 0.015f));
 		}
 		fr.holder.tick();

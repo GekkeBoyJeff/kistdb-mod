@@ -702,27 +702,27 @@ public final class Screens implements FabricClientGameTest {
 				ctx.getInput().lookAt(new BlockPos(x, y + 1, z + 3));
 				ctx.waitTicks(12);
 				ctx.takeScreenshot("mannequin_side");
-				// A story wall on a wall of stone bricks four blocks ahead (what earlier scenes left in between cleared): the
-				// six swords of an oath but the third, which shows as a dark shape in its spot
-				run(server, "kill @e[type=minecraft:mannequin]", f("fill %d %d %d %d %d %d minecraft:air", x - 3, y, z + 1, x + 3, y + 3, z + 3),
-						f("kill @e[type=!minecraft:player,x=%d,y=%d,z=%d,dx=6,dy=4,dz=3]", x - 3, y, z + 1),
-						f("fill %d %d %d %d %d %d minecraft:stone_bricks", x - 3, y, z + 4, x + 2, y + 2, z + 4), f("tp @a %d %d %d 0 10", x, y, z + 1));
-				server.runOnServer(sv -> nl.libreria.info.InfoMod.debugStoryWall((ServerLevel) player.level(), new BlockPos(x + 1, y, z + 3),
+				// A story wall on a wall of stone bricks behind the chests (what earlier scenes left there cleared): the six
+				// swords of an oath but the third, which shows as a dark shape in its spot
+				run(server, "kill @e[type=minecraft:mannequin]", f("fill %d %d %d %d %d %d minecraft:air", x - 3, y, z + 4, x + 3, y + 3, z + 6),
+						f("kill @e[type=!minecraft:player,x=%d,y=%d,z=%d,dx=6,dy=4,dz=2]", x - 3, y, z + 4),
+						f("fill %d %d %d %d %d %d minecraft:stone_bricks", x - 3, y, z + 7, x + 2, y + 2, z + 7), f("tp @a %d %d %d 0 10", x, y, z + 4));
+				server.runOnServer(sv -> nl.libreria.info.InfoMod.debugStoryWall((ServerLevel) player.level(), new BlockPos(x + 1, y, z + 6),
 						net.minecraft.core.Direction.NORTH, "charred", 3));
 				ctx.waitTicks(10);
-				ctx.getInput().lookAt(new BlockPos(x, y + 1, z + 3));
+				ctx.getInput().lookAt(new BlockPos(x, y + 1, z + 6));
 				ctx.waitTicks(16);
 				noToasts(ctx);
 				ctx.takeScreenshot("storywall_front");
-				ctx.getInput().lookAt(new BlockPos(x - 1, y + 1, z + 3));
+				ctx.getInput().lookAt(new BlockPos(x - 1, y + 1, z + 6));
 				ctx.waitTicks(12);
 				ctx.takeScreenshot("storywall_missing");
-				run(server, f("tp @a %d %d %d 0 10", x + 3, y, z + 1));
+				run(server, f("tp @a %d %d %d 0 10", x + 3, y, z + 4));
 				ctx.waitTicks(5);
-				ctx.getInput().lookAt(new BlockPos(x - 1, y, z + 3));
+				ctx.getInput().lookAt(new BlockPos(x - 1, y, z + 6));
 				ctx.waitTicks(12);
 				ctx.takeScreenshot("storywall_angle");
-				run(server, f("fill %d %d %d %d %d %d minecraft:air", x - 3, y, z + 4, x + 2, y + 2, z + 4));
+				run(server, f("fill %d %d %d %d %d %d minecraft:air", x - 3, y, z + 7, x + 2, y + 2, z + 7));
 				ctx.waitTicks(50);
 				run(server, f("tp @a %d %d %d", x, y, z));
 				run(server, "kill @e[type=minecraft:item]");

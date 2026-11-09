@@ -423,10 +423,8 @@ final class Look {
 			return new Target(at, card, !(e instanceof LivingEntity), size, 1);
 		}
 		if (wall != null) {
-			// Beside the whole board, so it hides none of its other spots
-			AABB board = StoryWall.board(wall.wall());
-			return Stand.target(eye, dir, new Vec3((board.minX + board.maxX) / 2, board.minY, (board.minZ + board.maxZ) / 2), board, 0.1,
-					StoryWall.card(level, wall.wall(), wall.spot()), Pack.has(p));
+			// At the top of your screen, as for a block (a board you can reach fills most of it); without the pack, above it
+			return new Target(StoryWall.anchor(wall.wall(), wall.spot()), StoryWall.card(level, wall.wall(), wall.spot()), true);
 		}
 		if (bh.getType() != HitResult.Type.BLOCK) return null;
 		BlockPos pos = bh.getBlockPos();

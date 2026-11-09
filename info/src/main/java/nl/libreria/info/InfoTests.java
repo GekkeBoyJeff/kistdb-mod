@@ -218,7 +218,8 @@ final class InfoTests {
 				SelfTests.check(StoryWall.full(level, w).equals(java.util.Set.of(1, 3, 4, 5)) && fp.getInventory().countItem(Items.STONE_SWORD) == 1,
 						"the first one taken off");
 				// Put back wherever you click: it goes to its own spot
-				int slot = fp.getInventory().findSlotMatchingItem(new ItemStack(Items.STONE_SWORD));
+				int slot = 0;
+				while (slot < fp.getInventory().getContainerSize() && !fp.getInventory().getItem(slot).is(Items.STONE_SWORD)) slot++;
 				fp.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, fp.getInventory().getItem(slot).copy());
 				fp.getInventory().setItem(slot, ItemStack.EMPTY);
 				StoryWall.use(fp, w, 7);
