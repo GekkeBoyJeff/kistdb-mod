@@ -162,10 +162,10 @@ final class InfoTests {
 					"written again");
 		});
 		SelfTests.register("info.showcase", level -> {
-			SelfTests.check("mannequin".equals(Showcase.kindOf(Showcase.item("mannequin"))) && "pedestal".equals(Showcase.kindOf(Showcase.item("pedestal")))
+			SelfTests.check("mannequin".equals(Showcase.kindOf(Showcase.item("mannequin"))) && "wall".equals(Showcase.kindOf(Showcase.item("wall")))
 					&& Showcase.kindOf(new ItemStack(Items.ARMOR_STAND)) == null, "the crafted items");
 			var recipes = level.getServer().getRecipeManager();
-			for (String r : new String[] {"mannequin", "story_pedestal"}) {
+			for (String r : new String[] {"mannequin", "story_wall"}) {
 				SelfTests.check(recipes.byKey(net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.RECIPE,
 						net.minecraft.resources.Identifier.fromNamespaceAndPath("libreria", r))).isPresent(), "the recipe " + r);
 			}
@@ -192,24 +192,50 @@ final class InfoTests {
 			} finally {
 				m.discard();
 			}
-			// A pedestal with the six swords of the Charred Oath
-			BlockPos pp = new BlockPos(54, 121, 44);
-			var ped = Showcase.debugPedestal(level, pp, 0, "charred");
+			// A story wall with the six swords of the Charred Oath but the third: laid out for it, the third kept free
+			BlockPos o = new BlockPos(52, 121, 47);
+			var fill = net.minecraft.world.level.block.Blocks.STONE.defaultBlockState();
+			for (int dx = 0; dx < 4; dx++) for (int dy = 0; dy < 2; dy++) level.setBlock(o.offset(dx, dy, 1), fill, 3);
+			// facing north: your right is west, so it runs from x 55 (left) to 52
+			BlockPos origin = new BlockPos(55, 121, 47);
+			var w = StoryWall.debug(level, origin, net.minecraft.core.Direction.NORTH, "charred", 3);
 			try {
-				SelfTests.check(Showcase.items(level, ped).size() == 6 && level.getBlockState(pp).is(Showcase.PEDESTAL), "six swords on a pedestal");
-				Look.Card card = Showcase.pedestalCard(level, pp);
-				SelfTests.check(card != null && card.name().getString().equals("✦ The Charred Oath"), "its card: " + (card == null ? null : card.name().getString()));
+				SelfTests.check(StoryWall.full(level, w).equals(java.util.Set.of(0, 1, 3, 4, 5)) && "charred".equals(w.story),
+						"five swords in their own spots: " + StoryWall.full(level, w));
+				SelfTests.check(StoryWall.spot(w, 0).equals(new BlockPos(55, 122, 47)) && StoryWall.spot(w, 7).equals(new BlockPos(52, 121, 47)),
+						"part 1 top left, as you face it: " + StoryWall.spot(w, 0) + " " + StoryWall.spot(w, 7));
+				SelfTests.check(StoryWall.card(level, w, 2).name().getString().equals("???") && StoryWall.card(level, w, 6).name().getString().equals("Empty spot"),
+						"a missing part, an empty spot");
+				SelfTests.check(StoryWall.card(level, w, 0).subtitle().getString().startsWith("Part 1 of 6"), "a part: " + StoryWall.card(level, w, 0).subtitle().getString());
+				// Looking at it: the spot you look at
+				var eye = net.minecraft.world.phys.Vec3.atCenterOf(StoryWall.spot(w, 1)).add(0, 0, -2);
+				var hit = StoryWall.hit(level, eye, eye.add(0, 0, 4));
+				SelfTests.check(hit != null && hit.spot() == 1, "looking at the second spot: " + (hit == null ? null : hit.spot()));
 				FakePlayer fp = FakePlayer.get(level);
-				fp.setShiftKeyDown(true);
+				fp.getInventory().clearContent();
 				fp.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, ItemStack.EMPTY);
-				Showcase.usePedestal(fp, level, ped);
-				fp.setShiftKeyDown(false);
-				SelfTests.check(Showcase.items(level, ped).size() == 5 && fp.getInventory().countItem(Items.STONE_SWORD) == 1, "the last one taken off");
+				StoryWall.take(fp, w, 0);
+				SelfTests.check(StoryWall.full(level, w).equals(java.util.Set.of(1, 3, 4, 5)) && fp.getInventory().countItem(Items.STONE_SWORD) == 1,
+						"the first one taken off");
+				// Put back wherever you click: it goes to its own spot
+				int slot = fp.getInventory().findSlotMatchingItem(new ItemStack(Items.STONE_SWORD));
+				fp.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, fp.getInventory().getItem(slot).copy());
+				fp.getInventory().setItem(slot, ItemStack.EMPTY);
+				StoryWall.use(fp, w, 7);
+				SelfTests.check(StoryWall.full(level, w).equals(java.util.Set.of(0, 1, 3, 4, 5)), "back in its own spot: " + StoryWall.full(level, w));
+				// Something else: where you click, but not in the spot kept for the third sword
+				fp.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, new ItemStack(Items.SHEARS));
+				StoryWall.use(fp, w, 2);
+				SelfTests.check(StoryWall.full(level, w).contains(6) && !StoryWall.full(level, w).contains(2), "shears: not in the kept spot");
+				// Its wall dug out: it comes down
+				level.setBlock(o.offset(0, 0, 1), net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), 3);
+				StoryWall.tick(level.getServer());
+				SelfTests.check(!StoryWall.data().walls.contains(w), "its wall gone: it comes down");
 				fp.getInventory().clearContent();
 			} finally {
-				Showcase.removePedestal(level, ped, false);
-				level.setBlock(pp, net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), 3);
-				for (var e : level.getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class, new net.minecraft.world.phys.AABB(pp).inflate(2))) e.discard();
+				if (StoryWall.data().walls.contains(w)) StoryWall.remove(level, w, false);
+				for (int dx = 0; dx < 4; dx++) for (int dy = 0; dy < 2; dy++) level.setBlock(o.offset(dx, dy, 1), net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), 3);
+				for (var e : level.getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class, new net.minecraft.world.phys.AABB(o).inflate(4))) e.discard();
 			}
 		});
 		SelfTests.register("info.look-stand", level -> {

@@ -134,9 +134,13 @@ public final class InfoMod implements ModInitializer {
 		return Showcase.debugMannequin(level, at, yaw, story);
 	}
 
-	/** For the screenshots: a pedestal with every part of a story on it. */
-	public static void debugPedestal(net.minecraft.server.level.ServerLevel level, net.minecraft.core.BlockPos at, float yaw, String story) {
-		Showcase.debugPedestal(level, at, yaw, story);
+	/**
+	 * For the screenshots: a story wall in front of the wall behind {@code origin} (its bottom-left spot), facing
+	 * {@code facing}, with every part of a story on it but part {@code skip} (0: all of them).
+	 */
+	public static void debugStoryWall(net.minecraft.server.level.ServerLevel level, net.minecraft.core.BlockPos origin,
+			net.minecraft.core.Direction facing, String story, int skip) {
+		StoryWall.debug(level, origin, facing, story, skip);
 	}
 
 	/** For the screenshots: the book a showcase opens (every part of the story there). */
@@ -146,7 +150,7 @@ public final class InfoMod implements ModInitializer {
 		LoreBook.story(p, story, all);
 	}
 
-	/** For the screenshots: the crafted mannequin and pedestal. */
+	/** For the screenshots: the crafted mannequin and story wall. */
 	public static net.minecraft.world.item.ItemStack debugShowcaseItem(String what) {
 		return Showcase.item(what);
 	}
@@ -227,11 +231,13 @@ public final class InfoMod implements ModInitializer {
 
 		net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
 			Look.forget(handler.player.getUUID());
+			StoryWall.forget(handler.player.getUUID());
 			Places.forget(handler.player.getUUID());
 			Leaderboards.record(handler.player);
 		});
 		net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
 			Look.clearAll();
+			StoryWall.clearAll();
 			Leaderboards.clearAll();
 		});
 		MODULE.adminButton("Leaderboards", "Place a floating top ten in the world", Leaderboards::placeWindow);
@@ -247,7 +253,7 @@ public final class InfoMod implements ModInitializer {
 			if (tick % 20 == 11) Pets.tick(server, tick);
 			if (tick % 40 == 13) Weapons.tick(server);
 			if (tick % 40 == 29) Found.tick(server);
-			if (tick % 40 == 31) Showcase.tick(server);
+			if (tick % 40 == 31) StoryWall.tick(server);
 		});
 
 		UseEntityCallback.EVENT.register((player, world, hand, entity, hit) -> {

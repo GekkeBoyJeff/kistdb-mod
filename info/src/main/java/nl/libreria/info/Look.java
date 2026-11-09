@@ -146,6 +146,10 @@ final class Look {
 			// A chest, furnace… is open (your own inventory screen is invisible to the server)
 			boolean menuOpen = p.containerMenu != p.inventoryMenu;
 			Target t = mode == 0 || p.isSpectator() || menuOpen || Services.inCamera(p) ? null : target(p, mode == 2);
+			// The spot of a story wall you look at: framed in white (also with the cards off)
+			Vec3 eye = p.getEyePosition();
+			StoryWall.frame(p, p.isSpectator() || menuOpen || Services.inCamera(p) ? null
+					: StoryWall.hit(p.level(), eye, eye.add(p.getViewVector(1.0f).scale(Math.min(p.entityInteractionRange(), 4.5)))));
 			boolean top = t != null && t.hud() && Pack.has(p);
 			show(p, top ? null : t);
 			showTop(p, top ? t.card() : null);
@@ -391,6 +395,10 @@ final class Look {
 		double range = p.blockInteractionRange();
 		BlockHitResult bh = level.clip(new ClipContext(eye, eye.add(dir.scale(range)), ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, p));
 		double blockDistSq = bh.getType() == HitResult.Type.MISS ? range * range : bh.getLocation().distanceToSqr(eye);
+		// A spot on a story wall (it hangs in front of the wall's blocks, so it's nearer than they are)
+		StoryWall.Hit wall = StoryWall.hit(level, eye, eye.add(dir.scale(range)));
+		if (wall != null && wall.distance() * wall.distance() <= blockDistSq + 1.0e-3) blockDistSq = wall.distance() * wall.distance();
+		else wall = null;
 		AABB box = p.getBoundingBox().expandTowards(dir.scale(range)).inflate(1.0);
 		// An invisible armour stand still counts when it wears something: that's how gear is shown off
 		EntityHitResult eh = ProjectileUtil.getEntityHitResult(p, eye, eye.add(dir.scale(range)), box,
@@ -414,15 +422,16 @@ final class Look {
 			at = keepOnScreen(eye, dir, at, dims(card, Pack.has(p))[1] * size, DOWN);
 			return new Target(at, card, !(e instanceof LivingEntity), size, 1);
 		}
+		if (wall != null) {
+			// Beside the whole board, so it hides none of its other spots
+			AABB board = StoryWall.board(wall.wall());
+			return Stand.target(eye, dir, new Vec3((board.minX + board.maxX) / 2, board.minY, (board.minZ + board.maxZ) / 2), board, 0.1,
+					StoryWall.card(level, wall.wall(), wall.spot()), Pack.has(p));
+		}
 		if (bh.getType() != HitResult.Type.BLOCK) return null;
 		BlockPos pos = bh.getBlockPos();
 		Card card = describeBlock(p, level, pos, all);
 		if (card == null) return null;
-		// A story pedestal: beside it, as for a mannequin (a story's card is tall; above it, it would reach off your screen)
-		if (Showcase.pedestalAt(level, pos) != null) {
-			return Stand.target(eye, dir, Vec3.atBottomCenterOf(pos), new AABB(pos.getX(), pos.getY(), pos.getZ(), pos.getX() + 1,
-					pos.getY() + 1.7, pos.getZ() + 1), 0.1, card, Pack.has(p));
-		}
 		return new Target(anchorFor(level, pos, bh, eye), card, true);
 	}
 
@@ -449,7 +458,7 @@ final class Look {
 		return beside(eye, e.position(), e.getBoundingBox(), y);
 	}
 
-	/** The same for something standing at {@code at} that fills box {@code b} (an entity, or a pedestal and what's on it). */
+	/** The same for something standing at {@code at} that fills box {@code b} (an entity, or a story wall). */
 	static Vec3 beside(Vec3 eye, Vec3 at, AABB b, double y) {
 		double dx = at.x - eye.x, dz = at.z - eye.z;
 		double len = Math.max(1.0e-4, Math.sqrt(dx * dx + dz * dz));
@@ -630,8 +639,6 @@ final class Look {
 	// ---------------------------------------------------------------- blocks
 
 	static @Nullable Card describeBlock(ServerPlayer p, ServerLevel level, BlockPos pos, boolean all) {
-		Card pedestal = Showcase.pedestalCard(level, pos);
-		if (pedestal != null) return pedestal;
 		BlockState st = level.getBlockState(pos);
 		if (st.isAir()) return null;
 		Block block = st.getBlock();

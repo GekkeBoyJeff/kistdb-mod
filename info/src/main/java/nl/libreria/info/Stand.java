@@ -56,7 +56,7 @@ final class Stand {
 	}
 
 	/**
-	 * The card of whatever shows things off (an armour stand, a mannequin, a pedestal): with one story on it, its title,
+	 * The card of whatever shows things off (an armour stand, a mannequin, a story wall): with one story on it, its title,
 	 * how many of its parts are there, what the story is about and the names of its parts ("???" for the missing ones);
 	 * with more, a line per story. Never the words of each thing: those are for its book. Null when nothing on it has
 	 * words of its own.
@@ -179,7 +179,7 @@ final class Stand {
 		return target(eye, dir, e.position(), e.getBoundingBox(), reach, card, pack);
 	}
 
-	/** The same for anything standing at {@code at} and filling {@code box} (a pedestal with its things). */
+	/** The same for anything standing at {@code at} and filling {@code box} (a story wall). */
 	static Look.Target target(Vec3 eye, Vec3 dir, Vec3 at, net.minecraft.world.phys.AABB box, double reach, Look.Card card, boolean pack) {
 		float[] d = Look.dims(card, pack);
 		double mid = box.minY + box.getYsize() * 0.55;

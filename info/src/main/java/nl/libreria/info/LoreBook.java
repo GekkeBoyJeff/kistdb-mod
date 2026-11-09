@@ -188,7 +188,7 @@ final class LoreBook {
 	}
 
 	/**
-	 * One story, with these parts readable too ({@code shown}: what a mannequin or pedestal holds, whether or not you
+	 * One story, with these parts readable too ({@code shown}: what a mannequin or story wall holds, whether or not you
 	 * found them yourself).
 	 */
 	static void story(ServerPlayer p, String story, Set<Integer> shown) {
@@ -325,7 +325,7 @@ final class LoreBook {
 	}
 
 	/**
-	 * The stories of what a mannequin or pedestal holds: one story, its book (the parts it holds readable); several, a
+	 * The stories of what a mannequin or story wall holds: one story, its book (the parts it holds readable); several, a
 	 * short book with a link to each.
 	 */
 	static void showcase(ServerPlayer p, String what, Map<String, Set<Integer>> stories) {

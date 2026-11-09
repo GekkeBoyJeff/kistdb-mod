@@ -42,7 +42,7 @@ problems = []
 for item in sorted(FINDABLE - found): problems.append(f'{item} is listed as findable but nothing gives it')
 stories = 0; parts = 0; per_item = collections.Counter()
 # Must match Showcase: a mannequin wears one of each armour piece and holds six things (hands, back, hips); two more lie at
-# its feet. A story that doesn't fit goes on a pedestal, which holds eight.
+# its feet. A story that doesn't fit goes on a story wall, which holds eight.
 def fits(items):
     c = collections.Counter(next((a for a in ('helmet', 'chestplate', 'leggings', 'boots') if i.endswith('_' + a)), 'hand') for i in items)
     dup = sum(max(0, c[a] - 1) for a in ('helmet', 'chestplate', 'leggings', 'boots'))
@@ -52,7 +52,7 @@ def done(f, story, intro, items, ids):
     if story in ids: problems.append(f'{f}: {story} is there twice')
     ids.add(story)
     if not intro: problems.append(f'{f}: {story} has no introduction (a "> " line)')
-    if not fits(items): problems.append(f'{f}: {story} fits neither a mannequin nor a pedestal: {items}')
+    if not fits(items): problems.append(f'{f}: {story} fits neither a mannequin nor a story wall: {items}')
 ids = set()
 for f in sorted(os.listdir(D)):
     if not f.startswith('arcs'): continue

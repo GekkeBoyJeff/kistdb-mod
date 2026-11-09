@@ -683,7 +683,7 @@ public final class Screens implements FabricClientGameTest {
 			});
 
 			// A mannequin wearing all of a story (a hood and six things to hold: hands, back, hips), from the front with its
-			// card, from behind and from the side; then a pedestal with the six swords of an oath; then the book they open
+			// card, from behind and from the side; then a story wall with the swords of an oath; then the book they open
 			safe("showcase", () -> {
 				run(server, "kill @e[type=minecraft:mannequin]", "kill @e[type=minecraft:armor_stand]");
 				server.runOnServer(sv -> nl.libreria.info.InfoMod.debugMannequin((ServerLevel) player.level(), new BlockPos(x, y, z + 3), 180f, "lantern"));
@@ -702,21 +702,29 @@ public final class Screens implements FabricClientGameTest {
 				ctx.getInput().lookAt(new BlockPos(x, y + 1, z + 3));
 				ctx.waitTicks(12);
 				ctx.takeScreenshot("mannequin_side");
-				run(server, "kill @e[type=minecraft:mannequin]", f("tp @a %d %d %d", x, y, z));
-				server.runOnServer(sv -> nl.libreria.info.InfoMod.debugPedestal((ServerLevel) player.level(), new BlockPos(x, y, z + 3), 180f, "charred"));
+				// A story wall on a wall of stone bricks four blocks ahead (what earlier scenes left in between cleared): the
+				// six swords of an oath but the third, which shows as a dark shape in its spot
+				run(server, "kill @e[type=minecraft:mannequin]", f("fill %d %d %d %d %d %d minecraft:air", x - 3, y, z + 1, x + 3, y + 3, z + 3),
+						f("kill @e[type=!minecraft:player,x=%d,y=%d,z=%d,dx=6,dy=4,dz=3]", x - 3, y, z + 1),
+						f("fill %d %d %d %d %d %d minecraft:stone_bricks", x - 3, y, z + 4, x + 2, y + 2, z + 4), f("tp @a %d %d %d 0 10", x, y, z + 1));
+				server.runOnServer(sv -> nl.libreria.info.InfoMod.debugStoryWall((ServerLevel) player.level(), new BlockPos(x + 1, y, z + 3),
+						net.minecraft.core.Direction.NORTH, "charred", 3));
 				ctx.waitTicks(10);
-				ctx.getInput().lookAt(new BlockPos(x, y, z + 3));
+				ctx.getInput().lookAt(new BlockPos(x, y + 1, z + 3));
 				ctx.waitTicks(16);
 				noToasts(ctx);
-				ctx.takeScreenshot("pedestal_front");
-				// (from the side: clear what earlier scenes left between you and it)
-				run(server, f("fill %d %d %d %d %d %d minecraft:air", x + 1, y, z + 1, x + 3, y + 3, z + 3), f("tp @a %d %d %d 135 25", x + 2, y, z + 1));
-				ctx.waitTicks(5);
-				ctx.getInput().lookAt(new BlockPos(x, y + 1, z + 3));
+				ctx.takeScreenshot("storywall_front");
+				ctx.getInput().lookAt(new BlockPos(x - 1, y + 1, z + 3));
 				ctx.waitTicks(12);
-				ctx.takeScreenshot("pedestal_angle");
-				run(server, f("setblock %d %d %d minecraft:air", x, y, z + 3), f("tp @a %d %d %d", x, y, z));
+				ctx.takeScreenshot("storywall_missing");
+				run(server, f("tp @a %d %d %d 0 10", x + 3, y, z + 1));
+				ctx.waitTicks(5);
+				ctx.getInput().lookAt(new BlockPos(x - 1, y, z + 3));
+				ctx.waitTicks(12);
+				ctx.takeScreenshot("storywall_angle");
+				run(server, f("fill %d %d %d %d %d %d minecraft:air", x - 3, y, z + 4, x + 2, y + 2, z + 4));
 				ctx.waitTicks(50);
+				run(server, f("tp @a %d %d %d", x, y, z));
 				run(server, "kill @e[type=minecraft:item]");
 				server.runOnServer(sv -> nl.libreria.info.InfoMod.debugShowcaseBook(player, "lantern"));
 				ctx.waitTicks(10);
