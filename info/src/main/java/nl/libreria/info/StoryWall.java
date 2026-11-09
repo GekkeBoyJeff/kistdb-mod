@@ -540,6 +540,8 @@ final class StoryWall {
 	}
 
 	private static final Map<UUID, Frame> FRAMES = new HashMap<>();
+	private static final BlockState WHITE = BuiltInRegistries.BLOCK.getOptional(Identifier.withDefaultNamespace("white_concrete"))
+			.map(net.minecraft.world.level.block.Block::defaultBlockState).orElse(Blocks.SNOW_BLOCK.defaultBlockState());
 
 	/** Shows this player a white frame round the spot they look at (only them), or hides it. */
 	static void frame(ServerPlayer p, @Nullable Hit hit) {
@@ -575,7 +577,7 @@ final class StoryWall {
 		float[][] bars = {{-half, half - t, 2 * half, t}, {-half, -half, 2 * half, t}, {-half, -half, t, 2 * half}, {half - t, -half, t, 2 * half}};
 		for (int i = 0; i < 4; i++) {
 			BlockDisplayElement bar = (BlockDisplayElement) fr.holder.getElements().get(i);
-			bar.setBlockState(Blocks.WHITE_CONCRETE.defaultBlockState());
+			bar.setBlockState(WHITE);
 			bar.setYaw(yaw);
 			bar.setTranslation(new Vector3f(bars[i][0], bars[i][1], z));
 			bar.setScale(new Vector3f(bars[i][2], bars[i][3], 0.015f));
