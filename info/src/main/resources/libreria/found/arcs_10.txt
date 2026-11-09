@@ -10,7 +10,7 @@ leather_chestplate | His Coat | This is his coat. The girl from the village put 
 shield | The Shield on the Wall | The girl hung his shield over the door so he would see it from far away and know where home is. Today she sat with me longer than usual. She said I could go and find him now if I wanted. I think I will. I think he's been waiting too.
 
 @ elowen | Dame Elowen's Last Tournament
-> Dame Elowen of the Golden Lists rode in fifty tournaments and was never once unhorsed. At seventy-three, with bad knees and armour that didn't close at the side any more, she entered one last time. Her opponent was nineteen. He'd wanted to be her since he was six.
+> Dame Elowen of the Golden Lists rode in fifty tournaments and was never once unhorsed. At seventy-three, with bad knees and armour that didn't close at the side any more, she entered one last time. The whole realm came to watch, and most of them came to watch her lose.
 golden_helmet | The Helm of Fifty Tourneys | Dame Elowen of the Golden Lists rode in fifty tournaments and was unhorsed in none. At the fifty-first she was seventy-three years old and every knight in the realm came to watch.
 golden_chestplate | The Breastplate of the Lists | It no longer closed at the side. Her squire laced it shut with a ribbon. "Gold," she said, "is a vain metal. So am I. Pull tighter, boy."
 golden_leggings | The Riding Greaves | Her knees hurt in the cold and she said so, loudly, to anyone. Then she mounted without help and rode the length of the lists at a gallop, to be sure they heard her knees too.
@@ -19,7 +19,7 @@ golden_sword | The Victor's Blade | She won, of course. Then she gave him this s
 shield | The Retired Shield | It hangs in the boy's hall now, above the fire, dented in fifty-one places. Under it, in his handwriting: "Pull tighter, boy." He is not a boy any more. He still reads it every morning.
 
 @ firsttools | Pip Grows Up
-> Pip made her first pickaxe at seven, with only a little help, which was mostly her dad. Then she grew up, the way children do when you aren't looking: a tool at a time, a year at a time, until one day she was cutting the wood for the whole village and the old woodcutter sat down on a stump and watched.
+> Pip was going to be a miner, a woodcutter and a farmer, all at once, and nobody could talk her out of it. Then she grew up, the way children do when you aren't looking: a tool at a time, a year at a time, until one day the village needed her more than she needed it.
 wooden_pickaxe@village | Pip's First Pick | Pip was seven and made this pickaxe all by herself, with only a little bit of help, which was mostly her dad doing it. She mined one block of stone and was a miner from that day on.
 wooden_axe@village | Pip's First Axe | She chopped her first tree with this. It took all afternoon. She came home covered in sawdust and said trees were "very rude" for being so hard. Then she went back for another.
 stone_pickaxe@village | Pip's Real Pick | At ten she made a stone pickaxe with no help at all and wouldn't let anyone else touch it. She dug a cellar under the shed. Nobody knew until the shed sank a little.
@@ -59,19 +59,19 @@ iron_helmet@trial | Toy Number Six | It wore this. It has no head, so it wore it
 fishing_rod@fishing | Grandad's Rod | "Patience," said Grandad, and cast, and waited, and fell asleep, and woke up with a fish, and said "see? patience". He had never caught a fish awake in his life.
 fishing_rod@fishing | Mum's Rod | Mum cast like an arrow and reeled like a winch and caught three fish while Grandad caught a nap. She never told him. She put her fish in his bucket so he'd wake up proud.
 fishing_rod@fishing | My Rod | I'm the third one at the pier now. I cast badly and wait badly and catch nothing, and on quiet evenings I put a fish in an empty bucket beside me, for whoever's watching.
-leather_boots@fishing | Mum's Boots | She stood in the shallows in these and cast like an arrow, and caught three fish while Grandad caught a nap. She never told him. She put her fish in his bucket so he'd wake up proud. I didn't understand that until I was grown.
+leather_boots@fishing | Mum's Boots | She stood in the shallows in these on the morning of my first cast, with her hands over mine on the rod until I stopped shaking. She said everyone's first cast is terrible. Mine was. She cheered anyway.
 leather_helmet | Grandad's Fishing Hat | Covered in hooks and flies and one badge from a fishing contest he won by sleeping through the whole thing and waking up with the biggest fish. He wore it every day of his life. It hangs on the pier now, on a nail, where we can see it.
 
 @ ravagerrider | Grimtusk the Ravager Rider
-> Grimtusk rode a ravager into forty raids. The ravager was called Petal, and Petal was the gentlest creature alive. She only knocked down walls because she wanted to say hello to whatever was behind them. This is the story of a raider, his enormous dog, and the farm at the end.
-iron_axe@mob | Grimtusk's Chopper | Grimtusk rode a ravager named Petal into forty raids. Petal was the gentlest ravager alive. It only knocked down walls because it wanted to say hello to what was behind them.
+> Grimtusk rode a ravager into forty raids. The ravager was called Petal, and none of the villages that ran from her ever stopped to wonder why she looked so pleased to see them. This is the story of a raider, his enormous dog, and the farm at the end.
+iron_axe@mob | Grimtusk's Chopper | Grimtusk rode a ravager named Petal into forty raids. Petal was the gentlest ravager alive. She only knocked down walls because she wanted to say hello to what was behind them.
 crossbow@mob | The Rider's Bow | Grimtusk could not aim while riding Petal, because Petal stopped to sniff every flower. The raids took a very long time. The villages had plenty of warning. Petal had a lovely life.
 leather_chestplate | The Riding Coat | Covered in ravager hair. Grimtusk claimed it was a fur collar on purpose. It was not. Petal shed. Petal shed all the time. Petal was a big, soft, enormous dog.
 iron_axe@mob | Grimtusk's Retirement | When the raids stopped, Grimtusk and Petal moved to a farm by a village they'd once raided. The villagers were terrified for a year. Then Petal pulled their ploughs. Now they bring her apples.
-leather_boots | Grimtusk's Farm Boots | When the raids stopped he bought boots for farming, the first thing he ever paid for in his life. He was so proud of them that he showed the receipt to everyone. The villagers were terrified for a year. Then Petal pulled their ploughs.
+leather_boots | Grimtusk's Farm Boots | When the raids stopped he bought boots for farming, the first thing he ever paid for in his life. He was so proud of them that he showed the receipt to everyone. The villagers had never seen a receipt before. They all agreed it was very impressive.
 
 @ ferryman | The Ferryman of Still Water
-> There is a lake where the fog never lifts, and on it a ferry, and on the ferry a quiet man who takes you across for one copper coin. Nobody remembers asking to go. Everybody remembers arriving. He keeps everything his passengers leave behind, in case anyone ever comes back for it.
+> Everyone crosses the still water once. The fare is one copper coin, and the ferryman has never once had to ask for it. He keeps everything his passengers leave behind, in case anyone ever comes back for it.
 copper_spear | The Ferryman's Pole | There is a lake where the fog never lifts, and on it a ferry, and on the ferry a man who poles you across for a copper coin. Nobody remembers asking to go across. Everybody remembers arriving.
 stone_spear | The First Passenger's Spear | The first passenger left this in the boat, a stone spear, very old. He said he wouldn't need it on the other side. The ferryman kept it. He keeps everything they leave.
 iron_spear | The Soldier's Spear | A soldier left this with a note: "for my son, if he ever comes this way, which I hope he won't for a long time". The ferryman has it ready. He hopes so too.

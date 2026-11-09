@@ -8,29 +8,29 @@ golden_hoe@ruined_portal | The Hoe That Fed No One | Ferro's apprentice asked hi
 golden_axe@ruined_portal | The Last Commission | His last piece: a golden axe for his own coffin, "so I can chop my way out if I change my mind". They buried it with him. Then a portal opened under the graveyard, and here it is.
 golden_helmet@ruined_portal | The Apprentice's First Crown | His apprentice's first piece: a little crown, lopsided and far too heavy. Ferro wore it to dinner every night for the rest of his life. When people asked why, he said it was the most valuable thing he owned, and it was.
 
-@ deepspear | The Spear of the Drowned Princess
+@ deepspear | The Spears of the Sea Princess
 > There was once a princess of the sea who threw a diamond spear so high it never came down. Sailors say it reached the islands in the sky. Sailors say a lot of things. But her spears turn up all over the world, in the right order, as if she left them there for somebody.
 diamond_spear@end_city | The Spear That Went Up | A princess of the sea once threw a diamond spear so high it never came down. Sailors say it reached the islands in the sky. Sailors say a lot. This time, apparently, sailors were right.
 iron_spear@buried | Her Old Spear | Before the diamond one, she had this. She buried it on an island with a map, so that one day a child would find it and want to be a princess of the sea too.
 stone_spear@shipwreck | Her First Spear | Before the iron one, she had this: a stone point bound to a stick with seaweed, made when she was six. She speared her first fish with it. The fish, to be fair, had been dead a while.
-leather_chestplate@buried | Her Swimming Coat | She buried her old coat on an island with a map, so that one day a child would find it and want to be a princess of the sea too. Several children have. One of them is very good at throwing spears.
+leather_chestplate@buried | Her Swimming Coat | She buried her old coat beside the spear, folded small, with a note: "for the next one". Several children have found it. One of them is very good at throwing spears.
 trident | Her Grown-Up Spear | The trident she carried as a woman, when she ruled the bay and taught every child on the coast to swim. On the shaft, little notches: one for every child. There are hundreds. The last one is very small and very proud.
 
 @ chaindad | My Father's Chainmail
-> My father wore chainmail because he couldn't afford iron, and he told everyone he preferred it for the breeze. He mended it ring by ring at the kitchen table every night. I'd fall asleep to the clinks. This is his armour, and I'm the one telling you about it.
+> My father never had much, and he never once let me notice. This is his armour, and I'm the one telling you about it.
 chainmail_helmet | His Helmet | My father wore chainmail because he couldn't afford iron, and told everyone he preferred it "for the breeze". He said it so often that by the end he believed it. So did I.
 chainmail_chestplate | His Coat of Rings | He mended it himself, ring by ring, at the kitchen table at night. I'd fall asleep to the little clinks. I still can't sleep in a quiet house.
 chainmail_leggings | His Leggings | He took me fishing in these, which is a terrible thing to wear fishing. He fell in. He sank like an anchor. He came up laughing, with a fish in his hands and weed on his head.
 chainmail_boots | His Boots, My Boots | They fit me now. I wear them on the anniversary and walk his old route along the wall. They clink at every step. People in the village say "morning" without looking up, like they used to.
 iron_sword | His Sword | He was a guard on the wall for thirty years and drew this exactly twice. Once for a zombie. Once to cut the cake at my wedding, because the knife was lost. He cried at the wedding and said it was the onions. There were no onions.
 
-@ woodcarver | The Old Woodcarver of Hollin
-> Old Hollin carved a toy for every child in the village, for fifty years: wooden knights, wooden dragons, wooden cows with too many legs. When he got too old to carve, the village did something about it. This is a story about a little bench in the square.
+@ woodcarver | Old Hollin the Woodcarver
+> Old Hollin carved a toy for every child in the village, for fifty years: wooden knights, wooden dragons, wooden cows with too many legs. When he got too old to carve, he made one last thing. This is a story about a little bench in the square.
 wooden_axe@village | The Carving Axe | Old Hollin carved every toy for every child in the village, for fifty years, with this tiny axe. Wooden knights, wooden dragons, wooden cows with too many legs because he was tired.
 copper_axe | The Axe She Gave Him | His wife gave him a proper copper axe on their thirtieth anniversary. He never used it. He said it was too nice. It hung over the fireplace, green, next to her picture.
 stone_axe | The Spare He Lent Out | Any child who wanted to learn carving could borrow this. Most of them cut their thumb on the first day. All of them came back on the second. That's how you know who'll be a carver.
 iron_axe | The Axe of the Last Toy | His last carving: a little wooden figure of a man with a pipe, sitting on a bench, watching children play. Everyone knew who it was. It sits on the bench in the square now, in the rain.
-leather_chestplate | The Coat She Made Him | His wife made him a proper coat for their thirtieth anniversary. He never wore it; he said it was too nice. It hung by the fireplace next to her picture, and he carved beside it every evening, so she'd have the company.
+leather_chestplate | The Coat She Made Him | His wife patched this coat for him every winter for forty years, and after she was gone nobody else was allowed to touch it. He wore it by the fire, next to her picture, and carved beside it every evening, so she'd have the company.
 
 @ spearfisher | The Spear-Fishers of Kelp Point
 > At Kelp Point they still fish the old way: standing very still in the shallows at dawn, with a spear and a great deal of patience. Old Brin has been doing it for seventy years. Young Tam has been doing it for two weeks. Neither of them has caught much lately. Neither of them minds.
@@ -46,12 +46,12 @@ diamond_pickaxe | Mira's Pick | Mira Stoneheart was the best miner in the mounta
 diamond_shovel | Mira's Spade | She dug a tunnel through the mountain with this so the children of the far valley could get to school in winter. It took her nine years. The tunnel is still called Mira's Shortcut.
 diamond_axe | Mira's Axe | She cut the beams for the tunnel with this, one by one, and carved a child's name into each beam, every child who'd walk through. There are two hundred and twelve names.
 diamond_hoe | Mira's Garden Hoe | When she was old she stopped digging and grew strawberries by the tunnel entrance, for the children walking home. She charged one joke per strawberry. The jokes were terrible. The strawberries were excellent.
-diamond_helmet | Mira's Helmet | She carved a child's name into every beam of her tunnel: two hundred and twelve names. The last beam has a little space left at the end. She said it was for whoever came next. Last year, somebody carved their name into it.
+diamond_helmet | Mira's Helmet | She wore it for nine years in the dark of the tunnel and took it off once, the day the far valley's children first walked through. On the last beam she left a little space. She said it was for whoever came next. Last year, somebody carved their name into it.
 
 @ courtfool | The King's Fool
 > Every king needs someone who's allowed to laugh at him. King Aldous had a fool with a golden cap, a painted sword and the best timing in the kingdom. For forty years the fool made the court laugh. On one night, he did something else.
 golden_helmet | The Fool's Crown | A jester's cap made of gold, because the king said only the fool was allowed to make fun of the crown, so the fool should have one too. The fool wore it backwards. The king laughed. Nobody else dared.
-leather_boots | The Fool's Dancing Shoes | He danced on the banquet table for forty years and never once spilled the soup. The king's guards once tried to dance with him. Three of them are still in the infirmary.
+golden_boots | The Fool's Dancing Shoes | He danced on the banquet table for forty years and never once spilled the soup. The king's guards once tried to dance with him. Three of them are still in the infirmary.
 iron_sword | The Fool's Wooden Sword (Iron) | His prop sword, painted to look like wood. Only the fool knew it was real iron. On the night of the assassins he was the only one in the hall who was armed. He didn't tell a single joke that night.
 shield | The Fool's Last Joke | When the king died, the fool was the only one who didn't cry at the funeral. He told the king's favourite joke, over the grave, very badly, on purpose. The whole hall laughed until it cried.
 leather_chestplate | The Fool's Motley | Every patch on it is from a different joke. Red for the one about the bishop. Blue for the one about the duke's horse. One small black patch, over the heart, from the night of the assassins. He never told that one as a joke.

@@ -1,11 +1,11 @@
 # Stories, sixth book: kits that belonged to one person (each part always the same item). Format as in arcs_1.txt.
 
 @ aldo | Big Aldo's Last Winter
-> Big Aldo felled trees on the ridge for forty winters. He was the strongest man in the valley and the gentlest, and the only person he ever made an exception to his rule of saying very little for was his granddaughter. This is his last winter. It's a warm story, mostly. Bring a hanky.
+> Big Aldo felled trees on the ridge for forty winters. He was the strongest man in the valley and the gentlest, and he said very little to anyone except his granddaughter. This is his last winter. It's a warm story, mostly. Bring a hanky.
 iron_axe | The Last Swing | Big Aldo felled trees for forty winters. On his last one, the axe bit wrong and his finger cracked like a twig. He wrapped it in a rag, said "one more", and finished the tree anyway. It was the tallest pine on the ridge.
 stone_axe | The Spare Axe | Aldo kept a stone axe by the door "for when the good one breaks". It never did. His granddaughter learned to chop with this one, standing on a stump so she could reach.
 leather_helmet | Aldo's Wool-Lined Cap | Lined with wool from the sheep he kept for her. He wore it pulled down to his eyebrows, so nobody could see when the cold made his eyes water. It wasn't always the cold.
-leather_chestplate | The Sap-Stained Jerkin | Stiff with forty years of sap. In the pocket: a carved wooden bird, half finished. He was making one for every winter she'd been alive. This was the eleventh.
+leather_chestplate | The Sap-Stained Jerkin | Stiff with forty years of sap. In the pocket: a carved wooden bird, half finished. He was making one for every winter she'd been alive. This was the ninth.
 leather_boots | Aldo's Snow Boots | He walked the long way home through the snow, every evening, so the path would be packed flat for her in the morning. The path is still there. Someone keeps walking it.
 flint_and_steel | The Fire He Kept | Aldo lit the stove with this every morning at five, so the house was warm when she woke. The winter after, she lit it herself. She was nine. She did it at five.
 
@@ -20,7 +20,7 @@ golden_pickaxe@ruined_portal | The Pick That Cleared the Way | Found at the fift
 golden_shovel@ruined_portal | Mira's Shovel | Years later, a young woman dug a small garden at the foot of the fifth portal and planted the seeds from a pressed blue flower. The flowers hum. She sits with them on her father's birthday.
 
 @ grashk2 | The Court of Queen Gruntilda
-> Queen Gruntilda rules the greatest bastion in the Nether from a throne made of other people's gold. Her court has a chancellor who taxes in pork, a jester who must never be eaten, and guards who shoot anyone not wearing enough gold. It's a lovely place to visit, briefly, in your best jewellery.
+> Queen Gruntilda rules the greatest bastion in the Nether from a throne made of other people's gold. Her court is loud, greedy, sticky with pork fat and, in its own way, very well run. It's a lovely place to visit, briefly, in your best jewellery.
 golden_sword@bastion | The Royal Snout-Sword | "QUEEN GRUNTILDA SAYS: THIS SWORD IS SHINY. SHINY IS GOOD. HUMAN WHO TOUCHES SWORD GETS BONKED." The bonking was enforced very fairly, which is to say, constantly.
 golden_axe@bastion | The Chancellor's Axe | The Chancellor of the Court collected taxes in gold, in pork and in fear. Mostly in pork. He said the gold made his axe heavy and the pork made him happy.
 golden_helmet@bastion | The Crown of Gruntilda | Too small for her head. She wore it anyway, balanced on one ear, and dared anyone to say something. One brute said something. He was promoted to "door".
@@ -29,16 +29,16 @@ crossbow@bastion | The Royal Guard's Bow | Fired only at people who forgot to we
 golden_boots@bastion | The Dancing Boots | Gruntilda danced every night after the feast, alone, in the treasure room. Nobody watched. Everybody knew. She danced for the king, who went to the overworld one day and shook and was gone.
 
 @ charred | The Charred Oath
-> Seven warriors swore an oath at a gate in the Nether: none would pass while one of them still stood. The fire took their skin, the years took their names, and the gate fell long ago, but nobody ever came to tell them. Their blades still turn up in the ash. Each one remembers one of the seven.
+> Seven warriors swore an oath at a gate in the Nether: none would pass while one of them still stood. The fire took their skin and the years took their names, and still they kept it. Their blades still turn up in the ash. Six have been found. Each one remembers one of the seven.
 stone_sword@nether | The First Blade of the Oath | Thou who findest this: it was carried by the first of seven who swore at the gate. Fire took their skin and the years took their names. The oath they kept. They keep it still.
 stone_sword@nether | The Second Blade | Here lieth the blade of Varn, who laughed the loudest, and was the first to go silent. The smoke hath not dimmed the edge. It remembereth his laugh, though he doth not.
 stone_sword@nether | The Third Blade | Edda carried this, who had a daughter in the green lands above. She asked of each traveller whether the grass was still soft. None who came would answer. She asketh still, without a voice.
 stone_sword@nether | The Fourth Blade | The fourth never wanted to come. He swore because his brother swore. His brother fell on the first night. He hath stood at the gate ever since, guarding a promise that was never his.
-stone_sword@nether | The Fifth Blade | Blackened, nicked, and wrapped at the grip with a scrap of blue cloth. Blue was not a colour of the Nether. Someone brought it from home, and kept it, all this while.
+stone_sword@nether | The Fifth Blade | Blackened, nicked, and wrapped at the grip with a scrap of blue cloth. Nothing in the Nether is the blue of a summer sky. Someone brought it from home, and kept it, all this while.
 stone_sword@nether | The Last Blade | The seventh stood alone when the others were bones. Lay it down gently, traveller. The gate they guarded fell long ago. Nobody told them. Thou art the first to tell them now.
 
 @ saltreach | The Drowned of Saltreach
-> The Saltreach went down in the great storm with all hands: a skipper, a cook, a bosun, a lookout, and the youngest deckhand anyone ever signed on. They're still down there, still at their posts, still doing their jobs, as drowned sailors do. Fishermen in the bay say if you listen, you can hear the skipper shouting.
+> The Saltreach went down in the great storm with all hands, the youngest of them barely old enough to sign on. They're still down there, still at their posts, still doing their jobs, as drowned sailors do. Fishermen in the bay say if you listen, you can hear the skipper shouting.
 trident | The Skipper's Fork | The skipper of the Saltreach went down holding this, still shouting orders at the storm. Down there he is shouting them still. The drowned around him are, technically, still his crew.
 trident | Little Pell's Spear | The youngest deckhand had never held a weapon. He took this from the hold when the ship began to tip, because he thought it would make him brave. It did. It didn't help.
 fishing_rod | The Cook's Line | The cook kept a line over the side every evening "for the soup". The soup was famous. He fishes on, below, out of habit, catching nothing, cooking nothing, for nobody.
@@ -47,7 +47,7 @@ trident | The Lookout's Trident | The lookout saw the reef too late. She has loo
 leather_chestplate@shipwreck | The Mate's Logbook Coat | The mate kept the ship's log in his coat pocket and wrote the last entry as the water came in: "All hands. All hands. All hands." The ink has never run. Not in fifty years under the sea.
 
 @ coppercamp | The Copperkettle Camp
-> One summer a family went camping by the river: a dad who thought copper was honest, a mum who could spear a fish like a heron, and an eleven-year-old who kept a diary of every day of it. Every word is true. It was the best summer of their lives. Read it slowly.
+> One summer a family went camping by the river: a dad who thought copper was honest, a mum who laughed at everything he did, and an eleven-year-old who kept a diary of every day of it. Every word is true. It was the best summer of their lives. Read it slowly.
 copper_axe | Dad's Copper Axe | Day one! Dad says copper is cheap but honest, like him. He chopped the logs for our camp with this. He missed the log twice and Mum laughed so hard she sat in the stream.
 copper_sword | My Sword (Mine) | Day three. I got my own sword because I'm eleven now. It's copper so it turns green, which Dad says means it's "doing its best". I fought a bush. I won.
 copper_spear | The Fishing Spear | Day five. Mum spears fish with this standing in the river like a heron. She caught seven. I caught a boot. Dad says the boot was "a strong start".
@@ -66,7 +66,7 @@ iron_shovel | Memo No. 9 (Final) | To whoever finds this: the company is closed.
 leather_chestplate | Memo No. 8 | Pinned inside a jacket: To all crews: we are aware the bricked-up wall is warm. Please stop putting your hands on it. Please stop putting your ear to it. Please stop answering it. Management.
 
 @ yrsa | The Pillager's Daughter
-> Yrsa was born in a pillager outpost, raised among raiders and given her first axe on her tenth birthday. On her first raid she raised her crossbow at a farmer's boy her own age, and then she did something no one in the outpost had ever done before. She lowered it.
+> Yrsa was born in a pillager outpost, raised among raiders and given her first axe on her tenth birthday. On her first raid she did something no one in the outpost had ever done before, and it changed two villages for good.
 iron_axe | Her Father's Axe | Yrsa grew up in the outpost, among people who took things from villages. Her father gave her this axe on her tenth birthday and said "now you are one of us". She hid it under her bed.
 crossbow | The Crossbow She Didn't Fire | On her first raid she raised this at a farmer's boy her own age. He looked at her. She looked at him. She lowered it and ran into the forest, and she did not stop.
 leather_boots | The Running Boots | She ran for three days. Her boots wore through. A village found her asleep in their haystack and, instead of chasing her off, left a bowl of soup beside her. She cried into the soup.

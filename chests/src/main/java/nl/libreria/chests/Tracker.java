@@ -123,7 +123,7 @@ public final class Tracker {
 
 	static final nl.libreria.core.Tips.Tip TIP_CHEST = nl.libreria.core.Tips.register("chest", nl.libreria.core.Domain.YOU,
 			net.minecraft.world.item.Items.CHEST, "Sorting a chest", "Double-click an empty slot to sort it.",
-			"The ⇅ button: right-click puts your matching items in.");
+			"The Sort button: right-click puts your matching items in.");
 
 	static void forget(ServerPlayer player) {
 		OPEN.remove(player.getUUID());

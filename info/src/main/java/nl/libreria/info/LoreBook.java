@@ -253,9 +253,19 @@ final class LoreBook {
 	static Book storyBook(Found.Seen seen, String story, List<Found.Text> parts, Set<Integer> got, int[] at, boolean showcase) {
 		Found.Text first = parts.get(0);
 		Book b = Book.create();
+		String intro = Found.INTROS.get(story);
+		int titleLines = Book.wrap(first.title(), st(Book.TITLE).withBold(true)).size() + 1;
+		boolean titlePage = intro != null && Book.wrap(intro, st(Book.INK).withItalic(true)).size() + 1 > Book.LINES - titleLines;
+		if (titlePage) {
+			// A page of its own for the title (the introduction doesn't fit under it): the title a third of the way down
+			for (int i = 0; i < 4; i++) b.line(Component.empty());
+		}
 		b.centred(first.title(), st(Book.TITLE).withBold(true));
 		b.centred("a story in " + first.parts() + " parts", st(Book.MUTED));
-		String intro = Found.INTROS.get(story);
+		if (titlePage) {
+			b.gap();
+			b.centred("✦", st(Book.ACCENT));
+		}
 		if (intro != null) {
 			// What it's about first, under the title when it fits there, else on a page of its own; never a sentence
 			// broken over two pages. Then the parts.
@@ -272,6 +282,29 @@ final class LoreBook {
 			Style link = Book.toPage(st(have ? Book.LINK : Book.MUTED), Math.max(1, at[i]));
 			List<String> name = Book.wrap(t.part() + "  " + (have ? t.name() : "???"), link);
 			for (int k = 0; k < name.size(); k++) b.line(Component.literal((k > 0 ? "    " : "") + name.get(k)).withStyle(link));
+		}
+		// Stories that belong with this one: the ones you know a part of, a link; the others, that there's more to find
+		List<String> related = Found.RELATED.getOrDefault(story, List.of());
+		if (!related.isEmpty()) {
+			b.gap();
+			b.keep(2);
+			b.line(Component.literal("See also").withStyle(st(Book.MUTED)));
+			int unknown = 0;
+			for (String other : related) {
+				Found.Text info = Found.STORIES.get(other);
+				if (info == null) continue;
+				Set<Integer> known = seen.parts.get(other);
+				if (known != null && !known.isEmpty()) {
+					CompoundTag which = new CompoundTag();
+					which.putString("story", other);
+					Style link = Book.action(st(Book.LINK), "lore_story", which);
+					List<String> title = Book.wrap("✦ " + info.title(), link);
+					for (int k = 0; k < title.size(); k++) b.line(Component.literal((k > 0 ? "   " : "") + title.get(k)).withStyle(link));
+				} else {
+					unknown++;
+				}
+			}
+			if (unknown > 0) b.text("✦ " + (unknown == 1 ? "one more you haven't found yet" : unknown + " more you haven't found yet"), st(Book.MUTED));
 		}
 		b.gap();
 		b.line(Component.literal("« Contents").withStyle(Book.action(st(Book.BUTTON), "lore_open", new CompoundTag())));

@@ -1,5 +1,5 @@
 @ cliffracers | The Man Who Drove Out the Cliff Racers
-> On a volcanic island far to the east there once lived a flying beast so common, so loud and so endlessly annoying that the islanders prayed every night for someone, anyone, to make it go away. One man did. They made him a saint for it. Nobody has thanked him more sincerely since.
+> On a volcanic island far to the east there once lived a flying beast so common, so loud and so endlessly annoying that the islanders prayed every night for someone, anyone, to make it go away. One man did. They made him a saint for it. Nobody has ever been thanked more sincerely.
 iron_sword | The Racer-Cutter | He swung this at the sky for forty years. The beasts came down screeching from every cliff and every cloud, three at a time, while he was trying to read a map or pick a flower or have a nice sit. He killed them all. Every single one. He was very tired.
 leather_helmet | The Dented Cap | Dented on top in a hundred places, from a hundred beasts that dived at his head out of nowhere while he walked between towns. He never once saw one coming. Nobody ever did. That was the whole problem with them.
 leather_boots | The Walking Boots | The island was huge, and you couldn't fast-travel anywhere, and every road had at least three of the things screeching on it. He walked every road. He says if you've never walked that island, you don't know what patience is. He's right.
@@ -26,7 +26,7 @@ iron_shovel | The Spare Golem | When she grew up and became the librarian hersel
 @ palegarden | What Grows in the Pale Garden
 > At the edge of the old kingdom there's a forest where everything is grey: the grass, the moss, the trees, the sky above it. The trees are not all trees. Some of them have eyes, and those eyes close when you look at them, and open when you look away.
 iron_axe | The Woodcutter's Axe | A woodcutter went into the grey forest for timber and cut down a tree that bled orange sap and screamed. He ran home. In the morning there was a tree outside his house, where no tree had been. Its eyes were shut. He moved his family away that day.
-leather_boots | The Boots in the Moss | Found at the edge of the forest, standing upright, side by side, as if their owner had stepped out of them and kept walking. Inside them, the grey moss had already started to grow. Nobody went looking for the owner. Nobody ever does.
+leather_boots | The Boots in the Moss | Found at the edge of the forest, upright in the moss, as if their owner had stepped out of them and kept walking. Inside them, the grey moss had already started to grow. Nobody went looking for the owner. Nobody ever does.
 iron_helmet | The Watchman's Helm | The kingdom sent a watchman to guard the forest's edge at night. He was told: always look at them. Never look away. He did his duty for nineteen years. On the twentieth, he sneezed. They found his helm on a branch, three trees in.
 flint_and_steel | The Only Light | Fire is the only thing the grey trees fear. A girl from the village walked into the forest with this to find her brother, lighting every tree that moved. She found his helmet and his footprints and a tree she didn't remember. She came home with ash on her hands.
 shears | The Gardener's Shears | Somebody, long ago, planted the grey forest on purpose. In the middle of it there's a garden wall, and inside the wall, a stone bench, and on the bench, these shears, open, rusted, as if someone had just put them down to listen to something.
@@ -48,7 +48,7 @@ iron_sword | The Sword He Identified | Every hero brought him their strange find
 bow | The Last Lecture | When the demon took the village in the end, the scholar was the last one left in the square, telling a young archer exactly where to aim. She aimed there. She says he was still talking when she fled, and she could hear him all the way down the hill.
 leather_helmet | The Spectacle Cap | She came back years later, a grown woman, and found his cap in the ruined square. She stands at the gate of the new village now, and when a traveller walks past, she can't help herself. "Stay awhile," she says. "And listen." They always do.
 
-@ anothercastle | The Knight of the Wrong Castle
+@ anothercastle | The Plumber of the Wrong Castle
 > A short, moustachioed plumber from a far country decided, for reasons nobody understood, to rescue a princess. He ran across eight kingdoms, broke a thousand bricks with his head, and at the end of every single one a small mushroom-headed man told him the princess was in another castle.
 leather_helmet | The Red Cap | He wore a red cap at all times, even indoors, even underwater, even in the castle of the turtle king. His brother wore a green one. They never once explained why plumbers would go on a quest. They just said "let's-a go" and went.
 leather_boots | The Jumping Boots | He did not walk. He jumped. Over turtles, over pits, onto flagpoles, onto the heads of his enemies, who he defeated mainly by landing on them. He says it's a plumbing technique. It is not a plumbing technique.
@@ -73,11 +73,11 @@ golden_helmet | The Medal | The village gave him a golden medal for saving them.
 fishing_rod | His New Job | The village finally gave him a job afterwards, as the village hero, which mainly involved walking about looking pleased. He's very good at it. The children love him. When raiders come now, everyone just sends him out first to say hello.
 
 @ piglinthinker | The Piglin Who Asked Why
-> The piglins of the burning world love gold more than anything. They have always loved gold. One young piglin, sitting on a pile of it, once asked why. The others didn't know. Nobody had ever asked. He went looking for the answer, and the whole nether thought he'd gone mad.
+> The piglins of the burning world love gold more than anything. They have always loved gold. One young piglin, sitting on a pile of it, once asked why. The others didn't know. Nobody had ever asked. He went looking for the answer, and the whole Nether thought he'd gone mad.
 golden_sword | The Questioning Blade | He traded his sword for a book with the first human he met, which no piglin had ever done before. He couldn't read it. He carried it about anyway. He said it was the first thing he owned that wasn't gold, and that it felt strange and wonderful.
-golden_helmet | The Gold He Gave Away | He took off his golden helm and gave it to a hoglin, to see what would happen. Nothing happened. The hoglin ate it. He wrote that down. It was the first discovery of the Piglin School of Natural Philosophy, which had one member.
+golden_helmet | The Gold He Gave Away | He took off his golden helm and gave it to a hoglin, to see what would happen. Nothing happened. The hoglin sat on it. He wrote that down. It was the first discovery of the Piglin School of Natural Philosophy, which had one member.
 golden_chestplate@bastion | The Bastion's Gold | He went back to the great bastion and asked the brutes why they guarded the gold. They said: "because it is gold". He asked why that mattered. They threw him out. He sat in the lava-light and thought about it for a long time.
-crossbow | The Hunter's Answer | An old piglin hunter told him at last: long ago, the gold was the only thing in the nether that didn't burn. It was the only thing that lasted. "So we keep it," she said, "because we are afraid of everything that doesn't." He thanked her.
+crossbow | The Hunter's Answer | An old piglin hunter told him at last: long ago, the gold was the only thing in the Nether that didn't burn. It was the only thing that lasted. "So we keep it," she said, "because we are afraid of everything that doesn't." He thanked her.
 golden_boots | The First Lecture | He teaches the young piglins now, sitting on his pile of gold. He tells them it's very nice, gold, and they should keep it, but that it isn't the only thing that lasts. They ask what else does. He says: "asking." Then they go back to the gold.
 
 @ striders | The Great Lava Race
@@ -89,7 +89,7 @@ leather_chestplate | The Bookmaker's Vest | The man who takes the bets has never
 crossbow | The Rule Nobody Wrote Down | There's one rule in the race: you can't shoot anybody else's strider. You can shoot their mushroom. You can shoot them. Not the strider. The striders are sacred. Nobody remembers why. The striders, if they know, aren't saying.
 
 @ pandasneeze | My Panda Sneezed
-> This is a true story. My grandad took me to the bamboo forest and we saw a baby panda, and it sneezed, and the sneeze was so big it scared its own mum, and she fell over, and then there was slime, and then Grandad fell over too, laughing. He says I'm not allowed to tell it at school. I'm telling it here.
+> This is a true story. My grandad took me to the bamboo forest and we saw a baby panda, and then something happened that was so funny Grandad had to lie down in the grass. He says I'm not allowed to tell it at school. I'm telling it here.
 leather_helmet | My Explorer Hat | I wore my explorer hat because we were exploring. Grandad said we might see a panda if we were very quiet. I was very quiet for nearly a whole minute. Then I saw one and said "PANDA" really loud and Grandad laughed so much he got hiccups.
 iron_axe | Grandad's Bamboo Axe | Grandad brought his axe to cut bamboo for the pandas, because they love bamboo more than anything. He gave the baby a piece and it sniffed it, and its whole face scrunched up, and then it did the sneeze. It was SO big. Grandad says it was the size of a cow.
 leather_boots | Slimy Boots | Something came out of the panda's nose when it sneezed and landed on my boots and it was a slimeball. A real green one. Grandad says that means good luck. Mum says it means boots in the wash. I didn't put them in the wash. I still have the slime.

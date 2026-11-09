@@ -28,19 +28,19 @@ shield@trial | The Shield of the Runner-Up | "The runner-up! Held this shield fo
 golden_pickaxe@trial | The Wardens' Trophy | Engraved: "Winner of the Grand Trials". The winner never collected it. The trials went on without anyone watching, year after year. The announcer never stopped announcing.
 
 @ gardener | The Last Gardener of the Deep
-> Nothing grows in the deep dark. Everybody knows that. And yet, in a buried city, behind a wall, somebody kept a garden for years: moss and glow berries in a square of soil, tended in perfect silence, a few steps from the thing that hunts by sound.
+> Nothing grows in the deep dark. Everybody knows that. And yet, in a buried city, behind a wall, somebody kept a garden for years, a few steps from the thing that hunts by sound.
 diamond_hoe@ancient_city | Her Hoe | Down in the city of the deep dark, where nothing grows, someone kept a garden. Moss and glow berries in a square of soil, behind a wall, tended with this. In silence, of course. Always in silence.
-iron_leggings@ancient_city | Kneeling Greaves | Worn through at both knees from kneeling in the soil. She knelt there every day for years, whispering to the berries, which is the only safe way to talk to anything down there.
+iron_leggings@ancient_city | Kneeling Greaves | Scuffed bright at both knees, where the soil has polished the iron. She knelt there every day for years, whispering to the berries, which is the only safe way to talk to anything down there.
 diamond_leggings@ancient_city | The Watcher's Greaves | Someone else's, left beside the garden wall. The Warden walked past this garden for three hundred years and never once stepped on it. Nobody knows if it knew. Everybody hopes it did.
 leather_boots | Her Moss Slippers | She made slippers out of moss so she could walk to the garden without a sound. They still grow a little when it's damp, the way the garden did. Wherever they're kept, after a while, something green comes up beside them.
-shears | The Berry Snips | She clipped the glow berries with these and left one on top of the garden wall every evening. In the morning it was always gone. She never knew who took it. She hoped it was the big one. Everybody hopes it was the big one.
+shears | The Berry Snips | She clipped the glow berries with these and left one on top of the garden wall every evening. In the morning it was always gone. She never knew who took it. She hoped it was the big one. So does everyone who hears the story.
 
 @ brannoc | Brannoc the Smith Makes a Set
 > When his son signed up for the town guard at sixteen, Brannoc the smith didn't say a word. He went to the forge and made the boy a set of armour, piece by piece, and wrote in his workbook as he went. This is that workbook. You don't need to have children to feel it, but it helps.
 iron_helmet@village | The Helmet, First Try | Brannoc's workbook: "Our Aed has signed up for the guard. He is sixteen. Made him a helmet. Too heavy. Made it again. Too light. Made it a third time and cried in the forge where nobody could see."
 iron_chestplate@village | The Breastplate | "Hammered it thick over the heart. Thicker than the books say. The guard captain said it's too heavy to run in. Good. I don't want him running towards anything."
 iron_leggings@village | The Greaves | "Lined the knees with wool from Mrs Fenn's sheep. He'll be kneeling on cold stone on watch. His mother always said his knees were the first thing to get cold."
-iron_boots@village | The Boots | "Made the soles in two layers, so he'll make no noise on patrol, and a third so he can feel the ground through them. My own father did the same for me. I never told Aed that."
+iron_boots@village | The Boots | "Made the soles in two layers, so he'll make no noise on patrol, but thin enough that he can feel the ground through them. My own father did the same for me. I never told Aed that."
 iron_sword@village | The Sword | "Last piece. Balanced it right on my finger, the way my father taught me. Engraved his name on the blade, small, where he'll only see it when he cleans it. That's when he'll need it."
 iron_shovel@village | The Shovel, After | "Aed came home. In one piece. In the whole set. He laughed at me for crying. I dug a new flower bed today for no reason except that I'm happy. That's allowed."
 
@@ -54,7 +54,7 @@ shears@village | The Old Shears | Her grandmother's shears, sharpened so often t
 leather_leggings@village | Lambing Night | One night every spring she sits up in the barn until dawn, in these, with a lantern and a flask of tea, waiting for the lambs. Some years there are twins. One year there were triplets, and she cried, and named them after her grandmother's three sisters.
 
 @ firstchest | The Book of the First Chest
-> Every world begins with a chest, and in the chest there is an axe, and somebody picks it up. This is the oldest story there is, told the way the oldest people tell it: slowly, solemnly, and with a great deal more about cows than you'd expect.
+> Every world begins with a chest, and in the chest there is an axe, and somebody picks it up. This is the oldest story there is, told the way the oldest people tell it: slowly, solemnly, and with rather more about a cow than you'd expect.
 wooden_axe@village | The First Axe | In the beginning there was a chest, and in the chest there was an axe, and the first of us took it up, and the first tree fell, and lo, it was very surprised.
 wooden_pickaxe@village | The First Pick | And from the tree came a table, and from the table came this pick, and the first of us struck the stone, and the stone said nothing, as stone will, but it was the beginning of a long conversation.
 stone_pickaxe@village | The Second Pick | And the stone was made into a better pick, and with it the first of us went down into the dark, and found coal, and made light, and understood that there would be no end to digging.
@@ -66,7 +66,7 @@ iron_sword@village | The First Sword | And the first of us found iron in the mou
 > Saltmere was a fishing town on the bay until the night the sea came in and didn't go back out. There's a song about it, the kind every child on the coast learns before they can swim. Each verse turns up written on something brought up from the drowned town, by someone who wanted it remembered.
 stone_spear@shipwreck | First Verse | The song of Saltmere starts with the children, who swam in the bay every evening while the bell in the tower rang for supper. On the night the sea came in, the bell kept ringing long after anyone was left to come home. The fishermen who heard it never sang again.
 stone_axe@shipwreck | Second Verse | The second verse is about the boatbuilder, who made the best boats on the coast with this axe. When the water rose that spring it rose softly, at night, with all his boats tied up in the harbour waiting for morning. Morning came. The boats were too slow for something that big.
-golden_helmet@shipwreck | Third Verse | The third verse is about the mayor, who wore gold to meetings so the sea would see Saltmere was a town of importance. The sea doesn't bargain and doesn't bow. Divers say his helmet sits on a rock in the drowned square, polished bright by the current. It's the sea's helmet now.
+golden_helmet@shipwreck | Third Verse | The third verse is about the mayor, who wore gold on feast days so the sea would see Saltmere was a town of importance. The sea doesn't bargain and doesn't bow. Divers say his helmet sits on a rock in the drowned square, polished bright by the current. It's the sea's helmet now.
 fishing_rod@shipwreck | Fourth Verse | In the fourth verse a mother still fishes from her kitchen window, with the fish going past at the height of her feet. Divers who go down to Saltmere swear they've seen her: a drowned woman in an apron, holding a line up towards the light, waiting for someone to tug back.
 leather_chestplate@shipwreck | Last Verse | The last verse isn't sad. It says: sing this if you're out on the bay, and if something down below hums along, don't be frightened. That's only Saltmere, waking up for the evening. Sailors sing it every time they pass. Some swear they've heard the hum.
 
@@ -77,4 +77,4 @@ iron_spear@buried | The Boarding Pike | I boarded forty ships with this. Thirty-
 leather_chestplate@buried | The Captain's Coat | Me lucky coat. I buried it with the treasure because a fortune teller said the coat would be the death of me. She was a seagull, but she seemed very sure.
 leather_helmet@shipwreck | The First Mate's Hat | Belonged to me first mate, Gilly, who could smell treasure from a mile away. She could also smell rain, rum and lies. She could not smell the reef. Nobody's perfect.
 leather_boots@shipwreck | The Ship's Boots | The boots of the cabin boy, who took the wheel when the rest of us were seasick. He steered us home through the worst storm of the century. Then he sank us in the harbour. Lovely lad.
-leather_leggings@shipwreck | The Captain's Last Trousers | X marks the spot. I marked the map with these trousers. I don't remember why. Arr.
+leather_leggings@shipwreck | The Captain's Last Trousers | X marks the spot. I marked it on these trousers, so I'd never lose the map. I don't remember why that seemed clever. Arr.

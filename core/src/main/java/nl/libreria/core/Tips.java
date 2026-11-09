@@ -96,7 +96,8 @@ public final class Tips {
 		if (q == null || q.isEmpty()) return;
 		int now = p.level().getServer().getTickCount();
 		if (nl.libreria.core.gui.TopCard.shownPriority(p) >= 0) {
-			LAST_BUSY.put(p.getUUID(), now);
+			// (only the card of what you look at comes and goes as you look about: after it, a moment's quiet first)
+			if (nl.libreria.core.gui.TopCard.anyBetween(p, 0, BUSY)) LAST_BUSY.put(p.getUUID(), now);
 			return;
 		}
 		if (now - LAST_BUSY.getOrDefault(p.getUUID(), -1000) < 20) return;

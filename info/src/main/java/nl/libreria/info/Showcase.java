@@ -254,14 +254,14 @@ final class Showcase {
 		w.item(new ItemStack(Items.ARMOR_STAND), Ui.text("Click something to take it off. Right-click the mannequin with "
 				+ "something to put it on; with an empty hand, read its stories. Hit something on it: that comes off.", ChatFormatting.GRAY));
 		w.columns(3);
-		w.button(Ui.text("☺ Another look", ChatFormatting.WHITE), Ui.text("One of " + Ui.n(SKINS.size()) + " people", ChatFormatting.GRAY), (pl, v) -> {
+		w.button(Ui.text("Another look", ChatFormatting.WHITE), Ui.text("One of " + Ui.n(SKINS.size()) + " people", ChatFormatting.GRAY), (pl, v) -> {
 			if (!usable(pl, m)) return;
 			wear(m, -1);
 			Ui.click(pl);
 		});
 		var now = m.getPose();
 		var next = POSES.get((Math.max(0, POSES.indexOf(now)) + 1) % POSES.size());
-		w.button(Ui.text("⇅ " + poseName(now), ChatFormatting.WHITE), Ui.text("Click: " + poseName(next).toLowerCase(java.util.Locale.ROOT),
+		w.button(Ui.text("Pose: " + poseName(now), ChatFormatting.WHITE), Ui.text("Click: " + poseName(next).toLowerCase(java.util.Locale.ROOT),
 				ChatFormatting.GRAY), (pl, v) -> {
 					if (!usable(pl, m)) return;
 					pose(m, next);
@@ -269,7 +269,7 @@ final class Showcase {
 					window(pl, m);
 				});
 		boolean left = m.getMainArm() == net.minecraft.world.entity.HumanoidArm.LEFT;
-		w.button(Ui.text("✋ " + (left ? "Left-handed" : "Right-handed"), ChatFormatting.WHITE), Ui.text("Click: the other hand", ChatFormatting.GRAY),
+		w.button(Ui.text(left ? "Left-handed" : "Right-handed", ChatFormatting.WHITE), Ui.text("Click: the other hand", ChatFormatting.GRAY),
 				(pl, v) -> {
 					if (!usable(pl, m)) return;
 					m.setMainArm(left ? net.minecraft.world.entity.HumanoidArm.RIGHT : net.minecraft.world.entity.HumanoidArm.LEFT);

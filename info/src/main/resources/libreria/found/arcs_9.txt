@@ -1,7 +1,7 @@
 # Stories, ninth book. Format as in arcs_1.txt.
 
 @ spearmaidens | The Four Spears of the Shallows
-> Hear the tale of four sisters of the shallows, who fished with spears and feared no tide: Ninna the youngest, patient as stone; Ada, who belonged to the sea; Ylva, who guarded the others and never spoke of it; and Hedda the eldest, who stood before the great guardian when it rose. Three came home.
+> Hear the tale of four sisters of the shallows, who fished with spears and feared no tide. Four went out on the night the great guardian rose. Three came home.
 stone_spear | Ninna's Spear | Hear now of the four sisters of the shallows, who fished with spears and feared no tide. The youngest, Ninna, bore stone, for she said a spear should be as patient as the sea floor.
 copper_spear | Ada's Spear | The second, Ada, bore copper, which greeneth in the salt like weed upon a wreck. She said that a spear should belong to the sea, and the sea should know its own.
 iron_spear | Ylva's Spear | The third, Ylva, bore iron, and she alone of the four was ever wounded, guarding her sisters from the drowned on the night the moon went dark. She spoke of it to no one.
@@ -18,15 +18,15 @@ iron_sword | The Prop Sword | Painted wood would have been safer, but Charlie in
 shield | The Painted Moon | A shield painted as the moon, for a play about a knight who fell in love with it. Every night he held it up and said his lines to it, and somebody in the audience always cried. Usually Charlie.
 
 @ lastletter | The Letters of Private Gale
-> Private Gale was sixteen when he signed up, and he wrote to his mother every single week: about his helmet, the songs, the marching, the pocket with a button. These are his letters, in order. You know how this kind of story ends. Read them anyway. He'd want you to.
-leather_helmet | The First Letter | "Dear Mum, they gave me a helmet that's too big, so it falls over my eyes when I salute. Sergeant says I'll grow into it. I've told him I'm done growing. He says that's what he's afraid of."
-leather_chestplate | The Second Letter | "Dear Mum, we march all day and sing so we don't think about the marching. I'm learning all the songs. When I'm home I'll sing them at you until you beg me to stop. Love, Tobin."
-leather_leggings | The Third Letter | "Dear Mum, it's quiet tonight. The others are asleep. I keep your letter in my trousers pocket because it's the only pocket with a button. It's soft now from reading."
-leather_boots | The Fourth Letter | "Dear Mum, tomorrow we go into the pass. I'm not scared, mostly. If I'm late writing, it's because there's no post up there. Don't worry. Make the pie. I'll be home for the pie."
+> Private Gale was sixteen when he signed up, and he wrote to his mother every single week, whether or not there was anything to say. These are his letters, in order. You know how this kind of story ends. Read them anyway. He'd want you to.
+iron_helmet | The First Letter | "Dear Mum, they gave me a helmet that's too big, so it falls over my eyes when I salute. Sergeant says I'll grow into it. I've told him I'm done growing. He says that's what he's afraid of."
+chainmail_chestplate | The Second Letter | "Dear Mum, we march all day and sing so we don't think about the marching. I'm learning all the songs. When I'm home I'll sing them at you until you beg me to stop. Love, Tobin."
+leather_leggings | The Third Letter | "Dear Mum, it's quiet tonight. The others are asleep. I keep your letter in my trouser pocket because it's the only pocket with a button. It's soft now from reading."
+chainmail_boots | The Fourth Letter | "Dear Mum, tomorrow we go into the pass. I'm not scared, mostly. If I'm late writing, it's because there's no post up there. Don't worry. Make the pie. I'll be home for the pie."
 iron_sword | The Letter That Came Back | A sword, sent home with a short note from the Sergeant: "He sang the whole way up. He was a good lad. He was not done growing." She baked the pie anyway, every year, on the day.
 
 @ ostra | Granny Ostra's Three Hoes
-> Granny Ostra has started a garden in every place she has ever lived, with three hoes in sixty years: the one her grandmother gave her, the one her husband brought back from his travels, and the one her granddaughter bought her. Every one of them came with the same advice. Start a new one.
+> Granny Ostra has started a garden in every place she has ever lived, with only three hoes in sixty years. She still lives by the advice that came with the first: start a new one.
 wooden_hoe@archaeology | The Wooden One | Granny Ostra's grandmother's hoe, dug up from the old garden after the village moved down the valley. Ostra was a girl then. She cried for the garden. Her grandmother handed her this and said: "Then start a new one."
 golden_hoe@ruined_portal | The Golden One | Ostra's husband brought it back from his travels, a hoe of solid gold, completely useless for farming. She used it every day for forty years. Out of stubbornness and love, in about equal amounts.
 diamond_hoe | The Diamond One | Her granddaughter's, bought with her first wages and tested in the old woman's garden. Granny Ostra looked at it, looked at the girl, and said: "Fancy. Now start a new garden." So she did.
@@ -34,7 +34,7 @@ leather_helmet | Ostra's Sun Hat | Her garden hat, with a brim so wide that bird
 shears | The Deadheading Snips | For cutting off the flowers that are finished so the plant puts out new ones. Ostra said it was the most important job in a garden, and in a life. She was never sentimental about it. She just kept snipping.
 
 @ ashmoor | The Rival Archers of Ashmoor
-> Elric and Edda were the two best archers in Ashmoor, and they hadn't said a kind word to each other since a dispute over a rabbit when they were six. Every summer fair, they tied. Every year, both of them missed the last shot on purpose. It took a judge with a crossbow to sort them out.
+> Elric and Edda were the two best archers in Ashmoor, and they hadn't said a kind word to each other since a dispute over a rabbit when they were six. Every summer fair, they tied, and nobody in Ashmoor could work out how. It took thirty years and a very tired judge to sort them out.
 bow | Elric's Bow | Elric and Edda of Ashmoor were the best archers in the valley and had not said a kind word to each other since they were six, over a dispute about a rabbit.
 bow | Edda's Bow | Every year at the summer fair they shot for the silver apple, and every year they tied, because each of them, privately, missed the last shot on purpose. Neither knew the other did it.
 crossbow | The Judge's Crossbow | The fair judge, who had judged the contest for thirty years, finally fired a bolt into the target between them and said: "For goodness' sake, just get married." They did. They argued about the rabbit at the wedding.
@@ -47,7 +47,7 @@ leather_boots | The Walk to the Oak | Fifty years on, their grandchildren found 
 diamond_pickaxe | The Pick of Wanting | There was once a delver who found a diamond, and made of it a pick, and with the pick dug for more diamonds, for one is never enough to a delver who has one.
 diamond_shovel | The Shovel of More | With his diamonds he made a shovel, to dig faster, so as to find more diamonds, to make more tools, to dig faster still. He forgot what the diamonds were for. He forgot to eat lunch.
 diamond_axe | The Axe of Alone | He cut down the trees around his house, so that no one could see his diamonds. Then there was no one to see them at all. He showed them to his own reflection. It was not impressed.
-diamond_sword | The Sword of Enough | At the end he made a sword, to guard his diamonds, and sat with it at the bottom of his mine, guarding, until he was old. What is the moral? Have lunch. Show your friends your diamonds. Go outside.
+diamond_sword | The Sword of Enough | Then he made a sword, to guard his diamonds, and sat with it at the bottom of his mine, guarding, until he was old. What is the moral? Have lunch. Show your friends your diamonds. Go outside.
 diamond_chestplate | The Plate of Too Late | When he was very old he made himself a breastplate of diamonds, so he could wear them at last, outside, where people could see. There was nobody left to see. He sat in the sun anyway. It was, he admitted, very nice.
 
 @ apprentice | The Apprentice's Pieces
@@ -60,17 +60,18 @@ iron_spear | Her Master's Piece | Made the year her master's hands got too shaky
 
 @ ysolde | Queen Ysolde of the Ember Throne
 > In the age before the bastions fell, a queen from the overworld sat upon a throne of blackstone in the deep of the Nether, and the piglins bowed to her. She had come through fire for someone she loved. Every year she sent a messenger home to ask after him. Every year the answer was the same.
-golden_helmet@nether | The Ember Crown | In the age before the bastions fell, there reigned in the deep of the Nether a queen of the overworld, Ysolde, who had come through fire for love and found that love had not waited.
+~ embermessenger
+golden_helmet@nether | The Ember Crown | In the age before the bastions fell, there reigned in the deep of the Nether a queen of the overworld, Ysolde, who had come through fire for love and could not find the road back to it.
 golden_chestplate@nether | The Mourning Plate | She wore this gold so that the piglins would bow, and they bowed, and she sat upon a throne of blackstone and ruled a kingdom that was not hers, because the way back had closed behind her.
 golden_leggings@nether | The Throne-Greaves | Each year she sent a messenger through the last portal to ask whether her love yet lived. Each year the messenger came back with nothing. Each year she sent him again.
-golden_boots@nether | The Last Walk of the Queen | At the end she walked to the portal herself, through the lava fields, in these. The portal lit for her, the first time in fifty years. What she found on the other side, no song tells.
+golden_boots@nether | The Last Walk of the Queen | At the end she walked to the portal herself, through the lava fields, in these. The portal, which had refused her for fifty years, lit for her at last. What she found on the other side, no song tells.
 golden_sword@nether | The Sword of Ysolde | It is said she left her sword on the throne, so that whoever came after would know a queen had been there, and had been brave, and had gone home.
 
 @ mapson | The Cartographer's Son
-> Bram Vorn was nine when his mother, the Pale Cartographer, flew off to map the world from above and didn't come back. He waited a year. Then he put on his good boots and followed her maps, every pin hole, every ruin, to the edge of the world. This is the other half of her story.
+> Bram Vorn was nine when his mother, the Pale Cartographer, flew off to map the world from above and didn't come back. Everybody told him she was gone. Bram decided to go and check. This is the other half of her story.
 leather_boots | Bram's Boots | Bram Vorn was nine when his mother, Ilse, the Pale Cartographer, flew off to map the world from above. He waited a year. Then he put on his good boots and went to find her.
 leather_chestplate | Bram's Coat | He followed her maps, every pin hole, every ruin. In every village someone remembered her: a tall woman with ink on her fingers, who asked about the shape of the coast.
-fishing_rod | The Rod for Lonely Nights | He fished when he was lonely, because she used to. He was not good at it. Once, he caught a bottle with a scrap of map inside, in his mother's hand. He keeps it in this coat.
+fishing_rod | The Rod for Lonely Nights | He fished when he was lonely, because she used to. He was not good at it. Once, he caught a bottle with a scrap of map inside, in his mother's hand. He keeps it in his coat.
 bow | Bram's Bow | He grew up on the road. He learned the bow, the sea, the stars. In time he could read a coastline like a letter. People started asking him about the shape of the coast.
 iron_shovel | The Spade at the Edge | He found her last map at the edge of the world, under a cairn, finished at last. On the back: "For Bram, when he comes. I knew you would. Draw the next one with me." He's still drawing.
 
@@ -86,5 +87,5 @@ trident | The Prince Beneath | There was a fourth king once, the youngest, who a
 flint_and_steel | The First Keeper's Flint | Before the torches, before the lanterns, the villages had the Keepers, who walked the roads with flint and steel and lit the evening fires in every hearth that had gone cold.
 flint_and_steel | The Keeper Who Stayed | One Keeper stopped in a village where an old man lived alone, and lit his fire, and stayed to talk, and came back the next night, and the next, until the old man died warm.
 flint_and_steel | The Last Keeper's Flint | The Keepers are gone. Everybody has torches. But in some villages, on the longest night, someone still walks door to door with a flint, and asks: "Is your fire lit? Do you want company?"
-leather_boots | The Keeper's Road Boots | Keepers walked a circle of nine villages, one each night, and started again. A Keeper's boots wore out in a year. They were buried at the crossroads with a little fire on top, so the road would know someone was still walking it.
+leather_boots | The Keeper's Road Boots | Keepers walked a circle of nine villages, one each night, and started again. A Keeper's boots wore out in a year. Worn-out pairs were buried at the crossroads with a little fire on top, so the road would know someone was still walking it.
 leather_chestplate | The Keeper's Coat | Lined with ash-grey wool and full of pockets: dry kindling, a spare flint, sweets for children and a list of who lived alone. The list was the most important thing in the coat. The Keepers said so. The sweets came a close second.

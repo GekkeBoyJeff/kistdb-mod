@@ -4,9 +4,9 @@
 > Before the villages, before the first torch, someone built the strongholds: stairs that go down for a thousand years, libraries nobody can read, portals that need eyes to open. We call them the Old Builders because we have nothing better to call them. They left their tools behind. They also left a warning.
 iron_pickaxe@stronghold | The First Chisel | The Old Builders carved the strongholds before anyone else was born. This is one of their chisels, too heavy for a human hand. Somebody used it anyway, and found a door that wasn't on any plan.
 iron_helmet | The Builder's Brow | Inside the helmet is a plan of a portal frame, drawn by someone who had clearly never seen an eye of ender. They built it anyway. It worked anyway. Nobody knows how.
-iron_shovel | Foundation Spade | Dug up beneath a ruin older than the ruin above it. The Old Builders built on top of their own buildings, as if they were hiding the first ones.
+iron_shovel | Foundation Spade | Dug up from a ruin buried under another ruin. The Old Builders built on top of their own buildings, as if they were hiding the first ones.
 iron_boots@stronghold | Steps Down | Worn smooth by walking the same stairs for a thousand years. The Old Builders never left the strongholds. Some say they're still on the stairs, very slowly coming up.
-iron_chestplate | Keystone Plate | Shaped from a keystone the Old Builders left in every arch. Pull it out and the arch falls. They made very sure nobody ever would. Then somebody did.
+iron_chestplate | Keystone Plate | Forged from one of the iron keystones the Old Builders set in every arch. Pull it out and the arch falls. They made very sure nobody ever would. Then somebody did.
 wooden_hoe@archaeology | The Last Builder's Hoe | Their final work wasn't a stronghold. It was a single pot, buried in the sand with this old hoe beside it, and a message inside: "We were not the first either."
 
 @ phantomwatch | The Phantom Watch
@@ -19,7 +19,7 @@ leather_boots | The Long Night Home | When the Watch disbanded, the last rider w
 shield | The Lullaby Shield | The Watch painted a lullaby inside their shields, one line each, so a rider could hum it to the village below on the way home. This one says "and the sky will keep the watch". Nobody remembers the rest.
 
 @ crimsonbard | The Crimson Bard
-> Everyone said the Nether had no taste in music. The Crimson Bard went down there anyway with a lute and a terrible song about a ghast, and the piglins went absolutely wild for him. Seven shows, nine encores, one hoglin stampede. It was the greatest tour in history. He never came home from it.
+> Everyone said the Nether had no taste in music. The Crimson Bard went down there anyway with a lute and a terrible song about a ghast, and the piglins went absolutely wild for him. Word went from bastion to bastion faster than he could walk. It was the greatest tour in history. He never came home from it.
 crossbow@nether | Encore | The Crimson Bard played for piglins in the crimson forest. Piglins have no taste in music. They loved him. This crossbow was a gift from an adoring fan.
 golden_helmet@bastion | The Golden Hat | A piglin queen gave the Bard her golden helmet after one especially bad song. Piglins value gold more than anything. She must have loved that song very much.
 golden_sword@nether | Final Verse | The Bard's last song was about a ghast who wanted to be a cloud. The ghast in the audience cried fire. The forest burned. Standing ovation.
@@ -28,7 +28,7 @@ shield | The Bard's Last Stage | Used as a stage for his final show, by a lava l
 golden_chestplate@nether | The Encore Plate | Piglins throw gold at performers they love. By the end of the tour the Bard owned so much of it that he had it hammered into a breastplate, because that was easier than carrying it. Knock on it and it sounds faintly of applause.
 
 @ endkeepers | The Keepers of the Gate
-> When the first adventurers reached the End, somebody was already waiting at the gate: tall figures in diamond who called themselves the Keepers and would not say what they were keeping out. A thousand years they stood there. Then the dragon hatched, and they all looked at each other, and left.
+> When the first adventurers reached the End, somebody was already waiting at the gate: tall figures in diamond who called themselves the Keepers and never said what they were keeping out. A thousand years they stood there. Then one day the gate stood empty, and all they had left behind was their gear.
 diamond_sword@end | First Keeper's Blade | When the first adventurers reached the End, they found people already waiting at the gate. The Keepers. Nobody asked who they were keeping out. Nobody asked who they were keeping in.
 diamond_helmet@end_city | The Gatewatch Helm | The Keepers watched the gateways for a thousand years. Then a dragon hatched, and they all looked at each other, and quietly left.
 diamond_chestplate@end | The Keeper's Vow | Engraved: "Nothing returns". Under it, smaller: "except, apparently, the dragon".
@@ -37,20 +37,20 @@ diamond_leggings@end_city | The Keeper's Leave | The last Keeper left these behi
 diamond_pickaxe@end_city | The Gate-Key | The Keepers kept no key to the Gate. They kept a pick, in case anyone ever had to close it for good. In a thousand years nobody did. The Keepers thought about it every single day.
 
 @ bluecheese | The Great Cheese Robbery
-> Three villagers, one pickaxe, a getaway shield and the most valuable cheese wheel in the land. It was the perfect plan. The cheese was guarded by a cat. It went about as well as you'd expect, and then, somehow, considerably worse.
+> It was the perfect plan, for the most valuable cheese wheel in the land, and it had only one weak spot, which was the cat. It went about as well as you'd expect, and then, somehow, considerably worse.
 iron_pickaxe | The Vault Pick | Three villagers, one pickaxe, and the most valuable cheese wheel in the land. The plan was perfect. The cheese was guarded. By a cat.
 leather_boots | The Tiptoe Shoes | The thief who wore these crept past the guards, the dogs and the bell. Then he sneezed. Cheese dust. He should have known.
 iron_sword | The Inside Man | The guard who let the thieves in was paid in cheese. He swore it was the best day of his life. It was also the last day of his job.
-shears | The Rope Cutters | They lowered the cheese from the tower on a rope. These cut the rope. Too early. The cheese rolled down the mountain and through three villages. It is still rolling, they say.
+shears | The Rope Cutters | They lowered the cheese from the tower on a rope. These cut the rope. Too early. The cheese rolled down the mountain and through three villages. It rolled for three days, they say.
 shield | The Getaway Cart | Not a cart, but the shield they used as a sled to escape. It went downhill faster than the cheese. They caught up with the cheese. They ate the evidence.
-leather_helmet | The Lookout's Cap | The fourth thief, the lookout, wore this. She saw the guards, the dogs and the cat coming. She did not see the cheese coming back down the mountain. Nobody did. She has a small round scar and a large opinion about cheese.
+leather_helmet | The Lookout's Cap | The third thief, the lookout, wore this. She saw the guards, the dogs and the cat coming. She did not see the cheese coming down the mountain. Nobody did. She has a small round scar and a large opinion about cheese.
 
 @ sculkchild | The Child Who Listened
 > Grown-ups go into the ancient cities with swords and wool and very bad nerves. A little girl once went in barefoot, with a candle, because she wanted to know why the big one was so angry. She sat with it all night. In the morning she came back up with an answer.
 leather_helmet | Little Ears | A child wandered into the ancient city once and didn't make a sound. She sat by the sleeping Warden for a whole night and listened to it breathe.
 leather_boots | Bare Steps | She'd taken off her boots to be quiet. These are the boots, left at the top of the stairs. The Hollow Choir found them in the morning and sang very softly.
 shield | Her Father's Shield | Her father went down after her with this shield, making all the noise a father makes. She was already on her way back up, holding a candle.
-iron_sword | The Silence | Her father's sword. He never drew it. She told him to put it away; the Warden was only sleeping, and it was having a nice dream.
+iron_sword | The Silence | Her father's sword. He drew it once. She told him to put it away; the Warden was only sleeping, and it was having a nice dream.
 bow | What She Heard | She said the Warden dreams about the surface. It wants to see the sun. That's why it's so angry about noise: it's trying to hear the birds.
 leather_chestplate | Her Candle Coat | Her little coat, still smelling of wax. She grew up to be the only person who walks into the ancient city on purpose. Once a year, alone, she goes down to sit by the Warden for a night and tell it about the birds.
 
@@ -82,16 +82,16 @@ shield | The Clock Face | The old clock face, cut down to a shield. The numbers 
 leather_chestplate | The Clockmaker's Apron | Its pockets are full of springs, and one of them is still wound. Put your ear to it and it ticks. It has ticked for fifty years. Last spring, for the first time, it ticked thirteen and stopped for a minute before it went on.
 
 @ lostlegion | The Lost Legion of Grey Pass
-> A hundred soldiers marched into the fog of Grey Pass to stop a raid. The fog was so thick that they missed the raid completely, and the raid missed them. Nobody gave the order to halt. As far as anyone can tell, the Lost Legion is marching still.
+> A hundred soldiers marched into the fog of Grey Pass to stop a raid. The raid came and went. The fog lifted. The soldiers did not come back. As far as anyone can tell, the Lost Legion is marching still.
 iron_sword | Legion Blade | A legion of a hundred soldiers marched into Grey Pass to stop a raid. The pass was so foggy they marched straight past the raid, and the raid marched straight past them.
-shield | Legion Shield | Each soldier's shield bore a number. This is number forty-one. Forty-one wrote home every week. The letters say "still marching" for three years.
+shield | Legion Shield | Each soldier's shield bore a number. This is number forty-one. Forty-one wrote home every week. For three years every letter said "still marching".
 iron_helmet | The Captain's Plume | The captain led from the front, which in fog means he was alone for most of it. When the fog lifted, the legion was in a desert. Nobody has explained this.
 iron_boots | March Boots | Worn through a pass, a desert, a jungle and, briefly, the sea. The Legion never stopped marching because nobody gave the order to stop.
 crossbow | The Last Order | Found with a note: "Halt." The legion's runner had been carrying it the whole time. He was too polite to interrupt.
 iron_leggings | Forty-One's Trousers | Forty-one came home eventually, alone, in these. He said the others were still marching. He went back to join them the next morning.
 
 @ hearthmother | The Hearth Mother
-> In the coldest village of the north there is a fire that has not gone out in sixty years. One old woman kept it lit through every blizzard, every famine and every winter that tried its best. The villagers called her the Hearth Mother. The fire, they say, has its own name for her.
+> In the coldest village of the north there is a fire that has gone out only once in living memory. One old woman kept it lit through every blizzard, every famine and every winter that tried its best. The villagers called her the Hearth Mother. The fire, they say, has its own name for her.
 flint_and_steel | The First Fire | In the coldest village in the north, the Hearth Mother kept the village fire lit for sixty winters with this flint and steel. The fire never went out. Then she did.
 stone_axe | Firewood | She chopped her own firewood until she was ninety. At ninety-one, the whole village chopped it for her, and she supervised, which was worse.
 leather_chestplate | The Warm Plate | It's always warm. The villagers say she put a bit of the fire into everything she touched. It was a big village. She touched a lot of things.
@@ -100,9 +100,9 @@ leather_boots | Last Walk to the Fire | On the last night, she walked out to the
 leather_leggings | The Kneeling Breeches | Worn through at both knees from kneeling by the fire every night to feed it, sixty winters long. When her grandson put them on years later, they were warm. He cried a little, because of course they were.
 
 @ deepfisher | The Fisher of the Deep Dark
-> There's a hole in the floor of an ancient city that goes down further than any light. A fisherman once lowered a line into it, just to see. Something took the bait. He let go of the rod. That should have been the end of it, but the next morning the rod came back up, without him.
+> There's a hole in the floor of an ancient city that goes down further than any light. A fisherman once lowered a line into it, just to see. He was a patient man. So, it turned out, was whatever lived at the bottom.
 fishing_rod | Line Into the Dark | A fisherman lowered this line down a hole in an ancient city, to see what he could catch. Something took the bait. He let go of the rod. The rod came back up the next day, without him.
-leather_boots | Dry Boots | The fisherman's boots, left by the hole. Neatly side by side. He always took his boots off before fishing. He said it helped him think.
+leather_boots | Dry Boots | The fisherman's boots, left by the hole. Socks tucked inside. He always took his boots off before fishing. He said it helped him think.
 iron_helmet | The Lamp He Lowered | He lowered his helmet lamp down the hole first, to see. The light went down and down. Then it went sideways.
 shears | The Cut Line | His daughter cut the line the next day, to stop whatever was pulling. It stopped. Then it started pulling on the shears.
 iron_sword | The Daughter's Answer | She went down after him with this, against all advice. She came back with his hat and a look on her face. She never fished again.

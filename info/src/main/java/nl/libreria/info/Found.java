@@ -139,6 +139,8 @@ final class Found {
 	static final Map<String, Text> STORIES = new LinkedHashMap<>();
 	/** Story id → its introduction ("> " lines under the story's "@" line): the first page of its book, and the card of a showcase. */
 	static final Map<String, String> INTROS = new HashMap<>();
+	/** Stories that belong together ("~ other, another" under a story): both ways, in the order written. */
+	static final Map<String, List<String>> RELATED = new HashMap<>();
 
 	/**
 	 * The things that are really found (in loot, or on monsters): a story part is always one of these, so every part can
@@ -211,6 +213,7 @@ final class Found {
 		FAMILIES.clear();
 		STORIES.clear();
 		INTROS.clear();
+		RELATED.clear();
 		Optional<Path> dir = FabricLoader.getInstance().getModContainer("libreria_info").flatMap(c -> c.findPath("libreria/found"));
 		if (dir.isEmpty()) {
 			Libreria.LOG.warn("Found: no texts in the mod");
@@ -307,6 +310,16 @@ final class Found {
 			}
 			if (line.startsWith(">") && story != null) {
 				INTROS.merge(story, line.substring(1).strip(), (a, b) -> a + " " + b);
+				continue;
+			}
+			if (line.startsWith("~") && story != null) {
+				for (String other : line.substring(1).split(",")) {
+					other = other.strip();
+					if (other.isEmpty() || other.equals(story)) continue;
+					List<String> mine = RELATED.computeIfAbsent(story, k -> new ArrayList<>()), theirs = RELATED.computeIfAbsent(other, k -> new ArrayList<>());
+					if (!mine.contains(other)) mine.add(other);
+					if (!theirs.contains(story)) theirs.add(story);
+				}
 				continue;
 			}
 			String[] p = line.split("\\|", 3);
