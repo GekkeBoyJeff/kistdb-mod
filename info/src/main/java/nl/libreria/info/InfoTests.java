@@ -169,18 +169,18 @@ final class InfoTests {
 				SelfTests.check(recipes.byKey(net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.RECIPE,
 						net.minecraft.resources.Identifier.fromNamespaceAndPath("libreria", r))).isPresent(), "the recipe " + r);
 			}
-			// A mannequin wears every part of the Lantern Keeper: a hood and six things to hold
+			// A mannequin wears every part of the Lantern Keeper: a hood, a coat and six things to hold
 			BlockPos at = new BlockPos(52, 121, 44);
 			var m = Showcase.debugMannequin(level, at, 0, "lantern");
 			SelfTests.check(m != null, "a mannequin");
 			if (m == null) return;
 			try {
 				long held = Showcase.all(m).stream().filter(x -> !x.isEmpty()).count();
-				SelfTests.check(held == 7 && Showcase.stories(Showcase.all(m)).get("lantern").size() == 7, "the whole story on it: " + held);
+				SelfTests.check(held == 8 && Showcase.stories(Showcase.all(m)).get("lantern").size() == 8, "the whole story on it: " + held);
 				SelfTests.check(Showcase.get(m, Showcase.Spot.HEAD).is(Items.LEATHER_HELMET) && !Showcase.get(m, Showcase.Spot.BACK_L).isEmpty()
 						&& !Showcase.get(m, Showcase.Spot.HIP_L).isEmpty(), "armour worn, the rest in its hands, on its back and hips");
 				Look.Card card = Showcase.mannequinCard(m);
-				SelfTests.check(card.name().getString().equals("✦ The Lantern Keeper") && card.subtitle().getString().equals("7 of 7 parts"),
+				SelfTests.check(card.name().getString().equals("✦ The Lantern Keeper") && card.subtitle().getString().equals("8 of 8 parts"),
 						"its card: " + card.name().getString() + " / " + card.subtitle().getString());
 				SelfTests.check(Showcase.spotFor(m, new ItemStack(Items.LEATHER_HELMET)) == Showcase.Spot.GROUND_L, "a second hood: at its feet");
 				FakePlayer fp = FakePlayer.get(level);

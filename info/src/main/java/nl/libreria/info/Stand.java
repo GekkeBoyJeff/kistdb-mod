@@ -173,24 +173,29 @@ final class Stand {
 	 * enough to fit on your screen from up close.
 	 */
 	static Look.Target target(Vec3 eye, Vec3 dir, Entity e, Look.Card card, boolean pack) {
-		float[] d = Look.dims(card, pack);
-		double mid = e.getY() + e.getBbHeight() * 0.55;
-		double by = e.getBbWidth() / 2 + 0.3;
 		// What it holds sticks out of its box (a sword, a rod): the card stays clear of that too
 		double reach = e instanceof net.minecraft.world.entity.LivingEntity le && (!le.getItemBySlot(EquipmentSlot.MAINHAND).isEmpty()
 				|| !le.getItemBySlot(EquipmentSlot.OFFHAND).isEmpty() || Showcase.ours(e)) ? 0.6 : 0;
+		return target(eye, dir, e.position(), e.getBoundingBox(), reach, card, pack);
+	}
+
+	/** The same for anything standing at {@code at} and filling {@code box} (a pedestal with its things). */
+	static Look.Target target(Vec3 eye, Vec3 dir, Vec3 at, net.minecraft.world.phys.AABB box, double reach, Look.Card card, boolean pack) {
+		float[] d = Look.dims(card, pack);
+		double mid = box.minY + box.getYsize() * 0.55;
+		double by = box.getXsize() / 2 + 0.3;
 		// How far the card hangs from your eye (beside the stand, pulled towards you), and as far as the stand
-		Vec3 spot = Look.beside(eye, e, mid);
+		Vec3 spot = Look.beside(eye, at, box, mid);
 		double dist = Math.max(0.35, eye.distanceTo(spot));
-		double near = Math.max(0.35, Look.hang(eye, e, mid, by, reach).distanceTo(eye));
+		double near = Math.max(0.35, Look.hang(eye, at, box, mid, by, reach).distanceTo(eye));
 		// At most about 33 degrees tall and 37 wide: even a step away the whole story fits, above your hand (the text
 		// stays readable)
 		float size = (float) Math.max(0.08, Math.min(1.0, Math.min(0.6 * near / d[1], 0.75 * near / d[0])));
 		// How tall it looks, measured at the stand
 		double tall = d[1] * size * dist / near;
-		double bottom = Math.max(e.getY() + 0.02, mid - tall / 2);
-		Vec3 at = Look.keepOnScreen(eye, dir, Look.hang(eye, e, bottom, by, reach), d[1] * size, Look.DOWN_TALL);
-		return new Look.Target(at, card, false, size, 1);
+		double bottom = Math.max(box.minY + 0.02, mid - tall / 2);
+		Vec3 pos = Look.keepOnScreen(eye, dir, Look.hang(eye, at, box, bottom, by, reach), d[1] * size, Look.DOWN_TALL);
+		return new Look.Target(pos, card, false, size, 1);
 	}
 
 	/** Where a story part goes on a stand: its armour slot, or null for something held. */

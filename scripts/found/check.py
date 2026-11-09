@@ -41,20 +41,36 @@ found = set().union(*where_items.values())
 problems = []
 for item in sorted(FINDABLE - found): problems.append(f'{item} is listed as findable but nothing gives it')
 stories = 0; parts = 0; per_item = collections.Counter()
+# Must match Showcase: a mannequin wears one of each armour piece and holds six things (hands, back, hips); two more lie at
+# its feet. A story that doesn't fit goes on a pedestal, which holds eight.
+def fits(items):
+    c = collections.Counter(next((a for a in ('helmet', 'chestplate', 'leggings', 'boots') if i.endswith('_' + a)), 'hand') for i in items)
+    dup = sum(max(0, c[a] - 1) for a in ('helmet', 'chestplate', 'leggings', 'boots'))
+    return dup + max(0, c['hand'] - 6) <= 2 or len(items) <= 8
+def done(f, story, intro, items, ids):
+    if story is None: return
+    if story in ids: problems.append(f'{f}: {story} is there twice')
+    ids.add(story)
+    if not intro: problems.append(f'{f}: {story} has no introduction (a "> " line)')
+    if not fits(items): problems.append(f'{f}: {story} fits neither a mannequin nor a pedestal: {items}')
+ids = set()
 for f in sorted(os.listdir(D)):
     if not f.startswith('arcs'): continue
-    story = None
+    story = None; intro = False; items = []
     for n, raw in enumerate(open(os.path.join(D, f)), 1):
         line = raw.strip()
         if line.startswith('@'):
-            story = line[1:].split('|')[0].strip(); stories += 1; continue
+            done(f, story, intro, items, ids)
+            story = line[1:].split('|')[0].strip(); stories += 1; intro = False; items = []; continue
+        if line.startswith('>'): intro = True; continue
         if not line or line.startswith('#') or line.count('|') < 2: continue
         head, name, text = [x.strip() for x in line.split('|', 2)]
         item, _, where = head.partition('@')
-        parts += 1; per_item[item] += 1
+        parts += 1; per_item[item] += 1; items.append(item)
         if item not in FINDABLE: problems.append(f'{f}:{n} {story}: "{item}" is never found')
         elif where and item not in where_items.get(where, set()): problems.append(f'{f}:{n} {story}: {item} is never found @{where}')
         if len(text) > 300: problems.append(f'{f}:{n} {story}: text too long ({len(text)})')
+    done(f, story, intro, items, ids)
 for p in problems: print('PROBLEM', p)
 print(f'{stories} stories, {parts} parts; parts per item:', ', '.join(f'{k} {v}' for k, v in per_item.most_common()))
 sys.exit(1 if problems else 0)

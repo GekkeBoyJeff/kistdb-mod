@@ -418,6 +418,11 @@ final class Look {
 		BlockPos pos = bh.getBlockPos();
 		Card card = describeBlock(p, level, pos, all);
 		if (card == null) return null;
+		// A story pedestal: beside it, as for a mannequin (a story's card is tall; above it, it would reach off your screen)
+		if (Showcase.pedestalAt(level, pos) != null) {
+			return Stand.target(eye, dir, Vec3.atBottomCenterOf(pos), new AABB(pos.getX(), pos.getY(), pos.getZ(), pos.getX() + 1,
+					pos.getY() + 1.7, pos.getZ() + 1), 0.1, card, Pack.has(p));
+		}
 		return new Target(anchorFor(level, pos, bh, eye), card, true);
 	}
 
@@ -441,13 +446,17 @@ final class Look {
 	}
 
 	static Vec3 beside(Vec3 eye, Entity e, double y) {
-		double dx = e.getX() - eye.x, dz = e.getZ() - eye.z;
+		return beside(eye, e.position(), e.getBoundingBox(), y);
+	}
+
+	/** The same for something standing at {@code at} that fills box {@code b} (an entity, or a pedestal and what's on it). */
+	static Vec3 beside(Vec3 eye, Vec3 at, AABB b, double y) {
+		double dx = at.x - eye.x, dz = at.z - eye.z;
 		double len = Math.max(1.0e-4, Math.sqrt(dx * dx + dz * dz));
 		// your right, as you face them
 		double fx = dx / len, fz = dz / len, rx = -fz, rz = fx;
 		// As far right as it reaches on your screen: up close its near side looks wider than its middle (a slope: sideways
 		// per step forward, over the corners of its box; something you stand next to reaches far round)
-		AABB b = e.getBoundingBox();
 		double slope = 0;
 		for (double cx : new double[] {b.minX, b.maxX}) {
 			for (double cz : new double[] {b.minZ, b.maxZ}) {
@@ -456,7 +465,7 @@ final class Look {
 			}
 		}
 		double out = Math.min(1.2, slope) * len + 0.1;
-		return new Vec3(e.getX() + rx * out, y, e.getZ() + rz * out);
+		return new Vec3(at.x + rx * out, y, at.z + rz * out);
 	}
 
 	/**
@@ -469,10 +478,14 @@ final class Look {
 
 	/** {@code reach}: how far past its box something it holds sticks out, so that doesn't poke through the card either. */
 	static Vec3 hang(Vec3 eye, Entity e, double y, double by, double reach) {
+		return hang(eye, e.position(), e.getBoundingBox(), y, by, reach);
+	}
+
+	static Vec3 hang(Vec3 eye, Vec3 at, AABB box, double y, double by, double reach) {
 		// (beside its body, as always: only nearer to you, so it stays on your screen)
-		Vec3 spot = beside(eye, e, y);
+		Vec3 spot = beside(eye, at, box, y);
 		double len = Math.max(1.0e-4, spot.distanceTo(eye));
-		AABB b = e.getBoundingBox().inflate(reach, 0, reach);
+		AABB b = box.inflate(reach, 0, reach);
 		double nx = Math.max(b.minX - eye.x, Math.max(0, eye.x - b.maxX)), ny = Math.max(b.minY - eye.y, Math.max(0, eye.y - b.maxY)),
 				nz = Math.max(b.minZ - eye.z, Math.max(0, eye.z - b.maxZ));
 		double nearest = Math.sqrt(nx * nx + ny * ny + nz * nz);

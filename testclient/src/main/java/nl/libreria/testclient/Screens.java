@@ -709,7 +709,8 @@ public final class Screens implements FabricClientGameTest {
 				ctx.waitTicks(16);
 				noToasts(ctx);
 				ctx.takeScreenshot("pedestal_front");
-				run(server, f("tp @a %d %d %d 135 25", x + 2, y, z + 1));
+				// (from the side: clear what earlier scenes left between you and it)
+				run(server, f("fill %d %d %d %d %d %d minecraft:air", x + 1, y, z + 1, x + 3, y + 3, z + 3), f("tp @a %d %d %d 135 25", x + 2, y, z + 1));
 				ctx.waitTicks(5);
 				ctx.getInput().lookAt(new BlockPos(x, y + 1, z + 3));
 				ctx.waitTicks(12);
