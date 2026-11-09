@@ -30,6 +30,8 @@ public final class Players {
 		/** First seen and last seen (epoch ms; 0 = unknown). */
 		public long first;
 		public long last;
+		/** When Libreria itself last saw them here (0 = not since this was kept): the only time that's sure. */
+		public long seen;
 	}
 
 	static final class Data {
@@ -64,6 +66,7 @@ public final class Players {
 		who.shown = shown(p);
 		if (who.first == 0) who.first = now;
 		who.last = now;
+		who.seen = now;
 		STORE.markDirty();
 		return before;
 	}
@@ -72,6 +75,7 @@ public final class Players {
 		Person who = data().people.get(p.getUUID());
 		if (who == null) return;
 		who.last = System.currentTimeMillis();
+		who.seen = who.last;
 		who.shown = shown(p);
 		STORE.markDirty();
 	}
@@ -83,6 +87,7 @@ public final class Players {
 			Person who = data().people.get(p.getUUID());
 			if (who == null) continue;
 			who.last = now;
+			who.seen = now;
 			who.shown = shown(p);
 		}
 		STORE.markDirty();
@@ -184,10 +189,15 @@ public final class Players {
 				Person p = d.people.computeIfAbsent(e.getKey(), k -> new Person());
 				long t = e.getValue();
 				if (t > 0 && (p.first == 0 || t < p.first)) p.first = t;
-				// Last here: when Minecraft last saved their files, if that's later than what we know
-				long saved = h.saved.getOrDefault(e.getKey(), 0L);
-				if (server.getPlayerList().getPlayer(e.getKey()) == null && saved > p.last) p.last = saved;
-				if (t > 0 && p.last == 0) p.last = t;
+				// Last here: what Libreria saw itself; for someone it hasn't seen yet, the newest moment in their
+				// advancements (they were here then, at least), or when they first came. Never the files' dates: those
+				// change when the world is copied or backed up, or the server touches them, with nobody playing.
+				if (p.seen > 0) {
+					p.last = p.seen;
+				} else {
+					long newest = Math.max(h.newest.getOrDefault(e.getKey(), 0L), Math.max(t, 0));
+					if (newest > 0) p.last = newest;
+				}
 			}
 		}
 		for (Map.Entry<UUID, Person> e : d.people.entrySet()) {

@@ -31,8 +31,11 @@ final class ChronicleHistory {
 	final Map<UUID, Long> seen = new HashMap<>();
 	/** Per boss ("wither"): who slew one. */
 	final Map<String, Set<UUID>> slain = new HashMap<>();
-	/** When Minecraft last wrote each player's file (about when they were last here). */
-	final Map<UUID, Long> saved = new HashMap<>();
+	/**
+	 * The newest moment in each player's advancement file: they were here then, at least. (Not the file's date: a copy,
+	 * a back-up or the server itself can touch the files while nobody plays.)
+	 */
+	final Map<UUID, Long> newest = new HashMap<>();
 	/** Who has died at least once. */
 	final Set<UUID> died = new HashSet<>();
 	/** How many player files were read. */
@@ -64,6 +67,7 @@ final class ChronicleHistory {
 						latest = Math.max(latest, t);
 					}
 				}
+				if (latest > 0) this.newest.merge(who, latest, Math::max);
 				String id = e.getKey().startsWith("minecraft:") ? e.getKey().substring("minecraft:".length()) : null;
 				boolean isDone = adv.get("done") != null && adv.get("done").isJsonPrimitive() && adv.get("done").getAsBoolean();
 				// Done = when the last criterion was met
@@ -113,11 +117,6 @@ final class ChronicleHistory {
 					who = UUID.fromString(name.substring(0, name.length() - 5));
 				} catch (IllegalArgumentException e) {
 					continue;
-				}
-				try {
-					this.saved.merge(who, Files.getLastModifiedTime(f).toMillis(), Math::max);
-				} catch (IOException ignored) {
-					// no date: fine
 				}
 				try (Reader r = Files.newBufferedReader(f, StandardCharsets.UTF_8)) {
 					JsonElement json = JsonParser.parseReader(r);
