@@ -702,6 +702,24 @@ public final class Screens implements FabricClientGameTest {
 				ctx.getInput().lookAt(new BlockPos(x, y + 1, z + 3));
 				ctx.waitTicks(12);
 				ctx.takeScreenshot("mannequin_side");
+				// Crouching and lying down (what it carries on its back and hips then lies before it)
+				run(server, f("tp @a %d %d %d 160 15", x + 1, y, z));
+				server.runOnServer(sv -> nl.libreria.info.InfoMod.debugMannequinPose((ServerLevel) player.level(), new BlockPos(x, y, z + 3), "crouching"));
+				ctx.waitTicks(5);
+				ctx.getInput().lookAt(new BlockPos(x, y, z + 3));
+				ctx.waitTicks(12);
+				ctx.takeScreenshot("mannequin_crouching");
+				server.runOnServer(sv -> nl.libreria.info.InfoMod.debugMannequinPose((ServerLevel) player.level(), new BlockPos(x, y, z + 3), "sleeping"));
+				ctx.waitTicks(12);
+				ctx.takeScreenshot("mannequin_lying");
+				// People: a row of mannequins, each a different skin
+				run(server, "kill @e[type=minecraft:mannequin]", f("tp @a %d %d %d 0 5", x, y, z));
+				server.runOnServer(sv -> nl.libreria.info.InfoMod.debugMannequinRow((ServerLevel) player.level(), new BlockPos(x + 4, y, z + 4), 7, 180f));
+				ctx.waitTicks(10);
+				ctx.getInput().lookAt(new BlockPos(x, y + 1, z + 4));
+				ctx.waitTicks(16);
+				noToasts(ctx);
+				ctx.takeScreenshot("mannequin_people");
 				// Story walls on a wall of stone bricks behind the chests (what earlier scenes left there cleared): three pieces
 				// of dark oak with the six swords of an oath but the third (a dark shape in its spot), four of cherry with the
 				// eight things of the Lantern Keeper, three of warped with a knight's armour, sword and shield, and one piece

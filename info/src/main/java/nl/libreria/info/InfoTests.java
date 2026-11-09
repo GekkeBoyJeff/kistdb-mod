@@ -189,8 +189,27 @@ final class InfoTests {
 				Showcase.dress(fp, m);
 				SelfTests.check(!Showcase.get(m, Showcase.Spot.GROUND_L).isEmpty() && fp.getMainHandItem().isEmpty(), "shears: the last spot left");
 				SelfTests.check(Showcase.spotFor(m, new ItemStack(Items.BOW)) == Showcase.Spot.GROUND_R, "one spot to go");
+				// A skin of its own, a pose
+				SelfTests.check(Showcase.SKINS.size() >= 2000 && !m.getProfile().equals(net.minecraft.world.entity.decoration.Mannequin.DEFAULT_PROFILE),
+						"a skin from the pack: " + Showcase.SKINS.size());
+				Showcase.pose(m, net.minecraft.world.entity.Pose.CROUCHING);
+				SelfTests.check(m.getPose() == net.minecraft.world.entity.Pose.CROUCHING && !Showcase.upright(m), "crouching");
+				Showcase.pose(m, net.minecraft.world.entity.Pose.STANDING);
+				// A hit takes one thing off; empty, a few quick hits and it comes down
+				fp.setGameMode(net.minecraft.world.level.GameType.SURVIVAL);
+				long before = Showcase.all(m).stream().filter(x -> !x.isEmpty()).count();
+				Showcase.hit(fp, m);
+				SelfTests.check(Showcase.all(m).stream().filter(x -> !x.isEmpty()).count() == before - 1 && m.isAlive(), "a hit: one thing off");
+				for (Showcase.Spot sp : Showcase.Spot.values()) Showcase.set(m, sp, ItemStack.EMPTY);
+				Showcase.hit(fp, m);
+				Showcase.hit(fp, m);
+				SelfTests.check(m.isAlive(), "two hits: still standing");
+				Showcase.hit(fp, m);
+				Showcase.hit(fp, m);
+				SelfTests.check(!m.isAlive(), "four quick hits: down");
 			} finally {
-				m.discard();
+				if (m.isAlive()) m.discard();
+				for (var e : level.getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class, new net.minecraft.world.phys.AABB(at).inflate(3))) e.discard();
 			}
 			// Story wall pieces: side by side (same wood) they join, up to four; a different wood stays apart; one out of the
 			// middle splits them

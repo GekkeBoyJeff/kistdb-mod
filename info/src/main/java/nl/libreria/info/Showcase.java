@@ -23,6 +23,7 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -161,8 +162,63 @@ final class Showcase {
 		Mannequin m = summon(level, x, y, z, yaw);
 		if (m == null) return null;
 		m.setAttached(EXTRA, List.copyOf(extras(m)));
+		wear(m, -1);
 		show(m);
 		return m;
+	}
+
+	// ---------------------------------------------------------------- what it looks like: a skin, a pose
+
+	/** The skins mannequins wear (textures in the resource pack, made by scripts/skins/gen.py): slim arms or not, per skin. */
+	static final List<Boolean> SKINS = new ArrayList<>();
+	private static final java.util.Random RANDOM = new java.util.Random();
+
+	static void loadSkins() {
+		SKINS.clear();
+		try (var in = Showcase.class.getResourceAsStream("/libreria/skins.txt")) {
+			if (in == null) return;
+			for (String line : new String(in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8).split("\n")) {
+				String[] f = line.trim().split("\\s+");
+				if (f.length == 2) SKINS.add(f[1].equals("slim"));
+			}
+		} catch (java.io.IOException e) {
+			org.slf4j.LoggerFactory.getLogger("Libreria").warn("Mannequin skins: {}", e.toString());
+		}
+	}
+
+	/** Skin {@code n} (or a random one for -1) on this mannequin. */
+	static void wear(Mannequin m, int n) {
+		if (SKINS.isEmpty()) return;
+		if (n < 0 || n >= SKINS.size()) n = RANDOM.nextInt(SKINS.size());
+		CompoundTag t = new CompoundTag();
+		t.putString("texture", "libreria:entity/mannequin/" + String.format(java.util.Locale.ROOT, "%04d", n));
+		t.putString("model", SKINS.get(n) ? "slim" : "wide");
+		var profile = DataComponents.PROFILE.codecOrThrow().parse(net.minecraft.nbt.NbtOps.INSTANCE, t).result().orElse(null);
+		if (profile != null) m.setComponent(DataComponents.PROFILE, profile);
+	}
+
+	/** The poses a mannequin can be set to, in the order its window goes through them. */
+	static final List<net.minecraft.world.entity.Pose> POSES = List.of(net.minecraft.world.entity.Pose.STANDING,
+			net.minecraft.world.entity.Pose.CROUCHING, net.minecraft.world.entity.Pose.SLEEPING, net.minecraft.world.entity.Pose.SWIMMING);
+
+	static String poseName(net.minecraft.world.entity.Pose pose) {
+		return switch (pose) {
+			case CROUCHING -> "Crouching";
+			case SLEEPING -> "Lying down";
+			case SWIMMING -> "Swimming";
+			default -> "Standing";
+		};
+	}
+
+	/** Standing up: its back, hips and feet hold things as on a body; any other pose, they lie on the ground before it. */
+	static boolean upright(Mannequin m) {
+		return m.getPose() == net.minecraft.world.entity.Pose.STANDING;
+	}
+
+	static void pose(Mannequin m, net.minecraft.world.entity.Pose pose) {
+		m.setPose(pose);
+		m.refreshDimensions();
+		show(m);
 	}
 
 	/** Minecraft's own mannequin, made as the summon command makes one: unmoving, and unhurt by anything but our own hit. */
@@ -196,7 +252,31 @@ final class Showcase {
 	static void window(ServerPlayer p, Mannequin m) {
 		Window w = Window.of(Domain.PROGRESS, "Mannequin");
 		w.item(new ItemStack(Items.ARMOR_STAND), Ui.text("Click something to take it off. Right-click the mannequin with "
-				+ "something to put it on; with an empty hand, read its stories.", ChatFormatting.GRAY));
+				+ "something to put it on; with an empty hand, read its stories. Hit something on it: that comes off.", ChatFormatting.GRAY));
+		w.columns(3);
+		w.button(Ui.text("☺ Another look", ChatFormatting.WHITE), Ui.text("One of " + Ui.n(SKINS.size()) + " people", ChatFormatting.GRAY), (pl, v) -> {
+			if (!usable(pl, m)) return;
+			wear(m, -1);
+			Ui.click(pl);
+		});
+		var now = m.getPose();
+		var next = POSES.get((Math.max(0, POSES.indexOf(now)) + 1) % POSES.size());
+		w.button(Ui.text("⇅ " + poseName(now), ChatFormatting.WHITE), Ui.text("Click: " + poseName(next).toLowerCase(java.util.Locale.ROOT),
+				ChatFormatting.GRAY), (pl, v) -> {
+					if (!usable(pl, m)) return;
+					pose(m, next);
+					Ui.click(pl);
+					window(pl, m);
+				});
+		boolean left = m.getMainArm() == net.minecraft.world.entity.HumanoidArm.LEFT;
+		w.button(Ui.text("✋ " + (left ? "Left-handed" : "Right-handed"), ChatFormatting.WHITE), Ui.text("Click: the other hand", ChatFormatting.GRAY),
+				(pl, v) -> {
+					if (!usable(pl, m)) return;
+					m.setMainArm(left ? net.minecraft.world.entity.HumanoidArm.RIGHT : net.minecraft.world.entity.HumanoidArm.LEFT);
+					show(m);
+					Ui.click(pl);
+					window(pl, m);
+				});
 		w.columns(2);
 		boolean any = false;
 		for (Spot s : Spot.values()) {
@@ -227,7 +307,112 @@ final class Showcase {
 		if (!p.getInventory().add(copy) && !copy.isEmpty()) drop((ServerLevel) p.level(), p.position(), copy);
 	}
 
-	/** Hit: it comes down, with everything it held. */
+	/** Hits on an empty mannequin lately: how hard, and when the last one was (as a boat: a few quick ones and it breaks). */
+	private static final Map<UUID, float[]> KNOCKS = new HashMap<>();
+	private static final float BREAKS = 4;
+
+	/**
+	 * A hit. On something it holds: that one thing comes off, the thing nearest to where you hit it. Empty: it rocks, and a
+	 * few quick hits take it down (one in creative), as a boat.
+	 */
+	static void hit(ServerPlayer p, Mannequin m) {
+		ServerLevel level = (ServerLevel) m.level();
+		Spot spot = hitSpot(p, m);
+		if (spot != null) {
+			ItemStack s = get(m, spot);
+			set(m, spot, ItemStack.EMPTY);
+			if (!p.hasInfiniteMaterials()) drop(level, spotAt(m, spot).subtract(0, 0.5, 0), s);
+			Ui.sound(p, SoundEvents.ARMOR_STAND_HIT, 0.8f, 1.2f);
+			return;
+		}
+		if (p.hasInfiniteMaterials()) {
+			pickUp(p, m);
+			return;
+		}
+		long now = level.getServer().getTickCount();
+		float[] k = KNOCKS.computeIfAbsent(m.getUUID(), u -> new float[] {0, now});
+		// It settles again: a knock a second wears off
+		k[0] = Math.max(0, k[0] - (now - k[1]) / 20f) + 1;
+		k[1] = now;
+		if (k[0] >= BREAKS) {
+			KNOCKS.remove(m.getUUID());
+			pickUp(p, m);
+			return;
+		}
+		// It rocks: turned a little one way, the other way, and back
+		Rock r = ROCKING.get(m.getUUID());
+		ROCKING.put(m.getUUID(), new Rock(m, r != null ? r.yaw() : m.getYRot(), (int) now));
+		Ui.sound(p, SoundEvents.ARMOR_STAND_HIT, 1f, 0.9f + 0.1f * k[0]);
+	}
+
+	private record Rock(Mannequin m, float yaw, int start) {
+	}
+
+	private static final Map<UUID, Rock> ROCKING = new HashMap<>();
+
+	/** Every tick: mannequins that were hit rock (a few degrees each way) and settle. */
+	static void tick(MinecraftServer server) {
+		if (ROCKING.isEmpty()) return;
+		int now = server.getTickCount();
+		for (var it = ROCKING.values().iterator(); it.hasNext();) {
+			Rock r = it.next();
+			int t = now - r.start();
+			float off = t < 3 ? 8 : t < 6 ? -6 : t < 9 ? 3 : 0;
+			if (!r.m().isAlive() || t >= 9) {
+				off = 0;
+				it.remove();
+			}
+			r.m().setYRot(r.yaw() + off);
+			r.m().setYBodyRot(r.yaw() + off);
+			r.m().setYHeadRot(r.yaw() + off);
+		}
+	}
+
+	/** What a hit lands on: the thing it holds nearest to where the player hit it, or null when it holds nothing. */
+	static @Nullable Spot hitSpot(ServerPlayer p, Mannequin m) {
+		Vec3 eye = p.getEyePosition(), to = eye.add(p.getViewVector(1).scale(6));
+		Vec3 at = m.getBoundingBox().inflate(0.35, 0, 0.35).clip(eye, to).orElse(m.position().add(0, 1, 0));
+		Spot best = null;
+		double bestD = Double.MAX_VALUE;
+		for (Spot s : Spot.values()) {
+			if (get(m, s).isEmpty()) continue;
+			double d = spotAt(m, s).distanceToSqr(at);
+			if (d < bestD) {
+				bestD = d;
+				best = s;
+			}
+		}
+		return best;
+	}
+
+	/** Where a spot of a mannequin is in the world, about (for hits, and for what drops). */
+	static Vec3 spotAt(Mannequin m, Spot s) {
+		boolean left = m.getMainArm() == net.minecraft.world.entity.HumanoidArm.LEFT;
+		boolean up = upright(m);
+		float h = m.getBbHeight() / 1.8f;
+		double x, y, z;
+		switch (s) {
+			case HEAD -> { x = 0; y = 1.7; z = 0; }
+			case CHEST -> { x = 0; y = 1.15; z = 0.05; }
+			case LEGS -> { x = 0; y = 0.65; z = 0; }
+			case FEET -> { x = 0; y = 0.12; z = 0; }
+			case MAIN -> { x = left ? 0.38 : -0.38; y = 0.75; z = 0.12; }
+			case OFF -> { x = left ? -0.38 : 0.38; y = 0.75; z = 0.12; }
+			case BACK_L -> { x = up ? 0.12 : 0.66; y = up ? 1.3 : 0.05; z = up ? -0.24 : 0.78; }
+			case BACK_R -> { x = up ? -0.12 : -0.66; y = up ? 1.3 : 0.05; z = up ? -0.24 : 0.78; }
+			case HIP_L -> { x = up ? 0.36 : 0.22; y = up ? 0.8 : 0.05; z = up ? 0.02 : 0.78; }
+			case HIP_R -> { x = up ? -0.36 : -0.22; y = up ? 0.8 : 0.05; z = up ? 0.02 : 0.78; }
+			case GROUND_L -> { x = 0.3; y = 0.05; z = 0.38; }
+			default -> { x = -0.3; y = 0.05; z = 0.38; }
+		}
+		if (s.slot != null) y *= h;
+		double a = Math.toRadians(m.getYRot());
+		// its left is +x when it faces +z; turned by its yaw
+		double wx = x * Math.cos(a) - z * Math.sin(a), wz = x * Math.sin(a) + z * Math.cos(a);
+		return m.position().add(wx, y, wz);
+	}
+
+	/** It comes down, with everything it held. */
 	static void pickUp(ServerPlayer p, Mannequin m) {
 		ServerLevel level = (ServerLevel) m.level();
 		for (ItemStack s : all(m)) if (!s.isEmpty()) drop(level, m.position(), s);
@@ -252,8 +437,19 @@ final class Showcase {
 	 * Where the six extra spots show, on the mannequin (x: its left, y: up, z: in front; it faces +z), and how each thing
 	 * lies there: crossed on the back, hanging at the hips, lying at its feet.
 	 */
-	static void place(ItemDisplayElement e, Spot s, boolean upright) {
+	static void place(ItemDisplayElement e, Spot s, boolean upright, boolean standing) {
 		float tilt = upright ? (float) Math.toRadians(45) : 0f;
+		if (!standing && s != Spot.GROUND_L && s != Spot.GROUND_R) {
+			// Not standing (crouching, lying): what it carries lies on the ground before it, in a row
+			float x = switch (s) {
+				case BACK_L -> 0.66f;
+				case HIP_L -> 0.22f;
+				case HIP_R -> -0.22f;
+				default -> -0.66f;
+			};
+			pose(e, x, 0.03f, 0.78f, new Quaternionf().rotateX((float) Math.toRadians(-90)), 0.5f);
+			return;
+		}
 		switch (s) {
 			case BACK_L -> pose(e, -0.02f, 1.32f, -0.21f, new Quaternionf().rotateZ(tilt + (float) Math.toRadians(45)), 0.85f);
 			case BACK_R -> pose(e, 0.02f, 1.32f, -0.23f, new Quaternionf().rotateZ(tilt - (float) Math.toRadians(45)), 0.85f);
@@ -300,7 +496,7 @@ final class Showcase {
 			e.setItem(s.copy());
 			e.setYaw(m.getYRot());
 			Spot spot = Spot.values()[6 + i];
-			place(e, spot, (spot == Spot.BACK_L || spot == Spot.BACK_R) && !slanted(s));
+			place(e, spot, (spot == Spot.BACK_L || spot == Spot.BACK_R) && !slanted(s), upright(m));
 		}
 		holder.tick();
 	}
@@ -425,9 +621,11 @@ final class Showcase {
 		});
 		AttackEntityCallback.EVENT.register((player, world, hand, entity, hit) -> {
 			if (world.isClientSide() || !(player instanceof ServerPlayer sp) || !(entity instanceof Mannequin m) || !ours(m)) return InteractionResult.PASS;
-			if (Services.mayBuild(sp, (ServerLevel) world, m.blockPosition())) pickUp(sp, m);
+			if (Services.mayBuild(sp, (ServerLevel) world, m.blockPosition())) hit(sp, m);
 			return InteractionResult.SUCCESS;
 		});
+		ServerEntityEvents.ENTITY_UNLOAD.register((entity, level) -> KNOCKS.remove(entity.getUUID()));
+		loadSkins();
 	}
 
 	static @Nullable Look.Card mannequinCard(Mannequin m) {
@@ -444,6 +642,7 @@ final class Showcase {
 		Mannequin m = summon(level, at.getX() + 0.5, at.getY(), at.getZ() + 0.5, yaw);
 		if (m == null) return null;
 		m.setAttached(EXTRA, List.copyOf(extras(m)));
+		wear(m, Math.floorMod(story.hashCode(), Math.max(1, SKINS.size())));
 		for (ItemStack s : storyItems(level, story)) {
 			Spot spot = spotFor(m, s);
 			if (spot != null) set(m, spot, s);

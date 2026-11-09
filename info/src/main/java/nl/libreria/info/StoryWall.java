@@ -95,6 +95,11 @@ final class StoryWall {
 
 	static final WorldStore<Data> STORE = WorldStore.create("libreria/story_walls.json", Data.class, Data::new);
 	private static final Map<Wall, ElementHolder> SHOWN = new HashMap<>();
+	/**
+	 * The chunk each board's display hangs in. A chunk that unloads takes its displays with it and comes back as a new
+	 * chunk without them: then the board is shown again (and while it's away, nothing of it is kept).
+	 */
+	private static final Map<Wall, net.minecraft.world.level.chunk.LevelChunk> CHUNKS = new HashMap<>();
 
 	private StoryWall() {
 	}
@@ -543,6 +548,7 @@ final class StoryWall {
 
 	static void hide(Wall w) {
 		ElementHolder h = SHOWN.remove(w);
+		CHUNKS.remove(w);
 		if (h != null) h.destroy();
 	}
 
@@ -727,6 +733,7 @@ final class StoryWall {
 			}
 			ChunkAttachment.ofTicking(holder, level, anchor);
 			SHOWN.put(w, holder);
+			CHUNKS.put(w, level.getChunkAt(BlockPos.containing(anchor)));
 		}
 		List<ItemStack> items = items(level, w);
 		int laid = laidOut(w);
@@ -943,15 +950,24 @@ final class StoryWall {
 	// ---------------------------------------------------------------- now and then
 
 	/**
-	 * Every two seconds: boards show where they are loaded (nothing is kept loaded for them); a piece whose wall is gone
-	 * (dug out, blown up) comes down, with what hung on it.
+	 * Twice a second: boards show where their chunk is loaded, and nothing of them is kept where it isn't (no chunk is
+	 * kept loaded for them); a piece whose wall is gone (dug out, blown up) comes down, with what hung on it.
 	 */
 	static void tick(MinecraftServer server) {
 		for (Wall w : new ArrayList<>(data().walls)) {
 			if (!data().walls.contains(w)) continue;
 			ServerLevel level = level(server, w);
-			if (level == null) continue;
-			if (!level.isLoaded(origin(w)) || !level.isLoaded(spot(w, spots(w) - 1))) continue;
+			if (level == null) {
+				hide(w);
+				continue;
+			}
+			BlockPos anchor = BlockPos.containing(at(w, 0, 0, OUT));
+			var chunk = level.getChunkSource().getChunkNow(anchor.getX() >> 4, anchor.getZ() >> 4);
+			if (chunk == null || !level.isLoaded(origin(w)) || !level.isLoaded(spot(w, spots(w) - 1))) {
+				hide(w);
+				continue;
+			}
+			if (CHUNKS.get(w) != chunk) hide(w);
 			Direction f = facing(w);
 			int gone = -1;
 			for (int i = 0; i < spots(w) && gone < 0; i++) {
@@ -969,6 +985,7 @@ final class StoryWall {
 	static void clearAll() {
 		SHOWN.values().forEach(ElementHolder::destroy);
 		SHOWN.clear();
+		CHUNKS.clear();
 		FRAMES.values().forEach(f -> f.holder.destroy());
 		FRAMES.clear();
 	}

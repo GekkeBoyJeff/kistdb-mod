@@ -134,6 +134,24 @@ public final class InfoMod implements ModInitializer {
 		return Showcase.debugMannequin(level, at, yaw, story);
 	}
 
+	/** For the screenshots: the mannequins of ours at {@code at} take this pose ("standing", "crouching", "sleeping"…). */
+	public static void debugMannequinPose(net.minecraft.server.level.ServerLevel level, net.minecraft.core.BlockPos at, String pose) {
+		var p = net.minecraft.world.entity.Pose.valueOf(pose.toUpperCase(java.util.Locale.ROOT));
+		for (var m : level.getEntitiesOfClass(net.minecraft.world.entity.decoration.Mannequin.class, new net.minecraft.world.phys.AABB(at).inflate(1))) {
+			if (Showcase.ours(m)) Showcase.pose(m, p);
+		}
+	}
+
+	/** For the screenshots: a row of {@code count} mannequins of ours from {@code from} to the west, each a different person. */
+	public static void debugMannequinRow(net.minecraft.server.level.ServerLevel level, net.minecraft.core.BlockPos from, int count, float yaw) {
+		for (int i = 0; i < count; i++) {
+			var m = Showcase.summon(level, from.getX() + 0.5 - i * 1.2, from.getY(), from.getZ() + 0.5, yaw);
+			if (m == null) continue;
+			m.setAttached(Showcase.EXTRA, java.util.List.copyOf(Showcase.extras(m)));
+			Showcase.wear(m, 37 + i * 211);
+		}
+	}
+
 	/**
 	 * For the screenshots: a story wall in front of the wall behind {@code origin} (its bottom-left spot), facing
 	 * {@code facing}, with every part of a story on it but part {@code skip} (0: all of them).
@@ -213,6 +231,7 @@ public final class InfoMod implements ModInitializer {
 		Weapons.init();
 		Found.init();
 		Showcase.init();
+		nl.libreria.core.Pack.addAssets("libreria_info");
 		InfoCollections.init();
 		Describe.init();
 		Details.init();
@@ -253,7 +272,8 @@ public final class InfoMod implements ModInitializer {
 			if (tick % 20 == 11) Pets.tick(server, tick);
 			if (tick % 40 == 13) Weapons.tick(server);
 			if (tick % 40 == 29) Found.tick(server);
-			if (tick % 40 == 31) StoryWall.tick(server);
+			if (tick % 10 == 1) StoryWall.tick(server);
+			Showcase.tick(server);
 		});
 
 		UseEntityCallback.EVENT.register((player, world, hand, entity, hit) -> {
