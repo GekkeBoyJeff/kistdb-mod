@@ -1,6 +1,12 @@
-net.minecraft.world.scores.PlayerTeam
-? TeamColor
-net.minecraft.world.entity.decoration.Mannequin
-net.minecraft.world.entity.Avatar
-+net.minecraft.world.entity.decoration.ArmorStand
-? annequin
++net.minecraft.world.level.ServerExplosion
+net.minecraft.world.level.Explosion
++net.minecraft.world.level.block.FireBlock
++net.minecraft.world.entity.monster.EnderMan$EndermanTakeBlockGoal
++net.minecraft.world.entity.monster.EnderMan$EndermanLeaveBlockGoal
++net.minecraft.world.entity.ai.goal.BreakDoorGoal
++net.minecraft.world.level.material.FlowingFluid
++net.minecraft.world.entity.decoration.HangingEntity
++net.minecraft.world.entity.decoration.BlockAttachedEntity
+? FarmBlock|FarmlandBlock
+? EnderMan
+? BreakDoorGoal
