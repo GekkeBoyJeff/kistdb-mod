@@ -295,6 +295,7 @@ final class StoryWall {
 		}
 		if (!Services.mayBuild(p, level, spot(w, spot))) {
 			if (hand.isEmpty()) Showcase.read(p, "story wall", items);
+			else Hud.flash(p, Ui.text("You can't change what hangs here", ChatFormatting.GRAY));
 			return;
 		}
 		if (!items.get(spot).isEmpty()) {
@@ -306,6 +307,15 @@ final class StoryWall {
 					: "Right-click with something to hang it here", ChatFormatting.GRAY));
 			return;
 		}
+		hang(p, w, spot);
+	}
+
+	/** Hangs what this player holds, where they clicked (or in its own spot, for a part of the story it's laid out for). */
+	static void hang(ServerPlayer p, Wall w, int spot) {
+		ServerLevel level = p.level();
+		ItemStack hand = p.getMainHandItem();
+		List<ItemStack> items = items(level, w);
+		if (hand.isEmpty()) return;
 		int to = spotFor(w, items, hand, spot);
 		if (to < 0) {
 			Hud.flash(p, Ui.text("No room: the empty spots are kept for its story's other parts", ChatFormatting.GRAY));
@@ -415,6 +425,7 @@ final class StoryWall {
 					}
 				});
 				click.setSize(0.92f, 0.92f);
+				click.setResponse(true);
 				click.setOffset(at(w, spotX(i), spotY(i) - 0.46, 0.04).subtract(mid));
 				holder.addElement(click);
 			}

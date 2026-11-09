@@ -222,11 +222,11 @@ final class InfoTests {
 				while (slot < fp.getInventory().getContainerSize() && !fp.getInventory().getItem(slot).is(Items.STONE_SWORD)) slot++;
 				fp.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, fp.getInventory().getItem(slot).copy());
 				fp.getInventory().setItem(slot, ItemStack.EMPTY);
-				StoryWall.use(fp, w, 7);
+				StoryWall.hang(fp, w, 7);
 				SelfTests.check(StoryWall.full(level, w).equals(java.util.Set.of(0, 1, 3, 4, 5)), "back in its own spot: " + StoryWall.full(level, w));
 				// Something else: where you click, but not in the spot kept for the third sword
 				fp.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, new ItemStack(Items.SHEARS));
-				StoryWall.use(fp, w, 2);
+				StoryWall.hang(fp, w, 2);
 				SelfTests.check(StoryWall.full(level, w).contains(6) && !StoryWall.full(level, w).contains(2), "shears: not in the kept spot");
 				// Its wall dug out: it comes down
 				level.setBlock(o.offset(0, 0, 1), net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), 3);
