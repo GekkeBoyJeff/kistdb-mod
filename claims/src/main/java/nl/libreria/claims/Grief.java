@@ -25,7 +25,7 @@ import org.jetbrains.annotations.Nullable;
  * Claimed land can't be griefed, by mobs or by anything else. Explosions (creepers, TNT, ghasts, withers, beds…) still go
  * off and still hurt monsters and players, but break no blocks in a claim and hurt nothing that belongs to it (animals,
  * pets, villagers, armour stands, mannequins, item frames, paintings). Fire doesn't burn claimed blocks or spread into a
- * claim, lava and water don't flow into it from outside, zombies don't break its doors, endermen don't take its blocks
+ * claim, lava doesn't flow into it from outside (water may: only placing it needs permission), zombies don't break its doors, endermen don't take its blocks
  * and nothing tramples its farmland. Only a player who may build there (the owner, someone trusted) can still blow it
  * up with their own TNT. When an explosion is stopped near the owner, it counts for "Saved by My Claim".
  *
@@ -67,7 +67,7 @@ public final class Grief {
 		return false;
 	}
 
-	/** Water or lava flowing from {@code from} into {@code to}: not into a claim from outside it (or from someone else's). */
+	/** Lava flowing from {@code from} into {@code to}: not into a claim from outside it (or from someone else's). */
 	public static boolean flowsIn(ServerLevel level, BlockPos from, BlockPos to) {
 		if ((from.getX() >> 4) == (to.getX() >> 4) && (from.getZ() >> 4) == (to.getZ() >> 4)) return false;
 		if (!ClaimsMod.MODULE.on()) return false;

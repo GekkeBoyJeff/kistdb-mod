@@ -113,7 +113,7 @@ final class ClaimsTests {
 				SelfTests.check(!stand.isRemoved() && stand.isAlive(), "an armour stand in the claim sits it out");
 				stand.discard();
 				SelfTests.check(Grief.flowsIn(level, outside, inside) && !Grief.flowsIn(level, inside, inside.west()),
-						"lava and water don't flow in from outside (but do inside)");
+						"lava doesn't flow in from outside (but does inside)");
 				SelfTests.check(Grief.claimed(level, inside) && !Grief.claimed(level, outside), "fire knows what's claimed");
 				SelfTests.check(Grief.guarded(level, inside, null), "a mob can't change claimed blocks");
 				// an enderman and a vindicator (their goals load, with the claim checks in them)
