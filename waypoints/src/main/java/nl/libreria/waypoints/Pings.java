@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.UUID;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.MinecraftServer;
@@ -76,7 +77,11 @@ final class Pings {
 			int mode = WaypointsMod.PING_KEY.get(player);
 			if (mode != 0 && mode != 2) return false;
 			ServerLevel level = (ServerLevel) player.level();
-			pingAt(player, level, Vec3.atBottomCenterOf(pos.above()), blockName(level, pos));
+			// the side you look at (pick block only gives the block)
+			BlockHitResult hit = level.clip(new ClipContext(player.getEyePosition(), Vec3.atCenterOf(pos), ClipContext.Block.OUTLINE,
+					ClipContext.Fluid.NONE, player));
+			Direction face = hit.getType() == HitResult.Type.BLOCK && hit.getBlockPos().equals(pos) ? hit.getDirection() : null;
+			pingAt(player, level, spotOn(level, pos, face), blockName(level, pos));
 			return true;
 		});
 	}
@@ -108,7 +113,23 @@ final class Pings {
 			return false;
 		}
 		BlockPos pos = block.getBlockPos();
-		return pingAt(p, level, Vec3.atBottomCenterOf(pos.above()), blockName(level, pos));
+		return pingAt(p, level, spotOn(level, pos, block.getDirection()), blockName(level, pos));
+	}
+
+	/**
+	 * Where a ping on this block stands: on top of it; or, when something is on top (a wall, a tree trunk), in front of
+	 * the side you looked at, down on the ground there (a few blocks at most).
+	 */
+	static Vec3 spotOn(ServerLevel level, BlockPos pos, @Nullable Direction face) {
+		BlockPos above = pos.above();
+		if (face == null || face == Direction.UP || free(level, above)) return Vec3.atBottomCenterOf(above);
+		BlockPos at = pos.relative(face);
+		for (int i = 0; i < 4 && free(level, at.below()) && at.getY() > level.getMinY(); i++) at = at.below();
+		return Vec3.atBottomCenterOf(at);
+	}
+
+	private static boolean free(ServerLevel level, BlockPos pos) {
+		return level.getBlockState(pos).getCollisionShape(level, pos).isEmpty();
 	}
 
 	private static Component blockName(ServerLevel level, BlockPos pos) {

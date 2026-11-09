@@ -53,6 +53,17 @@ final class WaypointsTests {
 				SelfTests.check(!Pings.ACTIVE.containsKey(a.getUUID()) && !Pings.show(b, a.getUUID()), "cleared: gone for everyone");
 				SelfTests.check(!PingMarks.has(a, a.getUUID()) && !PingMarks.has(b, a.getUUID()), "and off the spot");
 				SelfTests.check(Pings.SECONDS == 30 && Pings.REACH >= 128, "30 seconds, far enough to ping a hill");
+				// on top of a block; on the side of a trunk: in front of it, on the ground
+				net.minecraft.core.BlockPos ground = new net.minecraft.core.BlockPos(140, 70, 140);
+				level.setBlockAndUpdate(ground, net.minecraft.world.level.block.Blocks.STONE.defaultBlockState());
+				for (int i = 1; i <= 6; i++) level.setBlockAndUpdate(ground.above(i), i <= 4
+						? net.minecraft.world.level.block.Blocks.OAK_LOG.defaultBlockState() : net.minecraft.world.level.block.Blocks.AIR.defaultBlockState());
+				level.setBlockAndUpdate(ground.north(), net.minecraft.world.level.block.Blocks.STONE.defaultBlockState());
+				for (int i = 1; i <= 4; i++) level.setBlockAndUpdate(ground.north().above(i), net.minecraft.world.level.block.Blocks.AIR.defaultBlockState());
+				Vec3 top = Pings.spotOn(level, ground.above(4), net.minecraft.core.Direction.UP);
+				Vec3 side = Pings.spotOn(level, ground.above(2), net.minecraft.core.Direction.NORTH);
+				SelfTests.check(top.equals(Vec3.atBottomCenterOf(ground.above(5))), "on top of the trunk (" + top + ")");
+				SelfTests.check(side.equals(Vec3.atBottomCenterOf(ground.north().above())), "in front of its side, on the ground (" + side + ")");
 			} finally {
 				Guide.clear(a);
 				Guide.clear(b);
