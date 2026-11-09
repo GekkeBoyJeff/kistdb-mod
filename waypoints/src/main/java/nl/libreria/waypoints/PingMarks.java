@@ -70,8 +70,9 @@ final class PingMarks {
 		int age;
 		float scale = -1;
 		int metres = -1;
-		boolean full = true;
-		boolean shownFull;
+		/** 2 = who, what and how far; 1 = how far; 0 = no label (it would cover another one). */
+		int show = 2;
+		int shown = -1;
 		int fade = -1;
 
 		Mark(ServerPlayer viewer, Pings.Ping ping, int look) {
@@ -247,35 +248,92 @@ final class PingMarks {
 	/** Who, what and how far for the ping you look at; only how far for the others (so labels don't pile up). */
 	private static void label(Mark m) {
 		int metres = (int) Math.round(m.viewer.position().distanceTo(m.ping.at()));
-		if (metres == m.metres && m.full == m.shownFull) return;
+		if (metres == m.metres && m.show == m.shown) return;
 		m.metres = metres;
-		m.shownFull = m.full;
-		if (!m.full) {
-			m.label.setText(Ui.text(" " + Ui.meters(metres) + " ", 0xD8DCE6));
-			return;
-		}
+		m.shown = m.show;
+		m.label.setText(labelText(m, m.show, metres));
+		m.label.setBackground(background(m));
+	}
+
+	private static Component labelText(Mark m, int show, int metres) {
+		if (show == 0) return Component.empty();
+		if (show == 1) return Ui.text(" " + Ui.meters(metres) + " ", 0xD8DCE6);
 		boolean own = m.ping.owner().equals(m.viewer.getUUID());
 		MutableComponent t = Ui.text(" " + (own ? "Your ping" : m.ping.ownerName()), Pings.COLOR);
 		t.append(Ui.text(" · ", 0x8A8F9C));
 		t.append(m.ping.what().copy().withStyle(ChatFormatting.WHITE));
 		t.append(Ui.text("  " + Ui.meters(metres) + " ", 0xB8BCC8));
-		m.label.setText(t);
+		return t;
 	}
 
-	/** Which of this player's pings is nearest their crosshair (within {@link #FOCUS_COS}): that one gets the whole label. */
-	private static void focus(Map<UUID, Mark> map) {
+	private static int background(Mark m) {
+		if (m.show == 0) return 0;
+		int alpha = (LABEL_BACKGROUND >>> 24) * (m.fade < 0 ? 255 : FADE[m.fade]) / 255;
+		return alpha << 24 | (LABEL_BACKGROUND & 0xFFFFFF);
+	}
+
+	/** A box on the player's screen, in radians from their crosshair (x to the right, y up). */
+	private record Box(double x0, double y0, double x1, double y1) {
+		boolean hits(Box o) {
+			return this.x0 < o.x1 && o.x0 < this.x1 && this.y0 < o.y1 && o.y0 < this.y1;
+		}
+	}
+
+	/**
+	 * Which label each of this player's pings gets. The one nearest their crosshair (within {@link #FOCUS_COS}) gets the
+	 * whole label, the others only their distance, and a label that would cover another label or a gem isn't shown.
+	 */
+	private static void layout(Map<UUID, Mark> map) {
+		ServerPlayer viewer = map.values().iterator().next().viewer;
+		Vec3 eye = viewer.getEyePosition();
+		Vec3 look = viewer.getLookAngle();
+		// the screen's right and up, as the player sees it
+		Vec3 right = look.cross(new Vec3(0, 1, 0));
+		right = right.lengthSqr() < 1e-6 ? new Vec3(1, 0, 0) : right.normalize();
+		Vec3 up = right.cross(look).normalize();
 		Mark best = null;
 		double bestCos = FOCUS_COS;
+		List<Mark> order = new ArrayList<>();
+		Map<Mark, double[]> at = new HashMap<>();
 		for (Mark m : map.values()) {
-			Vec3 to = m.signAt.subtract(m.viewer.getEyePosition());
-			if (to.lengthSqr() < 1e-4) continue;
-			double cos = m.viewer.getLookAngle().dot(to.normalize());
-			if (cos > bestCos) {
-				bestCos = cos;
+			Vec3 to = m.signAt.subtract(eye);
+			double len = to.length();
+			if (len < 1e-3) continue;
+			Vec3 dir = to.scale(1 / len);
+			double ahead = dir.dot(look);
+			if (ahead <= 0.05) {
+				m.show = 0;
+				continue;
+			}
+			// where it is on screen, and how deep (sizes shrink with the depth)
+			at.put(m, new double[] {dir.dot(right) / ahead, dir.dot(up) / ahead, len * ahead});
+			order.add(m);
+			if (ahead > bestCos) {
+				bestCos = ahead;
 				best = m;
 			}
 		}
-		for (Mark m : map.values()) m.full = m == best;
+		Mark focused = best;
+		order.sort((a, b) -> a == focused ? -1 : b == focused ? 1 : Double.compare(a.metres, b.metres));
+		List<Box> taken = new ArrayList<>();
+		// every gem takes its own room
+		for (Mark m : order) {
+			double[] c = at.get(m);
+			double half = HALF * m.scale / c[2];
+			taken.add(new Box(c[0] - half, c[1] - half, c[0] + half, c[1] + half));
+		}
+		for (Mark m : order) {
+			double[] c = at.get(m);
+			int want = m == focused ? 2 : 1;
+			// a text pixel of the label, on screen; the label sits just above the gem
+			double px = 0.025 * LABEL_SIZE * m.scale / c[2];
+			double width = labelText(m, want, Math.max(0, m.metres)).getString().length() * 6 * px;
+			double bottom = c[1] + (HALF + 0.08) * m.scale / c[2];
+			Box box = new Box(c[0] - width / 2, bottom, c[0] + width / 2, bottom + 10 * px);
+			boolean free = m == focused || taken.stream().noneMatch(box::hits);
+			m.show = free ? want : 0;
+			if (free) taken.add(box);
+		}
 	}
 
 	private static void animate(Mark m, int ticksLeft) {
@@ -315,8 +373,7 @@ final class PingMarks {
 				byte a = (byte) FADE[step];
 				m.mark.setTextOpacity(a);
 				m.label.setTextOpacity(a);
-				int bg = ((LABEL_BACKGROUND >>> 24) * FADE[step] / 255) << 24 | (LABEL_BACKGROUND & 0xFFFFFF);
-				m.label.setBackground(bg);
+				m.label.setBackground(background(m));
 				for (TextDisplayElement e : new TextDisplayElement[] {m.pillar, m.line, m.ring}) {
 					if (e != null) e.setTextOpacity(a);
 				}
@@ -335,7 +392,7 @@ final class PingMarks {
 		long now = System.currentTimeMillis();
 		for (Iterator<Map<UUID, Mark>> maps = MARKS.values().iterator(); maps.hasNext(); ) {
 			Map<UUID, Mark> map = maps.next();
-			if (server.getTickCount() % 3 == 0) focus(map);
+			if (server.getTickCount() % 3 == 0 && !map.isEmpty()) layout(map);
 			for (Iterator<Mark> it = map.values().iterator(); it.hasNext(); ) {
 				Mark m = it.next();
 				ServerPlayer v = m.viewer;
@@ -352,7 +409,7 @@ final class PingMarks {
 				} else if (m.age > 5 && m.age % 2 == 0 && Math.abs(want - m.scale) > m.scale * 0.03f) {
 					resize(m, want, 3);
 				}
-				if (m.age % 5 == 0 || m.full != m.shownFull) label(m);
+				if (m.age % 5 == 0 || m.show != m.shown) label(m);
 				animate(m, (int) ((m.ping.until() - now) / 50));
 				m.site.tick();
 				m.sign.tick();
