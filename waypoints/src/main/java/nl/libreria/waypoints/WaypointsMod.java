@@ -30,6 +30,7 @@ import nl.libreria.core.Notify;
 import nl.libreria.core.PlaceList;
 import nl.libreria.core.PlayerStore;
 import nl.libreria.core.Say;
+import nl.libreria.core.ServerSetting;
 import nl.libreria.core.Services;
 import nl.libreria.core.Setting;
 import nl.libreria.core.Ui;
@@ -47,7 +48,12 @@ public final class WaypointsMod implements ModInitializer {
 			"Look at a spot and ping it: everyone", "near you sees it for 30 seconds.", "{drop} works at any distance, {pick}",
 			"(pick block) within reach.").in(Domain.PLACES, "Pinging");
 	public static final Setting.Toggle SEE_PINGS = MODULE.toggle("pings_see", "Pings from others", true, Items.ENDER_EYE,
-			"See where others ping (a card, and", "the way there if you're not following", "one already).").in(Domain.PLACES, "Pinging");
+			"See where others ping (a marker on the", "spot, a card, and the way there if", "you're not being shown one already).").in(Domain.PLACES, "Pinging");
+	/** How a ping looks on the spot, the same for everybody (see {@link PingMarks}). */
+	public static final ServerSetting.Choice PING_LOOK = MODULE.serverChoice("ping_look", "Pings look like", Items.SPYGLASS, 0,
+			new String[] {"A pillar of light", "A diamond"}, "How a ping shows on the spot, the same for",
+			"everybody: a short pillar of light with a", "gem above it, or a diamond with a line down",
+			"and rings on the ground. Either one shows", "through walls, with who, what and how far.");
 	public static final Setting.Toggle DEATH_BEAM = MODULE.toggle("sterfplek", "Show the way back after dying", true, Items.SKELETON_SKULL,
 			"After respawning, a beam shows you", "the way back to where you died.").in(Domain.PLACES, "When you die");
 	public static final Setting.Toggle DEATH_MESSAGE = MODULE.toggle("bericht", "Coordinates in chat after dying", true, Items.PAPER,
@@ -115,8 +121,13 @@ public final class WaypointsMod implements ModInitializer {
 				"/ping clear – take your ping away",
 				"/deathpoint – show the way to where you died");
 		Pings.init();
+		nl.libreria.core.Pack.addAssets("libreria_waypoints");
+		PING_LOOK.onChange(PingMarks::rebuild);
 		ServerTickEvents.END_SERVER_TICK.register(Pings::tick);
-		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> Pings.clear(handler.player.getUUID()));
+		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
+			Pings.clear(handler.player.getUUID());
+			PingMarks.forgetViewer(handler.player.getUUID());
+		});
 		WaypointPlaces.register();
 		// Graves adds the same tab with its graves in it; without graves, the death point gets the button
 		if (!net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("libreria_graves")) {
@@ -210,6 +221,21 @@ public final class WaypointsMod implements ModInitializer {
 		}
 		Guide.toPoint(p, p.level(), Vec3.atBottomCenterOf(point.pos()), new ItemStack(point.item()), Component.literal(point.name), 0);
 		return true;
+	}
+
+	/** For the screenshots: someone else (a stand-in player) pings a spot, as if they pressed the key. */
+	public static void debugPing(ServerLevel level, String name, Vec3 at, String what) {
+		net.fabricmc.fabric.api.entity.FakePlayer fake = net.fabricmc.fabric.api.entity.FakePlayer.get(level,
+				new com.mojang.authlib.GameProfile(UUID.nameUUIDFromBytes(("ping:" + name).getBytes(java.nio.charset.StandardCharsets.UTF_8)), name));
+		Pings.forgetCooldown(fake.getUUID());
+		Pings.pingAt(fake, level, at, Component.literal(what));
+		Guide.clear(fake);
+		PingMarks.forgetViewer(fake.getUUID());
+	}
+
+	/** For the screenshots: take every ping away. */
+	public static void debugClearPings() {
+		for (UUID owner : new ArrayList<>(Pings.ACTIVE.keySet())) Pings.clear(owner);
 	}
 
 	static @Nullable UUID uuid(@Nullable String s) {

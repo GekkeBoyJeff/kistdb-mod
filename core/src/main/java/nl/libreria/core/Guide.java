@@ -52,10 +52,11 @@ public final class Guide {
 		Vec3 center;
 		Vec3 top;
 		BlockPos anchor;
-		ElementHolder site;
-		ElementHolder follow;
-		BlockDisplayElement line;
-		TextDisplayElement label;
+		/** All four are null when the caller draws the spot itself ({@link #follow}). */
+		@Nullable ElementHolder site;
+		@Nullable ElementHolder follow;
+		@Nullable BlockDisplayElement line;
+		@Nullable TextDisplayElement label;
 		Component what;
 		int count;
 		int ticksLeft;
@@ -77,11 +78,24 @@ public final class Guide {
 
 	/** Straal naar een punt in de wereld (bv. een waypoint of je sterfplek). */
 	public static void toPoint(ServerPlayer player, ServerLevel level, Vec3 point, @Nullable ItemStack icon, Component what, int seconds) {
-		start(player, level, null, point.add(0, 0.5, 0), point.add(0, 1.0, 0), icon, what, 0, seconds);
+		start(player, level, null, point.add(0, 0.5, 0), point.add(0, 1.0, 0), icon, what, 0, seconds, false);
+	}
+
+	/**
+	 * The way to a point without drawing anything there (no line, column or label): only the arrow and distance in the
+	 * action bar, "Arrived" and the compass marker. For a spot that draws its own marker, such as a ping.
+	 */
+	public static void follow(ServerPlayer player, ServerLevel level, Vec3 point, Component what, int seconds) {
+		start(player, level, null, point.add(0, 0.5, 0), point.add(0, 1.0, 0), null, what, 0, seconds, true);
 	}
 
 	private static void start(ServerPlayer player, ServerLevel level, @Nullable AABB box, Vec3 center, Vec3 top,
 			@Nullable ItemStack icon, Component what, int count, int seconds) {
+		start(player, level, box, center, top, icon, what, count, seconds, false);
+	}
+
+	private static void start(ServerPlayer player, ServerLevel level, @Nullable AABB box, Vec3 center, Vec3 top,
+			@Nullable ItemStack icon, Component what, int count, int seconds, boolean bare) {
 		clear(player);
 		Beam b = new Beam();
 		b.player = player;
@@ -93,6 +107,10 @@ public final class Guide {
 		b.what = what;
 		b.count = count;
 		b.ticksLeft = (seconds > 0 ? seconds : Libreria.GUIDE_SECONDS.get(player)) * 20;
+		if (bare) {
+			ACTIVE.put(player.getUUID(), b);
+			return;
+		}
 
 		// --- bij het doel ---
 		b.site = new ElementHolder();
@@ -232,18 +250,18 @@ public final class Guide {
 					clear(p);
 					continue;
 				}
-				updateLine(b);
+				if (b.line != null) updateLine(b);
 				double dist = p.position().distanceTo(b.center);
 				if (tick % 5 == 0) {
-					b.label.setText(labelText(b));
+					if (b.label != null) b.label.setText(labelText(b));
 					Component bar = Component.literal(arrow(p, b.center) + " ").withStyle(ChatFormatting.AQUA, ChatFormatting.BOLD)
 							.append(b.what.copy().withStyle(ChatFormatting.WHITE))
 							.append(Component.literal("  " + Math.round(dist) + " m").withStyle(ChatFormatting.YELLOW))
 							.append(Component.literal("  (" + b.anchor.getX() + " " + b.anchor.getY() + " " + b.anchor.getZ() + ")").withStyle(ChatFormatting.GRAY));
 					Hud.show(p, "guide", bar, Hud.PRIO_GUIDE, 30);
 				}
-				b.site.tick();
-				b.follow.tick();
+				if (b.site != null) b.site.tick();
+				if (b.follow != null) b.follow.tick();
 				if (b.box == null) {
 					// Punt: aangekomen als je er (bijna) staat
 					if (dist < 2.5) arrive(p);
@@ -295,8 +313,8 @@ public final class Guide {
 	public static void clear(ServerPlayer player) {
 		Beam b = ACTIVE.remove(player.getUUID());
 		if (b != null) {
-			b.site.destroy();
-			b.follow.destroy();
+			if (b.site != null) b.site.destroy();
+			if (b.follow != null) b.follow.destroy();
 			Hud.hide(player, "guide");
 		}
 	}

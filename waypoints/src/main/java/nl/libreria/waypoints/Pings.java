@@ -33,9 +33,10 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Pings: look at a spot (or an animal, a mob, a player) and press sneak + Q, or sneak + middle-click within reach.
- * Everyone in the same world within {@link #SEE} blocks gets a card with who pinged what and how far, and is shown the
- * way for {@link #SECONDS} seconds (unless they're already following a beam: then a chat line offers it). One ping per
- * player; a new one takes the old one's place.
+ * Everyone in the same world within {@link #SEE} blocks sees it on the spot for {@link #SECONDS} seconds ({@link PingMarks},
+ * in the look the server picked), gets a card with who pinged what and how far, and the way there in the action bar
+ * (unless they're already being shown the way somewhere: then a chat line offers it). One ping per player; a new one
+ * takes the old one's place.
  */
 final class Pings {
 	static final int SECONDS = 30;
@@ -122,16 +123,15 @@ final class Pings {
 		LAST.put(p.getUUID(), now);
 		Ping ping = new Ping(p.getUUID(), p.getName().getString(), level, at, what, now + SECONDS * 1000L);
 		ACTIVE.put(p.getUUID(), ping);
+		// your own: on the spot, and the arrow there when it's not right in front of you
+		PingMarks.show(p, ping);
+		if (p.position().distanceTo(at) > 6) Guide.follow(p, level, at, Ui.text("Your ping", COLOR), SECONDS);
+		Ui.sound(p, SoundEvents.NOTE_BLOCK_BELL, 0.5f, 1.8f);
 		int seen = 0;
 		for (ServerPlayer viewer : level.players()) {
-			if (viewer.position().distanceTo(at) > SEE) continue;
-			if (viewer == p) {
-				Guide.toPoint(viewer, level, at, new ItemStack(Items.SPYGLASS), Ui.text("Your ping", COLOR), SECONDS);
-				Ui.sound(viewer, SoundEvents.NOTE_BLOCK_BELL, 0.5f, 1.8f);
-				continue;
-			}
-			if (!WaypointsMod.SEE_PINGS.get(viewer)) continue;
+			if (viewer == p || viewer.position().distanceTo(at) > SEE || !WaypointsMod.SEE_PINGS.get(viewer)) continue;
 			seen++;
+			PingMarks.show(viewer, ping);
 			showTo(viewer, ping, true);
 		}
 		nl.libreria.core.Tips.once(p, WaypointsMod.TIP_PING);
@@ -139,7 +139,7 @@ final class Pings {
 		return true;
 	}
 
-	/** Someone else's ping: a card, a soft bell, and the way there (or a chat line when you're following a beam). */
+	/** Someone else's ping: a card, a soft bell, and the way there (or a chat line when you're being shown another way). */
 	private static void showTo(ServerPlayer viewer, Ping ping, boolean fresh) {
 		double d = viewer.position().distanceTo(ping.at());
 		MutableComponent title = Ui.text(ping.ownerName() + " pinged ", ChatFormatting.WHITE).append(ping.what().copy().withStyle(s -> s.withColor(COLOR)));
@@ -155,7 +155,8 @@ final class Pings {
 	}
 
 	private static void beam(ServerPlayer viewer, Ping ping) {
-		Guide.toPoint(viewer, ping.level(), ping.at(), new ItemStack(Items.SPYGLASS), Ui.text(ping.ownerName() + "'s ping", COLOR), ping.secondsLeft());
+		Guide.follow(viewer, ping.level(), ping.at(), Ui.text(ping.ownerName() + "'s ping", COLOR), ping.secondsLeft());
+		if (!PingMarks.has(viewer, ping.owner())) PingMarks.show(viewer, ping);
 	}
 
 	/** {@code /ping show <player>}: the way to their ping. */
@@ -175,13 +176,34 @@ final class Pings {
 
 	static void clear(UUID owner) {
 		ACTIVE.remove(owner);
+		PingMarks.removeOwner(owner);
+	}
+
+	/** For the screenshots: a stand-in player may ping again right away. */
+	static void forgetCooldown(UUID owner) {
+		LAST.remove(owner);
 	}
 
 	static void tick(MinecraftServer server) {
-		if (!WaypointsMod.MODULE.on()) return;
+		if (!WaypointsMod.MODULE.on()) {
+			PingMarks.clearAll();
+			return;
+		}
+		PingMarks.tick(server);
 		if (server.getTickCount() % 20 != 7 || ACTIVE.isEmpty()) return;
 		long now = System.currentTimeMillis();
 		ACTIVE.values().removeIf(p -> p.until() < now);
+		// who came near (or joined) after the ping was placed sees it too, without a card; who turned pings off doesn't
+		for (Ping ping : ACTIVE.values()) {
+			for (ServerPlayer viewer : ping.level().players()) {
+				boolean own = viewer.getUUID().equals(ping.owner());
+				boolean sees = own || WaypointsMod.SEE_PINGS.get(viewer);
+				boolean near = viewer.position().distanceTo(ping.at()) <= SEE;
+				boolean has = PingMarks.has(viewer, ping.owner());
+				if (sees && near && !has) PingMarks.show(viewer, ping);
+				else if (!sees && has) PingMarks.remove(viewer.getUUID(), ping.owner());
+			}
+		}
 	}
 
 	/** Active pings in this player's world, for the land map and compass. */

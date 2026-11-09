@@ -542,6 +542,44 @@ public final class Screens implements FabricClientGameTest {
 				ctx.takeScreenshot("ping_own");
 				run(server, "execute as @a run ping clear", f("fill %d %d %d %d %d %d minecraft:air", x + 2, y, z + 20, x + 2, y + 3, z + 20), "clear @a");
 				server.runOnServer(sv -> nl.libreria.core.Guide.clear(player));
+				// Someone else's ping close by, in both looks (the server setting): the pillar of light, then the diamond
+				// (its ring running out)
+				server.runOnServer(sv -> nl.libreria.waypoints.WaypointsMod.debugPing((ServerLevel) player.level(), "Anna",
+						net.minecraft.world.phys.Vec3.atBottomCenterOf(new BlockPos(x - 2, y, z + 9)), "Grass Block"));
+				ctx.getInput().lookAt(new BlockPos(x - 2, y + 1, z + 9));
+				ctx.waitTicks(20);
+				noToasts(ctx);
+				ctx.takeScreenshot("ping_pillar");
+				server.runOnServer(sv -> nl.libreria.waypoints.WaypointsMod.PING_LOOK.set(1));
+				ctx.waitTicks(12);
+				noToasts(ctx);
+				ctx.takeScreenshot("ping_diamond");
+				// Behind a wall: the diamond and its label show through
+				run(server, f("fill %d %d %d %d %d %d minecraft:stone_bricks", x - 7, y, z + 13, x + 7, y + 5, z + 13));
+				server.runOnServer(sv -> nl.libreria.waypoints.WaypointsMod.debugPing((ServerLevel) player.level(), "Bram",
+						net.minecraft.world.phys.Vec3.atBottomCenterOf(new BlockPos(x + 3, y, z + 34)), "Stone"));
+				ctx.getInput().lookAt(new BlockPos(x + 3, y + 2, z + 34));
+				ctx.waitTicks(20);
+				noToasts(ctx);
+				ctx.takeScreenshot("ping_wall");
+				// Far beyond what you can see: drawn on the way there, the same size on screen
+				server.runOnServer(sv -> nl.libreria.waypoints.WaypointsMod.debugPing((ServerLevel) player.level(), "Cas",
+						net.minecraft.world.phys.Vec3.atBottomCenterOf(new BlockPos(x - 60, y, z + 330)), "Grass Block"));
+				ctx.getInput().lookAt(new BlockPos(x - 60, y + 2, z + 330));
+				ctx.waitTicks(20);
+				noToasts(ctx);
+				ctx.takeScreenshot("ping_far");
+				server.runOnServer(sv -> nl.libreria.waypoints.WaypointsMod.PING_LOOK.set(0));
+				ctx.getInput().lookAt(new BlockPos(x + 3, y + 2, z + 34));
+				ctx.waitTicks(15);
+				noToasts(ctx);
+				ctx.takeScreenshot("ping_wall_pillar");
+				server.runOnServer(sv -> {
+					nl.libreria.waypoints.WaypointsMod.debugClearPings();
+					nl.libreria.waypoints.WaypointsMod.PING_LOOK.reset();
+					nl.libreria.core.Guide.clear(player);
+				});
+				run(server, f("fill %d %d %d %d %d %d minecraft:air", x - 7, y, z + 13, x + 7, y + 5, z + 13));
 				ctx.getInput().lookAt(0, 0);
 			});
 			// A search lights up what you looked for: in the chest it lies in (the rest dims) and in your inventory
@@ -1154,7 +1192,7 @@ public final class Screens implements FabricClientGameTest {
 			menu(ctx, server, player, "window_effects",
 					p -> nl.libreria.core.Services.menu(nl.libreria.core.Services.MENU_EFFECTS).ifPresent(open -> open.accept(p)));
 			menu(ctx, server, player, "window_admin", nl.libreria.core.gui.AdminWindow::open);
-			for (Module m : List.of(nl.libreria.core.Libreria.MODULE, nl.libreria.claims.ClaimsMod.MODULE)) {
+			for (Module m : List.of(nl.libreria.core.Libreria.MODULE, nl.libreria.claims.ClaimsMod.MODULE, nl.libreria.waypoints.WaypointsMod.MODULE)) {
 				menu(ctx, server, player, "window_admin_" + m.id, p -> nl.libreria.core.gui.AdminWindow.open(p, m));
 			}
 			server.runOnServer(s -> {

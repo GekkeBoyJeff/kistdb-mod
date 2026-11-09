@@ -57,6 +57,15 @@ public final class AdminWindow {
 				case ServerSetting.Number n -> w.slider(s.key, label, n.min, n.max, n.step, n.get());
 				case ServerSetting.Toggle t -> w.toggle(s.key, label, t.get());
 				case ServerSetting.Text t -> w.field(s.key, label, t.get(), t.maxLength);
+				case ServerSetting.Choice c -> {
+					List<String> ids = new ArrayList<>();
+					List<Component> names = new ArrayList<>();
+					for (int i = 0; i < c.options.size(); i++) {
+						ids.add(Integer.toString(i));
+						names.add(Ui.text(c.options.get(i), ChatFormatting.WHITE));
+					}
+					w.choice(s.key, label, ids, names, Integer.toString(c.get()));
+				}
 			}
 		}
 		// The players' own settings: each player chooses (starting at what you set here), or one value for everybody
@@ -156,6 +165,13 @@ public final class AdminWindow {
 						continue;
 					}
 					t.set(text);
+				}
+				case ServerSetting.Choice c -> {
+					try {
+						c.set(Integer.parseInt(v.text(s.key, Integer.toString(c.get()))));
+					} catch (NumberFormatException e) {
+						continue;
+					}
 				}
 			}
 			if (!before.equals(s.display())) {

@@ -24,6 +24,25 @@ final class WaypointsTests {
 				SelfTests.check(Pings.pingAt(a, level, spot, Component.literal("Oak Log")), "a ping");
 				Pings.Ping ping = Pings.ACTIVE.get(a.getUUID());
 				SelfTests.check(ping != null && ping.at().equals(spot) && "Pinger".equals(ping.ownerName()), "the ping is stored with who and where");
+				SelfTests.check(PingMarks.has(a, a.getUUID()), "your own ping shows on the spot for you");
+				PingMarks.show(b, ping);
+				SelfTests.check(PingMarks.has(b, a.getUUID()) && PingMarks.lookOf(b, a.getUUID()) == WaypointsMod.PING_LOOK.get(),
+						"and for someone else, in the server's look");
+				for (int i = 0; i < 8; i++) PingMarks.tick(level.getServer());
+				SelfTests.check(PingMarks.has(b, a.getUUID()), "it stays while the ping is up");
+				int look = WaypointsMod.PING_LOOK.get();
+				try {
+					WaypointsMod.PING_LOOK.set(PingMarks.DIAMOND);
+					SelfTests.check(PingMarks.lookOf(b, a.getUUID()) == PingMarks.DIAMOND && "A diamond".equals(WaypointsMod.PING_LOOK.display()),
+							"another look in the server settings applies at once (" + PingMarks.lookOf(b, a.getUUID()) + ")");
+					for (int i = 0; i < 8; i++) PingMarks.tick(level.getServer());
+					WaypointsMod.PING_LOOK.set(PingMarks.PILLAR);
+					SelfTests.check(PingMarks.lookOf(b, a.getUUID()) == PingMarks.PILLAR, "and back");
+					WaypointsMod.PING_LOOK.set(7);
+					SelfTests.check(WaypointsMod.PING_LOOK.get() == WaypointsMod.PING_LOOK.def, "an option that isn't there: the default");
+				} finally {
+					WaypointsMod.PING_LOOK.set(look);
+				}
 				SelfTests.check(!Pings.pingAt(a, level, spot.add(1, 0, 0), Component.literal("Stone")), "not twice in a moment");
 				SelfTests.check(Pings.ACTIVE.get(a.getUUID()).at().equals(spot), "the first ping stays");
 				SelfTests.check(Pings.show(b, a.getUUID()) && Guide.has(b), "someone else is shown the way to it");
@@ -32,11 +51,14 @@ final class WaypointsTests {
 				SelfTests.check("east".equals(Pings.direction(a, new Vec3(130.5, 80, 100.5))), "east is +x");
 				Pings.clear(a.getUUID());
 				SelfTests.check(!Pings.ACTIVE.containsKey(a.getUUID()) && !Pings.show(b, a.getUUID()), "cleared: gone for everyone");
+				SelfTests.check(!PingMarks.has(a, a.getUUID()) && !PingMarks.has(b, a.getUUID()), "and off the spot");
 				SelfTests.check(Pings.SECONDS == 30 && Pings.REACH >= 128, "30 seconds, far enough to ping a hill");
 			} finally {
 				Guide.clear(a);
 				Guide.clear(b);
 				Pings.clear(a.getUUID());
+				PingMarks.forgetViewer(a.getUUID());
+				PingMarks.forgetViewer(b.getUUID());
 			}
 		});
 		SelfTests.register("waypoints.death", level -> {

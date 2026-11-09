@@ -14,7 +14,7 @@ import net.minecraft.world.item.Item;
  *
  * <p>Player settings ({@link Setting}) are what a player chooses for themselves; these are the house rules.
  */
-public abstract sealed class ServerSetting permits ServerSetting.Number, ServerSetting.Toggle, ServerSetting.Text {
+public abstract sealed class ServerSetting permits ServerSetting.Number, ServerSetting.Toggle, ServerSetting.Text, ServerSetting.Choice {
 	/** Stored values: "module.key" → value as text. */
 	public static final class Data {
 		public Map<String, String> values = new HashMap<>();
@@ -187,6 +187,46 @@ public abstract sealed class ServerSetting permits ServerSetting.Number, ServerS
 		@Override
 		public String display() {
 			return isSet() ? get() : "—";
+		}
+
+		@Override
+		public void reset() {
+			setRaw(null);
+		}
+	}
+
+	/** One of a few options (stored as the option's number), shown as a button that cycles through them. */
+	public static final class Choice extends ServerSetting {
+		public final int def;
+		public final List<String> options;
+
+		Choice(Module module, String key, String label, Item icon, List<String> lore, int def, List<String> options) {
+			super(module, key, label, icon, lore);
+			if (options.size() < 2 || def < 0 || def >= options.size()) throw new IllegalArgumentException(key + ": bad options");
+			this.def = def;
+			this.options = List.copyOf(options);
+		}
+
+		/** The chosen option: 0 for the first. */
+		public int get() {
+			String r = raw();
+			if (r == null) return this.def;
+			try {
+				int v = Integer.parseInt(r);
+				return v >= 0 && v < this.options.size() ? v : this.def;
+			} catch (NumberFormatException e) {
+				return this.def;
+			}
+		}
+
+		public void set(int value) {
+			int v = value >= 0 && value < this.options.size() ? value : this.def;
+			setRaw(v == this.def ? null : Integer.toString(v));
+		}
+
+		@Override
+		public String display() {
+			return this.options.get(get());
 		}
 
 		@Override

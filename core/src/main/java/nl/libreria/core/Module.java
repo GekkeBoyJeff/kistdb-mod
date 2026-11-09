@@ -186,6 +186,13 @@ public final class Module {
 		return s;
 	}
 
+	/** A server-wide choice of a few options (a button that cycles through them in the admin window). */
+	public ServerSetting.Choice serverChoice(String key, String label, Item icon, int def, String[] options, String... lore) {
+		ServerSetting.Choice s = new ServerSetting.Choice(this, key, label, icon, List.of(lore), def, List.of(options));
+		this.serverSettings.add(s);
+		return s;
+	}
+
 	/** A server-wide line of text (a link, a welcome line…). */
 	public ServerSetting.Text serverText(String key, String label, Item icon, String def, int maxLength, String... lore) {
 		ServerSetting.Text s = new ServerSetting.Text(this, key, label, icon, List.of(lore), def, maxLength);
