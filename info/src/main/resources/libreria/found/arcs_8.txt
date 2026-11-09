@@ -1,43 +1,58 @@
 # Stories, eighth book. Format as in arcs_1.txt.
 
 @ remembered | The Zombie Who Remembered
+> Zombies don't remember anything. That's the whole point of zombies. But there was one, outside a village in the hills, that kept stopping: at a farm, at a well, under a window. It never hurt a child. It walked the same way every night. And slowly, the village worked out who it had been.
 iron_shovel@mob | Something About a Garden | Carried by a zombie that would stop, now and then, at the edge of a farm, and stand very still, and look at the carrots for a long time before it remembered it was hungry for other things.
 iron_sword@mob | Something About a Promise | It never swung this at children. It swung at everyone else. Whatever it promised, a very long time ago, part of it is still keeping the promise.
 leather_helmet@mob | Something About a Name | Inside, stitched in faded thread: "Tom". The zombie wearing it would turn its head when the villagers shouted at each other. Only when somebody shouted "Tom".
 chainmail_chestplate@mob | Something About Rain | It always walked out into the rain, when the others went to hide from the sun in the morning. It stood in the rain with its face turned up, until it burned. As if it liked the rain, once.
 iron_boots@mob | Something About Going Home | Its tracks went the same way every night: down the hill, past the well, to a house that isn't there any more, and a door that is only a doorframe. It knocked. Every night. It knocked.
+leather_leggings@mob | Something About Dancing | When the village held its harvest dance, it came and stood at the edge of the torchlight and swayed. Just a little. Somebody's grandmother said her husband used to sway exactly like that. Nobody said anything after that. They just left the gate open.
 
 @ archercorps | The Skeleton Archer Corps
+> Every skeleton you meet in the dark is a member of the Skeleton Archer Corps, the oldest army in the world and by far the boniest. They have no eyes, no muscles and no fear of you whatsoever. What they do have is discipline, a parade every midnight, and a drill sergeant who never, ever stops shouting.
 bow@mob | Drill Sergeant Rattlebones | "LISTEN UP, RECRUITS. WE HAVE NO EYES. THAT IS NOT AN EXCUSE. WE HAVE NO MUSCLES. THAT IS NOT AN EXCUSE. WE BURN IN THE SUN. THAT, ADMITTEDLY, IS AN EXCUSE."
 bow@mob | Private Femur | Private Femur once shot a creeper by accident and blew up his whole squad. He was given a medal, a demotion and a new squad, in that order. The new squad keeps its distance.
 bow@mob | Corporal Clatter | Clatter's arrows always went a bit to the left. He compensated by aiming a bit to the right. He has never hit anything. He has never stopped trying. The Corps respects that.
 chainmail_helmet@mob | The Sergeant's Helmet | Rattlebones wore it to look official. It slid down over his eye sockets in every battle. He commanded blind for sixty years and claims he never noticed.
 chainmail_chestplate@mob | Parade Armour | Worn once a year, for the Corps parade at midnight. The parade marches around a dungeon spawner in a circle. Nobody watches. That's fine. It's not for anyone else.
+chainmail_leggings@mob | The Drummer's Greaves | The Corps had a drummer. Skeletons don't have drums, so he drummed on his own ribs: every march, every parade, every retreat, in perfect time. When the sun came up, he drummed faster.
 
 @ hagra | Hagra's Very Fair Trades
+> Hagra is the fairest trader in the whole Nether, says Hagra. Hagra's goods are all very good, says Hagra. Nobody else has ever said anything about Hagra, mostly because they are still counting their fingers.
 iron_boots@barter | First Trade | Hagra the piglin gave these for one gold ingot. "GOOD BOOTS. NO HOLES. ONLY SOME HOLES. HOLES FOR AIR." The holes were not for air.
 iron_boots@barter | Second Trade | "SAME BOOTS AGAIN. HUMAN BOUGHT BOOTS, HUMAN DROPPED BOOTS IN LAVA, HAGRA FISHED BOOTS OUT. ALMOST NEW. HOT. DO NOT PUT ON YET."
 iron_boots@barter | Third Trade | "LAST BOOTS. HAGRA HAS NO MORE BOOTS. HAGRA HAS NEVER HAD BOOTS. HAGRA FINDS BOOTS. NOBODY ASKS WHERE. GOOD HUMAN. NO ASK."
+golden_helmet@nether | The Very Fair Hat | "HAT. GOOD HAT. WAS ON A HEAD BEFORE. HEAD NOT NEED IT NOW. HEAD SAID OK. HEAD DID NOT SAY ANYTHING. CLOSE ENOUGH. ONE GOLD."
+golden_sword@nether | Hagra's Change | "HUMAN PAID TOO MUCH. HAGRA GIVES CHANGE. CHANGE IS SWORD. HUMAN SAYS NO NEED FOR CHANGE. HAGRA INSISTS. HAGRA ALWAYS INSISTS. NOW HUMAN OWES HAGRA FOR SWORD."
 
 @ fortresscook | The Nether Fortress Kitchen
+> Before the wither skeletons took the nether fortresses, every fortress had a kitchen, and every kitchen had a cook. The food was terrible. The kitchens were on fire. The cooks were magnificent. One kitchen is still going, in a manner of speaking, and you can smell it from three bridges away.
 golden_sword@fortress | The Head Cook's Knife | The fortress had a cook once, before the wither skeletons took over the kitchen. He made a soup out of magma cream and bad decisions. Everyone ate it. Nobody asked for seconds.
 golden_chestplate@fortress | The Cook's Apron | Gold, because everything in the kitchen was on fire all the time. It has a gravy stain that is older than most villages. The gravy is still slightly warm.
 flint_and_steel@fortress | The Stove-Lighter | The fortress stove was lit with this once, a thousand years ago, and never went out. Not because anyone kept it going. Because the whole fortress is a stove.
+golden_helmet@nether | The Chef's Hat | Gold, tall and badly dented. The wither skeletons who took the kitchen fight over who gets to wear it. None of them can cook. All of them try. The fortress smells of burnt magma every evening.
+golden_boots@nether | The Kitchen Clogs | The cook walked on a floor that was mostly lava in these for forty years. He said the trick was never to stand still, which is also, he said, the trick to soup.
 
 @ smallthings | The Fisher of Small Things
+> Rosa fished off the old jetty every morning for fifty years, and her husband sat beside her and made very sure he never caught more than she did. It's a small story, about a small jetty and two people who loved each other quietly. It has an ending. You'll want a cup of tea for it.
 fishing_rod@fishing | Her Rod | Rosa fished every morning off the old jetty for fifty years. Her husband sat beside her and caught nothing, on purpose, so she would always win. She knew. She let him.
 fishing_rod@fishing | His Rod | After Rosa was gone, he kept fishing off the jetty, every morning, with her rod beside him, baited. He said she was just late. He said she was always late.
 bow@fishing | The Bow in the Water | Pulled up one morning on his line. Rosa's old bow, from when she was a girl and wanted to be an adventurer. He'd never known she had one. He sat on the jetty and laughed until he cried.
 leather_boots@fishing | The Last Catch | His boots, fished up years later by his granddaughter, off the same jetty, on her first morning there. She says there was a second tug on the line, right after, like someone saying hello.
+fishing_rod@fishing | The Granddaughter's Rod | She fishes off the old jetty now, every morning, with three rods: hers, his and Rosa's. She never catches much. She doesn't mind. She says the jetty is the only place in the world where she's never on her own.
 
 @ embergulch | The Embergulch Gold Rush
+> Word got out that there was gold in the ruined portals of Embergulch, and folks came from every corner of the world to dig for it. They built a town. Well, a building. It was the saloon, the bank, the jail and the church, and Big Martha ran all four with one axe.
 golden_pickaxe@ruined_portal | Prospector Dusty's Pick | Well now. Folks said there was gold in them ruined portals. Folks was right. Folks didn't say the gold was mostly in the shape of other folks' pickaxes. Still counts.
 golden_shovel@ruined_portal | The Claim Jumper's Spade | Snake-Eye Pete dug up three claims that weren't his with this here shovel. Then the fourth claim dug him up. That's the gulch for you. It gives and it takes and it don't explain.
 golden_axe@ruined_portal | Big Martha's Axe | Big Martha ran the saloon and the bank and the sheriff's office, on account of there being only one building. She settled arguments with this. There was a lot less arguing after the first one.
 golden_hoe@ruined_portal | The Gold Farmer | One fella tried to plant gold nuggets in the dirt to grow more gold. Tilled the whole gulch with this golden hoe. Nothing grew. He's still waiting. Says it's a slow crop.
 golden_helmet@ruined_portal | The Sheriff's Star | It ain't a star, it's a helmet, but the sheriff painted a star on it and nobody had the heart to tell him. He wore it proud. He was a good sheriff. Mostly he was a good man.
+golden_boots@ruined_portal | The Pianist's Boots | The gulch had one piano and one pianist, who played it with his feet because his hands were busy holding on to his gold. He knew one tune. The miners swore they were sick of it. Every one of them still hums it.
 
 @ copperpot | The Ballad of Sir Copperpot
+> Sir Copperpot set out to slay a monster in armour hammered from his grandmother's cooking pots. It turned green within a fortnight. It squeaked whenever he moved. No ambush he ever planned came as a surprise to anybody. And yet, against all reason, this is a story about a hero.
 copper_sword | The Gleaming Blade (Briefly) | Sir Copperpot set out on his quest with a blade that shone like the dawn. By the second week it was green. He called it "The Verdant Blade" and pretended he'd planned it.
 copper_chestplate | The Proud Breastplate | Hammered from his grandmother's cooking pots, with her permission and some reluctance. It still smells faintly of stew in the rain. Dragons, he says, are drawn to the scent of stew.
 copper_leggings | The Squeaking Greaves | You could hear Sir Copperpot coming from three hills away. Every ambush he planned, the enemy was already waiting, with snacks, curious to see what all the squeaking was.

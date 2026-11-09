@@ -1,6 +1,7 @@
 # Sets with a wink: heroes from the games a lot of us grew up with. Never named.
 
 @ knee | The Guard With the Bad Knee
+> Every walled town has one: the guard at the gate who used to be an adventurer, just like you, until a stray arrow ended his career and started his favourite story. He has told it to every traveller who ever passed. He has never once been asked to.
 iron_helmet | The Gate Guard's Helm | He was an adventurer like you, once. Every traveller who passed his gate heard about it. Every single one.
 iron_chestplate | The Gate Guard's Plate | He wore it to guard the same gate for thirty years. He told everyone about the dragons. Everyone had heard about the dragons.
 iron_leggings | The Bad Knee | The left knee is patched, padded and reinforced. You know why. He'll tell you why. He'll tell you twice.
@@ -9,71 +10,91 @@ bow | The One That Got Him | Not his. The bow of the bandit who shot the famous 
 shield | The Sweet Roll Shield | He used it to guard his lunch. Someone stole his sweet roll anyway. He never found out who. He's still asking.
 
 @ greenhero | The Hero in Green Who Never Spoke
+> A boy in green walked out of a little forest village with a borrowed sword, rescued a princess, saved a kingdom and never said a single word the whole time. Every hundred years or so, people say, another one turns up, in the same green cap, just as quiet.
 iron_sword | The Old Man's Gift | Given to a boy in a cave by an old man who said it was dangerous to go alone. The boy never said a word. He just nodded and took it.
 shield | The Hero's Shield | The boy blocked everything with this: arrows, fireballs, a chicken he'd hit once by accident and the very angry flock that followed.
 bow | The Hero's Bow | He used it to hit switches nobody else could reach. Every switch opened a door. Every door had a key behind it. He was very good at keys.
 iron_boots | The Iron Boots | So heavy he walked along the bottom of lakes in them. He said nothing about it. He never said anything about anything.
 leather_helmet | The Green Cap | Not technically a cap. He wore it anyway. Somewhere, a fairy is still shouting at him to listen.
+iron_axe | The Hookshot | Not a hookshot. An axe with a rope tied to the handle, which the boy threw at things and then pulled himself across to. It shouldn't have worked. Then again, neither should anything else he did.
 
 @ testsubject | The Test Subject
+> She woke in a white room with a voice in the ceiling that promised her cake. There were tests. There were more tests. The voice got less friendly and the cake got less likely, and one day she stopped doing the tests and started doing something about the voice.
 iron_boots | The Long-Fall Boots | Strange springs at the heels. You can fall from anywhere in these and walk away. They do not help with getting cake.
 iron_helmet | The Test Visor | The visor has a crack and a sticker: "Testing is mandatory. Cake is not guaranteed."
 leather_chestplate | The Test Suit | Orange and white, so the cameras could always find her. She hid from the cameras in every vent anyway.
 shield | The Companion Shield | It has a little heart painted on it. She carried it through every test and then had to leave it behind. She still thinks about it.
 iron_pickaxe | The Way Out | She dug her way out of the testing facility with this. The facility kept saying it was proud of her. It was lying.
+iron_shovel | The Escape Hatch | Every test chamber had a panel that didn't quite fit. She found all of them. Behind each one, the same scrawl on the wall, in the handwriting of someone who'd been there before her, warning her about the cake.
 
 @ greensoldier | The Soldier Who Never Took His Helmet Off
+> Nobody ever saw his face. He fought his way across a ring-shaped world, said very little, finished every fight he started, and then went to sleep in a little capsule and told them to wake him when they needed him. They need him quite a lot. Nobody knows how to wake him.
 golden_helmet | The Mirror Visor | Gold-tinted. Nobody ever saw the face behind it. When asked, the soldier only said he'd finish the fight.
 iron_chestplate | The Green Plate | Heavy, green and unbeatable. The soldier wore it for so long that some say there's nothing inside anymore.
 diamond_sword | The Glowing Blade | It shouldn't be possible to make a blade that glows like this from iron. He didn't ask questions. He just held the button.
 crossbow | The Sidearm | Fires faster than it should and hits harder than it should. He loved it more than any other weapon. Everyone did.
 iron_boots | Wake Me When You Need Me | Left neatly beside a sleeping capsule. The soldier went to sleep in it. Nobody has woken him up yet.
+leather_leggings | The Armour-Lock Greaves | He spent so long in his armour that the greaves fused at the knee. He walked stiff-legged for a year and called it standing at attention. It was the closest he ever came to a joke.
 
 @ ashen | The Ashen One
+> In a kingdom of fading fire, an unkindled one rose from an ashen grave and was told to put the old lords back on their thrones. She died. She got up. She died again, in new and educational ways, and every time the bonfire took her back. Here's what she carried. Praise the sun.
 iron_sword | The Unkindled Blade | Its owner died more times than anyone can count and stood back up every time, a little more tired, a little more stubborn.
 shield | The Sun Shield | Painted with a sun. The owner raised both arms to the sun every time she won. She won a lot, eventually.
 iron_helmet | The Ashen Helm | Covered in soot from a bonfire that never goes out. She sat by it after every death and stared at the flames.
 iron_chestplate | The Rolling Plate | Light enough to roll in. She rolled through everything: fires, swords, a giant's foot and once, by accident, off a bridge.
 leather_boots | The Messages | Scratched into the soles, in a hundred handwritings: "try jumping", "treasure ahead", "be wary of right". Don't trust any of them.
+leather_leggings | The Covenant Greaves | She joined every covenant in the land, one after another, and betrayed most of them by accident. These were from the one she never left: a little circle of travellers who only ever helped strangers through the hard parts.
 
 @ vaultdweller | The Wanderer From the Vault
+> For two hundred years his family lived in a vault under the ground while the world above fell apart. Then the vault door opened, and somebody had to go up and see what was left. He took a crossbow, a jumpsuit and a lunchbox, and he never once went back down.
 iron_helmet | The Vault Helm | Its owner came out of a vault under the ground after two hundred years and found the world had moved on without him.
 leather_chestplate | The Jumpsuit Plate | Blue and yellow, with a big number on the back. He never found out what the number meant. Neither will you.
 leather_boots | The Wasteland Boots | Walked across a whole ruined world collecting bottle caps, which turned out to be money. Don't ask. He didn't.
 crossbow | The Pip | Not a pip-anything. A crossbow with a tiny screen glued on. He said it helped. It did not help.
 shield | War Never Changes | Scratched on the front in tiny letters: "War. War never changes." Under it, in bigger letters: "but the snacks do".
+iron_sword | The Pre-War Blade | Found in the ruins of a town that had very strong opinions about who owned it. Seven factions offered him money for it. He sold it to all seven, one after the other, and was out of the valley before any of them compared notes.
 
 @ hood | The Hooded One
+> There's a woman in a white hood who climbs every tower, jumps off the top into a cart of hay, and is never, ever seen coming. Every city has a story about her. They don't all agree on whose side she's on. She'd say that's the whole point.
 leather_helmet | The White Hood | Its owner hid in plain sight by standing next to three villagers. It worked every time. Nobody understands why.
 leather_boots | The Leap of Faith | She jumped from the highest church in the land into a cart of hay. The hay held. She never thanked the hay.
 iron_sword | The Hidden Blade | Hidden in her sleeve. She had to give up a finger for it, the story goes. Read the rest of the stories. She had all ten.
 leather_chestplate | The Climbing Plate | She climbed every tower in every city to see the view. The view was a map. It was the same map. She climbed anyway.
 leather_leggings | The Rooftop Runner | Worn across a thousand rooftops. She never once used a door. Doors were for other people.
+crossbow | The Rope Launcher | She fired lines between rooftops with this and slid across the city on them, silent as a bird. Guards still look up at the sky every time a gull goes past, just in case.
 
 @ witcher | The Monster Hunter of the Wolf School
+> He walks into town, hums, takes a contract nobody else will touch, kills the thing in the swamp and walks out again with a little less coin than he was promised. White hair, two swords, one horse he talks to more than people. Mostly he says "hmm".
 iron_sword | The Steel Sword | For people. Its owner said "hmm" before every fight and after. That was most of his conversation.
 iron_axe | The Silver One | It was meant to be a silver sword, for monsters. The smith ran out of silver and made an axe. The hunter made it work.
 iron_helmet | The Wolf Medallion Helm | It vibrates when something magic is near. It vibrates near everything. He wore it anyway. "Hmm," he said.
 leather_chestplate | The Hunter's Coat | Stitched and restitched after every contract. The contracts paid in coin. He gave most of it to a bard who sang about him badly.
 leather_boots | Wind's Howling | Worn on a thousand roads, always walking into the wind. "Wind's howling," he'd say. It was always howling.
+iron_boots | The Long Road Boots | Resoled in every town on the Path. The cobbler in each one charged him double because of his eyes. He paid every time. He said the boots didn't care what he was, and that was more than he could say for most people.
 
 @ plan | The Gang's Last Plan
+> He rode with a gang that always had a plan: one more job, then the islands, then a quiet life. He believed in it longer than anyone. Everything they owned was stolen, every promise was borrowed, and the only honest day they ever had was a fishing trip on a lake.
 crossbow | The Leader's Revolver | Not a revolver; there are no revolvers here. A crossbow its owner called his revolver. He had a plan. He always had a plan.
 leather_helmet | The Wide Hat | An iron helmet with a brim welded on, for a cowboy who never saw a cow. He said one more job, then the islands. He meant it every time.
 leather_boots | The Clinking Spurs | Clink clink clink. You could hear him coming across the whole camp. Nobody ever had to ask where he was.
 leather_chestplate | The Vest | Its owner was loyal to the gang until the gang wasn't loyal to him. The vest has a hole in the back that tells that story.
 fishing_rod | The Fishing Trip | The only quiet day the gang ever had, out on a lake with a rod. He caught nothing. He said it was the best day of his life.
+leather_leggings | The Riding Chaps | Worn smooth on the inside of the knees from a hundred rides through the hills on the same old horse. He sang to the horse. The horse didn't mind. It was the only one in the gang who never let him down.
 
 @ leeroy | The Raider Who Shouted His Name
+> The party had a plan. A good plan, with diagrams. They spent twenty minutes on it. Then one of them came back from the kitchen, shouted his own name and charged straight in, and the plan went the way plans go. The rest of them still talk about it. They're not sure if they're angry.
 iron_helmet | The Raid Helm | The party spent twenty minutes making a perfect plan. He came back from the kitchen, shouted his own name and ran in.
 iron_chestplate | The Raid Plate | Covered in scorch marks from a nest of very small, very angry dragons. He survived for nine seconds. They were the best nine seconds of his life.
 iron_sword | The Charge Blade | He charged with it, shouting. The rest of the party did not charge. They watched. Then they charged, because what else could they do.
 shield | The Plan Shield | It has the plan painted on the back, in detail, with arrows. Nobody ever read it. Least of all him.
 iron_boots | At Least I Have Chicken | Worn on the run back from the kitchen. He had chicken. That was the only part of the plan that worked.
+leather_leggings | The Kitchen Trousers | Covered in gravy. He was making chicken when the plan was being made, and he heard none of it. Nine seconds later, everyone was dead. He maintains, to this day, that the chicken was worth it.
 
 @ crowbar | The Scientist With the Crowbar
+> He was a scientist, and he went to work one morning in an orange suit, and then the experiment went wrong. Very wrong. Wrong enough that he had to fight his way out of a research facility, across a city and through two whole adventures without ever saying a single word. He used a crowbar for most of it.
 iron_axe | The Crowbar | Not a crowbar. An axe its owner used as a crowbar, because there are no crowbars here. He was a scientist. He solved everything with it anyway.
 copper_chestplate | The Hazard Suit | Orange, padded, full of beeps. It told him his health every time he got hurt, which was constantly.
 leather_helmet | The Glasses Helm | A helmet with a pair of glasses scratched on the front. He never said a word, not once, in two whole adventures.
 copper_boots | Episode Two | The second part of his story ended on a terrible cliffhanger. He walked away from it in these boots.
 copper_leggings | Episode Three | You found it. This part was never supposed to exist. Please tell no one. The rest of the world has been waiting for it for a very long time.
+iron_pickaxe | The Gravity Pick | Hold it up and things come towards you: blocks, buckets, saw blades. It was a gift from a woman who believed in him more than he believed in himself. He used it to throw a radiator at someone once. He thinks she'd have laughed.

@@ -1,6 +1,7 @@
 # Stories, seventh book. Format as in arcs_1.txt.
 
 @ admiralty | The Admiralty of the Outer Isles
+> One day a ship set sail from the last island of the End, under an admiral who wanted to know what was past the edge. The crew kept a log. The log came back. The ship didn't. Each entry was scratched into something the crew wore, as if they knew paper wouldn't last where they were going.
 diamond_helmet@end_city | Admiral Seluun's Helm | Log of the flagship, first entry: we set sail from the last island. The void is calm. The Admiral wears her helm even to dinner. She says the stars here are watching. They are.
 diamond_chestplate@end_city | The Navigator's Plate | Log, twelfth entry: the Navigator reports that the islands are moving away from us, not we from them. The Admiral has ordered the ship to turn back. The ship has not turned back.
 diamond_leggings@end_city | The Purser's Greaves | Log, fortieth entry: rations are low. The purser has started counting the stars instead of the biscuits. He says there are more of them every night. He is right.
@@ -9,6 +10,7 @@ diamond_sword@end_city | The Admiral's Ceremonial Sword | Last entry, in a diffe
 diamond_pickaxe@end_city | The Quartermaster's Pick | Found in the hold of an End ship, with a note: "for chipping our way back in, if the islands ever come close enough again". They never did. The ships wait in the sky, docked and empty.
 
 @ bastionprisoner | The Vault Keeper's Servant
+> Piglins don't keep prisoners. Except once, in one vault, they kept a small human called Hollis to polish the treasure, because his hands were small and his work was careful. He was there for a very long time. He kept a diary the only way he could: by scratching it into the treasure.
 diamond_sword@bastion | Day One in the Vault | My name is Hollis. The piglins keep me to polish the treasure because my hands are small. This sword was the first thing I polished. I could see my face in it. I looked very tired.
 diamond_helmet@bastion | Day Thirty | I talk to the helmet now. It is the best listener in the vault. The piglins think it is funny that the human talks to the treasure. Maybe the treasure thinks so too.
 diamond_chestplate@bastion | Day One Hundred | I have scratched a little sun on the inside of this plate, where nobody will see. I don't remember what the real one looks like. I remember it was warm.
@@ -17,6 +19,7 @@ diamond_boots@bastion | The Night We Ran | We ran during the great feast, when t
 diamond_pickaxe@bastion | Hollis's Pick | Found by a collapsed tunnel in the vault, pointing towards the surface. Whoever dug it got very, very far. On the handle: a tiny, careful sun.
 
 @ trialwardens | The Grand Trials
+> Deep under the hills lies a vault of copper halls where adventurers once competed in the Grand Trials, cheered on by an announcer who never, ever stopped talking. The contestants are long gone. The halls still run. The announcer is still announcing, to an audience of copper statues and very confused breezes.
 diamond_axe@trial | Contestant Number Four | "AND HERE COMES CONTESTANT NUMBER FOUR, WITH A DIAMOND AXE AND A DREAM! The breezes are circling! The crowd is silent! The crowd is also made of copper statues, but still!"
 iron_chestplate@trial | Contestant Number Nine | "Number nine wore iron and good manners! She bowed to every mob before fighting it! The mobs were confused! She won by confusion! The judges allowed it!"
 bow@trial | The Archer of Hall Seven | "In Hall Seven, a bow that never missed! Except once! At the announcer! THE ANNOUNCER IS FINE! THE ANNOUNCER WOULD LIKE TO MOVE ON!"
@@ -25,11 +28,15 @@ shield@trial | The Shield of the Runner-Up | "The runner-up! Held this shield fo
 golden_pickaxe@trial | The Wardens' Trophy | Engraved: "Winner of the Grand Trials". The winner never collected it. The trials went on without anyone watching, year after year. The announcer never stopped announcing.
 
 @ gardener | The Last Gardener of the Deep
+> Nothing grows in the deep dark. Everybody knows that. And yet, in a buried city, behind a wall, somebody kept a garden for years: moss and glow berries in a square of soil, tended in perfect silence, a few steps from the thing that hunts by sound.
 diamond_hoe@ancient_city | Her Hoe | Down in the city of the deep dark, where nothing grows, someone kept a garden. Moss and glow berries in a square of soil, behind a wall, tended with this. In silence, of course. Always in silence.
 iron_leggings@ancient_city | Kneeling Greaves | Worn through at both knees from kneeling in the soil. She knelt there every day for years, whispering to the berries, which is the only safe way to talk to anything down there.
 diamond_leggings@ancient_city | The Watcher's Greaves | Someone else's, left beside the garden wall. The Warden walked past this garden for three hundred years and never once stepped on it. Nobody knows if it knew. Everybody hopes it did.
+leather_boots | Her Moss Slippers | She made slippers out of moss so she could walk to the garden without a sound. They still grow a little when it's damp, the way the garden did. Wherever they're kept, after a while, something green comes up beside them.
+shears | The Berry Snips | She clipped the glow berries with these and left one on top of the garden wall every evening. In the morning it was always gone. She never knew who took it. She hoped it was the big one. Everybody hopes it was the big one.
 
 @ brannoc | Brannoc the Smith Makes a Set
+> When his son signed up for the town guard at sixteen, Brannoc the smith didn't say a word. He went to the forge and made the boy a set of armour, piece by piece, and wrote in his workbook as he went. This is that workbook. You don't need to have children to feel it, but it helps.
 iron_helmet@village | The Helmet, First Try | Brannoc's workbook: "Our Aed has signed up for the guard. He is sixteen. Made him a helmet. Too heavy. Made it again. Too light. Made it a third time and cried in the forge where nobody could see."
 iron_chestplate@village | The Breastplate | "Hammered it thick over the heart. Thicker than the books say. The guard captain said it's too heavy to run in. Good. I don't want him running towards anything."
 iron_leggings@village | The Greaves | "Lined the knees with wool from Mrs Fenn's sheep. He'll be kneeling on cold stone on watch. His mother always said his knees were the first thing to get cold."
@@ -38,26 +45,33 @@ iron_sword@village | The Sword | "Last piece. Balanced it right on my finger, th
 iron_shovel@village | The Shovel, After | "Aed came home. In one piece. In the whole set. He laughed at me for crying. I dug a new flower bed today for no reason except that I'm happy. That's allowed."
 
 @ shepherd | A Shepherd's Year
+> Nothing happens in this story. A woman looks after forty-one sheep on a hill for a whole year: spring, summer, autumn, winter. There's no monster and no treasure, and nobody dies. People who find all of it usually say it was their favourite.
 shears@village | Spring | In spring the shears come out of the drawer, and the sheep, who know exactly what that sound means, all suddenly remember an appointment on the far side of the hill.
 leather_helmet@village | Summer | In summer she wears this against the sun and lies in the grass while the sheep do the work of being sheep. Clouds go over. Some of them look like sheep. She counts them, out of habit.
 leather_chestplate@village | Autumn | In autumn the wool is dyed in big pots behind the barn: red for the market, blue for the neighbours, one bright pink fleece for her little brother, who asked very nicely.
 leather_boots@village | Winter | In winter she walks the fields at dawn in these, breaking the ice on the troughs, and talking to every sheep by name. There are forty-one names. She has never once got one wrong.
 shears@village | The Old Shears | Her grandmother's shears, sharpened so often they're half the size they used to be. She doesn't use them. She keeps them in the drawer with the new ones so they can hear the sheep.
+leather_leggings@village | Lambing Night | One night every spring she sits up in the barn until dawn, in these, with a lantern and a flask of tea, waiting for the lambs. Some years there are twins. One year there were triplets, and she cried, and named them after her grandmother's three sisters.
 
 @ firstchest | The Book of the First Chest
+> Every world begins with a chest, and in the chest there is an axe, and somebody picks it up. This is the oldest story there is, told the way the oldest people tell it: slowly, solemnly, and with a great deal more about cows than you'd expect.
 wooden_axe@village | The First Axe | In the beginning there was a chest, and in the chest there was an axe, and the first of us took it up, and the first tree fell, and lo, it was very surprised.
 wooden_pickaxe@village | The First Pick | And from the tree came a table, and from the table came this pick, and the first of us struck the stone, and the stone said nothing, as stone will, but it was the beginning of a long conversation.
 stone_pickaxe@village | The Second Pick | And the stone was made into a better pick, and with it the first of us went down into the dark, and found coal, and made light, and understood that there would be no end to digging.
 stone_axe@village | The Axe That Built a House | And with this axe the first of us built a house of planks, just big enough for one, and slept there the first night, and heard the moaning outside, and was glad of the door.
+wooden_hoe | The First Field | And the first of us scratched the earth with a stick, and dropped in seeds, and waited, and nothing happened, and waited, and lo, it was wheat. And the first of us had bread, and was so pleased that the first of us told everyone. There was no one else. The first of us told the cow.
+iron_sword@village | The First Sword | And the first of us found iron in the mountain, and made of it a sword, and on that night the moaning outside the door stopped sounding frightening and started sounding like an invitation. And lo, the zombies were very sorry.
 
 @ stonesong | The Song of Saltmere
-stone_spear@shipwreck | First Verse | Down in the bay where the old town lies, the stones still remember the children's cries; we sang as we swam and we swam as we sang, and the bell in the tower rang and rang.
-stone_axe@shipwreck | Second Verse | Father built boats with this axe on the sand, the best boats in Saltmere, the best in the land; then the sea came up softly one night in the spring, and the boats were too slow for so big a thing.
-golden_helmet@shipwreck | Third Verse | The mayor wore gold so the sea would see that here was a town of good company; but the sea doesn't bargain and the sea doesn't bow, and the mayor's gold hat is the sea's hat now.
-fishing_rod@shipwreck | Fourth Verse | Mother still fishes, they say, from the street, with the fish swimming by at the height of her feet; and if you dive down where the old houses lie, you can see her, still waiting, still looking up high.
-leather_chestplate@shipwreck | Last Verse | So sing it again if you're out on the bay, for the town that is sleeping a fathom away; and if something below hums along to the tune, it's only Saltmere, waking up under the moon.
+> Saltmere was a fishing town on the bay until the night the sea came in and didn't go back out. There's a song about it, the kind every child on the coast learns before they can swim. Each verse turns up written on something brought up from the drowned town, by someone who wanted it remembered.
+stone_spear@shipwreck | First Verse | The song of Saltmere starts with the children, who swam in the bay every evening while the bell in the tower rang for supper. On the night the sea came in, the bell kept ringing long after anyone was left to come home. The fishermen who heard it never sang again.
+stone_axe@shipwreck | Second Verse | The second verse is about the boatbuilder, who made the best boats on the coast with this axe. When the water rose that spring it rose softly, at night, with all his boats tied up in the harbour waiting for morning. Morning came. The boats were too slow for something that big.
+golden_helmet@shipwreck | Third Verse | The third verse is about the mayor, who wore gold to meetings so the sea would see Saltmere was a town of importance. The sea doesn't bargain and doesn't bow. Divers say his helmet sits on a rock in the drowned square, polished bright by the current. It's the sea's helmet now.
+fishing_rod@shipwreck | Fourth Verse | In the fourth verse a mother still fishes from her kitchen window, with the fish going past at the height of her feet. Divers who go down to Saltmere swear they've seen her: a drowned woman in an apron, holding a line up towards the light, waiting for someone to tug back.
+leather_chestplate@shipwreck | Last Verse | The last verse isn't sad. It says: sing this if you're out on the bay, and if something down below hums along, don't be frightened. That's only Saltmere, waking up for the evening. Sailors sing it every time they pass. Some swear they've heard the hum.
 
 @ redsail | Captain Redsail's Treasure
+> Captain Redsail buried his treasure on an island, drew a map, lost the map, found it again, lost his ship, and finally lost his memory of where he'd put any of it. His crew remembers a bit. His trousers, apparently, remember the rest. Arr.
 iron_sword@buried | The Captain's Cutlass | Arr. If ye be readin' this, ye've found me cutlass, which means ye've found me treasure, which means ye've had a better day than I have. Congratulations. Arr.
 iron_spear@buried | The Boarding Pike | I boarded forty ships with this. Thirty-nine of them were merchant ships. One was a very large barrel. I do not wish to talk about the barrel.
 leather_chestplate@buried | The Captain's Coat | Me lucky coat. I buried it with the treasure because a fortune teller said the coat would be the death of me. She was a seagull, but she seemed very sure.

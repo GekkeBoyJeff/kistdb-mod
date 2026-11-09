@@ -1,12 +1,16 @@
 # Stories, tenth book. Format as in arcs_1.txt.
 
 @ waited | The Dog Who Waited
+> This story is told by a dog. He is a good dog. His person went up the mountain one winter and told him to stay, so he stayed. That's all you need to know before you start. You may want to find all of it in one go.
 leather_helmet | His Hat | This is his hat. It smells like him. He put it on my head once and laughed and I wagged so hard I fell over. He said stay. I am staying.
 leather_boots | His Boots | These are his boots. He walked to the mountain in them. He said stay, so I stayed by the door. The snow came. The snow went. I am a very good stay.
 iron_sword | His Sword | Somebody brought back his sword. They patted my head and their eyes were wet. I don't know why. He is coming. He said stay. I am staying.
 bow | His Bow | I am old now and slow. A girl from the village brings me bones and sits with me by the door. She says he would be proud. I think so too. I am still staying. He said.
+leather_chestplate | His Coat | This is his coat. The girl from the village put it down by the door for me to sleep on. It smells like him and like snow. When I sleep on it I dream that I hear him coming up the path, whistling. I always wake up wagging.
+shield | The Shield on the Wall | The girl hung his shield over the door so he would see it from far away and know where home is. Today she sat with me longer than usual. She said I could go and find him now if I wanted. I think I will. I think he's been waiting too.
 
 @ elowen | Dame Elowen's Last Tournament
+> Dame Elowen of the Golden Lists rode in fifty tournaments and was never once unhorsed. At seventy-three, with bad knees and armour that didn't close at the side any more, she entered one last time. Her opponent was nineteen. He'd wanted to be her since he was six.
 golden_helmet | The Helm of Fifty Tourneys | Dame Elowen of the Golden Lists rode in fifty tournaments and was unhorsed in none. At the fifty-first she was seventy-three years old and every knight in the realm came to watch.
 golden_chestplate | The Breastplate of the Lists | It no longer closed at the side. Her squire laced it shut with a ribbon. "Gold," she said, "is a vain metal. So am I. Pull tighter, boy."
 golden_leggings | The Riding Greaves | Her knees hurt in the cold and she said so, loudly, to anyone. Then she mounted without help and rode the length of the lists at a gallop, to be sure they heard her knees too.
@@ -15,44 +19,61 @@ golden_sword | The Victor's Blade | She won, of course. Then she gave him this s
 shield | The Retired Shield | It hangs in the boy's hall now, above the fire, dented in fifty-one places. Under it, in his handwriting: "Pull tighter, boy." He is not a boy any more. He still reads it every morning.
 
 @ firsttools | Pip Grows Up
+> Pip made her first pickaxe at seven, with only a little help, which was mostly her dad. Then she grew up, the way children do when you aren't looking: a tool at a time, a year at a time, until one day she was cutting the wood for the whole village and the old woodcutter sat down on a stump and watched.
 wooden_pickaxe@village | Pip's First Pick | Pip was seven and made this pickaxe all by herself, with only a little bit of help, which was mostly her dad doing it. She mined one block of stone and was a miner from that day on.
 wooden_axe@village | Pip's First Axe | She chopped her first tree with this. It took all afternoon. She came home covered in sawdust and said trees were "very rude" for being so hard. Then she went back for another.
 stone_pickaxe@village | Pip's Real Pick | At ten she made a stone pickaxe with no help at all and wouldn't let anyone else touch it. She dug a cellar under the shed. Nobody knew until the shed sank a little.
 stone_axe | Pip's Working Axe | At fourteen she cut all the wood for the village winter, and the old woodcutter, who had done it for forty years, sat on a stump and watched and said "well, that's that, then."
 wooden_hoe@archaeology | Pip's Little Hoe | Found in the sand where her family's first house stood, long after. Pip, grown and grey, held it and laughed: she'd buried it there herself, at five, "so the garden would know her".
+leather_boots@village | Pip's Big Boots | At twelve she wore her father's old boots, stuffed with wool at the toes, because she said proper miners wore proper boots. By sixteen they fitted. She never got new ones. She said they'd only just got used to her.
 
 @ hermit | The Hermit of the White Waste
+> Somewhere in the snow there's an igloo with a room underneath that nobody is meant to find. For thirty winters an old man lived down there, waiting for someone who had promised to come when the trouble was over. Every evening he climbed the white hill and looked south.
 stone_axe@igloo | The Hermit's Axe | Under the igloo, in the room nobody is meant to find, the hermit lived for thirty winters. He cut ice with this to drink and cut wood with it, when there was wood, which was never.
 leather_helmet | The Fur-Lined Hood | He wore it so long the fur took the shape of his head. He talked to the hood in the long dark. The hood didn't answer. That was the right kind of company for him.
 leather_chestplate | The Waiting Coat | In the inside pocket: a letter, read to softness. "Wait for me at the white hill. I'll come when the trouble's over." The trouble was over twenty-eight winters ago.
 leather_boots | The Watch Boots | Every evening he climbed the white hill in these and looked south until it was dark. Then he climbed down. Every evening. Thirty winters. The boots wore through twice. He mended them.
 flint_and_steel | The Signal Fire | On the last night he lit a fire on the white hill that could be seen for miles. Somebody saw it. Somebody came. They found the fire still burning and the hermit asleep beside it, smiling.
+leather_leggings | The Hermit's Darned Breeches | He mended them every winter with whatever he had: wool, string, a strip of the letter's envelope. On the inside of the knee, in faded ink from the envelope, you can still read one word of the address: "home".
 
 @ outpostledger | The Outpost Accounts
+> Even raiders have to do the books. Somewhere in a pillager outpost, a very tired accountant kept quarterly records of every carrot stolen, every allay captured and every captain lost to structural problems with the tower. These are his ledgers. They get worse.
 crossbow@outpost | Ledger, Page One | PILLAGER OUTPOST, QUARTERLY ACCOUNTS. Income: 3 carrots, 1 cow (escaped), 4 emeralds. Expenses: 40 arrows, 1 tower (structural), 1 captain (structural, fell off tower).
 crossbow@outpost | Ledger, Page Two | Income: 1 allay (complaining). Expenses: 1 cage (allay escaped through the bars), 2 guards (fired), 1 cage (allay-proof, pending). Morale: low. Allay: thriving.
 iron_axe@mob | Ledger, Page Three | The vindicators have unionised. Their only demand is that someone, finally, tell them who Johnny is. Management does not know who Johnny is. Negotiations continue.
 crossbow@outpost | Ledger, Final Page | Income: none. Expenses: entire outpost (a hero of the village was involved). Note for next quarter: build the outpost further from the village. Note two: any further.
+iron_axe@mob | Ledger, Page Four | Morale report: the vindicators remain unionised. The evokers have formed a book club. The book is about a hero of the village. It has a happy ending. For the village. Management is not enjoying the book club.
+crossbow@outpost | Ledger, Appendix | Note found in the margin, in a different hand: "Dear accountant. The allay says hello. We are very happy in the village. There is a book club here too. You'd like it. Love, the allay and the two guards who were fired."
 
 @ breeze | The Breeze Who Collected Things
+> The breeze in Hall Three of the trial chambers was not like the other breezes. It didn't attack adventurers. It collected the things they dropped and played with them, in its whirling, forgetful, delighted way, for years. This is its toy box.
 bow@trial | Toy Number One | The breeze in Hall Three collected everything adventurers dropped. This bow was its favourite. It liked the twang. It blew through the string all day, twang, twang, until it got told off.
 shield@trial | Toy Number Two | It used the shield as a sled down the copper stairs. Shields are not sleds. The breeze didn't know that. The breeze didn't know very much. It had a wonderful time.
 trident@trial | Toy Number Three | It tried to throw the trident like the adventurers did. The trident went into the wall and stayed there for six years. The breeze was very patient. It waited. It was worth it.
 diamond_axe@trial | Toy Number Four | The breeze gave this one back. The adventurer who dropped it was crying in the corner of the vault. The breeze didn't understand crying. It understood that it didn't like it.
+shield@trial | Toy Number Five | It found that if it blew very hard at this, it spun like a top. It spun the shield for a week straight and was the happiest breeze in all the trial chambers. The other breezes did not understand. The other breezes never do.
+iron_helmet@trial | Toy Number Six | It wore this. It has no head, so it wore it on the wind, about where a head would be. When adventurers came into Hall Three after that, they saw a helmet floating at head height, nodding politely at them. Most of them ran.
 
 @ fishinglessons | Three Generations at the Pier
+> Every family has a pier, and every pier has a lesson. Grandad's was patience. Mum's was something else entirely. This is a short story told over three rods by three generations, and it's about the most important thing anyone ever caught off the end of a pier, which wasn't a fish.
 fishing_rod@fishing | Grandad's Rod | "Patience," said Grandad, and cast, and waited, and fell asleep, and woke up with a fish, and said "see? patience". He had never caught a fish awake in his life.
 fishing_rod@fishing | Mum's Rod | Mum cast like an arrow and reeled like a winch and caught three fish while Grandad caught a nap. She never told him. She put her fish in his bucket so he'd wake up proud.
 fishing_rod@fishing | My Rod | I'm the third one at the pier now. I cast badly and wait badly and catch nothing, and on quiet evenings I put a fish in an empty bucket beside me, for whoever's watching.
+leather_boots@fishing | Mum's Boots | She stood in the shallows in these and cast like an arrow, and caught three fish while Grandad caught a nap. She never told him. She put her fish in his bucket so he'd wake up proud. I didn't understand that until I was grown.
+leather_helmet | Grandad's Fishing Hat | Covered in hooks and flies and one badge from a fishing contest he won by sleeping through the whole thing and waking up with the biggest fish. He wore it every day of his life. It hangs on the pier now, on a nail, where we can see it.
 
 @ ravagerrider | Grimtusk the Ravager Rider
+> Grimtusk rode a ravager into forty raids. The ravager was called Petal, and Petal was the gentlest creature alive. She only knocked down walls because she wanted to say hello to whatever was behind them. This is the story of a raider, his enormous dog, and the farm at the end.
 iron_axe@mob | Grimtusk's Chopper | Grimtusk rode a ravager named Petal into forty raids. Petal was the gentlest ravager alive. It only knocked down walls because it wanted to say hello to what was behind them.
 crossbow@mob | The Rider's Bow | Grimtusk could not aim while riding Petal, because Petal stopped to sniff every flower. The raids took a very long time. The villages had plenty of warning. Petal had a lovely life.
 leather_chestplate | The Riding Coat | Covered in ravager hair. Grimtusk claimed it was a fur collar on purpose. It was not. Petal shed. Petal shed all the time. Petal was a big, soft, enormous dog.
 iron_axe@mob | Grimtusk's Retirement | When the raids stopped, Grimtusk and Petal moved to a farm by a village they'd once raided. The villagers were terrified for a year. Then Petal pulled their ploughs. Now they bring her apples.
+leather_boots | Grimtusk's Farm Boots | When the raids stopped he bought boots for farming, the first thing he ever paid for in his life. He was so proud of them that he showed the receipt to everyone. The villagers were terrified for a year. Then Petal pulled their ploughs.
 
 @ ferryman | The Ferryman of Still Water
+> There is a lake where the fog never lifts, and on it a ferry, and on the ferry a quiet man who takes you across for one copper coin. Nobody remembers asking to go. Everybody remembers arriving. He keeps everything his passengers leave behind, in case anyone ever comes back for it.
 copper_spear | The Ferryman's Pole | There is a lake where the fog never lifts, and on it a ferry, and on the ferry a man who poles you across for a copper coin. Nobody remembers asking to go across. Everybody remembers arriving.
 stone_spear | The First Passenger's Spear | The first passenger left this in the boat, a stone spear, very old. He said he wouldn't need it on the other side. The ferryman kept it. He keeps everything they leave.
 iron_spear | The Soldier's Spear | A soldier left this with a note: "for my son, if he ever comes this way, which I hope he won't for a long time". The ferryman has it ready. He hopes so too.
 fishing_rod | The Ferryman's Own Rod | Between crossings he fishes off the back of the ferry, in water no fish has ever lived in. Sometimes something tugs. He lets it go. He says everyone deserves to get across.
+leather_chestplate | The Child's Coat | A very small coat, left on the bench by a very small passenger who wasn't scared at all and asked a lot of questions. The ferryman keeps it folded by the tiller. He answers her questions out loud sometimes, when the lake is quiet.

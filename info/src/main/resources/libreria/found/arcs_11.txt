@@ -1,11 +1,15 @@
 # Stories, eleventh book. Format as in arcs_1.txt.
 
 @ butler | Memoirs of a Mansion Butler
+> For forty years one quiet man kept house in a woodland mansion full of evokers, vindicators and one elderly allay. He polished, he dusted, he dodged the occasional fang attack and never once complained. In his retirement he wrote his memoirs. They are exceptionally polite.
 chainmail_chestplate@mansion | Chapter One: My Appointment | I entered the service of the mansion in my twenty-second year. The household consisted of forty-one evokers, two hundred vindicators and one very old allay who did the dusting. I wore chain, as the staff were frequently attacked by the family.
 diamond_chestplate@mansion | Chapter Two: The Master's Wardrobe | The master owned eleven diamond breastplates and wore none of them, preferring a dressing gown. I polished all eleven every Sunday. It was, I believe, the finest work of my life.
 diamond_hoe@mansion | Chapter Three: The Garden | The master asked for a garden. I planted roses with this hoe in the courtyard. The vexes ate them. I planted more. In the end the vexes and I reached an understanding, and the roses grew.
+iron_axe | Chapter Four: Visitors | We did not have many visitors. Those who came were mostly heroes, and mostly in a hurry. I served each of them tea in the hall before the family arrived. Not one of them drank it. I have always found that very rude.
+leather_boots | Chapter Five: My Retirement | When the master was defeated, I tidied up, turned off the lights and walked out into the forest in my good shoes. I live in a village now. The neighbours think I am terribly calm. They have not met the family.
 
 @ galen | Sir Galen's Borrowed Chainmail
+> Sir Galen was the poorest knight in his order. His helm was borrowed, his oath was borrowed, his chainmail rattled and let the rain in, and the other knights laughed at him for years. Then came the siege of Greyford, and the gate broke, and they stopped laughing.
 chainmail_helmet | The Helm Galen Couldn't Afford | Galen was the poorest knight in the order. His helm was borrowed from a cousin, his oath was borrowed from his father, and his courage, he said, was borrowed from his mother, who had a lot of it.
 chainmail_chestplate | The Rattling Coat | The other knights laughed at his chainmail. It rattled. It rusted. It let the rain in. He polished it every night anyway, and he was always first in line.
 chainmail_leggings | The Kneeling Leggings | At the siege of Greyford he knelt beside a wounded enemy soldier in the mud and held his hand until it was over. The other knights stopped laughing at Galen after that.
@@ -13,34 +17,43 @@ chainmail_boots | The Boots That Stood | When the gate broke, Galen stood in it.
 iron_sword | Galen's Sword, Returned | The cousin got his helm back with a letter: "He wore it well. He wore everything well. The order is having a new suit made in his name, in chainmail, for the poorest knight who joins."
 
 @ doctor | Doctor Wren of the Lower Valley
+> When the fever came to the lower valley, everyone who could leave left. Doctor Wren put on her cap, rolled up her sleeves and walked the other way. Seventy days. One doctor. A great many little notes in her pockets with a name on each, and a tick, or a cross.
 leather_helmet | The Doctor's Cap | When the fever came to the lower valley, everyone who could leave left. Doctor Wren put on her cap, rolled up her sleeves and walked the other way, down into it.
 leather_chestplate | The Long Coat | Seventy days she wore this coat, from house to house. She slept in it, in chairs, by beds. The pockets are full of little notes: names, and next to each name, a tick, or a small cross.
 shears | The Bandage Shears | She cut a thousand bandages with these. The handles are worn smooth where her thumb rested. Near the end, she cut her own.
 flint_and_steel | The Fire for the Water | Every water the valley drank, she boiled first, on fires lit with this flint. That was what ended the fever, in the end. Boiled water, patience and one stubborn woman.
 iron_shovel | The Garden on the Hill | When it was over, the valley planted a garden on the hill, a flower for every name with a tick. It is a very big garden. The doctor's cap hangs on the gate.
+leather_leggings | The Doctor's Knees | Stained at the knees from kneeling by seventy days of beds. When it was over, the valley asked what she wanted as a thanks. She asked for a chair. They made her one. It has a cushion embroidered with every name that has a tick.
 
 @ bandit | The Bandit Queen of Copper Ridge
+> Red Mag of Copper Ridge robbed only the rich, only on Tuesdays and only after sending a polite letter of warning. The rich were furious, mostly about the letters. Her gang was a giant with no sense of humour and a horse with too much of one. She was pardoned in the end. You'll see why.
 copper_sword | Red Mag's Blade | Red Mag robbed only the rich, and only on Tuesdays, and only after a polite letter of warning. The rich were furious about the letters. "Stealing is one thing. But warning us is just rude."
 copper_spear | The Bridge-Keeper's Spear | Her right hand, Big Tobble, held the bridge with this. Nobody crossed without paying the toll. The toll was a joke. If it was funny, you crossed for free. Tobble had no sense of humour.
 copper_chestplate | The Green Coat | She wore copper because it went green, and green, she said, was the colour of the forest, and the forest was hers. The forest was not hers. The forest put up with her.
 copper_boots | The Escape Boots | The king's soldiers chased her to the edge of the ridge. She jumped. They looked down. She was gone. She'd landed in a haystack she'd put there three years before, just in case.
 bow | Mag's Last Arrow | In the end she was pardoned, because she had robbed the king's tax collector and given it all back to the villages, and the villages loved her more than they loved the king. The king noticed.
+copper_leggings | The Bridge-Keeper's Greaves | Big Tobble held the bridge in these. Nobody crossed without paying the toll, which was a joke: if it made him laugh, you crossed for free. In twenty years only one person ever made him laugh. It was Mag, and it was the same joke every time.
 
 @ nightshift | Night Shift at the Stronghold
+> Two guards. One stronghold. One End portal that nobody has used in a thousand years. Nothing ever happens on night shift, and the two of them talk about it at length. This is their conversation, overheard in pieces, scratched into their armour out of boredom.
 iron_helmet@stronghold | "You Awake?" | "You awake?" "No." "Me neither." "Good." "...Did you hear that?" "That's the silverfish." "It's always the silverfish." "One day it won't be the silverfish." "Go to sleep."
 iron_chestplate@stronghold | "What Do We Guard?" | "What do we guard, actually?" "The portal." "What does the portal do?" "Leads to the End." "What's in the End?" "A dragon." "Why do we guard a door to a dragon?" "So nobody goes through." "...Good."
 iron_leggings@stronghold | "Shift Change" | "Shift change." "There's nobody else." "Then I'm changing shifts with myself." "You can't do that." "I just did. Hello. I'm the morning shift. How was your night?" "Same as yours."
 iron_boots@stronghold | "Footsteps" | "Footsteps." "Probably the silverfish." "Silverfish don't wear boots." "...Who's there?" "Hello! I'm an adventurer! I have eyes of ender!" "...Do you have a pass?" "A what?"
 iron_sword@stronghold | "Last Entry" | Stronghold guard log: an adventurer went through to the End. The dragon is dead. There's nothing left to guard. We've decided to stay. Somebody has to watch the silverfish.
+shield | "The Silverfish" | "I've named the silverfish." "You can't name the silverfish." "That one's Gerald." "They all look the same." "That's what they say about us." "...Fair." "Gerald's my friend." "Gerald just bit me." "He does that. It's how he says hello."
 
 @ apprentice2 | Diary of a Witch's Apprentice
+> Mistress Gruel took on an apprentice witch, which nobody in the village recommended, and the apprentice kept a diary, which nobody recommended either. There are mandrakes in it, and a cat with opinions, and a prince. It gets better. Then it gets worse. Then it gets very, very blue.
 leather_helmet | Day 1 | Mistress Gruel says the pointy hat is "a privilege, not a right". I don't have a pointy hat. I have this leather cap. She says the point grows with practice. I'm checking every morning.
 wooden_hoe@archaeology | Day 12 | Weeding the mandrake patch. Mistress says don't pull them up, they scream. I pulled one up. It screamed. I screamed. Mistress screamed at both of us. Nobody is speaking to anyone.
 shears | Day 30 | Cut a lock of hair from a sleeping cat for a potion. The cat was not sleeping. I have a lot of plasters now. The potion did nothing. The cat is still staring at me.
 fishing_rod | Day 59 | Fishing for a frog with a crown on, for a spell. Caught three ordinary frogs and one very indignant prince. Mistress says we'll "talk about the prince later".
 flint_and_steel | Day 100 | Lit my first proper cauldron fire. The potion turned blue and smelled of strawberries. Mistress looked at it and didn't say anything for a long time. Then she gave me her old pointy hat.
+leather_boots | Day 75 | Mistress let me make a potion on my own. It was meant to be night vision. I drank it and could see in the dark, but only cats. The cat was not surprised. I think the cat has been able to see me in the dark all along.
 
 @ golemfriend | Lina and the Iron Giant
+> Iron golems don't let anyone touch them. That's just how they are. But in one village, a six-year-old girl called Lina climbed up onto the golem's shoulders one rainy day to put a helmet on its head, and it let her. It let her every day after that, for years.
 iron_helmet | The Helmet Lina Made It | Lina was six when she climbed onto the iron golem's shoulders and put a helmet on its head, to keep the rain off. It let her. It was the only thing in the village it ever let touch it.
 iron_chestplate | The Breastplate She Polished | Every Sunday she polished the golem with an old rag and a lot of spit. It stood very still, the way a dog does when you scratch the right spot. It gave her a poppy every time. She has a box full.
 iron_leggings | The Night of the Raid | When the raid came, the golem stood in front of Lina's house and didn't move, while the whole village burned around it. Lina's house was the only one still standing in the morning. The golem wasn't.
@@ -48,7 +61,9 @@ iron_boots | What Was Left | They found these where it fell, standing upright, a
 iron_boots | The New One | The village built a new golem. Lina, grown, put the old boots on its feet herself. The new golem looked down at her for a long time. Then it handed her a poppy.
 
 @ sixtyyears | Sixty Years at Cobbleford
+> They met at nineteen, married at twenty, and argued about the garden for sixty years. She walked everywhere fast. He walked half a step behind, saying "wait". It's the most ordinary story in the world, and it's the one people cry at most.
 golden_helmet | His Wedding Hat | He married her in a golden helmet because he was nervous and wanted to look like someone braver. She laughed through the whole ceremony. He said that was the moment he knew.
 diamond_boots | Her Walking Boots | She walked everywhere, all her life, fast, with him half a step behind, saying "wait". For sixty years she never once waited. For sixty years he always caught up.
 iron_shovel | Their Garden Spade | They argued about the garden for sixty years: her roses, his potatoes. In the end the garden was half and half, and the potatoes grew between the roses, and it was the best garden in Cobbleford.
 fishing_rod | His Last Fishing Trip | After she was gone he went fishing at their spot, and walked there fast, the way she did, saying "wait" to nobody. He caught nothing. He said she'd have caught three. She would have.
+leather_chestplate | Her Gardening Coat | Covered in sixty years of rose thorns and potato dirt, from both sides of the argument. After she was gone he wore it to dig the garden. He grew her roses that year. He said he wasn't going to let the potatoes win by default.
