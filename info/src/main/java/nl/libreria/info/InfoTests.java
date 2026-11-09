@@ -219,30 +219,30 @@ final class InfoTests {
 			var north = net.minecraft.core.Direction.NORTH;
 			for (int dx = -1; dx < 7; dx++) for (int dy = 0; dy < 2; dy++) level.setBlock(o.offset(dx, dy, 0), stone, 3);
 			// facing north your right is west: x 57 is the left end, 52 the right
-			java.util.function.IntFunction<BlockPos> at = x -> new BlockPos(x, 121, 47);
+			java.util.function.IntFunction<BlockPos> col = x -> new BlockPos(x, 121, 47);
 			try {
-				var a1 = StoryWall.attach(level, at.apply(56), north, "oak");
-				var a2 = StoryWall.attach(level, at.apply(55), north, "oak");
+				var a1 = StoryWall.attach(level, col.apply(56), north, "oak");
+				var a2 = StoryWall.attach(level, col.apply(55), north, "oak");
 				SelfTests.check(a1 == a2 && StoryWall.cols(a1) == 2, "two pieces joined");
-				var other = StoryWall.attach(level, at.apply(57), north, "cherry");
+				var other = StoryWall.attach(level, col.apply(57), north, "cherry");
 				SelfTests.check(other != a1 && StoryWall.cols(other) == 1 && StoryWall.cols(a1) == 2, "another wood beside it stays apart");
-				var a3 = StoryWall.attach(level, at.apply(53), north, "oak");
+				var a3 = StoryWall.attach(level, col.apply(53), north, "oak");
 				SelfTests.check(a3 != a1, "not beside it: apart");
-				var a4 = StoryWall.attach(level, at.apply(54), north, "oak");
+				var a4 = StoryWall.attach(level, col.apply(54), north, "oak");
 				SelfTests.check(a4 == a1 && StoryWall.cols(a1) == 4 && !StoryWall.data().walls.contains(a3), "the one between joins all: four");
-				var a5 = StoryWall.attach(level, at.apply(52), north, "oak");
+				var a5 = StoryWall.attach(level, col.apply(52), north, "oak");
 				SelfTests.check(a5 != a1 && StoryWall.cols(a1) == 4, "a fifth stays apart");
 				StoryWall.removeColumn(level, a1, 1, false, false);
-				SelfTests.check(StoryWall.cols(a1) == 1 && StoryWall.wallAt(level, at.apply(54)) != null
-						&& StoryWall.cols(StoryWall.wallAt(level, at.apply(54))) == 2, "one out of the middle: one and two");
-				var a6 = StoryWall.attach(level, at.apply(55), north, "oak");
+				SelfTests.check(StoryWall.cols(a1) == 1 && StoryWall.wallAt(level, col.apply(54)) != null
+						&& StoryWall.cols(StoryWall.wallAt(level, col.apply(54))) == 2, "one out of the middle: one and two");
+				var a6 = StoryWall.attach(level, col.apply(55), north, "oak");
 				SelfTests.check(StoryWall.cols(a6) == 4 && a6 == a1, "back in: four again");
 			} finally {
 				for (var w : new java.util.ArrayList<>(StoryWall.data().walls)) if (w.y == 121 && w.z == 47) StoryWall.remove(level, w, false);
 			}
 			// A board of three pieces with the six swords of the Charred Oath but the third: laid out for it (1-3 on top,
 			// 4-6 below), the third's spot kept free
-			var w = StoryWall.debug(level, at.apply(57), north, "charred", 3, "spruce", 3);
+			var w = StoryWall.debug(level, col.apply(57), north, "charred", 3, "spruce", 3);
 			try {
 				SelfTests.check(StoryWall.planks("spruce").is(net.minecraft.world.level.block.Blocks.SPRUCE_PLANKS)
 						&& StoryWall.frame("warped").is(net.minecraft.world.level.block.Blocks.STRIPPED_WARPED_HYPHAE)
