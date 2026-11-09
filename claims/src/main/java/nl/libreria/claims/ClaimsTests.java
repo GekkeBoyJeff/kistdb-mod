@@ -56,6 +56,41 @@ final class ClaimsTests {
 			for (ChunkPos x : new ChunkPos[] {a, b, far, c}) ClaimsMod.unclaim(owner, level, x);
 		});
 
+		SelfTests.register("claims.admin", level -> {
+			java.util.UUID who = java.util.UUID.randomUUID();
+			// two pieces: three chunks in a row, and one on its own
+			ChunkPos[] row = {new ChunkPos(-200, 90), new ChunkPos(-199, 90), new ChunkPos(-198, 90)};
+			ChunkPos alone = new ChunkPos(-190, 90);
+			for (ChunkPos c : row) ClaimsMod.debugClaim(level, c, who, "Dana");
+			ClaimsMod.debugClaim(level, alone, who, "Dana");
+			try {
+				var pieces = ClaimsAdmin.pieces(who);
+				SelfTests.check(pieces.size() == 2 && pieces.get(0).chunks().size() == 3 && pieces.get(1).chunks().size() == 1,
+						"land in pieces, biggest first: " + pieces.stream().map(pc -> pc.chunks().size()).toList());
+				SelfTests.check(ClaimsAdmin.holders().stream().anyMatch(h -> h.id().equals(who) && h.chunks() == 4 && h.pieces() == 2),
+						"in the list of everyone's land");
+				ClaimsAdmin.rename(pieces.get(0), "Dana's Rest");
+				SelfTests.check("Dana's Rest".equals(ClaimsMod.claimAt(level, row[2]).area) && ClaimsMod.claimAt(level, alone).area.isEmpty(),
+						"renaming a piece names only its chunks");
+				ClaimsAdmin.Piece found = ClaimsAdmin.piece(who, pieces.get(0).dim(), row[1]);
+				SelfTests.check(found != null && "Dana's Rest".equals(found.name()), "a piece is found by any of its chunks");
+				int before = ClaimsMod.budget(who);
+				ClaimsMod.setExtra(who, 10);
+				SelfTests.check(ClaimsMod.budget(who) == before + 10 && ClaimsMod.extra(who) == 10, "extra chunks on top of what was earned");
+				ClaimsMod.setExtra(who, -1000);
+				SelfTests.check(ClaimsMod.budget(who) == 0, "taking more than there is leaves none");
+				ClaimsMod.setExtra(who, 0);
+				SelfTests.check(!ClaimsMod.STORE.get().extra.containsKey(who), "no extra: nothing stored");
+				SelfTests.check(ClaimsAdmin.release(pieces.get(1)) == 1 && ClaimsMod.claimAt(level, alone) == null
+						&& ClaimsMod.claimAt(level, row[0]) != null, "releasing a piece leaves the other");
+				SelfTests.check(ClaimsAdmin.releaseAll(who) == 3 && ClaimsMod.owned(who) == 0, "releasing all of it");
+			} finally {
+				for (ChunkPos c : row) ClaimsMod.STORE.get().claims.remove(ClaimsMod.key(level, c));
+				ClaimsMod.STORE.get().claims.remove(ClaimsMod.key(level, alone));
+				ClaimsMod.setExtra(who, 0);
+			}
+		});
+
 		SelfTests.register("claims.texts", level -> {
 			FakePlayer p = FakePlayer.get(level);
 			SelfTests.check(ClaimsMod.duration(45).equals("45 min"), "duration in minutes");

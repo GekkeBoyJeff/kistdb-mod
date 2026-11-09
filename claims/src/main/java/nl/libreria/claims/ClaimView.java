@@ -362,6 +362,11 @@ final class ClaimView {
 		View v = VIEWS.get(p.getUUID());
 		if (v != null) {
 			emptyHands(p);
+			// {swap} alone (the map key being sneak + swap): the coloured land off or on again; anything else goes back
+			if (key == Hotkeys.Key.SWAP_HANDS && !sneaking && ClaimsMod.MAP_KEY.get(p) == 0) {
+				toggleColours(p);
+				return true;
+			}
 			close(p, false);
 			return true;
 		}
@@ -370,6 +375,18 @@ final class ClaimView {
 		if (mode == 2 || mode == 0 && !sneaking) return false;
 		open(p);
 		return true;
+	}
+
+	/** The coloured glass on the land map off or on (a player setting; an operator may have set it for everybody). */
+	static void toggleColours(ServerPlayer p) {
+		if (ClaimsMod.COLOURS.isForced()) {
+			Hud.flash(p, Component.literal("Land colours are set for everybody on this server").withStyle(ChatFormatting.GRAY));
+			return;
+		}
+		boolean on = !ClaimsMod.COLOURS.get(p);
+		ClaimsMod.COLOURS.set(p, on);
+		Hud.flash(p, Component.literal(on ? "Land colours on" : "Land colours off · only the names").withStyle(ChatFormatting.YELLOW));
+		Ui.sound(p, SoundEvents.UI_BUTTON_CLICK.value(), 0.4f, on ? 1.3f : 1.0f);
 	}
 
 	/** Right-click while the map is open (from UseItemCallback). */
@@ -754,7 +771,8 @@ final class ClaimView {
 		v.regions.clear();
 		v.regions.addAll(regions(v));
 		Set<Piece> want = new HashSet<>();
-		for (Region r : v.regions) building(v, r, want);
+		// colours off: the buildings sink into the ground, the names stay
+		if (ClaimsMod.COLOURS.get(v.p)) for (Region r : v.regions) building(v, r, want);
 		sync(v, v.pieces, want, opening, 9);
 		labels(v);
 	}
@@ -1048,6 +1066,11 @@ final class ClaimView {
 					.append(Component.literal(" closer  ·  ").withStyle(ChatFormatting.GRAY))
 					.append(nl.libreria.core.Keys.key("drop").withStyle(ChatFormatting.WHITE))
 					.append(Component.literal(" back").withStyle(ChatFormatting.GRAY));
+			if (ClaimsMod.MAP_KEY.get(v.p) == 0 && !ClaimsMod.COLOURS.isForced()) {
+				keys.append(Component.literal("  ·  ").withStyle(ChatFormatting.GRAY))
+						.append(nl.libreria.core.Keys.key("swap").withStyle(ChatFormatting.WHITE))
+						.append(Component.literal(" colours").withStyle(ChatFormatting.GRAY));
+			}
 			Hud.show(v.p, HUD, keys, Hud.PRIO_INFO, 10);
 		}
 		if (c == null) {
@@ -1105,7 +1128,8 @@ final class ClaimView {
 			default -> line.append(Component.literal(cl.ownerName + "'s land").withStyle(ChatFormatting.RED));
 		}
 		line.append(Component.literal("   " + used + "/" + max + " chunks").withStyle(ChatFormatting.GRAY));
-		if (v.age < 120) line.append(Component.literal("   mouse look · WASD fly · sneak up · sprint down · Q back").withStyle(ChatFormatting.DARK_GRAY));
+		if (v.age < 120) line.append(Component.literal("   mouse look · WASD fly · sneak up · sprint down · Q back"
+				+ (ClaimsMod.MAP_KEY.get(v.p) == 0 && !ClaimsMod.COLOURS.isForced() ? " · F colours" : "")).withStyle(ChatFormatting.DARK_GRAY));
 		Hud.show(v.p, HUD, line, Hud.PRIO_INFO, 10);
 	}
 

@@ -94,6 +94,10 @@ public final class ClaimsMod implements ModInitializer {
 			"Other players see you as a marker", "on their land maps. Off: nobody does.");
 	public static final nl.libreria.core.Setting.Toggle MAP_BUTTON = MODULE.toggle("kaartknop", "Land map button", true, Items.MAP,
 			"A land map button right of your", "hotbar, with its key (Libreria pack).");
+	/** Claimed land as coloured glass on the land map (off: only the names and the golden box); also {swap} on the map. */
+	public static final nl.libreria.core.Setting.Toggle COLOURS = MODULE.toggle("map_colours", "Colours on the land map", true,
+			Items.LIME_STAINED_GLASS, "Claimed land stands on the land map as", "coloured glass: green yours, blue where",
+			"you may build, red someone else's. Off:", "only the names, to see the land itself.", "On the map: {swap} switches it.");
 
 	/** Budget: a start, plus one per so many hours played and per so many achievement points, up to a maximum. */
 	static final ServerSetting.Number START = MODULE.serverNumber("budget_start", "Chunks to start with", Items.GRASS_BLOCK,
@@ -134,6 +138,10 @@ public final class ClaimsMod implements ModInitializer {
 		/** "dimensie|chunkX|chunkZ" → claim */
 		public Map<String, Claim> claims = new HashMap<>();
 		public Map<UUID, Owner> owners = new HashMap<>();
+		/** Chunks an operator gave (or, below zero, took) on top of what a player earned. */
+		public Map<UUID, Integer> extra = new HashMap<>();
+		/** What each player earned when last seen (play time and points), for the admin window when they're away. */
+		public Map<UUID, Integer> earned = new HashMap<>();
 		/** Players who already got the one-time "how to claim" tip. */
 		public Set<UUID> tipped = new HashSet<>();
 	}
@@ -141,6 +149,11 @@ public final class ClaimsMod implements ModInitializer {
 	static final WorldStore<Data> STORE = WorldStore.create("libreria/claims.json", Data.class, Data::new);
 	/** Waar elke speler het laatst was (eigenaar-UUID of null), voor de "je betreedt…"-melding. */
 	private static final Map<UUID, String> LAST = new HashMap<>();
+
+	/** Land changed under people's feet (renamed or released by an operator): the "you walk into…" line is told again. */
+	static void forgetEntered() {
+		LAST.clear();
+	}
 	/** When each player last got the "ask them to trust you" hint in chat. */
 	private static final Map<UUID, Long> HINTED = new HashMap<>();
 	/** Server tick at which a player gets the one-time tip. */
@@ -161,6 +174,9 @@ public final class ClaimsMod implements ModInitializer {
 				"A real map item that shows the claims around you as you walk.");
 		MODULE.hubEntry(Domain.PLACES, 40, Items.NAME_TAG, "Trusted players", MapGui.TrustGui::open,
 				"Who may build in your land, and whether visitors may use doors.");
+		// Operators: everyone's land (names, giving it up, extra chunks), from the server settings
+		MODULE.adminButton("Players' land", "Everyone's land: rename or release a piece or all of it, give extra chunks", ClaimsAdmin::players);
+		COLOURS.onChange(ClaimView::refresh);
 
 		PlayerBlockBreakEvents.BEFORE.register((world, player, pos, state, be) -> {
 			if (!ClaimsMod.MODULE.on()) return true;
@@ -405,8 +421,48 @@ public final class ClaimsMod implements ModInitializer {
 		return Services.progress().map(pr -> pr.points(p)).orElse(0);
 	}
 
+	/** What a player earned: the start, plus play time and points, up to the maximum. */
+	static int earned(ServerPlayer p) {
+		int e = Math.min(LIMIT.get(), START.get() + hours(p) / HOURS.get() + points(p) / POINTS.get());
+		Data d = STORE.get();
+		if (d.earned == null) d.earned = new HashMap<>();
+		Integer old = d.earned.put(p.getUUID(), e);
+		if (old == null || old != e) STORE.markDirty();
+		return e;
+	}
+
+	/** What they earned when last seen (the start when never). */
+	static int earned(UUID id) {
+		net.minecraft.server.MinecraftServer server = nl.libreria.core.Libreria.server();
+		ServerPlayer online = server == null ? null : server.getPlayerList().getPlayer(id);
+		if (online != null) return earned(online);
+		Data d = STORE.get();
+		Integer e = d.earned == null ? null : d.earned.get(id);
+		return e == null ? START.get() : e;
+	}
+
+	/** Chunks an operator gave on top (negative: took away). */
+	static int extra(UUID id) {
+		Data d = STORE.get();
+		Integer x = d.extra == null ? null : d.extra.get(id);
+		return x == null ? 0 : x;
+	}
+
+	static void setExtra(UUID id, int chunks) {
+		Data d = STORE.get();
+		if (d.extra == null) d.extra = new HashMap<>();
+		if (chunks == 0) d.extra.remove(id);
+		else d.extra.put(id, chunks);
+		STORE.markDirty();
+	}
+
+	/** How many chunks a player may claim: what they earned, and what an operator gave on top (also past the maximum). */
 	static int budget(ServerPlayer p) {
-		return Math.min(LIMIT.get(), START.get() + hours(p) / HOURS.get() + points(p) / POINTS.get());
+		return Math.max(0, earned(p) + extra(p.getUUID()));
+	}
+
+	static int budget(UUID id) {
+		return Math.max(0, earned(id) + extra(id));
 	}
 
 	/** "You can claim 6 chunks (3 used)." */
@@ -430,7 +486,7 @@ public final class ClaimsMod implements ModInitializer {
 
 	/** What earns the next chunk, in short lines: "Next chunk: play 1 h 20 min more", "or earn 7 more achievement points". */
 	static List<String> nextChunkLines(ServerPlayer p) {
-		if (budget(p) >= LIMIT.get()) return List.of("You've reached the maximum", "of " + LIMIT.get() + " chunks");
+		if (earned(p) >= LIMIT.get()) return List.of("You've reached the maximum", "of " + LIMIT.get() + " chunks");
 		long perChunk = (long) HOURS.get() * TICKS_PER_HOUR;
 		long left = perChunk - playTicks(p) % perChunk;
 		int minutes = (int) Math.max(1, (left + 1199) / 1200);
@@ -445,7 +501,7 @@ public final class ClaimsMod implements ModInitializer {
 
 	/** How far to the next chunk, 0 to 1: by play time or by points, whichever is further along. */
 	static double nextChunkFraction(ServerPlayer p) {
-		if (budget(p) >= LIMIT.get()) return 1;
+		if (earned(p) >= LIMIT.get()) return 1;
 		long perChunk = (long) HOURS.get() * TICKS_PER_HOUR;
 		double play = (playTicks(p) % perChunk) / (double) perChunk;
 		double pts = Services.progress().isPresent() ? (points(p) % POINTS.get()) / (double) POINTS.get() : 0;
@@ -454,7 +510,7 @@ public final class ClaimsMod implements ModInitializer {
 
 	/** For the land map card: "1 h 20 min play or 7 points", or "the most there is". */
 	static String nextChunkShort(ServerPlayer p) {
-		if (budget(p) >= LIMIT.get()) return "you have the most there is";
+		if (earned(p) >= LIMIT.get()) return "you have the most there is";
 		long perChunk = (long) HOURS.get() * TICKS_PER_HOUR;
 		long left = perChunk - playTicks(p) % perChunk;
 		int minutes = (int) Math.max(1, (left + 1199) / 1200);

@@ -1112,6 +1112,13 @@ public final class Screens implements FabricClientGameTest {
 				ctx.waitTicks(15);
 				noToasts(ctx);
 				ctx.takeScreenshot("claim_view_top");
+				// Swap hands alone: the coloured land sinks away (only the names stay), and comes back
+				ctx.getInput().pressKey(o2 -> o2.keySwapOffhand);
+				ctx.waitTicks(20);
+				noToasts(ctx);
+				ctx.takeScreenshot("claim_view_plain");
+				ctx.getInput().pressKey(o2 -> o2.keySwapOffhand);
+				ctx.waitTicks(15);
 				// and down again with sprint
 				ctx.getInput().holdKeyFor(o2 -> o2.keySprint, 20);
 				ctx.waitTicks(10);
@@ -1195,6 +1202,11 @@ public final class Screens implements FabricClientGameTest {
 			for (Module m : List.of(nl.libreria.core.Libreria.MODULE, nl.libreria.claims.ClaimsMod.MODULE, nl.libreria.waypoints.WaypointsMod.MODULE)) {
 				menu(ctx, server, player, "window_admin_" + m.id, p -> nl.libreria.core.gui.AdminWindow.open(p, m));
 			}
+			// Everyone's land (operators): the list, one player, one piece of their land
+			server.runOnServer(s -> nl.libreria.claims.ClaimsAdmin.debugLand((ServerLevel) player.level()));
+			menu(ctx, server, player, "window_admin_claims_players", nl.libreria.claims.ClaimsAdmin::players);
+			menu(ctx, server, player, "window_admin_claims_player", p -> nl.libreria.claims.ClaimsAdmin.player(p, nl.libreria.claims.ClaimsAdmin.DEBUG_ANNA));
+			menu(ctx, server, player, "window_admin_claims_piece", nl.libreria.claims.ClaimsAdmin::debugPiece);
 			server.runOnServer(s -> {
 				nl.libreria.core.Links.KINDS.get(0).setting().set("https://discord.gg/example");
 				nl.libreria.core.Links.KINDS.get(2).setting().set("https://example.org/rules");
