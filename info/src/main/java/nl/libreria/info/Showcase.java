@@ -186,7 +186,6 @@ final class Showcase {
 		m.snapTo(x, y, z, yaw, 0);
 		m.setYBodyRot(yaw);
 		m.setYHeadRot(yaw);
-		m.setInvulnerable(true);
 		return level.addFreshEntity(m) ? m : null;
 	}
 
