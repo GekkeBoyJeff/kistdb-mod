@@ -175,21 +175,19 @@ final class Showcase {
 		return m;
 	}
 
-	/** Minecraft's own mannequin, made the way the game makes one: unmoving, and unhurt by anything but our own hit. */
+	/** Minecraft's own mannequin, made as the summon command makes one: unmoving, and unhurt by anything but our own hit. */
 	static @Nullable Mannequin summon(ServerLevel level, double x, double y, double z, float yaw) {
-		MinecraftServer server = level.getServer();
-		String tag = "libreria_new_" + UUID.randomUUID().toString().substring(0, 8);
-		String cmd = String.format(java.util.Locale.ROOT, "summon minecraft:mannequin %.3f %.3f %.3f {immovable:1b,Invulnerable:1b,Rotation:[%.1ff,0f],Tags:[\"%s\"]}",
-				x, y, z, yaw, tag);
-		server.getCommands().performPrefixedCommand(server.createCommandSourceStack().withLevel(level).withSuppressedOutput(), cmd);
-		for (Mannequin m : level.getEntitiesOfClass(Mannequin.class, new net.minecraft.world.phys.AABB(x - 0.5, y - 0.5, z - 0.5, x + 0.5, y + 2.5, z + 0.5))) {
-			if (m.removeTag(tag)) {
-				m.setYBodyRot(yaw);
-				m.setYHeadRot(yaw);
-				return m;
-			}
-		}
-		return null;
+		Mannequin m = net.minecraft.world.entity.EntityTypes.MANNEQUIN.create(level, net.minecraft.world.entity.EntitySpawnReason.COMMAND);
+		if (m == null) return null;
+		CompoundTag tag = new CompoundTag();
+		tag.putBoolean("immovable", true);
+		tag.putBoolean("Invulnerable", true);
+		m.load(net.minecraft.world.level.storage.TagValueInput.create(net.minecraft.util.ProblemReporter.DISCARDING, level.registryAccess(), tag));
+		m.snapTo(x, y, z, yaw, 0);
+		m.setYBodyRot(yaw);
+		m.setYHeadRot(yaw);
+		m.setInvulnerable(true);
+		return level.addFreshEntity(m) ? m : null;
 	}
 
 	/** Puts what this player holds on the mannequin. */
@@ -267,10 +265,10 @@ final class Showcase {
 	static void place(ItemDisplayElement e, Spot s, boolean upright) {
 		float tilt = upright ? (float) Math.toRadians(45) : 0f;
 		switch (s) {
-			case BACK_L -> pose(e, -0.02f, 1.12f, -0.2f, new Quaternionf().rotateZ(tilt + (float) Math.toRadians(45)), 0.8f);
-			case BACK_R -> pose(e, 0.02f, 1.12f, -0.22f, new Quaternionf().rotateZ(tilt - (float) Math.toRadians(45)), 0.8f);
-			case HIP_L -> pose(e, 0.34f, 0.72f, 0.02f, new Quaternionf().rotateY((float) Math.toRadians(90)).rotateZ(tilt + (float) Math.PI), 0.5f);
-			case HIP_R -> pose(e, -0.34f, 0.72f, 0.02f, new Quaternionf().rotateY((float) Math.toRadians(90)).rotateZ(tilt + (float) Math.PI), 0.5f);
+			case BACK_L -> pose(e, -0.02f, 1.32f, -0.21f, new Quaternionf().rotateZ(tilt + (float) Math.toRadians(45)), 0.85f);
+			case BACK_R -> pose(e, 0.02f, 1.32f, -0.23f, new Quaternionf().rotateZ(tilt - (float) Math.toRadians(45)), 0.85f);
+			case HIP_L -> pose(e, 0.34f, 0.8f, 0.02f, new Quaternionf().rotateY((float) Math.toRadians(90)).rotateZ(tilt + (float) Math.PI), 0.5f);
+			case HIP_R -> pose(e, -0.34f, 0.8f, 0.02f, new Quaternionf().rotateY((float) Math.toRadians(90)).rotateZ(tilt + (float) Math.PI), 0.5f);
 			case GROUND_L -> pose(e, 0.3f, 0.03f, 0.38f, new Quaternionf().rotateX((float) Math.toRadians(-90)).rotateZ((float) Math.toRadians(20)), 0.55f);
 			case GROUND_R -> pose(e, -0.3f, 0.03f, 0.38f, new Quaternionf().rotateX((float) Math.toRadians(-90)).rotateZ((float) Math.toRadians(-20)), 0.55f);
 			default -> {
@@ -403,12 +401,19 @@ final class Showcase {
 				e.setViewRange(0.8f);
 				holder.addElement(e);
 			}
+			// A plate on top of the post, wider than it: the pedestal
+			eu.pb4.polymer.virtualentity.api.elements.BlockDisplayElement plate = new eu.pb4.polymer.virtualentity.api.elements.BlockDisplayElement(
+					Blocks.POLISHED_DEEPSLATE_SLAB.defaultBlockState());
+			plate.setScale(new Vector3f(0.94f, 0.26f, 0.94f));
+			plate.setTranslation(new Vector3f(-0.47f, -0.05f, -0.47f));
+			plate.setViewRange(0.8f);
+			holder.addElement(plate);
 			ChunkAttachment.ofTicking(holder, level, new Vec3(p.x + 0.5, p.y + 1.0, p.z + 0.5));
 			PEDESTALS.put(p, holder);
 		}
 		List<ItemStack> items = items(level, p);
 		int n = items.size();
-		double spread = n <= 1 ? 0 : Math.min(26, 150.0 / (n - 1));
+		double spread = n <= 1 ? 0 : Math.min(30, 160.0 / (n - 1));
 		for (int i = 0; i < PEDESTAL_SPOTS; i++) {
 			ItemDisplayElement e = (ItemDisplayElement) holder.getElements().get(i);
 			ItemStack s = i < n ? items.get(i) : ItemStack.EMPTY;
@@ -416,10 +421,10 @@ final class Showcase {
 			if (s.isEmpty()) continue;
 			// On an arc round the middle, each one facing out of it (towards the front)
 			double a = Math.toRadians((i - (n - 1) / 2.0) * spread);
-			float r = n <= 1 ? 0f : 0.28f;
+			float r = n <= 1 ? 0f : 0.36f;
 			float x = (float) (Math.sin(a) * r), z = (float) (Math.cos(a) * r - r * 0.6);
 			e.setYaw(p.yaw);
-			e.setTranslation(new Vector3f(x, 0.32f, z));
+			e.setTranslation(new Vector3f(x, 0.36f, z));
 			Quaternionf rot = new Quaternionf().rotateY((float) a);
 			if (slanted(s)) rot.rotateZ((float) Math.toRadians(45));
 			e.setLeftRotation(rot);
