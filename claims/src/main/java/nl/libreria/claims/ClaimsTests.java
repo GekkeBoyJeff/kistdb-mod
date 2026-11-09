@@ -117,8 +117,8 @@ final class ClaimsTests {
 				SelfTests.check(Grief.claimed(level, inside) && !Grief.claimed(level, outside), "fire knows what's claimed");
 				SelfTests.check(Grief.guarded(level, inside, null), "a mob can't change claimed blocks");
 				// an enderman and a vindicator (their goals load, with the claim checks in them)
-				var enderman = new net.minecraft.world.entity.monster.Enderman(net.minecraft.world.entity.EntityType.ENDERMAN, level);
-				var vindicator = new net.minecraft.world.entity.monster.illager.Vindicator(net.minecraft.world.entity.EntityType.VINDICATOR, level);
+				var enderman = new net.minecraft.world.entity.monster.Enderman(net.minecraft.world.entity.EntityTypes.ENDERMAN, level);
+				var vindicator = new net.minecraft.world.entity.monster.illager.Vindicator(net.minecraft.world.entity.EntityTypes.VINDICATOR, level);
 				SelfTests.check(enderman != null && vindicator != null, "endermen and door breakers know about claims");
 			} finally {
 				level.setBlockAndUpdate(inside, net.minecraft.world.level.block.Blocks.AIR.defaultBlockState());
