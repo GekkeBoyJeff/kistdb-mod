@@ -192,57 +192,83 @@ final class InfoTests {
 			} finally {
 				m.discard();
 			}
-			// A story wall with the six swords of the Charred Oath but the third: laid out for it, the third kept free
-			BlockPos o = new BlockPos(52, 121, 47);
-			var fill = net.minecraft.world.level.block.Blocks.STONE.defaultBlockState();
-			for (int dx = 0; dx < 4; dx++) for (int dy = 0; dy < 2; dy++) level.setBlock(o.offset(dx, dy, 1), fill, 3);
-			// facing north: your right is west, so it runs from x 55 (left) to 52
-			BlockPos origin = new BlockPos(55, 121, 47);
-			var w = StoryWall.debug(level, origin, net.minecraft.core.Direction.NORTH, "charred", 3, "spruce");
+			// Story wall pieces: side by side (same wood) they join, up to four; a different wood stays apart; one out of the
+			// middle splits them
+			BlockPos o = new BlockPos(52, 121, 48);
+			var stone = net.minecraft.world.level.block.Blocks.STONE.defaultBlockState();
+			var air = net.minecraft.world.level.block.Blocks.AIR.defaultBlockState();
+			var north = net.minecraft.core.Direction.NORTH;
+			for (int dx = -1; dx < 7; dx++) for (int dy = 0; dy < 2; dy++) level.setBlock(o.offset(dx, dy, 0), stone, 3);
+			// facing north your right is west: x 57 is the left end, 52 the right
+			java.util.function.IntFunction<BlockPos> at = x -> new BlockPos(x, 121, 47);
+			try {
+				var a1 = StoryWall.attach(level, at.apply(56), north, "oak");
+				var a2 = StoryWall.attach(level, at.apply(55), north, "oak");
+				SelfTests.check(a1 == a2 && StoryWall.cols(a1) == 2, "two pieces joined");
+				var other = StoryWall.attach(level, at.apply(57), north, "cherry");
+				SelfTests.check(other != a1 && StoryWall.cols(other) == 1 && StoryWall.cols(a1) == 2, "another wood beside it stays apart");
+				var a3 = StoryWall.attach(level, at.apply(53), north, "oak");
+				SelfTests.check(a3 != a1, "not beside it: apart");
+				var a4 = StoryWall.attach(level, at.apply(54), north, "oak");
+				SelfTests.check(a4 == a1 && StoryWall.cols(a1) == 4 && !StoryWall.data().walls.contains(a3), "the one between joins all: four");
+				var a5 = StoryWall.attach(level, at.apply(52), north, "oak");
+				SelfTests.check(a5 != a1 && StoryWall.cols(a1) == 4, "a fifth stays apart");
+				StoryWall.removeColumn(level, a1, 1, false, false);
+				SelfTests.check(StoryWall.cols(a1) == 1 && StoryWall.wallAt(level, at.apply(54)) != null
+						&& StoryWall.cols(StoryWall.wallAt(level, at.apply(54))) == 2, "one out of the middle: one and two");
+				var a6 = StoryWall.attach(level, at.apply(55), north, "oak");
+				SelfTests.check(StoryWall.cols(a6) == 4 && a6 == a1, "back in: four again");
+			} finally {
+				for (var w : new java.util.ArrayList<>(StoryWall.data().walls)) if (w.y == 121 && w.z == 47) StoryWall.remove(level, w, false);
+			}
+			// A board of three pieces with the six swords of the Charred Oath but the third: laid out for it (1-3 on top,
+			// 4-6 below), the third's spot kept free
+			var w = StoryWall.debug(level, at.apply(57), north, "charred", 3, "spruce", 3);
 			try {
 				SelfTests.check(StoryWall.planks("spruce").is(net.minecraft.world.level.block.Blocks.SPRUCE_PLANKS)
 						&& StoryWall.frame("warped").is(net.minecraft.world.level.block.Blocks.STRIPPED_WARPED_HYPHAE)
 						&& StoryWall.frame("bamboo").is(net.minecraft.world.level.block.Blocks.STRIPPED_BAMBOO_BLOCK)
 						&& StoryWall.woodOf(StoryWall.item("cherry")).equals("cherry") && StoryWall.item("pale_oak").getHoverName().getString().equals("Pale Oak Story Wall"),
 						"every kind of wood");
-				SelfTests.check(StoryWall.full(level, w).equals(java.util.Set.of(0, 1, 3, 4, 5)) && "charred".equals(w.story),
-						"five swords in their own spots: " + StoryWall.full(level, w));
-				SelfTests.check(StoryWall.spot(w, 0).equals(new BlockPos(55, 122, 47)) && StoryWall.spot(w, 7).equals(new BlockPos(52, 121, 47)),
-						"part 1 top left, as you face it: " + StoryWall.spot(w, 0) + " " + StoryWall.spot(w, 7));
-				SelfTests.check(StoryWall.card(level, w, 2).name().getString().equals("???") && StoryWall.card(level, w, 6).name().getString().equals("Empty spot"),
-						"a missing part, an empty spot");
+				int third = StoryWall.home(w, 3);
+				java.util.Set<Integer> five = new java.util.TreeSet<>();
+				for (int part : new int[] {1, 2, 4, 5, 6}) five.add(StoryWall.home(w, part));
+				SelfTests.check(StoryWall.full(level, w).equals(five) && third == 4 && StoryWall.home(w, 4) == 1, "five swords in their own spots: "
+						+ StoryWall.full(level, w));
+				SelfTests.check(StoryWall.card(level, w, third).name().getString().equals("???"), "the missing third");
 				SelfTests.check(StoryWall.card(level, w, 0).subtitle().getString().startsWith("Part 1 of 6"), "a part: " + StoryWall.card(level, w, 0).subtitle().getString());
-				// Looking at it: the spot you look at
-				var eye = net.minecraft.world.phys.Vec3.atCenterOf(StoryWall.spot(w, 1)).add(0, 0, -2);
+				var eye = net.minecraft.world.phys.Vec3.atCenterOf(StoryWall.spot(w, 2)).add(0, 0, -2);
 				var hit = StoryWall.hit(level, eye, eye.add(0, 0, 4));
-				SelfTests.check(hit != null && hit.spot() == 1, "looking at the second spot: " + (hit == null ? null : hit.spot()));
+				SelfTests.check(hit != null && hit.spot() == 2, "looking at the second part's spot: " + (hit == null ? null : hit.spot()));
 				FakePlayer fp = FakePlayer.get(level);
 				fp.getInventory().clearContent();
 				fp.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, ItemStack.EMPTY);
 				StoryWall.take(fp, w, 0);
-				SelfTests.check(StoryWall.full(level, w).equals(java.util.Set.of(1, 3, 4, 5)) && fp.getInventory().countItem(Items.STONE_SWORD) == 1,
-						"the first one taken off");
-				// Put back wherever you click: it goes to its own spot
+				SelfTests.check(!StoryWall.full(level, w).contains(0) && fp.getInventory().countItem(Items.STONE_SWORD) == 1, "the first one taken off");
 				int slot = 0;
 				while (slot < fp.getInventory().getContainerSize() && !fp.getInventory().getItem(slot).is(Items.STONE_SWORD)) slot++;
 				ItemStack taken = fp.getInventory().getItem(slot).copy();
 				fp.getInventory().setItem(slot, ItemStack.EMPTY);
 				fp.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, taken);
-				StoryWall.hang(fp, w, 7);
-				SelfTests.check(StoryWall.full(level, w).equals(java.util.Set.of(0, 1, 3, 4, 5)), "back in its own spot: " + StoryWall.full(level, w));
-				// Something else: where you click, but not in the spot kept for the third sword
+				StoryWall.hang(fp, w, 5);
+				SelfTests.check(StoryWall.full(level, w).equals(five), "back in its own spot: " + StoryWall.full(level, w));
 				fp.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, new ItemStack(Items.SHEARS));
-				StoryWall.hang(fp, w, 2);
-				SelfTests.check(StoryWall.full(level, w).contains(6) && !StoryWall.full(level, w).contains(2), "shears: not in the kept spot");
-				// Its wall dug out: it comes down
-				level.setBlock(o.offset(0, 0, 1), net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), 3);
+				StoryWall.hang(fp, w, third);
+				SelfTests.check(StoryWall.full(level, w).size() == 5, "shears: no room, the spot is kept for the third sword");
+				// A name tag names its plate
+				ItemStack tag = new ItemStack(Items.NAME_TAG);
+				tag.set(net.minecraft.core.component.DataComponents.CUSTOM_NAME, net.minecraft.network.chat.Component.literal("Jeff's Armoury"));
+				StoryWall.name(fp, w, tag);
+				SelfTests.check(w.name.equals("Jeff's Armoury"), "named");
+				// Its wall dug out under one piece: that piece comes down
+				level.setBlock(o.offset(5, 0, 0), air, 3);
 				StoryWall.tick(level.getServer());
-				SelfTests.check(!StoryWall.data().walls.contains(w), "its wall gone: it comes down");
+				SelfTests.check(StoryWall.data().walls.contains(w) && StoryWall.cols(w) == 2, "a piece whose wall is gone comes down: " + StoryWall.cols(w));
 				fp.getInventory().clearContent();
 			} finally {
-				if (StoryWall.data().walls.contains(w)) StoryWall.remove(level, w, false);
-				for (int dx = 0; dx < 4; dx++) for (int dy = 0; dy < 2; dy++) level.setBlock(o.offset(dx, dy, 1), net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), 3);
-				for (var e : level.getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class, new net.minecraft.world.phys.AABB(o).inflate(4))) e.discard();
+				for (var x : new java.util.ArrayList<>(StoryWall.data().walls)) if (x.y == 121 && x.z == 47) StoryWall.remove(level, x, false);
+				for (int dx = -1; dx < 7; dx++) for (int dy = 0; dy < 2; dy++) level.setBlock(o.offset(dx, dy, 0), air, 3);
+				for (var e : level.getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class, new net.minecraft.world.phys.AABB(o).inflate(6))) e.discard();
 			}
 		});
 		SelfTests.register("info.look-stand", level -> {

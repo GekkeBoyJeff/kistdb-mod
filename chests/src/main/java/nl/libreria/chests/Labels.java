@@ -48,13 +48,19 @@ public final class Labels {
 		boolean all = ChestsMod.LABELS.get(p);
 		ServerLevel level = p.level();
 		String dim = Store.dimId(level);
-		List<Store.Entry> near = new ArrayList<>();
+		List<Store.Entry> near = new ArrayList<>(), gone = new ArrayList<>();
 		for (Store.Entry e : Store.get(p.getUUID()).entries) {
 			if (!e.labelled(all) || !e.dim.equals(dim) || e.items.isEmpty()) continue;
 			if (p.distanceToSqr(e.x + 0.5, e.y + 0.5, e.z + 0.5) > RANGE * RANGE) continue;
 			if (!Containers.isLoaded(level, e.pos())) continue;
+			// The chest is gone (blown up, pushed away, replaced by a command): so are its label and its entry
+			if (!Containers.isStorage(level.getBlockEntity(e.pos()))) {
+				gone.add(e);
+				continue;
+			}
 			near.add(e);
 		}
+		for (Store.Entry e : gone) Store.remove(p.getUUID(), e);
 		near.sort(Comparator.comparingDouble(e -> p.distanceToSqr(e.x + 0.5, e.y + 0.5, e.z + 0.5)));
 		if (near.size() > MAX) near = near.subList(0, MAX);
 

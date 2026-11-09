@@ -53,6 +53,8 @@ final class InfoCollections {
 	}
 
 	static void init() {
+		Completion.counter("shown_off", 85, Items.ITEM_FRAME, "Stories on show", "Whole stories put on a mannequin or a story wall.",
+				(srv, who, st) -> Found.SEEN.get(who).shownOff.size(), nl.libreria.core.Ui::n);
 		Completion.add("stories", Completion.Tab.COLLECT, 30, Items.WRITABLE_BOOK, "Stories")
 				.about("The stories found gear tells, in parts. A story counts once you found one of its parts.")
 				.words("Found", "Not found yet")

@@ -702,17 +702,20 @@ public final class Screens implements FabricClientGameTest {
 				ctx.getInput().lookAt(new BlockPos(x, y + 1, z + 3));
 				ctx.waitTicks(12);
 				ctx.takeScreenshot("mannequin_side");
-				// Story walls on a wall of stone bricks behind the chests (what earlier scenes left there cleared): dark oak
-				// with the six swords of an oath but the third (a dark shape in its spot), cherry with the eight things of
-				// the Lantern Keeper, warped with a knight's armour, sword and shield
+				// Story walls on a wall of stone bricks behind the chests (what earlier scenes left there cleared): three pieces
+				// of dark oak with the six swords of an oath but the third (a dark shape in its spot), four of cherry with the
+				// eight things of the Lantern Keeper, three of warped with a knight's armour, sword and shield, and one piece
+				// of oak on its own (its plate's title on two lines)
 				run(server, "kill @e[type=minecraft:mannequin]", f("fill %d %d %d %d %d %d minecraft:air", x - 8, y, z + 4, x + 8, y + 3, z + 6),
 						f("kill @e[type=!minecraft:player,x=%d,y=%d,z=%d,dx=16,dy=4,dz=2]", x - 8, y, z + 4),
-						f("fill %d %d %d %d %d %d minecraft:stone_bricks", x - 8, y, z + 7, x + 7, y + 2, z + 7), f("tp @a %d %d %d 0 10", x + 5, y, z + 4));
+						f("fill %d %d %d %d %d %d minecraft:stone_bricks", x - 8, y, z + 7, x + 7, y + 2, z + 7), f("tp @a %d %d %d 0 10", x + 6, y, z + 4));
 				server.runOnServer(sv -> {
 					ServerLevel lv = (ServerLevel) player.level();
-					nl.libreria.info.InfoMod.debugStoryWall(lv, new BlockPos(x + 7, y, z + 6), net.minecraft.core.Direction.NORTH, "charred", 3, "dark_oak");
-					nl.libreria.info.InfoMod.debugStoryWall(lv, new BlockPos(x + 2, y, z + 6), net.minecraft.core.Direction.NORTH, "lantern", 0, "cherry");
-					nl.libreria.info.InfoMod.debugStoryWall(lv, new BlockPos(x - 3, y, z + 6), net.minecraft.core.Direction.NORTH, "odric", 0, "warped");
+					var north = net.minecraft.core.Direction.NORTH;
+					nl.libreria.info.InfoMod.debugStoryWall(lv, new BlockPos(x + 7, y, z + 6), north, "charred", 3, "dark_oak", 3);
+					nl.libreria.info.InfoMod.debugStoryWall(lv, new BlockPos(x + 3, y, z + 6), north, "lantern", 0, "cherry", 4);
+					nl.libreria.info.InfoMod.debugStoryWall(lv, new BlockPos(x - 2, y, z + 6), north, "odric", 0, "warped", 3);
+					nl.libreria.info.InfoMod.debugStoryWall(lv, new BlockPos(x - 6, y, z + 6), north, "lantern", 0, "oak", 1);
 				});
 				ctx.waitTicks(10);
 				ctx.getInput().lookAt(new BlockPos(x + 6, y + 1, z + 6));
@@ -722,16 +725,21 @@ public final class Screens implements FabricClientGameTest {
 				ctx.getInput().lookAt(new BlockPos(x + 5, y + 1, z + 6));
 				ctx.waitTicks(12);
 				ctx.takeScreenshot("storywall_missing");
-				run(server, f("tp @a %d %d %d 0 10", x, y, z + 4));
+				run(server, f("tp @a %d %d %d 0 10", x + 1, y, z + 4));
 				ctx.waitTicks(5);
-				ctx.getInput().lookAt(new BlockPos(x + 1, y + 1, z + 6));
+				ctx.getInput().lookAt(new BlockPos(x + 2, y + 1, z + 6));
 				ctx.waitTicks(12);
 				ctx.takeScreenshot("storywall_mixed");
-				run(server, f("tp @a %d %d %d 0 10", x - 5, y, z + 4));
+				run(server, f("tp @a %d %d %d 0 10", x - 3, y, z + 3));
 				ctx.waitTicks(5);
-				ctx.getInput().lookAt(new BlockPos(x - 4, y, z + 6));
+				ctx.getInput().lookAt(new BlockPos(x - 3, y + 1, z + 6));
 				ctx.waitTicks(12);
 				ctx.takeScreenshot("storywall_armour");
+				run(server, f("tp @a %d %d %d 0 10", x - 6, y, z + 3));
+				ctx.waitTicks(5);
+				ctx.getInput().lookAt(new BlockPos(x - 6, y + 1, z + 6));
+				ctx.waitTicks(12);
+				ctx.takeScreenshot("storywall_single");
 				run(server, f("tp @a %d %d %d 0 10", x + 9, y, z + 4));
 				ctx.waitTicks(5);
 				ctx.getInput().lookAt(new BlockPos(x + 1, y + 1, z + 7));

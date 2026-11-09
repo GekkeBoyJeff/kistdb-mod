@@ -800,6 +800,8 @@ public final class Catalog {
 		});
 		ladder(c, "verhalen", Items.BOOKSHELF, "Know a whole story|Know %,d whole stories", complete, 1, r(R, E, L, M),
 				1, "Storyteller", 5, "Lorekeeper", 15, "Keeper of Tales", total, "Every Story Told");
+		ladder(c, "verhalen.toon", Items.ITEM_FRAME, "Put a whole story on show (a mannequin or story wall)|Put %,d whole stories on show",
+				new Counter((p, d) -> st.shownOff(p)), 1, r(R, E, L), 1, "Curator", 5, "Museum Keeper", 15, "Hall of Legends");
 	}
 
 	private static void find(Category c, String id, String name, String desc, Item icon, Rarity r, String kind) {

@@ -79,10 +79,27 @@ public final class Tips {
 		next(p);
 	}
 
-	/** Shows the next waiting tip when the top of the screen is free. */
+	/** The tip on screen now, per player, and until when (server tick). */
+	private record Shown(Tip tip, int until) {
+	}
+
+	private static final Map<java.util.UUID, Shown> SHOWN = new java.util.HashMap<>();
+	/** When the top of the screen was last busy (a card of what you look at, a toast…), per player. */
+	private static final Map<java.util.UUID, Integer> LAST_BUSY = new java.util.HashMap<>();
+
+	/**
+	 * Shows the next waiting tip when the top of the screen is free: nothing else there, also not the card of what you
+	 * look at, and that for a second already (so a tip doesn't jump in between two looks).
+	 */
 	private static void next(ServerPlayer p) {
 		java.util.ArrayDeque<Tip> q = WAITING.get(p.getUUID());
-		if (q == null || q.isEmpty() || nl.libreria.core.gui.TopCard.shownPriority(p) >= BUSY) return;
+		if (q == null || q.isEmpty()) return;
+		int now = p.level().getServer().getTickCount();
+		if (nl.libreria.core.gui.TopCard.shownPriority(p) >= 0) {
+			LAST_BUSY.put(p.getUUID(), now);
+			return;
+		}
+		if (now - LAST_BUSY.getOrDefault(p.getUUID(), -1000) < 20) return;
 		Tip tip = q.poll();
 		if (q.isEmpty()) WAITING.remove(p.getUUID());
 		if (!ENABLED.get(p)) return;
@@ -93,6 +110,24 @@ public final class Tips {
 	}
 
 	static void tick(net.minecraft.server.MinecraftServer server) {
+		// A tip on screen makes way for the card of what you look at: it goes back in line and shows again, whole, later
+		int now = server.getTickCount();
+		for (java.util.UUID id : List.copyOf(SHOWN.keySet())) {
+			Shown s = SHOWN.get(id);
+			ServerPlayer p = server.getPlayerList().getPlayer(id);
+			if (p == null || s.until() <= now) {
+				SHOWN.remove(id);
+				continue;
+			}
+			if (!nl.libreria.core.gui.TopCard.anyBetween(p, 0, BUSY)) continue;
+			SHOWN.remove(id);
+			nl.libreria.core.gui.TopCard.hide(p, CHANNEL);
+			Data d = STORE.get(p);
+			d.seen.remove(s.tip().key());
+			STORE.markDirty(p);
+			WAITING.computeIfAbsent(id, k -> new java.util.ArrayDeque<>()).addFirst(s.tip());
+			LAST_BUSY.put(id, now);
+		}
 		for (java.util.UUID id : List.copyOf(WAITING.keySet())) {
 			ServerPlayer p = server.getPlayerList().getPlayer(id);
 			if (p == null) WAITING.remove(id);
@@ -102,6 +137,8 @@ public final class Tips {
 
 	static void forget(java.util.UUID id) {
 		WAITING.remove(id);
+		SHOWN.remove(id);
+		LAST_BUSY.remove(id);
 	}
 
 	/** Has this player seen it? */
@@ -114,9 +151,11 @@ public final class Tips {
 		List<TopCard.Row> rows = new ArrayList<>();
 		for (int i = 1; i < tip.lines().size(); i++) rows.add(TopCard.Row.text("", "", Ui.text(tip.lines().get(i), ChatFormatting.WHITE)));
 		Component subtitle = tip.lines().isEmpty() ? Component.empty() : Ui.text(tip.lines().getFirst(), ChatFormatting.WHITE);
+		int ticks = TICKS + 30 * rows.size();
 		TopCard.show(p, CHANNEL, new TopCard.Card(new ItemStack(tip.icon()), tip.domain().rgb,
 				Component.empty().append(Ui.text("Tip  ", tip.domain().rgb)).append(Ui.text(tip.title(), ChatFormatting.WHITE)), subtitle, rows),
-				PRIORITY, TICKS + 30 * rows.size());
+				PRIORITY, ticks);
+		SHOWN.put(p.getUUID(), new Shown(tip, p.level().getServer().getTickCount() + ticks));
 		Ui.sound(p, SoundEvents.AMETHYST_BLOCK_CHIME, 0.5f, 1.6f);
 	}
 

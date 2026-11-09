@@ -189,6 +189,7 @@ final class Showcase {
 		}
 		set(m, spot, p.hasInfiniteMaterials() ? hand.copyWithCount(1) : hand.split(1));
 		Ui.sound(p, SoundEvents.ARMOR_EQUIP_GENERIC.value(), 0.8f, 1.0f);
+		shown(p, all(m));
 	}
 
 	/** The window to take things off a mannequin: a button per thing it holds. */
@@ -336,6 +337,21 @@ final class Showcase {
 			if (!story.isEmpty() && Found.STORIES.containsKey(story)) out.computeIfAbsent(story, k -> new TreeSet<>()).add(st.getIntOr("part", 0));
 		}
 		return out;
+	}
+
+	/**
+	 * After this player hung something on a mannequin or story wall: every story it now holds whole counts as one they put
+	 * on show (an achievement, and the top list "Stories on show"), the first time.
+	 */
+	static void shown(ServerPlayer p, List<ItemStack> items) {
+		Found.Seen seen = Found.SEEN.get(p);
+		for (var e : stories(items).entrySet()) {
+			Found.Text info = Found.STORIES.get(e.getKey());
+			if (info == null || e.getValue().size() < info.parts() || !seen.shownOff.add(e.getKey())) continue;
+			Found.SEEN.markDirty(p);
+			Hud.flash(p, Ui.text("✦ The whole of \"" + info.title() + "\" on show", Found.HEAD));
+			Ui.sound(p, SoundEvents.PLAYER_LEVELUP, 0.5f, 1.4f);
+		}
 	}
 
 	static void read(ServerPlayer p, String what, List<ItemStack> items) {

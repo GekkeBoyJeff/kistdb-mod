@@ -102,6 +102,10 @@ final class Found {
 		public Map<String, String> partInfo = new HashMap<>();
 		/** Newest last. */
 		public List<Find> finds = new ArrayList<>();
+		/** The stories this player put on show whole (on a mannequin or a story wall: they hung its last part). */
+		public Set<String> shownOff = new java.util.HashSet<>();
+		/** Whether this player was told about mannequins and story walls (with their first part of a story). */
+		public boolean toldShowcases;
 	}
 
 	static final int MAX_FINDS = 2000;
@@ -122,6 +126,7 @@ final class Found {
 		if (d.parts == null) d.parts = new HashMap<>();
 		if (d.partInfo == null) d.partInfo = new HashMap<>();
 		if (d.finds == null) d.finds = new ArrayList<>();
+		if (d.shownOff == null) d.shownOff = new java.util.HashSet<>();
 		if (d.v == 2) renumber(d);
 		d.v = VERSION;
 	});
@@ -622,6 +627,14 @@ final class Found {
 		if (!ENABLED.get()) return;
 		for (ServerPlayer p : server.getPlayerList().getPlayers()) {
 			if (p instanceof net.fabricmc.fabric.api.entity.FakePlayer) continue;
+			// Who found parts before mannequins and story walls were there: told now, once
+			Seen seen = SEEN.get(p);
+			if (!seen.toldShowcases && !seen.parts.isEmpty()) {
+				seen.toldShowcases = true;
+				SEEN.markDirty(p);
+				showcaseRecipes(p);
+				nl.libreria.core.Tips.once(p, TIP_SHOW);
+			}
 			var inv = p.getInventory();
 			for (int i = 0; i < inv.getContainerSize(); i++) {
 				ItemStack s = inv.getItem(i);
@@ -863,6 +876,30 @@ final class Found {
 			s.partInfo.put(piece, st.getStringOr("where", "Found") + "|" + st.getIntOr("day", 0) + "|" + st.getStringOr("by", ""));
 			SEEN.markDirty(p);
 		}
+		if (!s.toldShowcases) {
+			// The first part of a story: how to show them off (the recipes in your book, and a tip)
+			s.toldShowcases = true;
+			SEEN.markDirty(p);
+			showcaseRecipes(p);
+			nl.libreria.core.Tips.once(p, TIP_SHOW);
+		}
+	}
+
+	static final nl.libreria.core.Tips.Tip TIP_SHOW = nl.libreria.core.Tips.register("show_stories", nl.libreria.core.Domain.PROGRESS,
+			net.minecraft.world.item.Items.ARMOR_STAND, "Show your stories off", "Mannequin: an armour stand and a book.",
+			"Story wall: 2 planks, an item frame, a book and a gold nugget. In your recipe book now.");
+
+	/** Unlocks the mannequin and every story wall in this player's recipe book. */
+	static void showcaseRecipes(ServerPlayer p) {
+		var recipes = p.level().getServer().getRecipeManager();
+		List<net.minecraft.world.item.crafting.RecipeHolder<?>> all = new ArrayList<>();
+		List<String> ids = new ArrayList<>(List.of("mannequin"));
+		for (String wood : StoryWall.WOODS) ids.add("story_wall_" + wood);
+		for (String id : ids) {
+			recipes.byKey(net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.RECIPE,
+					net.minecraft.resources.Identifier.fromNamespaceAndPath("libreria", id))).ifPresent(all::add);
+		}
+		p.awardRecipes(all);
 	}
 
 	static void provide() {
@@ -891,6 +928,11 @@ final class Found {
 				int n = 0;
 				for (Set<Integer> s : SEEN.get(player).parts.values()) n += s.size();
 				return n;
+			}
+
+			@Override
+			public int shownOff(ServerPlayer player) {
+				return SEEN.get(player).shownOff.size();
 			}
 		});
 	}

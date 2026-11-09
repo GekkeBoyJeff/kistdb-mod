@@ -230,6 +230,11 @@ public final class Services {
 
 		/** Story parts held, all stories together. */
 		int pieces(ServerPlayer player);
+
+		/** Stories this player put on show whole (a mannequin or story wall holding every part). */
+		default int shownOff(ServerPlayer player) {
+			return 0;
+		}
 	}
 
 	private static @Nullable Stories stories;

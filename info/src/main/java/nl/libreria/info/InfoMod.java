@@ -139,8 +139,8 @@ public final class InfoMod implements ModInitializer {
 	 * {@code facing}, with every part of a story on it but part {@code skip} (0: all of them).
 	 */
 	public static void debugStoryWall(net.minecraft.server.level.ServerLevel level, net.minecraft.core.BlockPos origin,
-			net.minecraft.core.Direction facing, String story, int skip, String wood) {
-		StoryWall.debug(level, origin, facing, story, skip, wood);
+			net.minecraft.core.Direction facing, String story, int skip, String wood, int pieces) {
+		StoryWall.debug(level, origin, facing, story, skip, wood, pieces);
 	}
 
 	/** For the screenshots: the book a showcase opens (every part of the story there). */

@@ -73,6 +73,7 @@ final class LoreBook {
 		b.gap();
 		b.line(Component.literal("» Your finds").withStyle(Book.action(st(Book.BUTTON), "lore_finds", new CompoundTag())));
 		b.line(Component.literal("» How it works").withStyle(Book.toPage(st(Book.BUTTON), Math.max(1, howPage))));
+		b.line(Component.literal("» Show them off").withStyle(Book.toPage(st(Book.BUTTON), Math.max(1, howPage + 1))));
 		b.gap();
 		for (var e : Found.STORIES.entrySet()) {
 			Set<Integer> got = seen.parts.get(e.getKey());
@@ -102,6 +103,20 @@ final class LoreBook {
 		b.text("Some are a part of a longer story. Hold every part once (trading counts) and you know it all.", st(Book.INK));
 		b.gap();
 		b.text("Everything you found stays in this book, even when the thing is long gone.", st(Book.INK));
+		b.gap();
+		b.line(Component.literal("« Contents").withStyle(Book.toPage(st(Book.BUTTON), 1)));
+		// Showing them off
+		b.newPage();
+		b.centred("Show them off", st(Book.TITLE).withBold(true));
+		b.gap();
+		b.text("A mannequin wears a whole story: armour, a thing in each hand, two on its back, two at its hips, two at its feet.",
+				st(Book.INK));
+		b.text("Craft: an armour stand and a book.", st(Book.MUTED));
+		b.gap();
+		b.text("A story wall hangs on a wall, two spots a piece; pieces of one wood side by side join, up to eight spots.", st(Book.INK));
+		b.text("Craft: two planks, an item frame, a book and a gold nugget.", st(Book.MUTED));
+		b.gap();
+		b.text("Right-click them with a part. Missing parts show as dark shapes on a wall.", st(Book.INK));
 		b.gap();
 		b.line(Component.literal("« Contents").withStyle(Book.toPage(st(Book.BUTTON), 1)));
 		return b;
@@ -207,6 +222,34 @@ final class LoreBook {
 		storyBook(seen, story, parts, got, at, !shown.isEmpty()).open(p, parts.get(0).title());
 	}
 
+	/** An introduction: whole sentences to a page; the first page under the title if all of it fits there. */
+	static void introPages(Book b, String intro, Style style) {
+		List<String> all = Book.wrap(intro, style);
+		if (all.size() + 1 <= b.room()) {
+			b.gap();
+			for (String l : all) b.line(Component.literal(l).withStyle(style));
+			return;
+		}
+		b.newPage();
+		List<String> sentences = new ArrayList<>();
+		java.util.regex.Matcher m = java.util.regex.Pattern.compile("[^.!?]+[.!?]+[\"')]*\\s*|[^.!?]+$").matcher(intro.trim());
+		while (m.find()) if (!m.group().isBlank()) sentences.add(m.group().trim());
+		StringBuilder page = new StringBuilder();
+		for (String sentence : sentences) {
+			String tryPage = page.isEmpty() ? sentence : page + " " + sentence;
+			if (!page.isEmpty() && Book.wrap(tryPage, style).size() > Book.LINES) {
+				for (String l : Book.wrap(page.toString(), style)) b.line(Component.literal(l).withStyle(style));
+				b.newPage();
+				page.setLength(0);
+				page.append(sentence);
+			} else {
+				page.setLength(0);
+				page.append(tryPage);
+			}
+		}
+		for (String l : Book.wrap(page.toString(), style)) b.line(Component.literal(l).withStyle(style));
+	}
+
 	static Book storyBook(Found.Seen seen, String story, List<Found.Text> parts, Set<Integer> got, int[] at, boolean showcase) {
 		Found.Text first = parts.get(0);
 		Book b = Book.create();
@@ -214,9 +257,9 @@ final class LoreBook {
 		b.centred("a story in " + first.parts() + " parts", st(Book.MUTED));
 		String intro = Found.INTROS.get(story);
 		if (intro != null) {
-			// What it's about first, on a page of its own: then the parts
-			b.gap();
-			b.text(intro, st(Book.INK).withItalic(true));
+			// What it's about first, under the title when it fits there, else on a page of its own; never a sentence
+			// broken over two pages. Then the parts.
+			introPages(b, intro, st(Book.INK).withItalic(true));
 			b.newPage();
 		}
 		String count = showcase ? (got.size() >= first.parts() ? "All of them are here!" : got.size() + " of them here.")

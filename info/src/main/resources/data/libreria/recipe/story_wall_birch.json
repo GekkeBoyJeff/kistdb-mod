@@ -19,21 +19,22 @@
       "minecraft:item_name": "Birch Story Wall",
       "minecraft:lore": [
         {
-          "text": "A board for a wall, 4 wide, 2 high:",
+          "text": "A piece for a wall: two spots, one",
           "color": "gray",
           "italic": false
         },
         {
-          "text": "eight spots, one thing in each.",
+          "text": "above the other. Pieces of one wood",
           "color": "gray",
           "italic": false
         },
         {
-          "text": "For stories of many of one thing.",
+          "text": "side by side join, up to eight spots.",
           "color": "gray",
           "italic": false
         }
       ]
-    }
+    },
+    "count": 2
   }
 }

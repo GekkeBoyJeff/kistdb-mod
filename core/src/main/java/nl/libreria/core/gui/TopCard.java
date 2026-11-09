@@ -142,6 +142,17 @@ public final class TopCard {
 		return best;
 	}
 
+	/** Is a card with a priority from {@code lo} up to (not including) {@code hi} on this player's top of the screen (shown or waiting under another)? */
+	public static boolean anyBetween(ServerPlayer p, int lo, int hi) {
+		Top top = TOPS.get(p.getUUID());
+		if (top == null) return false;
+		for (Entry e : top.cards.values()) {
+			if (e.until() >= 0 && e.until() <= now) continue;
+			if (e.priority() >= lo && e.priority() < hi) return true;
+		}
+		return false;
+	}
+
 	public static void hide(ServerPlayer p, String channel) {
 		Top top = TOPS.get(p.getUUID());
 		if (top != null && top.cards.remove(channel) != null) update(p, top);
