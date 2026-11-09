@@ -1,4 +1,4 @@
-+net.minecraft.world.entity.ai.goal.DoorInteractGoal
-? [Ee]nder[Mm]an
-? [Ff]arm[a-zA-Z]*Block
-? TrampleFarmland|Trampl
++net.minecraft.world.entity.monster.Enderman$EndermanTakeBlockGoal
++net.minecraft.world.entity.monster.Enderman$EndermanLeaveBlockGoal
++net.minecraft.world.level.block.FarmlandBlock
++net.minecraft.world.entity.Entity
