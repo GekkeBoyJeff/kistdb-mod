@@ -60,8 +60,8 @@ import org.joml.Vector3f;
  */
 final class Showcase {
 	static final ServerSetting.Toggle ON = InfoMod.MODULE.serverToggle("showcases", "Mannequins and story walls", Items.ARMOR_STAND, true,
-			"An armour stand and a book make a", "mannequin; dark oak planks, an item frame, a", "book and a gold nugget a story wall. They",
-			"show off gear and open its stories as a book.");
+			"An armour stand and a book make a", "mannequin; two planks of any wood, an item", "frame, a book and a gold nugget a story wall.",
+			"They show off gear and open its stories as a book.");
 	/** On the crafted item: "mannequin" or "wall". */
 	static final String KEY = "libreria_showcase";
 
@@ -306,19 +306,16 @@ final class Showcase {
 
 	// ---------------------------------------------------------------- the crafted items
 
-	/** A mannequin or story wall as an item ("mannequin" / "wall"), as the recipe makes it. */
+	/** A mannequin or (dark oak) story wall as an item ("mannequin" / "wall"), as the recipe makes it. */
 	static ItemStack item(String what) {
-		boolean mannequin = what.equals("mannequin");
-		ItemStack s = new ItemStack(mannequin ? Items.ARMOR_STAND : Items.ITEM_FRAME);
+		if (!what.equals("mannequin")) return StoryWall.item("dark_oak");
+		ItemStack s = new ItemStack(Items.ARMOR_STAND);
 		CompoundTag tag = new CompoundTag();
-		tag.putString(KEY, mannequin ? "mannequin" : StoryWall.KIND);
+		tag.putString(KEY, "mannequin");
 		s.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
-		s.set(DataComponents.ITEM_NAME, Component.literal(mannequin ? "Mannequin" : "Story Wall"));
-		s.set(DataComponents.LORE, new net.minecraft.world.item.component.ItemLore(mannequin
-				? List.of(Ui.text("Dress it in a whole story: armour,", ChatFormatting.GRAY), Ui.text("both hands, its back, hips and feet.", ChatFormatting.GRAY),
-						Ui.text("Right-click it: read its stories.", ChatFormatting.GRAY))
-				: List.of(Ui.text("A board for a wall, 4 wide, 2 high:", ChatFormatting.GRAY), Ui.text("eight spots, one thing in each.", ChatFormatting.GRAY),
-						Ui.text("For stories of many of one thing.", ChatFormatting.GRAY))));
+		s.set(DataComponents.ITEM_NAME, Component.literal("Mannequin"));
+		s.set(DataComponents.LORE, new net.minecraft.world.item.component.ItemLore(List.of(Ui.text("Dress it in a whole story: armour,", ChatFormatting.GRAY),
+				Ui.text("both hands, its back, hips and feet.", ChatFormatting.GRAY), Ui.text("Right-click it: read its stories.", ChatFormatting.GRAY))));
 		return s;
 	}
 
@@ -379,7 +376,7 @@ final class Showcase {
 			String what = kindOf(held);
 			if (what == null) return InteractionResult.PASS;
 			if (what.equals(StoryWall.KIND)) {
-				if (hand != InteractionHand.MAIN_HAND || StoryWall.place(sp, level, hit) == null) return InteractionResult.FAIL;
+				if (hand != InteractionHand.MAIN_HAND || StoryWall.place(sp, level, hit, StoryWall.woodOf(held)) == null) return InteractionResult.FAIL;
 				if (!sp.hasInfiniteMaterials()) held.shrink(1);
 				Ui.sound(sp, SoundEvents.WOOD_PLACE, 1f, 0.9f);
 				return InteractionResult.SUCCESS;

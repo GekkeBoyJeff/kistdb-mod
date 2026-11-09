@@ -50,7 +50,7 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
 /**
- * A <b>story wall</b> (two dark oak planks, an item frame, a book and a gold nugget): a board four blocks wide and two
+ * A <b>story wall</b> (two planks, an item frame, a book and a gold nugget; in every kind of wood): a board four blocks wide and two
  * high that hangs on a wall, with eight spots of a block each, so every thing on it can be looked at, taken and put back
  * on its own. Made for the stories that are many of one thing (the six swords of an oath, the spears of four sisters)
  * but it holds anything.
@@ -74,6 +74,8 @@ final class StoryWall {
 		public String facing = "south";
 		/** The story it is laid out for, "" for none (yet). */
 		public String story = "";
+		/** What it's made of: a kind of wood ("dark_oak", "cherry"…). */
+		public String wood = "dark_oak";
 		/** The eight spots, top row first, left to right (items as JSON; an empty object for an empty spot). */
 		public List<JsonElement> items = new ArrayList<>();
 	}
@@ -86,6 +88,60 @@ final class StoryWall {
 	private static final Map<Wall, ElementHolder> SHOWN = new HashMap<>();
 
 	private StoryWall() {
+	}
+
+	/** Every kind of wood a story wall is made of: its planks for the board, its stripped wood for the frame. */
+	static final List<String> WOODS = List.of("oak", "spruce", "birch", "jungle", "acacia", "dark_oak", "mangrove", "cherry", "pale_oak",
+			"bamboo", "crimson", "warped");
+	/** On the crafted item, next to {@link Showcase#KEY}: its wood. */
+	static final String WOOD = "libreria_wood";
+
+	static String wood(@Nullable String wood) {
+		return wood != null && WOODS.contains(wood) ? wood : "dark_oak";
+	}
+
+	static BlockState planks(String wood) {
+		return block(wood + "_planks", Blocks.DARK_OAK_PLANKS);
+	}
+
+	static BlockState frame(String wood) {
+		String id = switch (wood) {
+			case "bamboo" -> "stripped_bamboo_block";
+			case "crimson", "warped" -> "stripped_" + wood + "_hyphae";
+			default -> "stripped_" + wood + "_wood";
+		};
+		return block(id, Blocks.STRIPPED_DARK_OAK_WOOD);
+	}
+
+	private static BlockState block(String id, net.minecraft.world.level.block.Block fallback) {
+		return BuiltInRegistries.BLOCK.getOptional(Identifier.withDefaultNamespace(id)).orElse(fallback).defaultBlockState();
+	}
+
+	/** "Dark Oak" for "dark_oak". */
+	static String woodName(String wood) {
+		StringBuilder b = new StringBuilder();
+		for (String w : wood.split("_")) b.append(b.isEmpty() ? "" : " ").append(Character.toUpperCase(w.charAt(0))).append(w.substring(1));
+		return b.toString();
+	}
+
+	/** A story wall of this wood as an item, as its recipe makes it. */
+	static ItemStack item(String wood) {
+		wood = wood(wood);
+		ItemStack s = new ItemStack(Items.ITEM_FRAME);
+		CompoundTag tag = new CompoundTag();
+		tag.putString(Showcase.KEY, KIND);
+		tag.putString(WOOD, wood);
+		s.set(net.minecraft.core.component.DataComponents.CUSTOM_DATA, net.minecraft.world.item.component.CustomData.of(tag));
+		s.set(net.minecraft.core.component.DataComponents.ITEM_NAME, Component.literal(woodName(wood) + " Story Wall"));
+		s.set(net.minecraft.core.component.DataComponents.LORE, new net.minecraft.world.item.component.ItemLore(List.of(
+				Ui.text("A board for a wall, 4 wide, 2 high:", ChatFormatting.GRAY), Ui.text("eight spots, one thing in each.", ChatFormatting.GRAY),
+				Ui.text("For stories of many of one thing.", ChatFormatting.GRAY))));
+		return s;
+	}
+
+	static String woodOf(ItemStack s) {
+		var cd = s.get(net.minecraft.core.component.DataComponents.CUSTOM_DATA);
+		return wood(cd == null ? null : cd.copyTag().getStringOr(WOOD, ""));
 	}
 
 	static Data data() {
@@ -226,7 +282,7 @@ final class StoryWall {
 	 * Hangs a new board where this player clicked a wall: centred on the spot they clicked, flat against it, as long as
 	 * there's a flat wall four blocks wide and two high there with room in front of it.
 	 */
-	static @Nullable Wall place(ServerPlayer p, ServerLevel level, BlockHitResult hit) {
+	static @Nullable Wall place(ServerPlayer p, ServerLevel level, BlockHitResult hit, String wood) {
 		Direction f = hit.getDirection();
 		if (f.getAxis().isVertical()) {
 			Hud.flash(p, Ui.text("Hang it on a wall: right-click the side of a block", ChatFormatting.GRAY));
@@ -242,6 +298,7 @@ final class StoryWall {
 		Wall w = new Wall();
 		w.dim = dim(level);
 		w.facing = f.getSerializedName();
+		w.wood = wood(wood);
 		BlockPos origin = clicked.relative(f).relative(r, left).above(bottom);
 		w.x = origin.getX();
 		w.y = origin.getY();
@@ -276,7 +333,7 @@ final class StoryWall {
 	static void remove(ServerLevel level, Wall w, boolean dropItself) {
 		Vec3 at = at(w, 0, -0.5, 0.6);
 		for (ItemStack s : items(level, w)) if (!s.isEmpty()) Showcase.drop(level, at, s);
-		if (dropItself) Showcase.drop(level, at, Showcase.item(KIND));
+		if (dropItself) Showcase.drop(level, at, item(w.wood));
 		data().walls.remove(w);
 		STORE.markDirty();
 		ElementHolder h = SHOWN.remove(w);
@@ -399,8 +456,8 @@ final class StoryWall {
 			title.setLineWidth(1000);
 			title.setViewRange(0.6f);
 			holder.addElement(title);
-			// The board: dark oak, framed and parted into eight spots with stripped dark oak
-			BlockState board = Blocks.DARK_OAK_PLANKS.defaultBlockState(), rim = Blocks.STRIPPED_DARK_OAK_WOOD.defaultBlockState();
+			// The board: planks of its wood, framed and parted into eight spots with the same wood, stripped
+			BlockState board = planks(wood(w.wood)), rim = frame(wood(w.wood));
 			float hw = COLS / 2f, hh = ROWS / 2f;
 			holder.addElement(slab(board, -hw, -hh, 0, COLS, ROWS, DEPTH, yaw));
 			holder.addElement(slab(rim, -hw, hh - FRAME, 0, COLS, FRAME, RIM, yaw));
@@ -514,7 +571,7 @@ final class StoryWall {
 	static Look.Card card(ServerLevel level, Wall w, int spot) {
 		List<ItemStack> items = items(level, w);
 		ItemStack s = items.get(spot);
-		ItemStack icon = Showcase.item(KIND);
+		ItemStack icon = item(w.wood);
 		if (s.isEmpty()) {
 			if (kept(w, items, spot)) {
 				Found.Text info = Found.STORIES.get(w.story);
@@ -639,8 +696,9 @@ final class StoryWall {
 	// ---------------------------------------------------------------- for the screenshots and the self-test
 
 	/** A board on the wall behind {@code origin} (its bottom-left spot), facing {@code facing}, with a story on it but part {@code skip}. */
-	static Wall debug(ServerLevel level, BlockPos origin, Direction facing, String story, int skip) {
+	static Wall debug(ServerLevel level, BlockPos origin, Direction facing, String story, int skip, String wood) {
 		Wall w = new Wall();
+		w.wood = wood(wood);
 		w.dim = dim(level);
 		w.facing = facing.getSerializedName();
 		w.x = origin.getX();

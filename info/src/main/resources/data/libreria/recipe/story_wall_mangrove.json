@@ -1,0 +1,39 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "group": "libreria_story_wall",
+  "ingredients": [
+    "minecraft:mangrove_planks",
+    "minecraft:mangrove_planks",
+    "minecraft:item_frame",
+    "minecraft:book",
+    "minecraft:gold_nugget"
+  ],
+  "result": {
+    "id": "minecraft:item_frame",
+    "components": {
+      "minecraft:custom_data": {
+        "libreria_showcase": "wall",
+        "libreria_wood": "mangrove"
+      },
+      "minecraft:item_name": "Mangrove Story Wall",
+      "minecraft:lore": [
+        {
+          "text": "A board for a wall, 4 wide, 2 high:",
+          "color": "gray",
+          "italic": false
+        },
+        {
+          "text": "eight spots, one thing in each.",
+          "color": "gray",
+          "italic": false
+        },
+        {
+          "text": "For stories of many of one thing.",
+          "color": "gray",
+          "italic": false
+        }
+      ]
+    }
+  }
+}

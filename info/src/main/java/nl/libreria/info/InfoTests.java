@@ -165,7 +165,7 @@ final class InfoTests {
 			SelfTests.check("mannequin".equals(Showcase.kindOf(Showcase.item("mannequin"))) && "wall".equals(Showcase.kindOf(Showcase.item("wall")))
 					&& Showcase.kindOf(new ItemStack(Items.ARMOR_STAND)) == null, "the crafted items");
 			var recipes = level.getServer().getRecipeManager();
-			for (String r : new String[] {"mannequin", "story_wall"}) {
+			for (String r : new String[] {"mannequin", "story_wall_oak", "story_wall_cherry", "story_wall_warped", "story_wall_bamboo"}) {
 				SelfTests.check(recipes.byKey(net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.RECIPE,
 						net.minecraft.resources.Identifier.fromNamespaceAndPath("libreria", r))).isPresent(), "the recipe " + r);
 			}
@@ -198,8 +198,13 @@ final class InfoTests {
 			for (int dx = 0; dx < 4; dx++) for (int dy = 0; dy < 2; dy++) level.setBlock(o.offset(dx, dy, 1), fill, 3);
 			// facing north: your right is west, so it runs from x 55 (left) to 52
 			BlockPos origin = new BlockPos(55, 121, 47);
-			var w = StoryWall.debug(level, origin, net.minecraft.core.Direction.NORTH, "charred", 3);
+			var w = StoryWall.debug(level, origin, net.minecraft.core.Direction.NORTH, "charred", 3, "spruce");
 			try {
+				SelfTests.check(StoryWall.planks("spruce").is(net.minecraft.world.level.block.Blocks.SPRUCE_PLANKS)
+						&& StoryWall.frame("warped").is(net.minecraft.world.level.block.Blocks.STRIPPED_WARPED_HYPHAE)
+						&& StoryWall.frame("bamboo").is(net.minecraft.world.level.block.Blocks.STRIPPED_BAMBOO_BLOCK)
+						&& StoryWall.woodOf(StoryWall.item("cherry")).equals("cherry") && StoryWall.item("pale_oak").getHoverName().getString().equals("Pale Oak Story Wall"),
+						"every kind of wood");
 				SelfTests.check(StoryWall.full(level, w).equals(java.util.Set.of(0, 1, 3, 4, 5)) && "charred".equals(w.story),
 						"five swords in their own spots: " + StoryWall.full(level, w));
 				SelfTests.check(StoryWall.spot(w, 0).equals(new BlockPos(55, 122, 47)) && StoryWall.spot(w, 7).equals(new BlockPos(52, 121, 47)),
@@ -220,8 +225,9 @@ final class InfoTests {
 				// Put back wherever you click: it goes to its own spot
 				int slot = 0;
 				while (slot < fp.getInventory().getContainerSize() && !fp.getInventory().getItem(slot).is(Items.STONE_SWORD)) slot++;
-				fp.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, fp.getInventory().getItem(slot).copy());
+				ItemStack taken = fp.getInventory().getItem(slot).copy();
 				fp.getInventory().setItem(slot, ItemStack.EMPTY);
+				fp.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, taken);
 				StoryWall.hang(fp, w, 7);
 				SelfTests.check(StoryWall.full(level, w).equals(java.util.Set.of(0, 1, 3, 4, 5)), "back in its own spot: " + StoryWall.full(level, w));
 				// Something else: where you click, but not in the spot kept for the third sword

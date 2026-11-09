@@ -1,0 +1,39 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "group": "libreria_story_wall",
+  "ingredients": [
+    "minecraft:acacia_planks",
+    "minecraft:acacia_planks",
+    "minecraft:item_frame",
+    "minecraft:book",
+    "minecraft:gold_nugget"
+  ],
+  "result": {
+    "id": "minecraft:item_frame",
+    "components": {
+      "minecraft:custom_data": {
+        "libreria_showcase": "wall",
+        "libreria_wood": "acacia"
+      },
+      "minecraft:item_name": "Acacia Story Wall",
+      "minecraft:lore": [
+        {
+          "text": "A board for a wall, 4 wide, 2 high:",
+          "color": "gray",
+          "italic": false
+        },
+        {
+          "text": "eight spots, one thing in each.",
+          "color": "gray",
+          "italic": false
+        },
+        {
+          "text": "For stories of many of one thing.",
+          "color": "gray",
+          "italic": false
+        }
+      ]
+    }
+  }
+}
