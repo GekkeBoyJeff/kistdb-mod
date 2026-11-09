@@ -1,12 +1,4 @@
-+net.minecraft.world.level.ServerExplosion
-net.minecraft.world.level.Explosion
-+net.minecraft.world.level.block.FireBlock
-+net.minecraft.world.entity.monster.EnderMan$EndermanTakeBlockGoal
-+net.minecraft.world.entity.monster.EnderMan$EndermanLeaveBlockGoal
-+net.minecraft.world.entity.ai.goal.BreakDoorGoal
-+net.minecraft.world.level.material.FlowingFluid
-+net.minecraft.world.entity.decoration.HangingEntity
-+net.minecraft.world.entity.decoration.BlockAttachedEntity
-? FarmBlock|FarmlandBlock
-? EnderMan
-? BreakDoorGoal
++net.minecraft.world.entity.ai.goal.DoorInteractGoal
+? [Ee]nder[Mm]an
+? [Ff]arm[a-zA-Z]*Block
+? TrampleFarmland|Trampl
