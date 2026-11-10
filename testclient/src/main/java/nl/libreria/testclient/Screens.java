@@ -850,7 +850,8 @@ public final class Screens implements FabricClientGameTest {
 			});
 			menu(ctx, server, player, "mannequin_window_sitting", p -> nl.libreria.info.InfoMod.debugMannequinWindow(p, new BlockPos(mx + 4, y + 1, mz + 5), null));
 			safe("mannequin_hands", () -> {
-				run(server, "tp @e[type=minecraft:mannequin] ~ -100 ~", "kill @e[type=minecraft:mannequin]", "kill @e[type=minecraft:armor_stand]",
+				run(server, "tp @e[type=minecraft:mannequin] ~ -100 ~", "tp @e[type=minecraft:armor_stand] ~ -100 ~", "kill @e[type=minecraft:mannequin]",
+						"kill @e[type=minecraft:armor_stand]",
 						f("fill %d %d %d %d %d %d minecraft:air", mx - 9, y, mz + 3, mx + 8, y + 2, mz + 7), f("tp @a %d %d %d 0 10", mx, y, mz));
 				ctx.waitTicks(5);
 				server.runOnServer(sv -> nl.libreria.info.InfoMod.debugMannequinScene((ServerLevel) player.level(), new BlockPos(mx, y, mz + 5), "hands"));
@@ -889,7 +890,8 @@ public final class Screens implements FabricClientGameTest {
 				ctx.waitTicks(16);
 				noToasts(ctx);
 				ctx.takeScreenshot("mannequin_heads");
-				run(server, "tp @e[type=minecraft:mannequin] ~ -100 ~", "kill @e[type=minecraft:mannequin]", "kill @e[type=minecraft:armor_stand]", f("tp @a %d %d %d", x, y, z));
+				run(server, "tp @e[type=minecraft:mannequin] ~ -100 ~", "tp @e[type=minecraft:armor_stand] ~ -100 ~", "kill @e[type=minecraft:mannequin]",
+						"kill @e[type=minecraft:armor_stand]", f("tp @a %d %d %d", x, y, z));
 				ctx.waitTicks(5);
 				ctx.getInput().lookAt(0, 0);
 			});

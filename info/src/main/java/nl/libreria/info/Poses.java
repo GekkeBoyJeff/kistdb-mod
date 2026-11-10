@@ -176,8 +176,9 @@ final class Poses {
 					keep(m, kept(m).withSpot(null));
 					return "It can't sit here";
 				}
-				// (getting on something makes it stand: lean in after)
+				// (getting on something makes it stand: lean in after, and once more for the players, see leanAgain)
 				m.setPose(to == Stance.LEAN ? Pose.CROUCHING : Pose.STANDING);
+				if (to == Stance.LEAN) AGAIN.add(m);
 			}
 			case LIE -> {
 				BlockPos bed = bedAt(level, m.blockPosition());
@@ -378,6 +379,29 @@ final class Poses {
 		HEADS.add(m);
 	}
 
+	/** Sitting and crouching: leaning in. */
+	static boolean leaning(Mannequin m) {
+		return seated(m) && m.getPose() == Pose.CROUCHING;
+	}
+
+	/** Leaning in, to be sent again (see {@link #leanAgain}). */
+	private static final Set<Mannequin> AGAIN = new HashSet<>();
+
+	/**
+	 * A player's game makes whatever gets on something stand up straight, also when it is told who sits where after it
+	 * was told how it sits. So once the players know it sits, it leans in again: changed and changed back, it goes out
+	 * anew with Minecraft's next update.
+	 */
+	private static void leanAgain() {
+		if (AGAIN.isEmpty()) return;
+		for (Mannequin m : AGAIN) {
+			if (m.isRemoved() || !leaning(m)) continue;
+			m.setPose(Pose.STANDING);
+			m.setPose(Pose.CROUCHING);
+		}
+		AGAIN.clear();
+	}
+
 	/** Mannequins whose turned heads go out to the players at the end of this tick. */
 	private static final Set<Mannequin> HEADS = new HashSet<>();
 
@@ -485,11 +509,19 @@ final class Poses {
 			if (e instanceof Mannequin m) LOADED.remove(m);
 			else if (e instanceof ArmorStand a) SEATS.remove(a);
 		});
-		// Someone sees it anew: its head turned for them too (after Minecraft showed it them)
+		// Someone sees it anew: its head turned for them too, and leaning in (after Minecraft showed it them)
 		net.fabricmc.fabric.api.networking.v1.EntityTrackingEvents.START_TRACKING.register((e, player) -> {
-			if (e instanceof Mannequin m && kept(m).head() != 0) HEADS.add(m);
+			if (e instanceof Mannequin m) {
+				if (kept(m).head() != 0) HEADS.add(m);
+				if (leaning(m)) AGAIN.add(m);
+			} else if (isSeat(e) && e.getFirstPassenger() instanceof Mannequin m && leaning(m)) {
+				AGAIN.add(m);
+			}
 		});
-		net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents.END_SERVER_TICK.register(server -> sendHeads());
+		net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents.END_SERVER_TICK.register(server -> {
+			sendHeads();
+			leanAgain();
+		});
 	}
 
 	/** Every second: hands kept using, empty seats gone, a seat or bed that went away (it stands up where it stood). */
