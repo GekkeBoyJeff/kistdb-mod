@@ -21,7 +21,7 @@ import nl.libreria.core.WorldStore;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Homes from the teleport mod that was here before (Teleport Commands: {@code <world>/TeleportCommands.json}, with
+ * Homes from the teleport mod that was here before (Teleport Commands: {@code <world>/TeleportCommands/storage.json}, with
  * {@code {"Players":[{"UUID","DefaultHome","Homes":[{"name","x","y","z","world"}]}]}}), taken over once at start, so
  * nobody loses a home. Any JSON file of that shape in the world folder or the config folder counts. A home whose name
  * a player already has here is left alone; the default home becomes their /home. Homes over the limit stay (they just
@@ -46,11 +46,7 @@ final class HomeImport {
 	/** At start: every file of the old shape that wasn't taken over yet. */
 	static void run(MinecraftServer server) {
 		Path world = server.getWorldPath(net.minecraft.world.level.storage.LevelResource.ROOT).toAbsolutePath().normalize();
-		List<Path> candidates = new ArrayList<>();
-		candidates.add(world.resolve("TeleportCommands.json"));
-		addJson(candidates, world, 1);
-		addJson(candidates, world.resolve("data"), 2);
-		addJson(candidates, FabricLoader.getInstance().getConfigDir(), 2);
+		List<Path> candidates = candidates(world, FabricLoader.getInstance().getConfigDir());
 		Done done = DONE.get();
 		if (done.files == null) done.files = new HashSet<>();
 		Set<Path> seen = new HashSet<>();
@@ -68,10 +64,30 @@ final class HomeImport {
 		}
 	}
 
+	/**
+	 * Where the old homes can be: Teleport Commands keeps them in {@code <world>/TeleportCommands/storage.json}; any
+	 * JSON file in the world folder and the folders right in it (not the game's own: stats, advancements, data
+	 * packs) and in the config folder is looked at too.
+	 */
+	static List<Path> candidates(Path world, Path config) {
+		List<Path> out = new ArrayList<>();
+		out.add(world.resolve("TeleportCommands").resolve("storage.json"));
+		// a newer Teleport Commands moves the old file aside when it upgrades
+		out.add(world.resolve("TeleportCommands").resolve("storage.json.bak"));
+		out.add(world.resolve("TeleportCommands.json"));
+		addJson(out, world, 2);
+		addJson(out, world.resolve("data"), 2);
+		addJson(out, config, 2);
+		return out;
+	}
+
+	private static final Set<String> SKIP = Set.of("advancements", "stats", "datapacks", "playerdata", "region", "entities", "poi", "libreria");
+
 	private static void addJson(List<Path> out, Path dir, int depth) {
 		if (!Files.isDirectory(dir)) return;
 		try (Stream<Path> s = Files.walk(dir, depth)) {
-			s.filter(p -> p.getFileName().toString().endsWith(".json") && !p.toString().contains("libreria")).forEach(out::add);
+			s.filter(p -> p.getFileName().toString().endsWith(".json") && !p.toString().contains("libreria")
+					&& (p.getParent() == null || !SKIP.contains(p.getParent().getFileName().toString()))).forEach(out::add);
 		} catch (Exception ignored) {
 			// a folder we can't read: fine
 		}

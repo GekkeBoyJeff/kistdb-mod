@@ -62,6 +62,26 @@ final class TeleportsTests {
 			}
 		});
 
+		SelfTests.register("teleports.import-where", level -> {
+			// Teleport Commands keeps its homes in <world>/TeleportCommands/storage.json: that file is found
+			try {
+				java.nio.file.Path world = java.nio.file.Files.createTempDirectory("world");
+				java.nio.file.Path config = java.nio.file.Files.createTempDirectory("config");
+				java.nio.file.Path storage = world.resolve("TeleportCommands").resolve("storage.json");
+				java.nio.file.Files.createDirectories(storage.getParent());
+				java.nio.file.Files.writeString(storage, "{\"Warps\":[],\"Players\":[]}");
+				java.nio.file.Path stats = world.resolve("stats").resolve("x.json");
+				java.nio.file.Files.createDirectories(stats.getParent());
+				java.nio.file.Files.writeString(stats, "{}");
+				var found = HomeImport.candidates(world, config);
+				SelfTests.check(found.stream().anyMatch(p -> p.equals(storage) && java.nio.file.Files.isRegularFile(p)), "TeleportCommands/storage.json is found");
+				SelfTests.check(found.stream().noneMatch(p -> p.equals(stats)), "the game's own stats aren't read");
+				SelfTests.check(HomeImport.read(storage) != null, "and read");
+			} catch (java.io.IOException e) {
+				throw new AssertionError("temp files: " + e);
+			}
+		});
+
 		SelfTests.register("teleports.import", level -> {
 			UUID id = UUID.randomUUID();
 			try {
