@@ -104,6 +104,53 @@ public final class WaystonesDebug {
 		MOCK.add(altar);
 	}
 
+	/** A village square of one type ("plains", "desert"…) at {@code centre}, its waystone (mock-up) on it, facing north. */
+	public static void plaza(ServerPlayer p, BlockPos centre, String style, int radius) {
+		Plaza.Style st = Plaza.Style.of(style);
+		Plaza.Palette pal = Plaza.palette(st);
+		Plaza.build(p.level(), new Plaza.Site(centre, Direction.NORTH, radius), pal);
+		mock(p, centre, Direction.NORTH, pal.dark(), pal.dye().getName(), true, cap(st.name()));
+	}
+
+	private static String cap(String s) {
+		return s.charAt(0) + s.substring(1).toLowerCase(java.util.Locale.ROOT);
+	}
+
+	/**
+	 * In a village made just now around {@code around}: its bell, the best spot for its square, the square and the
+	 * waystone (mock-up). Returns the square's centre and the way it faces (null when there was no room).
+	 */
+	public record Square(BlockPos centre, Direction front) {
+	}
+
+	public static @Nullable Square villagePlaza(ServerPlayer p, BlockPos around, String style) {
+		ServerLevel level = p.level();
+		BlockPos bell = null;
+		BlockPos.MutableBlockPos m = new BlockPos.MutableBlockPos();
+		for (int dx = -64; dx <= 64 && bell == null; dx++) {
+			for (int dz = -64; dz <= 64 && bell == null; dz++) {
+				for (int dy = -8; dy <= 16; dy++) {
+					if (level.getBlockState(m.set(around.getX() + dx, around.getY() + dy, around.getZ() + dz)).is(net.minecraft.world.level.block.Blocks.BELL)) {
+						bell = m.immutable();
+						break;
+					}
+				}
+			}
+		}
+		if (bell == null) return null;
+		Plaza.Site site = Plaza.find(level, bell);
+		if (site == null) return null;
+		Plaza.Palette pal = Plaza.palette(Plaza.Style.of(style));
+		Plaza.build(level, site, pal);
+		mock(p, site.centre(), site.front(), pal.dark(), pal.dye().getName(), true, cap(Plaza.Style.of(style).name()) + " village");
+		return new Square(site.centre(), site.front());
+	}
+
+	/** Waystones in new villages on or off (the mock-ups make villages without the first design's stone). */
+	public static void villages(boolean on) {
+		WaystonesMod.VILLAGES.set(on);
+	}
+
 	public static void clearMock() {
 		for (var h : MOCK) h.destroy();
 		MOCK.clear();
