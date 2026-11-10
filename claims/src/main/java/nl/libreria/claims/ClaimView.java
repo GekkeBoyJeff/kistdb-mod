@@ -391,9 +391,10 @@ public final class ClaimView {
 	 * A right-click packet (also with an empty hand: the client sends one for the land map's hidden item). True when the
 	 * land map is open: then it's the map's, and nothing else happens.
 	 */
-	public static boolean rightClick(ServerPlayer p, net.minecraft.world.InteractionHand hand) {
+	public static boolean rightClick(ServerPlayer p) {
 		if (!isOpen(p)) return false;
-		if (hand == net.minecraft.world.InteractionHand.MAIN_HAND) onUse(p);
+		// (only the main hand holds something on the client while the map is open: one packet per click)
+		onUse(p);
 		emptyHands(p);
 		return true;
 	}

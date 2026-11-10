@@ -23,6 +23,6 @@ public abstract class LandMapUseMixin {
 	private void libreria$landMap(ServerboundUseItemPacket packet, CallbackInfo ci) {
 		// Netty thread: vanilla hands the packet over to the server thread first, we act there
 		if (!this.player.level().getServer().isSameThread()) return;
-		if (ClaimView.rightClick(this.player, packet.getHand())) ci.cancel();
+		if (ClaimView.rightClick(this.player)) ci.cancel();
 	}
 }
