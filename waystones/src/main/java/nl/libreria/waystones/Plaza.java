@@ -115,6 +115,9 @@ final class Plaza {
 		return best;
 	}
 
+	/** Why spots were turned down (for finding out why a village got no square): height, ground, built, water. */
+	static final int[] WHY = new int[4];
+
 	/** How well a square fits with its centre at {@code centre} (lower is better), or -1 when it doesn't. */
 	static double fits(LevelAccessor level, BlockPos centre, Direction front, int radius) {
 		int y0 = centre.getY();
@@ -124,17 +127,31 @@ final class Plaza {
 			for (int b = -radius; b <= radius; b++) {
 				BlockPos c = at(centre, front, a, b);
 				int h = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, c.getX(), c.getZ());
-				if (Math.abs(h - y0) > 2) return -1;
+				if (Math.abs(h - y0) > 2) {
+					WHY[0]++;
+					return -1;
+				}
 				rough += Math.abs(h - y0);
 				// The ground under the square: something natural (a foundation fills a dip of up to two)
 				BlockState ground = level.getBlockState(c.atY(Math.min(h, y0) - 1));
-				if (!natural(ground) || !ground.getFluidState().isEmpty()) return -1;
+				if (!natural(ground) || !ground.getFluidState().isEmpty()) {
+					WHY[1]++;
+					if (WHY[1] < 4) nl.libreria.core.Libreria.LOG.info("Plaza: ground {} at {}", ground, c.atY(Math.min(h, y0) - 1));
+					return -1;
+				}
 				if (ground.is(Blocks.DIRT_PATH)) paths++;
 				// Room above it: four blocks (the stone needs three), nothing built
 				for (int y = Math.min(h, y0); y <= y0 + 4; y++) {
 					BlockState s = level.getBlockState(c.atY(y));
-					if (y < y0 ? !natural(s) : !open(s) && !(y < h && natural(s))) return -1;
-					if (!s.getFluidState().isEmpty()) return -1;
+					if (y < y0 ? !natural(s) : !open(s) && !(y < h && natural(s))) {
+						WHY[2]++;
+						if (WHY[2] < 4) nl.libreria.core.Libreria.LOG.info("Plaza: built {} at {}", s, c.atY(y));
+						return -1;
+					}
+					if (!s.getFluidState().isEmpty()) {
+						WHY[3]++;
+						return -1;
+					}
 				}
 			}
 		}

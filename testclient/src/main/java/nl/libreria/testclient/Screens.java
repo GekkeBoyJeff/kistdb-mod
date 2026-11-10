@@ -1351,6 +1351,11 @@ public final class Screens implements FabricClientGameTest {
 					server.runOnServer(s -> nl.libreria.waystones.WaystonesDebug.villages(true));
 					if (sq == null) {
 						LOG.warn("No room for a square in the {} village", type);
+						// From above, to see why
+						run(server, f("tp @a %d %d %d 0 90", vx, y + 40, pz));
+						ctx.waitTicks(60);
+						noToasts(ctx);
+						ctx.takeScreenshot("mock_plaza_village_" + type + "_above");
 						return;
 					}
 					BlockPos stand = sq.centre().relative(sq.front(), 9).relative(sq.front().getClockWise(), 3).above(5);

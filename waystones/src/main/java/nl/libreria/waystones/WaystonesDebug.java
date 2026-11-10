@@ -141,9 +141,11 @@ public final class WaystonesDebug {
 			nl.libreria.core.Libreria.LOG.warn("Mock-up: no bell near {}", around);
 			return null;
 		}
+		java.util.Arrays.fill(Plaza.WHY, 0);
 		Plaza.Site site = Plaza.find(level, bell);
 		if (site == null) {
-			nl.libreria.core.Libreria.LOG.warn("Mock-up: no room for a square near the bell at {}", bell);
+			nl.libreria.core.Libreria.LOG.warn("Mock-up: no room for a square near the bell at {} (turned down: height {}, ground {}, built {}, water {})",
+					bell, Plaza.WHY[0], Plaza.WHY[1], Plaza.WHY[2], Plaza.WHY[3]);
 			return null;
 		}
 		Plaza.Palette pal = Plaza.palette(Plaza.Style.of(style));
