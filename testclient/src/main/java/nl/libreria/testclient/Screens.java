@@ -1326,12 +1326,12 @@ public final class Screens implements FabricClientGameTest {
 				run(server, "time set 1000");
 			});
 			for (int i = 0; i < plazaTypes.length; i++) {
-				int cx = px + 10 * i;
+				int qx = px + 10 * i;
 				String type = plazaTypes[i];
 				safe("mock_plaza_" + type, () -> {
-					run(server, f("tp @a %d %d %d", cx + 5, y + 3, pz - 8));
+					run(server, f("tp @a %d %d %d", qx + 5, y + 3, pz - 8));
 					ctx.waitTicks(30);
-					ctx.getInput().lookAt(new BlockPos(cx, y + 1, pz));
+					ctx.getInput().lookAt(new BlockPos(qx, y + 1, pz));
 					noToasts(ctx);
 					ctx.waitTicks(10);
 					ctx.takeScreenshot("mock_plaza_" + type);
