@@ -1,0 +1,19 @@
+{
+	"type": "minecraft:crafting_shaped",
+	"category": "misc",
+	"pattern": [
+		" A ",
+		"BPB",
+		"SSS"
+	],
+	"key": {
+		"A": "minecraft:amethyst_shard",
+		"B": "minecraft:stone_bricks",
+		"P": "minecraft:ender_pearl",
+		"S": "minecraft:smooth_stone"
+	},
+	"result": {
+		"id": "libreria:waystone",
+		"count": 1
+	}
+}

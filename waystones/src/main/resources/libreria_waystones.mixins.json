@@ -1,0 +1,11 @@
+{
+	"required": true,
+	"package": "nl.libreria.waystones.mixin",
+	"compatibilityLevel": "JAVA_25",
+	"mixins": [
+		"VillageMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}

@@ -1,0 +1,19 @@
+{
+	"schemaVersion": 1,
+	"id": "libreria_waystones",
+	"version": "${version}",
+	"name": "Libreria Waystones",
+	"description": "Waystones: a rune obelisk with an altar, in every new village and craftable. Find them, then travel between them for a little XP (at most 1.5 levels) or free with an ender pearl; waystone pearls take you to one from anywhere. Server-side with the server's resource pack; requires Libreria (core).",
+	"authors": ["Jeffrey"],
+	"license": "MIT",
+	"environment": "*",
+	"entrypoints": {
+		"main": ["nl.libreria.waystones.WaystonesMod"]
+	},
+	"mixins": ["libreria_waystones.mixins.json"],
+	"depends": {
+		"minecraft": "~26.3",
+		"fabric-api": "*",
+		"libreria": ">=${core_version}"
+	}
+}

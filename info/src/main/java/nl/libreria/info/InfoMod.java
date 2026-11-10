@@ -197,6 +197,11 @@ public final class InfoMod implements ModInitializer {
 				"Playtime, distances, kills, most mined blocks and more, with the top players.");
 		Services.provideMenu(Services.MENU_STATS, MODULE.gate(StatsGui::open));
 		Services.provideMenu(Services.MENU_JOURNAL, MODULE.gate(Places::journal));
+		// The name of the village (temple…) at a spot, for other modules (a village's waystone carries its name)
+		Services.providePlaceNames((level, pos) -> {
+			Places.Found f = Places.structureAt(level, pos);
+			return f == null ? null : f.name();
+		});
 		Services.provideDiscoveries(new Services.Discoveries() {
 			@Override
 			public int places(ServerPlayer player) {

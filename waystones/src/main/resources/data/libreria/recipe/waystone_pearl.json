@@ -1,0 +1,12 @@
+{
+	"type": "minecraft:crafting_shapeless",
+	"category": "misc",
+	"ingredients": [
+		"minecraft:ender_pearl",
+		"minecraft:amethyst_shard"
+	],
+	"result": {
+		"id": "libreria:waystone_pearl",
+		"count": 2
+	}
+}

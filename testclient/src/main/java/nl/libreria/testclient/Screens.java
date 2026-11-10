@@ -1231,6 +1231,59 @@ public final class Screens implements FabricClientGameTest {
 			menu(ctx, server, player, "window_admin_teleports_players", nl.libreria.teleports.TeleportsAdmin::players);
 			menu(ctx, server, player, "window_admin_teleports_player", p -> nl.libreria.teleports.TeleportsAdmin.player(p, p.getUUID()));
 			server.runOnServer(s -> nl.libreria.teleports.TeleportsAdmin.debugClear());
+			// Waystones: one you placed (day, night), the list you travel from, its settings, pearls in hand, a new village's
+			int wx = x + 40, wz = z;
+			safe("waystone_day", () -> {
+				run(server, "time set 1000", f("fill %d %d %d %d %d %d minecraft:grass_block", wx - 8, y - 1, wz - 8, wx + 8, y - 1, wz + 10),
+						f("fill %d %d %d %d %d %d minecraft:air", wx - 8, y, wz - 8, wx + 8, y + 6, wz + 10), f("tp @a %d %d %d", wx + 2, y, wz - 1));
+				server.runOnServer(s -> nl.libreria.waystones.WaystonesDebug.scene(player, new BlockPos(wx, y, wz + 3), net.minecraft.core.Direction.NORTH));
+				ctx.waitTicks(30);
+				ctx.getInput().lookAt(new BlockPos(wx, y + 1, wz + 3));
+				noToasts(ctx);
+				ctx.waitTicks(10);
+				ctx.takeScreenshot("waystone_day");
+			});
+			safe("waystone_night", () -> {
+				run(server, "time set 18000");
+				ctx.waitTicks(20);
+				noToasts(ctx);
+				ctx.takeScreenshot("waystone_night");
+				run(server, "time set 1000");
+			});
+			menu(ctx, server, player, "waystone_list", nl.libreria.waystones.WaystonesDebug::list);
+			menu(ctx, server, player, "waystone_settings", nl.libreria.waystones.WaystonesDebug::settings);
+			menu(ctx, server, player, "window_admin_waystones", p -> nl.libreria.core.gui.AdminWindow.open(p, nl.libreria.waystones.WaystonesMod.MODULE));
+			menu(ctx, server, player, "window_admin_waystones_all", nl.libreria.waystones.WaystonesDebug::admin);
+			safe("waystone_items", () -> {
+				server.runOnServer(s -> nl.libreria.waystones.WaystonesDebug.items(player));
+				ctx.waitTicks(15);
+				noToasts(ctx);
+				ctx.takeScreenshot("waystone_items");
+				run(server, "clear @a");
+			});
+			server.runOnServer(s -> nl.libreria.waystones.WaystonesDebug.clear(player));
+			safe("waystone_village", () -> {
+				// A new village (the game's /place structure), where the player stands: its waystone by the bell
+				run(server, f("tp @a %d %d %d", x + 300, y, z));
+				ctx.waitTicks(60);
+				run(server, f("place structure minecraft:village_plains %d %d %d", x + 300, y, z));
+				BlockPos ws = server.computeOnServer(s -> nl.libreria.waystones.WaystonesDebug.lastVillage());
+				if (ws == null) {
+					LOG.warn("No village waystone");
+					return;
+				}
+				net.minecraft.core.Direction front = server.computeOnServer(s -> player.level().getBlockState(ws)
+						.getValue(nl.libreria.waystones.WaystoneBlock.FACING));
+				BlockPos stand = ws.relative(front, 4).relative(front.getClockWise(), 2);
+				run(server, f("tp @a %d %d %d", stand.getX(), stand.getY(), stand.getZ()), "time set 1000");
+				ctx.waitTicks(40);
+				ctx.getInput().lookAt(ws.above());
+				noToasts(ctx);
+				ctx.waitTicks(20);
+				ctx.takeScreenshot("waystone_village");
+				run(server, f("tp @a %d %d %d", x, y, z));
+				ctx.waitTicks(20);
+			});
 			server.runOnServer(s -> {
 				nl.libreria.core.Links.KINDS.get(0).setting().set("https://discord.gg/example");
 				nl.libreria.core.Links.KINDS.get(2).setting().set("https://example.org/rules");

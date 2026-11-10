@@ -209,6 +209,35 @@ public final class Services {
 		return CAMERA.contains(player.getUUID());
 	}
 
+	// ---------------------------------------------------------------- teleports between modules
+
+	private static final List<java.util.function.Consumer<ServerPlayer>> BEFORE_TELEPORT = new java.util.ArrayList<>();
+
+	/** Called right before a module teleports a player (so /back of Teleports knows where they were). */
+	public static void onBeforeTeleport(java.util.function.Consumer<ServerPlayer> listener) {
+		BEFORE_TELEPORT.add(listener);
+	}
+
+	/** A module is about to teleport this player. */
+	public static void beforeTeleport(ServerPlayer player) {
+		for (var l : BEFORE_TELEPORT) l.accept(player);
+	}
+
+	/** The name of the place (a village, a temple…) at a spot, from Info, or null. */
+	public interface PlaceNames {
+		@Nullable String nameAt(net.minecraft.server.level.ServerLevel level, net.minecraft.core.BlockPos pos);
+	}
+
+	private static @Nullable PlaceNames placeNames;
+
+	public static void providePlaceNames(PlaceNames p) {
+		placeNames = p;
+	}
+
+	public static Optional<PlaceNames> placeNames() {
+		return Optional.ofNullable(placeNames);
+	}
+
 	/** What a player discovered (Info's journal): for exploring achievements. */
 	public interface Discoveries {
 		/** Places in the journal: villages, temples, peaks, lakes, stretches of land. */

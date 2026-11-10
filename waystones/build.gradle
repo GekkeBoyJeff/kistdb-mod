@@ -1,0 +1,6 @@
+dependencies {
+	implementation project(':core')
+	// Real blocks and items that players see through the resource pack
+	api "eu.pb4:polymer-core:${rootProject.polymer_version}"
+	include "eu.pb4:polymer-core:${rootProject.polymer_version}"
+}

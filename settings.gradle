@@ -12,7 +12,7 @@ pluginManagement {
 rootProject.name = 'libreria'
 
 // The core and all modules (a module counts once it has a fabric.mod.json).
-['core', 'chests', 'tools', 'waypoints', 'info', 'comfort', 'graves', 'collector', 'nicknames', 'claims', 'glint', 'teleports'].each { m ->
+['core', 'chests', 'tools', 'waypoints', 'info', 'comfort', 'graves', 'collector', 'nicknames', 'claims', 'glint', 'teleports', 'waystones'].each { m ->
 	if (file("${m}/src/main/resources/fabric.mod.json").exists()) include m
 }
 // CI only: runs all modules together on a real server with self-tests.

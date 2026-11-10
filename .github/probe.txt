@@ -1,6 +1,6 @@
-net.minecraft.world.scores.PlayerTeam
-? TeamColor
-net.minecraft.world.entity.decoration.Mannequin
-net.minecraft.world.entity.Avatar
-+net.minecraft.world.entity.decoration.ArmorStand
-? annequin
+eu.pb4.polymer.core.api.block.PolymerBlock
+eu.pb4.polymer.core.api.item.PolymerItem
+eu.pb4.polymer.core.api.item.PolymerBlockItem
+eu.pb4.polymer.virtualentity.api.BlockWithElementHolder
+eu.pb4.polymer.virtualentity.api.ElementHolder
+net.minecraft.world.item.ItemCooldowns
