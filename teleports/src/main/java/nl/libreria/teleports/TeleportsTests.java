@@ -62,6 +62,31 @@ final class TeleportsTests {
 			}
 		});
 
+		SelfTests.register("teleports.import", level -> {
+			UUID id = UUID.randomUUID();
+			try {
+				java.nio.file.Path f = java.nio.file.Files.createTempFile("TeleportCommands", ".json");
+				java.nio.file.Files.writeString(f, "{\"Warps\":[],\"Players\":[{\"UUID\":\"" + id + "\",\"DefaultHome\":\"huis\",\"Homes\":["
+						+ "{\"name\":\"mine\",\"x\":-58,\"y\":-3,\"z\":809,\"world\":\"minecraft:overworld\"},"
+						+ "{\"name\":\"huis\",\"x\":62,\"y\":63,\"z\":768,\"world\":\"minecraft:overworld\"},"
+						+ "{\"name\":\".\",\"x\":-476,\"y\":125,\"z\":246,\"world\":\"minecraft:the_nether\"}]}]}");
+				var players = HomeImport.read(f);
+				java.nio.file.Files.deleteIfExists(f);
+				SelfTests.check(players != null && players.size() == 1 && players.getFirst().homes().size() == 3, "the old file is read");
+				SelfTests.check(HomeImport.apply(players.getFirst()) == 3, "all three homes come over");
+				TeleportsMod.Data d = TeleportsMod.PLAYERS.get(id);
+				SelfTests.check("huis".equals(Homes.favourite(d)), "their default home is their /home");
+				TeleportsMod.Home mine = Homes.find(d, "mine");
+				SelfTests.check(mine != null && mine.x == -57.5 && mine.z == 809.5 && "minecraft:the_nether".equals(Homes.find(d, ".").dim),
+						"in the middle of the block, in the right world");
+				SelfTests.check(HomeImport.apply(players.getFirst()) == 0 && d.homes.size() == 3, "taken over twice: nothing doubles");
+			} catch (java.io.IOException e) {
+				throw new AssertionError("could not write the test file: " + e);
+			} finally {
+				TeleportsMod.PLAYERS.get(id).homes.clear();
+			}
+		});
+
 		SelfTests.register("teleports.asks", level -> {
 			FakePlayer a = FakePlayer.get(level, new GameProfile(UUID.randomUUID(), "Asker"));
 			FakePlayer b = FakePlayer.get(level, new GameProfile(UUID.randomUUID(), "Host"));

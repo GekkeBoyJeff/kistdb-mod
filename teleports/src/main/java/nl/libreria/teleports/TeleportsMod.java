@@ -126,6 +126,8 @@ public final class TeleportsMod implements ModInitializer {
 				"/tpahere <player> – ask someone to come to you", "/tpaccept, /tpdeny – answer an ask", "/back – back to where you were",
 				"/spawn – to the world's spawn");
 		Homes.register();
+		// Homes from the teleport mod that was here before: taken over once, nobody loses one
+		net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STARTED.register(HomeImport::run);
 
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
 			if (!MODULE.on()) return;
