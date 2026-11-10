@@ -149,14 +149,13 @@ def pool(p):
 
 
 def pearl(p, rng):
+    """Smooth: lit at the top left, darker towards the bottom right, one bright fleck."""
     im = img()
     for y in range(16):
         for x in range(16):
-            t = ((x - 4) ** 2 + (y - 4) ** 2) ** 0.5 / 16
-            c = tuple(int(a * (1 - t) + b * t) for a, b in zip(p["pearl_lit"], p["pearl"]))
-            if (x + 2 * y) % 7 == 0:
-                c = p["pearl_dark"]
-            im.putpixel((x, y), noise(rng, c, 4))
+            t = min(1.0, ((x - 3) ** 2 + (y - 3) ** 2) ** 0.5 / 14)
+            c = tuple(int(a * (1 - t) + b * t) for a, b in zip(p["pearl_lit"], p["pearl_dark"]))
+            im.putpixel((x, y), noise(rng, c, 2))
     return im
 
 
@@ -254,10 +253,13 @@ def main():
             plane([6, 5, 4.98], [10, 8, 4.98], "north", "#g", [6, 7, 10, 10]),
         ]}
         write(os.path.join(models, "altar_glow.json"), altar_glow)
+        # A round pearl of voxels: a 3 px core with a 2 px cap on each side (4 px across, no corners)
         pearl_model = {"textures": tx, "elements": [
+            {"from": [6.5, 6.5, 6.5], "to": [9.5, 9.5, 9.5], "shade": False,
+             "faces": {f: {"texture": "#e", "uv": [4, 4, 7, 7]} for f in FACES}},
+            box([7, 7, 6], [9, 9, 10], "#e", "trim", shade=False),
             box([6, 7, 7], [10, 9, 9], "#e", "trim", shade=False),
             box([7, 6, 7], [9, 10, 9], "#e", "trim", shade=False),
-            box([7, 7, 6], [9, 9, 10], "#e", "trim", shade=False),
         ]}
         write(os.path.join(models, "pearl.json"), pearl_model)
 

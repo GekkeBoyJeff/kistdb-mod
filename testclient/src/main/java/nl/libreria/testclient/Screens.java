@@ -1251,7 +1251,9 @@ public final class Screens implements FabricClientGameTest {
 					nl.libreria.waystones.WaystonesDebug.mock(player, new BlockPos(wx + 8, y, wz + 3), net.minecraft.core.Direction.NORTH, "ender", "Ender", 0x9FFFEA);
 				});
 				run(server, f("tp @a %d %d %d", wx + 4, y, wz - 6));
-				ctx.waitTicks(20);
+				server.runOnServer(s -> nl.libreria.core.Guide.clear(player));
+				// (cards from the teleport, like a speed record, gone first)
+				ctx.waitTicks(120);
 				ctx.getInput().lookAt(new BlockPos(wx + 4, y, wz + 3));
 				noToasts(ctx);
 				ctx.waitTicks(10);
@@ -1266,7 +1268,7 @@ public final class Screens implements FabricClientGameTest {
 				safe("mock_waystone_" + v[0], () -> {
 					// Close, from the front and a little to the side, the altar in front
 					run(server, f("tp @a %d %d %d", mx - 2, y, wz - 1));
-					ctx.waitTicks(15);
+					ctx.waitTicks(40);
 					ctx.getInput().lookAt(new BlockPos(mx, y + 1, wz + 3));
 					noToasts(ctx);
 					ctx.waitTicks(10);

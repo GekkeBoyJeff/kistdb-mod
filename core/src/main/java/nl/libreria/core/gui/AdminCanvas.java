@@ -143,10 +143,21 @@ public final class AdminCanvas extends CanvasWindow {
 		List<List<Placed>> pages = new ArrayList<>();
 		List<Placed> cur = new ArrayList<>();
 		int at = 0;
-		List<Row> all = allRows();
+		List<Row> all = new ArrayList<>(allRows());
 		for (int i = 0; i < all.size(); i++) {
 			Row r = all.get(i);
 			int h = height(r);
+			if (h == 2 && at == 5) {
+				// A two-row card can't sit across the gap: a one-row card of the same group goes before it, if there is one
+				for (int j = i + 1; j < all.size() && !(all.get(j) instanceof Header); j++) {
+					if (height(all.get(j)) == 1) {
+						all.add(i, all.remove(j));
+						r = all.get(i);
+						h = 1;
+						break;
+					}
+				}
+			}
 			if (h == 2 && at == 5) at = 6;
 			if (r instanceof Header && i + 1 < all.size() && height(all.get(i + 1)) == 2 && at == 4) at = 6;
 			if (r instanceof Header && at == 5) at = 6;
@@ -237,8 +248,9 @@ public final class AdminCanvas extends CanvasWindow {
 	@Override
 	protected Canvas draw() {
 		Canvas c = new Canvas().panel();
-		c.text("Settings", 8, 5, MUTED);
-		int x = 8 + Glyphs.width(Component.literal("Settings"));
+		String first = this.module == null ? "Settings" : "Server settings";
+		c.text(first, 8, 5, this.module == null ? MUTED : TINT);
+		int x = 8 + Glyphs.width(Component.literal(first));
 		c.text(" › ", x, 5, MUTED);
 		x += Glyphs.width(Component.literal(" › "));
 		if (this.module == null) {
@@ -251,8 +263,7 @@ public final class AdminCanvas extends CanvasWindow {
 				int col = i % 2 == 0 ? 0 : 5, row = MODULE_ROWS[i / 2], w = 4;
 				c.card(col, row, w, 1, m.on() ? tint(m) : OFF);
 				int left = Canvas.cellX(col) + Canvas.CARD_MARGIN + 6;
-				c.text(Canvas.fit(m.name, 18 * w - 2 * Canvas.CARD_MARGIN - 20), left, Canvas.cellY(row) + 5, m.on() ? TEXT : MUTED);
-				c.text("›", Canvas.cellX(col + w) - Canvas.CARD_MARGIN - 8, Canvas.cellY(row) + 5, MUTED);
+				c.text(Canvas.fit(m.name, 18 * w - 2 * Canvas.CARD_MARGIN - 12), left, Canvas.cellY(row) + 5, m.on() ? TEXT : MUTED);
 			}
 			int pages = modulePages();
 			if (pages > 1) {
@@ -265,7 +276,7 @@ public final class AdminCanvas extends CanvasWindow {
 			return c;
 		}
 		Module m = this.module;
-		c.text(Canvas.fit(m.name, 168 - x), x, 5, tint(m));
+		c.text(Canvas.fit(m.name, 168 - x), x, 5, TEXT);
 		int left = Canvas.cellX(0) + Canvas.CARD_MARGIN + 6;
 		for (Placed pl : rows()) {
 			int i = pl.at(), h = pl.height();
