@@ -1,0 +1,11 @@
+{
+	"required": true,
+	"package": "nl.libreria.teleports.mixin",
+	"compatibilityLevel": "JAVA_25",
+	"mixins": [
+		"TeleportCommandMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}

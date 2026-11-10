@@ -9,7 +9,8 @@
 		"ExplosionMixin",
 		"FarmlandMixin",
 		"FireMixin",
-		"FluidMixin"
+		"FluidMixin",
+		"LandMapUseMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

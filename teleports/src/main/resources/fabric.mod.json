@@ -1,0 +1,19 @@
+{
+	"schemaVersion": 1,
+	"id": "libreria_teleports",
+	"version": "${version}",
+	"name": "Libreria Teleports",
+	"description": "Homes (/sethome, /home, /delhome), asking to teleport to a player (/tpa, /tpahere), back to where you were after a teleport or dying (/back) and /spawn, with limits and rules ops set in the admin window. Server-side; requires Libreria (core).",
+	"authors": ["Jeffrey"],
+	"license": "MIT",
+	"environment": "*",
+	"entrypoints": {
+		"main": ["nl.libreria.teleports.TeleportsMod"]
+	},
+	"mixins": ["libreria_teleports.mixins.json"],
+	"depends": {
+		"minecraft": "~26.3",
+		"fabric-api": "*",
+		"libreria": ">=${core_version}"
+	}
+}

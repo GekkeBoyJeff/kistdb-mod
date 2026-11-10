@@ -77,7 +77,7 @@ import org.joml.Vector3f;
  * rides something: so you sit on an invisible seat (only on your screen) and the mouse reaches the server. It also
  * sends its movement keys, clicks, the scroll wheel, jumping, sneaking and the swap / drop keys.
  */
-final class ClaimView {
+public final class ClaimView {
 	/** How far you can glide, in chunks from where you stand. */
 	static final int RADIUS = 8;
 	private static final int OPEN_TICKS = 28, CLOSE_TICKS = 16;
@@ -340,11 +340,9 @@ final class ClaimView {
 	 */
 	private static void emptyHands(ServerPlayer p) {
 		var menu = p.inventoryMenu;
-		ItemStack hand = ItemStack.EMPTY;
-		if (Pack.has(p)) {
-			hand = new ItemStack(Items.PAPER);
-			hand.set(DataComponents.ITEM_MODEL, EMPTY_MODEL);
-		}
+		// Something in the hand (invisible with the pack): the client only sends a right-click with an item in hand
+		ItemStack hand = new ItemStack(Items.PAPER);
+		if (Pack.has(p)) hand.set(DataComponents.ITEM_MODEL, EMPTY_MODEL);
 		for (int slot = 36; slot <= 44; slot++) {
 			p.connection.send(new ClientboundContainerSetSlotPacket(menu.containerId, menu.getStateId(), slot, hand.copy()));
 		}
@@ -389,7 +387,18 @@ final class ClaimView {
 		Ui.sound(p, SoundEvents.UI_BUTTON_CLICK.value(), 0.4f, on ? 1.3f : 1.0f);
 	}
 
-	/** Right-click while the map is open (from UseItemCallback). */
+	/**
+	 * A right-click packet (also with an empty hand: the client sends one for the land map's hidden item). True when the
+	 * land map is open: then it's the map's, and nothing else happens.
+	 */
+	public static boolean rightClick(ServerPlayer p, net.minecraft.world.InteractionHand hand) {
+		if (!isOpen(p)) return false;
+		if (hand == net.minecraft.world.InteractionHand.MAIN_HAND) onUse(p);
+		emptyHands(p);
+		return true;
+	}
+
+	/** Right-click while the map is open. */
 	static boolean onUse(ServerPlayer p) {
 		View v = VIEWS.get(p.getUUID());
 		if (v == null) return false;

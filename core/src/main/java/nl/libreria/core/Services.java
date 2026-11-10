@@ -72,6 +72,11 @@ public final class Services {
 			return owner == null || owner.equals(player.getUUID());
 		}
 
+		/** Does {@code owner} trust {@code other} on their land (may build there)? */
+		default boolean trusts(java.util.UUID owner, java.util.UUID other) {
+			return false;
+		}
+
 		/** How many explosions this player's land stopped near them (blocks that would have broken stayed). */
 		default int saved(java.util.UUID player) {
 			return 0;

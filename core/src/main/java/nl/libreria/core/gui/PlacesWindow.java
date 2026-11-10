@@ -260,7 +260,7 @@ public final class PlacesWindow extends CanvasWindow {
 				: Ui.kv("In the ", PlacesMenu.dimension(pl.dim), ChatFormatting.GOLD));
 		out.addAll(pl.loreLines());
 		out.add(Component.empty());
-		if (here) out.add(Ui.text("▸ Click: show the way", ChatFormatting.YELLOW));
+		if (here || pl.anywhere()) out.add(Ui.text("▸ Click: " + pl.goLabel(), ChatFormatting.YELLOW));
 		else out.add(Ui.text("In another dimension", ChatFormatting.DARK_GRAY));
 		if (pl.detailsAction() != null) out.add(Ui.text("▸ Right-click: " + pl.detailsLabel(), ChatFormatting.YELLOW));
 		if (pl.dropAction() != null) out.add(Ui.text("▸ {drop}: " + pl.dropLabel(), ChatFormatting.YELLOW));
@@ -281,7 +281,7 @@ public final class PlacesWindow extends CanvasWindow {
 		}
 		if (!type.isLeft && !type.isRight) return;
 		Ui.click(this.player);
-		if (!here) {
+		if (!here && !pl.anywhere()) {
 			Notify.warn(this.player, Items.COMPASS, "In another dimension", pl.name + " is in the " + PlacesMenu.dimension(pl.dim) + ".");
 			return;
 		}

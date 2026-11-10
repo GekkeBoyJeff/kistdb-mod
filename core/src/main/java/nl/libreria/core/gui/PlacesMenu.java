@@ -201,7 +201,7 @@ public final class PlacesMenu extends Menu {
 		b.addLoreLine(here ? Ui.text(distance(pl), ChatFormatting.WHITE) : Ui.kv("In the ", dimension(pl.dim), ChatFormatting.GOLD));
 		for (Component l : pl.loreLines()) b.addLoreLine(l);
 		b.addLoreLine(Component.empty());
-		if (here) action(b, "Click: show the way");
+		if (here || pl.anywhere()) action(b, "Click: " + pl.goLabel());
 		else b.addLoreLine(Ui.text("In another dimension", ChatFormatting.DARK_GRAY));
 		if (pl.detailsAction() != null) action(b, "Right-click: " + pl.detailsLabel());
 		if (pl.dropAction() != null) action(b, "Q: " + pl.dropLabel());
@@ -222,7 +222,7 @@ public final class PlacesMenu extends Menu {
 		}
 		if (!type.isLeft && !type.isRight) return;
 		Ui.click(this.player);
-		if (!here) {
+		if (!here && !pl.anywhere()) {
 			Notify.warn(this.player, Items.COMPASS, "In another dimension", pl.name + " is in the " + dimension(pl.dim) + ".");
 			return;
 		}

@@ -189,7 +189,11 @@ public final class ClaimsMod implements ModInitializer {
 		UseBlockCallback.EVENT.register((player, world, hand, hit) -> {
 			if (!ClaimsMod.MODULE.on()) return net.minecraft.world.InteractionResult.PASS;
 			if (world.isClientSide() || !(player instanceof ServerPlayer sp)) return InteractionResult.PASS;
-			if (ClaimView.isOpen(sp)) return InteractionResult.FAIL;
+			// Land map open: right-click (on a block close under the camera) releases the chunk under the crosshair
+			if (ClaimView.isOpen(sp)) {
+				if (hand == net.minecraft.world.InteractionHand.MAIN_HAND) ClaimView.onUse(sp);
+				return InteractionResult.FAIL;
+			}
 			BlockPos pos = hit.getBlockPos();
 			BlockState st = world.getBlockState(pos);
 			Action action = isSwitch(st) ? Action.SWITCH : Action.BUILD;
@@ -251,6 +255,12 @@ public final class ClaimsMod implements ModInitializer {
 			@Override
 			public int saved(java.util.UUID player) {
 				return Grief.saved(player);
+			}
+
+			@Override
+			public boolean trusts(java.util.UUID owner, java.util.UUID other) {
+				Owner o = STORE.get().owners.get(owner);
+				return o != null && o.trusted.containsKey(other);
 			}
 		});
 		// Getting hurt closes the land map at once
@@ -340,6 +350,11 @@ public final class ClaimsMod implements ModInitializer {
 								untrustCommand(ctx.getSource().getPlayerOrException(), StringArgumentType.getString(ctx, "player")))))));
 
 		ClaimsTests.register();
+	}
+
+	/** For the screenshot test: how many chunks someone holds. */
+	public static int debugOwned(UUID id) {
+		return owned(id);
 	}
 
 	/** For the screenshot test: put a claim of someone else down. */

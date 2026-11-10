@@ -111,6 +111,8 @@ public final class PlaceList {
 		String detailsLabel = "details";
 		@Nullable String dropLabel;
 		boolean dimmed;
+		String goLabel = "show the way";
+		boolean anywhere;
 
 		Place(String kind, String name, ItemStack icon, String dim, Vec3 pos) {
 			this.kind = kind;
@@ -129,6 +131,17 @@ public final class PlaceList {
 		/** What "show the way" does, when it's more than a beam to {@link #pos} (a pet that walks around). */
 		public Place go(Consumer<ServerPlayer> go) {
 			this.go = go;
+			return this;
+		}
+
+		/**
+		 * A click does something else than showing the way ({@code label}: "go there"), and works from another
+		 * dimension too (a home you teleport to).
+		 */
+		public Place goAnywhere(String label, Consumer<ServerPlayer> go) {
+			this.go = go;
+			this.goLabel = label;
+			this.anywhere = true;
 			return this;
 		}
 
@@ -178,6 +191,16 @@ public final class PlaceList {
 
 		public boolean isDimmed() {
 			return this.dimmed;
+		}
+
+		/** What a click does, for the tooltip ("show the way", "go there"). */
+		public String goLabel() {
+			return this.goLabel;
+		}
+
+		/** Does a click work from another dimension too? */
+		public boolean anywhere() {
+			return this.anywhere;
 		}
 	}
 

@@ -94,7 +94,7 @@ public final class ProfileWindow extends CanvasWindow {
 	}
 
 	/** A player's head (their own skin when Minecraft knows it). */
-	static ItemStack head(Players.Known k) {
+	public static ItemStack head(Players.Known k) {
 		GuiElementBuilder b = new GuiElementBuilder(Items.PLAYER_HEAD);
 		if (k.online() != null) b.setProfile(k.online().getGameProfile());
 		else b.setProfile(k.id());

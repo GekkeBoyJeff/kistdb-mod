@@ -1091,6 +1091,16 @@ public final class Screens implements FabricClientGameTest {
 				ctx.getInput().pressKey(o2 -> o2.keyAttack);
 				ctx.waitTicks(7);
 				ctx.takeScreenshot("claim_view_claimed");
+				// Right-click (with an empty hand) gives it up again
+				int[] owned = new int[2];
+				server.runOnServer(s -> owned[0] = ClaimsMod.debugOwned(player.getUUID()));
+				ctx.getInput().pressKey(o2 -> o2.keyUse);
+				ctx.waitTicks(10);
+				server.runOnServer(s -> owned[1] = ClaimsMod.debugOwned(player.getUUID()));
+				LOG.info("LIBRERIA-MAP-RELEASE right-click: {} -> {} chunks", owned[0], owned[1]);
+				ctx.takeScreenshot("claim_view_released");
+				ctx.getInput().pressKey(o2 -> o2.keyAttack);
+				ctx.waitTicks(7);
 				ctx.getInput().scroll(-3);
 				ctx.waitTicks(20);
 				ctx.takeScreenshot("claim_view_zoomed");
@@ -1207,6 +1217,20 @@ public final class Screens implements FabricClientGameTest {
 			menu(ctx, server, player, "window_admin_claims_players", nl.libreria.claims.ClaimsAdmin::players);
 			menu(ctx, server, player, "window_admin_claims_player", p -> nl.libreria.claims.ClaimsAdmin.player(p, nl.libreria.claims.ClaimsAdmin.DEBUG_ANNA));
 			menu(ctx, server, player, "window_admin_claims_piece", nl.libreria.claims.ClaimsAdmin::debugPiece);
+			// Teleports: your homes, an ask for you (a card and a chat line), the window of asks and players, the admin windows
+			server.runOnServer(s -> nl.libreria.teleports.TeleportsAdmin.debugHomes(player));
+			menu(ctx, server, player, "teleport_homes", nl.libreria.teleports.TeleportsAdmin::debugHomesWindow);
+			safe("teleport_ask", () -> {
+				ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.FULL));
+				server.runOnServer(s -> nl.libreria.teleports.TeleportsAdmin.debugAsk(player, "Anna"));
+				ctx.waitTicks(15);
+				ctx.takeScreenshot("teleport_ask");
+			});
+			menu(ctx, server, player, "teleport_window", nl.libreria.teleports.TeleportsAdmin::debugWindow);
+			menu(ctx, server, player, "window_admin_teleports", p -> nl.libreria.core.gui.AdminWindow.open(p, nl.libreria.teleports.TeleportsMod.MODULE));
+			menu(ctx, server, player, "window_admin_teleports_players", nl.libreria.teleports.TeleportsAdmin::players);
+			menu(ctx, server, player, "window_admin_teleports_player", p -> nl.libreria.teleports.TeleportsAdmin.player(p, p.getUUID()));
+			server.runOnServer(s -> nl.libreria.teleports.TeleportsAdmin.debugClear());
 			server.runOnServer(s -> {
 				nl.libreria.core.Links.KINDS.get(0).setting().set("https://discord.gg/example");
 				nl.libreria.core.Links.KINDS.get(2).setting().set("https://example.org/rules");
