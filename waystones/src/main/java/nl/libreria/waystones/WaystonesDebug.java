@@ -10,7 +10,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
-/** For the screenshots (CI only): a waystone with a few others on the list, the windows, a village's waystone. */
+/** For the screenshots (CI only): a waystone with a few others on the list, more looks, the windows, a village's square. */
 public final class WaystonesDebug {
 	private static final List<String> MADE = new ArrayList<>();
 	private static @Nullable BlockPos stone;
@@ -68,6 +68,7 @@ public final class WaystonesDebug {
 		PearlItem.bindAt(p, pearls, p.level(), stone);
 		p.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, pearls);
 		p.getInventory().add(new ItemStack(WaystonesMod.WAYSTONE_ITEM, 2));
+		p.getInventory().add(new ItemStack(WaystonesMod.DARK_WAYSTONE_ITEM, 2));
 	}
 
 	/** Where the last new village put its waystone. */
@@ -75,97 +76,41 @@ public final class WaystonesDebug {
 		return VillageWaystones.last;
 	}
 
-	// ---------------------------------------------------------------- mock-up of the second design (CI only)
-
-	private static final List<eu.pb4.polymer.virtualentity.api.ElementHolder> MOCK = new ArrayList<>();
-
 	/**
-	 * The third design at {@code lower} (its altar towards {@code front}): light or dark stone, the colour of a dye,
-	 * glowing or not; shown to {@code p} only.
+	 * Three more waystones beside the first (towards +x, three blocks apart): dark stone as it comes (cyan), light stone
+	 * dyed orange, dark stone dyed lime and made matte (an ink sac).
 	 */
-	public static void mock(ServerPlayer p, BlockPos lower, Direction front, boolean dark, String dye, boolean glow, String label) {
+	public static void colours(ServerPlayer p, BlockPos first, Direction front) {
 		ServerLevel level = p.level();
-		net.minecraft.world.item.DyeColor d = net.minecraft.world.item.DyeColor.byName(dye, net.minecraft.world.item.DyeColor.PURPLE);
-		int rgb = WaystoneLook.shine(d);
-		var stone = new eu.pb4.polymer.virtualentity.api.ElementHolder();
-		var o = WaystoneLook.obelisk(stone, dark, rgb, glow);
-		o.label().setText(nl.libreria.core.Ui.text(label, rgb));
-		o.rune().setLeftRotation(new org.joml.Quaternionf().rotateY((float) Math.toRadians(30)));
-		net.minecraft.world.phys.Vec3 at = net.minecraft.world.phys.Vec3.atCenterOf(lower);
-		new eu.pb4.polymer.virtualentity.api.attachment.ManualAttachment(stone, level, () -> at);
-		stone.startWatching(p);
-		var altar = new eu.pb4.polymer.virtualentity.api.ElementHolder();
-		var pearl = WaystoneLook.altar(altar, dark, rgb, glow, front);
-		pearl.setLeftRotation(new org.joml.Quaternionf().rotateY((float) Math.toRadians(30)));
-		net.minecraft.world.phys.Vec3 at2 = net.minecraft.world.phys.Vec3.atCenterOf(lower.relative(front));
-		new eu.pb4.polymer.virtualentity.api.attachment.ManualAttachment(altar, level, () -> at2);
-		altar.startWatching(p);
-		MOCK.add(stone);
-		MOCK.add(altar);
-	}
-
-	/** A village square of one type ("plains", "desert"…) at {@code centre}, its waystone (mock-up) on it, facing north. */
-	public static void plaza(ServerPlayer p, BlockPos centre, String style, int radius) {
-		Plaza.Style st = Plaza.Style.of(style);
-		Plaza.Palette pal = Plaza.palette(st);
-		Plaza.build(p.level(), new Plaza.Site(centre, Direction.NORTH, radius), pal);
-		mock(p, centre, Direction.NORTH, pal.dark(), pal.dye().getName(), true, cap(st.name()));
-	}
-
-	private static String cap(String s) {
-		return s.charAt(0) + s.substring(1).toLowerCase(java.util.Locale.ROOT);
-	}
-
-	/**
-	 * In a village made just now around {@code around}: its bell, the best spot for its square, the square and the
-	 * waystone (mock-up). Returns the square's centre and the way it faces (null when there was no room).
-	 */
-	public record Square(BlockPos centre, Direction front) {
-	}
-
-	public static @Nullable Square villagePlaza(ServerPlayer p, BlockPos around, String style) {
-		ServerLevel level = p.level();
-		BlockPos bell = null;
-		BlockPos.MutableBlockPos m = new BlockPos.MutableBlockPos();
-		for (int dx = -64; dx <= 64 && bell == null; dx++) {
-			for (int dz = -64; dz <= 64 && bell == null; dz++) {
-				for (int dy = -8; dy <= 16; dy++) {
-					if (level.getBlockState(m.set(around.getX() + dx, around.getY() + dy, around.getZ() + dz)).is(net.minecraft.world.level.block.Blocks.BELL)) {
-						bell = m.immutable();
-						break;
-					}
-				}
-			}
+		String[][] looks = {{"1", "", "1", "Nightfall"}, {"0", "orange", "1", "Sunstone"}, {"1", "lime", "0", "Mossgate"}};
+		for (int i = 0; i < looks.length; i++) {
+			BlockPos at = first.east(3 * (i + 1));
+			ItemStack item = new ItemStack(looks[i][0].equals("1") ? WaystonesMod.DARK_WAYSTONE_ITEM : WaystonesMod.WAYSTONE_ITEM);
+			net.minecraft.world.level.block.state.BlockState st = WaystonesMod.WAYSTONE.defaultBlockState().setValue(WaystoneBlock.FACING, front);
+			level.setBlock(at, st, net.minecraft.world.level.block.Block.UPDATE_ALL);
+			WaystonesMod.WAYSTONE.setPlacedBy(level, at, st, p, item);
+			Stones.Stone s = Stones.at(level, at);
+			if (s == null) continue;
+			s.dye = looks[i][1];
+			s.glow = looks[i][2].equals("1");
+			s.name = looks[i][3];
+			MADE.add(s.key());
+			EXTRA.add(at);
 		}
-		if (bell == null) {
-			nl.libreria.core.Libreria.LOG.warn("Mock-up: no bell near {}", around);
-			return null;
-		}
-		java.util.Arrays.fill(Plaza.WHY, 0);
-		Plaza.Site site = Plaza.find(level, bell);
-		if (site == null) {
-			nl.libreria.core.Libreria.LOG.warn("Mock-up: no room for a square near the bell at {} (turned down: height {}, ground {}, built {}, water {})",
-					bell, Plaza.WHY[0], Plaza.WHY[1], Plaza.WHY[2], Plaza.WHY[3]);
-			return null;
-		}
-		Plaza.Palette pal = Plaza.palette(Plaza.Style.of(style));
-		Plaza.build(level, site, pal);
-		mock(p, site.centre(), site.front(), pal.dark(), pal.dye().getName(), true, cap(Plaza.Style.of(style).name()) + " village");
-		return new Square(site.centre(), site.front());
+		Stones.STORE.markDirty();
 	}
 
-	/** Waystones in new villages on or off (the mock-ups make villages without the first design's stone). */
-	public static void villages(boolean on) {
-		WaystonesMod.VILLAGES.set(on);
-	}
+	private static final List<BlockPos> EXTRA = new ArrayList<>();
 
-	public static void clearMock() {
-		for (var h : MOCK) h.destroy();
-		MOCK.clear();
+	/** New villages get their square now (their chunks are loaded): the next round of the village waystones. */
+	public static void buildVillages(net.minecraft.server.MinecraftServer server) {
+		VillageWaystones.tick(server);
 	}
 
 	public static void clear(ServerPlayer p) {
 		if (stone != null) WaystonesTests.clear(p.level(), stone);
+		for (BlockPos at : EXTRA) WaystonesTests.clear(p.level(), at);
+		EXTRA.clear();
 		stone = null;
 		for (String k : MADE) Stones.STORE.get().stones.remove(k);
 		MADE.clear();

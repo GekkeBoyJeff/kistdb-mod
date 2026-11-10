@@ -1,0 +1,19 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "category": "misc",
+ "pattern": [
+  " A ",
+  "BPB",
+  "SSS"
+ ],
+ "key": {
+  "A": "minecraft:amethyst_shard",
+  "B": "minecraft:deepslate_bricks",
+  "P": "minecraft:ender_pearl",
+  "S": "minecraft:polished_deepslate"
+ },
+ "result": {
+  "id": "libreria:dark_waystone",
+  "count": 1
+ }
+}

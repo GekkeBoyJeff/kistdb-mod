@@ -5,25 +5,21 @@ import eu.pb4.polymer.virtualentity.api.BlockWithElementHolder;
 import eu.pb4.polymer.virtualentity.api.ElementHolder;
 import eu.pb4.polymer.virtualentity.api.elements.ItemDisplayElement;
 import eu.pb4.polymer.virtualentity.api.elements.TextDisplayElement;
+import java.util.ArrayList;
 import net.fabricmc.fabric.api.networking.v1.context.PacketContext;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.util.Brightness;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.Display;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -35,37 +31,32 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import nl.libreria.core.Notify;
 import nl.libreria.core.Ui;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Vector3f;
 
 /**
- * The waystone: two blocks tall. Players see a barrier (the right size to bump into and click) with the obelisk and
- * its glowing runes drawn on it from the resource pack, and the waystone's name above. Its altar stands in front of
- * it ({@link #FACING}); placed by a player it is theirs, placed with a village it says so ({@link #VILLAGE}).
+ * The waystone: three blocks tall ({@link #PART} 0 at the bottom). Players see barriers (the right size to bump into
+ * and click), with the stone drawn on them from the resource pack (see {@link WaystoneLook}): light or dark, its shine
+ * in the colour of the dye it was given, glowing or not, and its name above it. Its altar stands in front of it
+ * ({@link #FACING}); placed by a player it is theirs, placed with a village it says so ({@link #VILLAGE}).
  */
 public final class WaystoneBlock extends Block implements PolymerBlock, BlockWithElementHolder {
 	public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
-	public static final EnumProperty<DoubleBlockHalf> HALF = BlockStateProperties.DOUBLE_BLOCK_HALF;
+	public static final IntegerProperty PART = IntegerProperty.create("part", 0, 2);
 	public static final BooleanProperty VILLAGE = BooleanProperty.create("village");
-
-	static final Identifier OBELISK = Identifier.fromNamespaceAndPath("libreria", "waystone/obelisk");
-	static final Identifier RUNES = Identifier.fromNamespaceAndPath("libreria", "waystone/runes");
-	static final int RUNE_RGB = 0xC79BF0;
 
 	WaystoneBlock(Properties properties) {
 		super(properties);
-		this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.SOUTH).setValue(HALF, DoubleBlockHalf.LOWER)
-				.setValue(VILLAGE, false));
+		this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.SOUTH).setValue(PART, 0).setValue(VILLAGE, false));
 	}
 
 	@Override
 	protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-		builder.add(FACING, HALF, VILLAGE);
+		builder.add(FACING, PART, VILLAGE);
 	}
 
 	// ---------------------------------------------------------------- what players see
@@ -82,26 +73,36 @@ public final class WaystoneBlock extends Block implements PolymerBlock, BlockWit
 
 	@Override
 	public @Nullable ElementHolder createElementHolder(ServerLevel level, BlockPos pos, BlockState state) {
-		return state.getValue(HALF) == DoubleBlockHalf.LOWER ? new Holder(level, pos, state) : null;
+		return state.getValue(PART) == 0 ? new Holder(level, pos, state) : null;
 	}
 
 	@Override
 	public boolean tickElementHolder(ServerLevel level, BlockPos pos, BlockState state) {
-		return state.getValue(HALF) == DoubleBlockHalf.LOWER;
+		return state.getValue(PART) == 0;
 	}
 
-	static ItemStack model(Identifier model) {
-		ItemStack s = new ItemStack(Items.PAPER);
+	static ItemStack model(net.minecraft.resources.Identifier model) {
+		ItemStack s = new ItemStack(net.minecraft.world.item.Items.PAPER);
 		s.set(DataComponents.ITEM_MODEL, model);
 		return s;
 	}
 
-	/** The obelisk, its runes (lit), and its name above it; and now and then a few sparks of enchanting. */
+	/** How the stone at {@code lower} looks now: light or dark, the colour, glowing. */
+	record Look(boolean dark, int rgb, boolean glow) {
+		static Look of(ServerLevel level, BlockPos lower) {
+			Stones.Stone s = Stones.at(level, lower);
+			return s == null ? new Look(false, WaystoneLook.shine(net.minecraft.world.item.DyeColor.PURPLE), true) : new Look(s.dark, s.rgb(), s.glow);
+		}
+	}
+
+	/** The obelisk, its floating rune turning, its name above it; redrawn when it gets another colour. */
 	static final class Holder extends ElementHolder {
 		private final ServerLevel level;
 		private final BlockPos pos;
 		private final BlockState state;
-		private final TextDisplayElement label;
+		private @Nullable Look look;
+		private @Nullable TextDisplayElement label;
+		private @Nullable ItemDisplayElement rune;
 		private String shown = "";
 		private int ticks;
 
@@ -109,43 +110,41 @@ public final class WaystoneBlock extends Block implements PolymerBlock, BlockWit
 			this.level = level;
 			this.pos = pos.immutable();
 			this.state = state;
-			ItemDisplayElement stone = new ItemDisplayElement(model(OBELISK));
-			stone.setItemDisplayContext(ItemDisplayContext.NONE);
-			stone.setViewRange(1.5f);
-			this.addElement(stone);
-			ItemDisplayElement runes = new ItemDisplayElement(model(RUNES));
-			runes.setItemDisplayContext(ItemDisplayContext.NONE);
-			runes.setBrightness(new Brightness(15, 15));
-			runes.setViewRange(1.5f);
-			this.addElement(runes);
-			this.label = new TextDisplayElement(Component.empty());
-			this.label.setBillboardMode(Display.BillboardConstraints.CENTER);
-			this.label.setShadow(true);
-			this.label.setBackground(0x50000000);
-			this.label.setBrightness(new Brightness(15, 15));
-			this.label.setViewRange(0.3f);
-			this.label.setScale(new Vector3f(0.8f));
-			this.label.setTranslation(new Vector3f(0, 1.82f, 0));
-			this.addElement(this.label);
-			Stones.Stone s = Stones.at(level, pos);
-			if (s != null) name(s.name);
+			draw(Look.of(level, this.pos));
+			Stones.Stone s = Stones.at(level, this.pos);
+			if (s != null) name(s);
 		}
 
-		private void name(String name) {
-			if (name.equals(this.shown)) return;
-			this.shown = name;
-			this.label.setText(Ui.text(name, RUNE_RGB));
+		private void draw(Look look) {
+			for (var e : new ArrayList<>(this.getElements())) this.removeElement(e);
+			this.look = look;
+			WaystoneLook.Obelisk o = WaystoneLook.obelisk(this, look.dark(), look.rgb(), look.glow());
+			this.label = o.label();
+			this.rune = o.rune();
+			this.shown = "";
+		}
+
+		private void name(Stones.Stone s) {
+			String key = s.name + "|" + s.rgb();
+			if (key.equals(this.shown) || this.label == null) return;
+			this.shown = key;
+			this.label.setText(Ui.text(s.name, s.rgb()));
 		}
 
 		@Override
 		protected void onTick() {
-			if (this.ticks++ % 40 != 0) return;
-			// A village's waystone was placed while the world was made: written down (with the village's name) once it's loaded
+			if (this.ticks++ % 10 != 0) return;
+			if (this.rune != null) WaystoneLook.turn(this.rune, WaystoneLook.RUNE_Y, this.ticks / 10, WaystoneLook.RUNE_SCALE);
+			if (this.ticks % 40 != 1) return;
+			// One placed while the world was made, or with /setblock: written down once it's here
 			Stones.Stone s = Stones.at(this.level, this.pos);
 			if (s == null && this.level.getBlockState(this.pos).is(WaystonesMod.WAYSTONE)) s = Stones.ensure(this.level, this.pos, this.state);
-			if (s != null) name(s.name);
-			if (!this.getWatchingPlayers().isEmpty() && this.ticks % 120 == 1) {
-				this.level.sendParticles(ParticleTypes.ENCHANT, this.pos.getX() + 0.5, this.pos.getY() + 1.4, this.pos.getZ() + 0.5, 5, 0.25, 0.5, 0.25, 0.6);
+			if (s == null) return;
+			Look now = new Look(s.dark, s.rgb(), s.glow);
+			if (!now.equals(this.look)) draw(now);
+			name(s);
+			if (s.glow && !this.getWatchingPlayers().isEmpty() && this.ticks % 120 == 1) {
+				this.level.sendParticles(ParticleTypes.ENCHANT, this.pos.getX() + 0.5, this.pos.getY() + 1.75, this.pos.getZ() + 0.5, 6, 0.2, 0.25, 0.2, 0.5);
 			}
 		}
 	}
@@ -157,7 +156,12 @@ public final class WaystoneBlock extends Block implements PolymerBlock, BlockWit
 		Level level = ctx.getLevel();
 		BlockPos pos = ctx.getClickedPos();
 		Direction front = ctx.getHorizontalDirection().getOpposite();
-		if (pos.getY() >= level.getMaxY() || !level.getBlockState(pos.above()).canBeReplaced(ctx)) return null;
+		if (pos.getY() + 2 > level.getMaxY() || !level.getBlockState(pos.above()).canBeReplaced(ctx) || !level.getBlockState(pos.above(2)).canBeReplaced(ctx)) {
+			if (ctx.getPlayer() instanceof ServerPlayer p) {
+				Notify.info(p, WaystonesMod.WAYSTONE_ITEM, "No room for a waystone", "It's three blocks tall: it needs room above.");
+			}
+			return null;
+		}
 		if (!level.getBlockState(pos.relative(front)).canBeReplaced(ctx)) {
 			if (ctx.getPlayer() instanceof ServerPlayer p) {
 				Notify.info(p, WaystonesMod.WAYSTONE_ITEM, "No room for its altar", "A waystone needs one free block in front of it, towards you.");
@@ -167,49 +171,66 @@ public final class WaystoneBlock extends Block implements PolymerBlock, BlockWit
 		return this.defaultBlockState().setValue(FACING, front);
 	}
 
+	/** Puts a whole waystone at {@code lower} (its three parts and its altar towards {@code front}). */
+	static void put(Level level, BlockPos lower, Direction front, boolean village, int flags) {
+		BlockState st = WaystonesMod.WAYSTONE.defaultBlockState().setValue(FACING, front).setValue(VILLAGE, village);
+		level.setBlock(lower, st.setValue(PART, 0), flags);
+		level.setBlock(lower.above(), st.setValue(PART, 1), flags);
+		level.setBlock(lower.above(2), st.setValue(PART, 2), flags);
+		level.setBlock(lower.relative(front), WaystonesMod.ALTAR.defaultBlockState().setValue(AltarBlock.FACING, front), flags);
+	}
+
 	@Override
 	public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
 		if (!(level instanceof ServerLevel sl)) return;
 		Direction front = state.getValue(FACING);
-		level.setBlock(pos.above(), state.setValue(HALF, DoubleBlockHalf.UPPER), Block.UPDATE_ALL);
+		level.setBlock(pos.above(), state.setValue(PART, 1), Block.UPDATE_ALL);
+		level.setBlock(pos.above(2), state.setValue(PART, 2), Block.UPDATE_ALL);
 		level.setBlock(pos.relative(front), WaystonesMod.ALTAR.defaultBlockState().setValue(AltarBlock.FACING, front), Block.UPDATE_ALL);
+		boolean dark = stack.is(WaystonesMod.DARK_WAYSTONE_ITEM);
 		if (placer instanceof ServerPlayer p) {
-			Stones.Stone s = Stones.placed(p, sl, pos, state);
+			Stones.Stone s = Stones.placed(p, sl, pos, state, dark);
 			Component custom = stack.get(DataComponents.CUSTOM_NAME);
 			if (custom != null && !custom.getString().isBlank()) {
 				s.name = WaystonesWindows.clean(custom.getString());
 				Stones.STORE.markDirty();
 			}
-			Notify.done(p, WaystonesMod.WAYSTONE_ITEM, "Waystone placed: " + s.name,
-					"Everyone can travel here. Shift + right-click: its name, or make it private.");
+			Notify.done(p, dark ? WaystonesMod.DARK_WAYSTONE_ITEM : WaystonesMod.WAYSTONE_ITEM, "Waystone placed: " + s.name,
+					"Everyone can travel here. A dye colours it; shift + right-click: name, private.");
 		} else {
-			Stones.ensure(sl, pos, state);
+			Stones.ensure(sl, pos, state).dark = dark;
 		}
 	}
 
 	@Override
 	protected BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess ticks, BlockPos pos, Direction dir, BlockPos other,
 			BlockState otherState, RandomSource random) {
-		DoubleBlockHalf half = state.getValue(HALF);
-		if (dir.getAxis() == Direction.Axis.Y && (half == DoubleBlockHalf.LOWER) == (dir == Direction.UP)) {
-			boolean partner = otherState.is(this) && otherState.getValue(HALF) != half;
-			return partner ? state : Blocks.AIR.defaultBlockState();
-		}
-		return state;
+		int part = state.getValue(PART);
+		boolean ok;
+		if (dir == Direction.UP && part < 2) ok = otherState.is(this) && otherState.getValue(PART) == part + 1;
+		else if (dir == Direction.DOWN && part > 0) ok = otherState.is(this) && otherState.getValue(PART) == part - 1;
+		else return state;
+		return ok ? state : Blocks.AIR.defaultBlockState();
+	}
+
+	/** The waystone item for the stone at {@code lower}: light or dark. */
+	static ItemStack item(Level level, BlockPos lower) {
+		Stones.Stone s = Stones.at(level, lower);
+		return new ItemStack(s != null && s.dark ? WaystonesMod.DARK_WAYSTONE_ITEM : WaystonesMod.WAYSTONE_ITEM);
 	}
 
 	@Override
 	public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
 		if (level instanceof ServerLevel && !player.isCreative()) {
-			BlockPos lower = state.getValue(HALF) == DoubleBlockHalf.LOWER ? pos : pos.below();
-			popResource(level, lower, new ItemStack(WaystonesMod.WAYSTONE_ITEM));
+			BlockPos lower = pos.below(state.getValue(PART));
+			popResource(level, lower, item(level, lower));
 		}
 		return super.playerWillDestroy(level, pos, state, player);
 	}
 
 	@Override
 	protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean moved) {
-		if (state.getValue(HALF) == DoubleBlockHalf.LOWER && !level.getBlockState(pos).is(this)) {
+		if (state.getValue(PART) == 0 && !level.getBlockState(pos).is(this)) {
 			Stones.removed(level, pos);
 			BlockPos altar = pos.relative(state.getValue(FACING));
 			BlockState a = level.getBlockState(altar);
@@ -231,7 +252,7 @@ public final class WaystoneBlock extends Block implements PolymerBlock, BlockWit
 
 	@Override
 	protected ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state, boolean includeData) {
-		return new ItemStack(WaystonesMod.WAYSTONE_ITEM);
+		return level instanceof Level l ? item(l, pos.below(state.getValue(PART))) : new ItemStack(WaystonesMod.WAYSTONE_ITEM);
 	}
 
 	// ---------------------------------------------------------------- using it
@@ -248,20 +269,28 @@ public final class WaystoneBlock extends Block implements PolymerBlock, BlockWit
 	@Override
 	protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand,
 			BlockHitResult hit) {
-		if (stack.is(WaystonesMod.PEARL) && level instanceof ServerLevel sl && player instanceof ServerPlayer p) {
+		return useWith(stack, state, level, pos, player);
+	}
+
+	/** An item on the stone or its altar: pearls are bound to it, a dye or ink sac changes how it looks. */
+	static InteractionResult useWith(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player) {
+		if (level instanceof ServerLevel sl && player instanceof ServerPlayer p) {
 			BlockPos lower = lowerOf(sl, pos, state);
-			if (lower != null && PearlItem.bindAt(p, stack, sl, lower)) return InteractionResult.SUCCESS;
+			if (lower != null) {
+				if (stack.is(WaystonesMod.PEARL) && PearlItem.bindAt(p, stack, sl, lower)) return InteractionResult.SUCCESS;
+				if (Stones.paint(p, sl, lower, stack)) return InteractionResult.SUCCESS;
+			}
 		}
 		return InteractionResult.TRY_WITH_EMPTY_HAND;
 	}
 
-	/** Where the waystone stands (its lower half) for a click on any of its parts (or its altar); null for other blocks. */
+	/** Where the waystone stands (its lowest part) for a click on any of its parts (or its altar); null for other blocks. */
 	static @Nullable BlockPos lowerOf(Level level, BlockPos pos, BlockState state) {
-		if (state.is(WaystonesMod.WAYSTONE)) return state.getValue(HALF) == DoubleBlockHalf.LOWER ? pos.immutable() : pos.below();
+		if (state.is(WaystonesMod.WAYSTONE)) return pos.below(state.getValue(PART));
 		if (state.is(WaystonesMod.ALTAR)) {
 			BlockPos lower = pos.relative(state.getValue(AltarBlock.FACING).getOpposite());
 			BlockState s = level.getBlockState(lower);
-			return s.is(WaystonesMod.WAYSTONE) && s.getValue(HALF) == DoubleBlockHalf.LOWER ? lower : null;
+			return s.is(WaystonesMod.WAYSTONE) && s.getValue(PART) == 0 ? lower : null;
 		}
 		return null;
 	}

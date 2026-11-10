@@ -1,27 +1,50 @@
 package nl.libreria.waystones;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.StructureTags;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.level.levelgen.structure.StructureStart;
+import nl.libreria.core.WorldStore;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * A waystone in every new village: while the world is made, as soon as the chunk with the village's bell is built,
- * a waystone goes on the open ground a few blocks from the bell, its altar facing the bell. Only villages made from
- * now on: one that's there already isn't touched. The waystone is written down (with the village's name) once its
- * chunk is loaded ({@link WaystoneBlock}).
+ * A waystone on its own square in every new village. While the world is made, the chunk with the village's bell notes
+ * where the bell is and what kind of village it is. Once that part of the village is fully there (its chunks
+ * loaded, every house standing), the square is laid on the best open, nearly flat spot by the bell, in the village's
+ * own materials, and the waystone goes on it (light or dark stone, the village's colour). Without room for a square,
+ * the stone stands on its own by the bell. Villages that were there already aren't touched.
  */
 final class VillageWaystones {
-	private static final int NEAREST = 3, FARTHEST = 7;
-	private static final int FLAGS = Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE;
+	/** A new village's bell, waiting for its square. */
+	public static final class Pending {
+		public String dim = "minecraft:overworld";
+		public int x;
+		public int y;
+		public int z;
+		public String style = "plains";
+	}
+
+	public static final class Data {
+		public List<Pending> villages = new ArrayList<>();
+	}
+
+	static final WorldStore<Data> STORE = WorldStore.create("libreria/waystone_villages.json", Data.class, Data::new);
+	/** Noted while the world is made (on its own threads), taken in on the server's. */
+	private static final ConcurrentLinkedQueue<Pending> NEW = new ConcurrentLinkedQueue<>();
+	/** How far around the bell the chunks must be there (the square looks up to 15 blocks away). */
+	private static final int AROUND = 2;
 	/** Where the last village's waystone went (for the tests). */
 	static volatile @Nullable BlockPos last;
 
@@ -32,13 +55,21 @@ final class VillageWaystones {
 		// The hook is mixin/VillageMixin (after a structure placed its pieces in a chunk)
 	}
 
-	/** A structure placed its pieces in one chunk ({@code box}): a village's town centre with its bell gets a waystone. */
+	/** A structure placed its pieces in one chunk ({@code box}): a village's town centre with its bell is noted. */
 	static void placed(StructureStart start, WorldGenLevel level, BoundingBox box) {
 		if (!WaystonesMod.MODULE.on() || !WaystonesMod.VILLAGES.get() || start.getPieces().isEmpty()) return;
-		if (!level.registryAccess().lookupOrThrow(Registries.STRUCTURE).wrapAsHolder(start.getStructure()).is(StructureTags.VILLAGE)) return;
+		var structures = level.registryAccess().lookupOrThrow(Registries.STRUCTURE);
+		if (!structures.wrapAsHolder(start.getStructure()).is(StructureTags.VILLAGE)) return;
 		BlockPos bell = bell(level, start.getPieces().getFirst().getBoundingBox(), box);
 		if (bell == null) return;
-		place(level, bell, box);
+		Identifier id = structures.getKey(start.getStructure());
+		Pending p = new Pending();
+		p.dim = level.getLevel().dimension().identifier().toString();
+		p.x = bell.getX();
+		p.y = bell.getY();
+		p.z = bell.getZ();
+		p.style = id == null ? "plains" : id.getPath();
+		NEW.add(p);
 	}
 
 	/** The bell of the town centre, if it is in this chunk. */
@@ -56,56 +87,98 @@ final class VillageWaystones {
 		return null;
 	}
 
-	/** The open spot nearest to four or five blocks from the bell (in this chunk); the waystone there. */
-	static boolean place(WorldGenLevel level, BlockPos bell, BoundingBox box) {
-		BlockPos best = null;
-		Direction bestFacing = Direction.SOUTH;
+	/** Every second: new villages written down; those whose part around the bell is there now get their square. */
+	static void tick(MinecraftServer server) {
+		Data d = STORE.get();
+		if (d.villages == null) d.villages = new ArrayList<>();
+		boolean changed = false;
+		for (Pending p; (p = NEW.poll()) != null; ) {
+			d.villages.add(p);
+			changed = true;
+		}
+		for (Pending p : new ArrayList<>(d.villages)) {
+			ServerLevel level = Stones.level(server, p.dim);
+			if (level != null && !loaded(level, p.x, p.z)) continue;
+			d.villages.remove(p);
+			changed = true;
+			if (level != null) build(level, p);
+		}
+		if (changed) STORE.markDirty();
+	}
+
+	private static boolean loaded(ServerLevel level, int x, int z) {
+		int cx = x >> 4, cz = z >> 4;
+		for (int dx = -AROUND; dx <= AROUND; dx++) {
+			for (int dz = -AROUND; dz <= AROUND; dz++) {
+				if (level.getChunkSource().getChunkNow(cx + dx, cz + dz) == null) return false;
+			}
+		}
+		return true;
+	}
+
+	/** The square and the waystone for one village (its part around the bell is loaded). */
+	static boolean build(ServerLevel level, Pending p) {
+		if (!WaystonesMod.MODULE.on() || !WaystonesMod.VILLAGES.get()) return false;
+		BlockPos bell = new BlockPos(p.x, p.y, p.z);
+		Plaza.Palette pal = Plaza.palette(Plaza.Style.of(p.style));
+		Plaza.Site site = Plaza.find(level, bell);
+		BlockPos lower;
+		Direction front;
+		if (site != null) {
+			Plaza.build(level, site, pal);
+			lower = site.centre();
+			front = site.front();
+		} else {
+			Spot s = spot(level, bell);
+			if (s == null) return false;
+			lower = s.lower();
+			front = s.front();
+		}
+		WaystoneBlock.put(level, lower, front, true, Block.UPDATE_ALL);
+		Stones.Stone stone = Stones.ensure(level, lower, level.getBlockState(lower));
+		stone.village = true;
+		stone.dark = pal.dark();
+		stone.dye = pal.dye().getName();
+		Stones.STORE.markDirty();
+		last = lower;
+		return true;
+	}
+
+	private record Spot(BlockPos lower, Direction front) {
+	}
+
+	/** No room for a square: the open spot nearest to four or five blocks from the bell for the stone alone. */
+	private static @Nullable Spot spot(ServerLevel level, BlockPos bell) {
+		Spot best = null;
 		double bestScore = Double.MAX_VALUE;
-		for (int dx = -FARTHEST; dx <= FARTHEST; dx++) {
-			for (int dz = -FARTHEST; dz <= FARTHEST; dz++) {
+		for (int dx = -7; dx <= 7; dx++) {
+			for (int dz = -7; dz <= 7; dz++) {
 				int d2 = dx * dx + dz * dz;
-				if (d2 < NEAREST * NEAREST || d2 > FARTHEST * FARTHEST) continue;
-				// The altar towards the bell
+				if (d2 < 9 || d2 > 49) continue;
 				Direction f = Math.abs(dx) >= Math.abs(dz) ? (dx > 0 ? Direction.WEST : Direction.EAST) : (dz > 0 ? Direction.NORTH : Direction.SOUTH);
 				for (int y = bell.getY() + 1; y >= bell.getY() - 6; y--) {
 					BlockPos lower = new BlockPos(bell.getX() + dx, y, bell.getZ() + dz);
-					if (!fits(level, lower, f, box)) continue;
-					double score = Math.abs(Math.sqrt(d2) - 4.5) + Math.abs(y - bell.getY()) * 0.15 + (open(level, lower.relative(f, 2)) ? 0 : 2);
+					if (!fits(level, lower, f)) continue;
+					double score = Math.abs(Math.sqrt(d2) - 4.5) + Math.abs(y - bell.getY()) * 0.15;
 					if (score < bestScore) {
 						bestScore = score;
-						best = lower;
-						bestFacing = f;
+						best = new Spot(lower, f);
 					}
 					break;
 				}
 			}
 		}
-		if (best == null) return false;
-		BlockState stone = WaystonesMod.WAYSTONE.defaultBlockState().setValue(WaystoneBlock.FACING, bestFacing).setValue(WaystoneBlock.VILLAGE, true);
-		level.setBlock(best, stone.setValue(WaystoneBlock.HALF, DoubleBlockHalf.LOWER), FLAGS);
-		level.setBlock(best.above(), stone.setValue(WaystoneBlock.HALF, DoubleBlockHalf.UPPER), FLAGS);
-		level.setBlock(best.relative(bestFacing), WaystonesMod.ALTAR.defaultBlockState().setValue(AltarBlock.FACING, bestFacing), FLAGS);
-		last = best;
-		// The top of a tall plant that stood where the altar is now
-		BlockPos above = best.relative(bestFacing).above();
-		if (!level.getBlockState(above).isAir()) level.setBlock(above, Blocks.AIR.defaultBlockState(), FLAGS);
-		return true;
+		return best;
 	}
 
-	/** The stone (two blocks) and its altar fit here: open, on solid ground, in this chunk. */
-	private static boolean fits(WorldGenLevel level, BlockPos lower, Direction f, BoundingBox box) {
-		BlockPos upper = lower.above(), altar = lower.relative(f);
-		if (!box.isInside(lower) || !box.isInside(upper) || !box.isInside(altar) || !box.isInside(lower.below()) || !box.isInside(altar.below())) {
-			return false;
-		}
-		if (!open(level, lower) || !open(level, upper) || !open(level, altar) || !open(level, altar.above())) return false;
+	private static boolean fits(ServerLevel level, BlockPos lower, Direction f) {
+		BlockPos altar = lower.relative(f);
+		for (BlockPos q : new BlockPos[] {lower, lower.above(), lower.above(2), altar, altar.above()}) if (!open(level, q)) return false;
 		return level.getBlockState(lower.below()).isFaceSturdy(level, lower.below(), Direction.UP)
-				&& level.getBlockState(altar.below()).isFaceSturdy(level, altar.below(), Direction.UP)
-				&& !level.getBlockState(lower.below()).is(Blocks.BELL);
+				&& level.getBlockState(altar.below()).isFaceSturdy(level, altar.below(), Direction.UP) && !level.getBlockState(lower.below()).is(Blocks.BELL);
 	}
 
-	/** Air or a plant you walk through (grass, flowers, snow layer), not water. */
-	private static boolean open(WorldGenLevel level, BlockPos pos) {
+	private static boolean open(ServerLevel level, BlockPos pos) {
 		BlockState s = level.getBlockState(pos);
 		return s.canBeReplaced() && s.getFluidState().isEmpty();
 	}

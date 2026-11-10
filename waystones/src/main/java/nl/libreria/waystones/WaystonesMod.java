@@ -39,6 +39,7 @@ public final class WaystonesMod implements ModInitializer {
 	static final Identifier WAYSTONE_ID = Identifier.fromNamespaceAndPath("libreria", "waystone");
 	static final Identifier ALTAR_ID = Identifier.fromNamespaceAndPath("libreria", "waystone_altar");
 	static final Identifier PEARL_ID = Identifier.fromNamespaceAndPath("libreria", "waystone_pearl");
+	static final Identifier DARK_ID = Identifier.fromNamespaceAndPath("libreria", "dark_waystone");
 
 	public static final WaystoneBlock WAYSTONE = Registry.register(BuiltInRegistries.BLOCK, WAYSTONE_ID,
 			new WaystoneBlock(stone().noOcclusion().setId(ResourceKey.create(Registries.BLOCK, WAYSTONE_ID))));
@@ -52,6 +53,9 @@ public final class WaystonesMod implements ModInitializer {
 
 	public static final Item WAYSTONE_ITEM = Registry.register(BuiltInRegistries.ITEM, WAYSTONE_ID,
 			new PolymerBlockItem(WAYSTONE, new Item.Properties().setId(ResourceKey.create(Registries.ITEM, WAYSTONE_ID)), Items.PAPER, true));
+	/** The same waystone in dark stone. */
+	public static final Item DARK_WAYSTONE_ITEM = Registry.register(BuiltInRegistries.ITEM, DARK_ID,
+			new PolymerBlockItem(WAYSTONE, new Item.Properties().setId(ResourceKey.create(Registries.ITEM, DARK_ID)), Items.PAPER, true));
 	public static final PearlItem PEARL = Registry.register(BuiltInRegistries.ITEM, PEARL_ID,
 			new PearlItem(new Item.Properties().stacksTo(16).setId(ResourceKey.create(Registries.ITEM, PEARL_ID))));
 
@@ -84,6 +88,7 @@ public final class WaystonesMod implements ModInitializer {
 		MODULE.adminButton("All waystones", "Every waystone: where, whose, rename, private, remove", WaystonesWindows::admin);
 		MODULE.commands("Right-click a waystone – find it, travel from it",
 				"Shift + right-click your waystone – its name, private or open",
+				"A dye on your waystone – its colour; a glow ink sac: it glows, an ink sac: matte",
 				"Waystone pearl on a waystone – bind the stack to it", "Right-click a bound pearl – travel there");
 		WaystonePlaces.register();
 		VillageWaystones.register();
@@ -101,6 +106,7 @@ public final class WaystonesMod implements ModInitializer {
 		ServerPlayConnectionEvents.JOIN.register((h, sender, server) -> server.execute(() -> recipes(h.player)));
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
 			if (server.getTickCount() % 40 == 11) WaystonePlaces.tick(server);
+			if (server.getTickCount() % 20 == 7) VillageWaystones.tick(server);
 		});
 		WaystonesTests.register();
 	}
@@ -108,7 +114,7 @@ public final class WaystonesMod implements ModInitializer {
 	/** The two recipes, in everyone's recipe book. */
 	static void recipes(ServerPlayer p) {
 		List<RecipeHolder<?>> all = new ArrayList<>();
-		for (String id : new String[] {"waystone", "waystone_pearl"}) {
+		for (String id : new String[] {"waystone", "dark_waystone", "waystone_pearl"}) {
 			p.level().getServer().getRecipeManager().byKey(ResourceKey.create(Registries.RECIPE, Identifier.fromNamespaceAndPath("libreria", id)))
 					.ifPresent(all::add);
 		}

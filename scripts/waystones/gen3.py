@@ -12,7 +12,8 @@ Every face is one texture pixel per model pixel.
 Writes under waystones/src/main/resources/assets/libreria/:
   textures/block/waystone/{light,dark}/{stone,top,trim,panel,basin}.png, textures/block/waystone/shine/*.png
   models/item/waystone/{light,dark}/{low,top,altar}.json, models/item/waystone/shine/{low,top,rune,altar,pearl}.json
-  items/waystone/... (the shine ones with a dye tint)
+  items/waystone/... (the shine ones with a dye tint), items/{waystone,dark_waystone}.json (the whole stone, for the inventory)
+  core: textures/item/icon/{waystone,dark_waystone,waystone_pearl}.png (pictures for cards and buttons)
 
 Run: python3 scripts/waystones/gen3.py
 """
@@ -211,6 +212,89 @@ def posts(y0, y1):
     return [box([x, y0, z], [x + 2, y1, z + 2], "#s") for x in (3, 11) for z in (3, 11)]
 
 
+def shift(e, dy):
+    e = json.loads(json.dumps(e))
+    e["from"][1] += dy
+    e["to"][1] += dy
+    return e
+
+
+def scaled(e, k):
+    """An element k times as big, around the middle of the floor."""
+    e = json.loads(json.dumps(e))
+    for key in ("from", "to"):
+        x, y, z = e[key]
+        e[key] = [round(8 + (x - 8) * k, 4), round(y * k, 4), round(8 + (z - 8) * k, 4)]
+    return e
+
+
+# The colour of a new stone's shine: violet on light stone, teal on dark (as their dyes: purple, cyan)
+DEFAULT_TINT = {"light": 0xC79BF0, "dark": 0x5FF2E0}
+DISPLAY = {
+    "gui": {"rotation": [25, 45, 0], "translation": [0, -5, 0], "scale": [0.45, 0.45, 0.45]},
+    "ground": {"rotation": [0, 0, 0], "translation": [0, 0, 0], "scale": [0.3, 0.3, 0.3]},
+    "fixed": {"rotation": [0, 0, 0], "translation": [0, -4, 0], "scale": [0.5, 0.5, 0.5]},
+    "firstperson_righthand": {"rotation": [0, 45, 0], "translation": [0, -2, 0], "scale": [0.32, 0.32, 0.32]},
+    "firstperson_lefthand": {"rotation": [0, 45, 0], "translation": [0, -2, 0], "scale": [0.32, 0.32, 0.32]},
+    "thirdperson_righthand": {"rotation": [75, 45, 0], "translation": [0, 1.5, 0], "scale": [0.28, 0.28, 0.28]},
+    "thirdperson_lefthand": {"rotation": [75, 45, 0], "translation": [0, 1.5, 0], "scale": [0.28, 0.28, 0.28]}}
+ICONS = os.path.join(os.path.dirname(__file__), "..", "..", "core", "src", "main", "resources", "assets", "libreria", "textures",
+                     "item", "icon")
+
+
+def icon(p, v):
+    """The waystone as a flat 16x16 picture, for the icon slot of cards and buttons (in core, with Libreria's font)."""
+    im = img()
+    shine = (199, 155, 240) if v == "light" else (95, 242, 224)
+    def rect(x0, y0, x1, y1, c):
+        for y in range(y0, y1 + 1):
+            for x in range(x0, x1 + 1):
+                im.putpixel((x, y), c + (255,))
+    rect(4, 14, 11, 15, p["trim"])          # plinth
+    rect(5, 9, 10, 13, p["stone"])          # body
+    rect(5, 9, 5, 13, p["lit"])
+    rect(7, 10, 8, 12, p["panel"])          # its rune panel
+    im.putpixel((7, 11), shine + (255,))
+    im.putpixel((8, 10), shine + (255,))
+    im.putpixel((8, 12), shine + (255,))
+    rect(4, 8, 11, 8, p["trim"])            # ledge
+    for x in (5, 10):                       # the frame's posts
+        rect(x, 5, x, 7, p["stone"])
+    im.putpixel((7, 6), shine + (255,))     # the floating rune
+    im.putpixel((8, 6), shine + (255,))
+    im.putpixel((7, 5), shine + (255,))
+    im.putpixel((8, 7), shine + (255,))
+    rect(4, 4, 11, 4, p["trim"])            # top ledge
+    rect(6, 2, 9, 3, p["stone"])            # top
+    rect(7, 0, 8, 1, shine)                 # capstone
+    src = im.copy()
+    for y in range(16):
+        for x in range(16):
+            if src.getpixel((x, y))[3] == 0 and any(0 <= x + dx < 16 and 0 <= y + dy < 16 and src.getpixel((x + dx, y + dy))[3]
+                                                     for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))):
+                im.putpixel((x, y), (40, 40, 46, 255))
+    return im
+
+
+def pearl_item():
+    """The waystone pearl in the inventory."""
+    im = img()
+    cx, cy, r = 7.5, 8.0, 5.6
+    for y in range(16):
+        for x in range(16):
+            d = ((x - cx) ** 2 + (y - cy) ** 2) ** 0.5
+            if d <= r:
+                shade = 1 - (d / r) * 0.45
+                im.putpixel((x, y), (int(140 * shade), int(70 * shade), int(200 * shade), 255))
+            elif d <= r + 0.9:
+                im.putpixel((x, y), (40, 18, 64, 255))
+    for q in ((5, 5), (6, 5), (5, 6)):
+        im.putpixel(q, (236, 214, 255, 255))
+    for q in ((9, 9), (10, 10), (8, 11), (10, 8)):
+        im.putpixel(q, (95, 242, 224, 255))
+    return im
+
+
 def write(path, data):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w") as f:
@@ -233,25 +317,28 @@ def main():
     for name, im in (("glyph", glyph()), ("crystal", crystal(rng)), ("pool", pool()), ("pearl", pearl(rng)), ("rune", rune(rng))):
         im.save(os.path.join(shine, name + ".png"))
     st = lambda n: "libreria:block/waystone/shine/" + n
-    stx = {"g": st("glyph"), "c": st("crystal"), "w": st("pool"), "e": st("pearl"), "r": st("rune"), "particle": st("crystal")}
+    stx = {"g": st("glyph"), "c": st("crystal"), "w": st("pool"), "e": st("pearl"), "u": st("rune"), "particle": st("crystal")}
     models = os.path.join(ROOT, "models", "item", "waystone")
 
-    write(os.path.join(models, "shine", "low.json"), {"textures": stx, "elements": panels(0.02, "#g", True)})
+    shine_low = panels(0.02, "#g", True)
+    write(os.path.join(models, "shine", "low.json"), {"textures": stx, "elements": shine_low})
     # The capstone, in the top model (y - 16)
-    write(os.path.join(models, "shine", "top.json"), {"textures": stx, "elements": [
+    shine_top = [
         box([5, 28, 5], [11, 30, 11], "#c", "trim", shade=False, tint=True),
         box([6, 30, 6], [10, 31, 10], "#c", "trim", shade=False, tint=True),
         box([7, 31, 7], [9, 32, 9], "#c", "trim", shade=False, tint=True),
-    ]})
+    ]
+    write(os.path.join(models, "shine", "top.json"), {"textures": stx, "elements": shine_top})
     # The floating rune: a crystal 6 px across and 9 high, around the model's centre
-    write(os.path.join(models, "shine", "rune.json"), {"textures": stx, "elements": [
-        box([7, 3.5, 7], [9, 4.5, 9], "#r", "trim", shade=False, tint=True),
-        box([6, 4.5, 6], [10, 6.5, 10], "#r", "trim", shade=False, tint=True),
+    rune_elements = [
+        box([7, 3.5, 7], [9, 4.5, 9], "#u", "trim", shade=False, tint=True),
+        box([6, 4.5, 6], [10, 6.5, 10], "#u", "trim", shade=False, tint=True),
         {"from": [5, 6.5, 5], "to": [11, 9.5, 11], "shade": False,
-         "faces": {f: {"texture": "#r", "uv": [0, 6, 6, 9] if f not in ("up", "down") else [5, 5, 11, 11], "tintindex": 0} for f in FACES}},
-        box([6, 9.5, 6], [10, 11.5, 10], "#r", "trim", shade=False, tint=True),
-        box([7, 11.5, 7], [9, 12.5, 9], "#r", "trim", shade=False, tint=True),
-    ]})
+         "faces": {f: {"texture": "#u", "uv": [0, 6, 6, 9] if f not in ("up", "down") else [5, 5, 11, 11], "tintindex": 0} for f in FACES}},
+        box([6, 9.5, 6], [10, 11.5, 10], "#u", "trim", shade=False, tint=True),
+        box([7, 11.5, 7], [9, 12.5, 9], "#u", "trim", shade=False, tint=True),
+    ]
+    write(os.path.join(models, "shine", "rune.json"), {"textures": stx, "elements": rune_elements})
     write(os.path.join(models, "shine", "altar.json"), {"textures": stx, "elements": [
         plane([5, 12.01, 5], [11, 12.01, 11], "up", "#w", [5, 5, 11, 11], True),
         plane([6, 5, 4.98], [10, 8, 4.98], "north", "#g", [6, 7, 10, 10], True),
@@ -275,18 +362,28 @@ def main():
         t = lambda n: "libreria:block/waystone/" + v + "/" + n
         tx = {"s": t("stone"), "t": t("top"), "r": t("trim"), "p": t("panel"), "b": t("basin"), "particle": t("stone")}
         # Lower two blocks: plinth, body with its rune panels, the ledge, the lower part of the frame
-        write(os.path.join(models, v, "low.json"), {"textures": tx, "elements": [
+        low = [
             box([1, 0, 1], [15, 2, 15], "#r", "trim", "#t"),
             box([2, 2, 2], [14, 4, 14], "#s", "stone", "#t"),
             box([3, 4, 3], [13, 20, 13], "#s", "stone", faces=("north", "south", "east", "west")),
             box([2, 20, 2], [14, 22, 14], "#r", "trim", "#t"),
-        ] + posts(22, 32) + panels(0.01, "#p")})
+        ] + posts(22, 32) + panels(0.01, "#p")
+        write(os.path.join(models, v, "low.json"), {"textures": tx, "elements": low})
         # Third block (drawn 16 lower, shown a block higher): the rest of the frame, the ledge it carries, the top
-        write(os.path.join(models, v, "top.json"), {"textures": tx, "elements": posts(16, 18) + [
+        top_ = posts(16, 18) + [
             box([2, 18, 2], [14, 20, 14], "#r", "trim", "#t"),
             box([4, 20, 4], [12, 27, 12], "#s", "stone", faces=("north", "south", "east", "west")),
             box([3, 27, 3], [13, 28, 13], "#r", "trim", "#t"),
-        ]})
+        ]
+        write(os.path.join(models, v, "top.json"), {"textures": tx, "elements": top_})
+        # The item: the whole stone in one model (two thirds the size, so it fits), its shine in the stone's own colour
+        whole = low + shine_low + [shift(e, 16) for e in top_ + shine_top] + [shift(e, 20) for e in rune_elements]
+        write(os.path.join(models, v, "item.json"), {"textures": dict(tx, **{k: w for k, w in stx.items() if k != "particle"}),
+                                                     "elements": [scaled(e, 2 / 3) for e in whole], "display": DISPLAY})
+        write(os.path.join(ROOT, "items", ("dark_waystone" if v == "dark" else "waystone") + ".json"),
+              {"model": {"type": "minecraft:model", "model": "libreria:item/waystone/" + v + "/item",
+                         "tints": [{"type": "minecraft:constant", "value": DEFAULT_TINT[v]}]}})
+        icon(p, v).save(os.path.join(ICONS, ("dark_waystone" if v == "dark" else "waystone") + ".png"))
         write(os.path.join(models, v, "altar.json"), {"textures": tx, "elements": [
             box([1, 0, 1], [15, 2, 15], "#r", "trim", "#t"),
             box([2, 2, 2], [14, 3, 14], "#s", "stone", "#t"),
@@ -298,10 +395,21 @@ def main():
         for name in ("low", "top", "altar"):
             item(v + "/" + name, False)
 
-    # The second design's mock-up pictures are no longer needed
+    os.makedirs(ICONS, exist_ok=True)
+    pearl_item().save(os.path.join(ROOT, "textures", "item", "waystone_pearl.png"))
+    pearl_item().save(os.path.join(ICONS, "waystone_pearl.png"))
+    write(os.path.join(ROOT, "models", "item", "waystone_pearl.json"), {"parent": "minecraft:item/generated", "textures": {"layer0": "libreria:item/waystone_pearl"}})
+    write(os.path.join(ROOT, "items", "waystone_pearl.json"), {"model": {"type": "minecraft:model", "model": "libreria:item/waystone_pearl"}})
+    # The designs before this one (and the mock-ups) are gone
     for old in ("amethyst", "ender"):
         for sub in (("textures", "block", "waystone", old), ("models", "item", "waystone", old), ("items", "waystone", old)):
             shutil.rmtree(os.path.join(ROOT, *sub), ignore_errors=True)
+    for f in ("models/item/waystone/obelisk.json", "models/item/waystone/runes.json", "models/item/waystone/altar.json",
+              "models/item/waystone/pearl.json", "models/item/waystone/item.json", "items/waystone/obelisk.json", "items/waystone/runes.json",
+              "items/waystone/altar.json", "items/waystone/pearl.json", "textures/block/waystone_bricks.png", "textures/block/waystone_base.png",
+              "textures/block/waystone_cap.png", "textures/block/waystone_runes.png", "textures/block/waystone_pearl.png"):
+        if os.path.exists(os.path.join(ROOT, f)):
+            os.remove(os.path.join(ROOT, f))
     print("waystone v3: light, dark + shine")
 
 

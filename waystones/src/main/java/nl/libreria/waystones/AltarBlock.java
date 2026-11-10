@@ -33,15 +33,12 @@ import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 /**
- * The altar in front of a waystone: the game's own smooth stone slab, with a small pedestal and bowl on it and a
- * pearl floating and turning above. It belongs to its waystone ({@link #FACING} points away from it): a click on it
- * is a click on the waystone, breaking it breaks the waystone.
+ * The altar in front of a waystone (drawn by the pack, in its stone's look): a stepped base, a column with a rune, a
+ * basin with a pool and a pearl floating and turning over it. It belongs to its waystone ({@link #FACING} points away
+ * from it): a click on it is a click on the waystone, breaking it breaks the whole waystone.
  */
 public final class AltarBlock extends Block implements PolymerBlock, BlockWithElementHolder {
 	public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
-	private static final VoxelShape SLAB = Block.box(0, 0, 0, 16, 8, 16);
-	static final Identifier ALTAR = Identifier.fromNamespaceAndPath("libreria", "waystone/altar");
-	static final Identifier PEARL = Identifier.fromNamespaceAndPath("libreria", "waystone/pearl");
 
 	AltarBlock(Properties properties) {
 		super(properties);
@@ -55,17 +52,17 @@ public final class AltarBlock extends Block implements PolymerBlock, BlockWithEl
 
 	@Override
 	public BlockState getPolymerBlockState(BlockState state, PacketContext context) {
-		return Blocks.SMOOTH_STONE_SLAB.defaultBlockState();
+		return Blocks.BARRIER.defaultBlockState();
 	}
 
 	@Override
-	protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext ctx) {
-		return SLAB;
+	public BlockState getPolymerBreakEventBlockState(BlockState state, PacketContext context) {
+		return Blocks.STONE_BRICKS.defaultBlockState();
 	}
 
 	@Override
 	public @Nullable ElementHolder createElementHolder(ServerLevel level, BlockPos pos, BlockState state) {
-		return new Holder();
+		return new Holder(level, pos, state);
 	}
 
 	@Override
@@ -73,32 +70,37 @@ public final class AltarBlock extends Block implements PolymerBlock, BlockWithEl
 		return true;
 	}
 
-	/** The pedestal and bowl, and the pearl above them: it turns slowly and bobs a little. */
+	/** The altar in its stone's look, with the pearl turning over its pool; redrawn when the stone gets another colour. */
 	static final class Holder extends ElementHolder {
-		private final ItemDisplayElement pearl;
+		private final ServerLevel level;
+		private final BlockPos stone;
+		private final Direction front;
+		private WaystoneBlock.@Nullable Look look;
+		private @Nullable ItemDisplayElement pearl;
 		private int ticks;
 
-		Holder() {
-			ItemDisplayElement altar = new ItemDisplayElement(WaystoneBlock.model(ALTAR));
-			altar.setItemDisplayContext(ItemDisplayContext.NONE);
-			altar.setViewRange(1f);
-			this.addElement(altar);
-			this.pearl = new ItemDisplayElement(WaystoneBlock.model(PEARL));
-			this.pearl.setItemDisplayContext(ItemDisplayContext.NONE);
-			this.pearl.setBrightness(new Brightness(15, 15));
-			this.pearl.setViewRange(0.6f);
-			this.pearl.setTranslation(new Vector3f(0, 0.42f, 0));
-			this.addElement(this.pearl);
+		Holder(ServerLevel level, BlockPos pos, BlockState state) {
+			this.level = level;
+			this.front = state.getValue(FACING);
+			this.stone = pos.relative(this.front.getOpposite()).immutable();
+			draw(WaystoneBlock.Look.of(level, this.stone));
+		}
+
+		private void draw(WaystoneBlock.Look look) {
+			for (var e : new java.util.ArrayList<>(this.getElements())) this.removeElement(e);
+			this.look = look;
+			this.pearl = WaystoneLook.altar(this, look.dark(), look.rgb(), look.glow(), this.front);
 		}
 
 		@Override
 		protected void onTick() {
 			if (this.ticks++ % 10 != 0) return;
-			int step = this.ticks / 10;
-			this.pearl.setLeftRotation(new Quaternionf().rotateY((float) Math.toRadians(step * 40 % 360)).rotateX((float) Math.toRadians(20)));
-			this.pearl.setTranslation(new Vector3f(0, 0.42f + (float) Math.sin(step * 0.6) * 0.025f, 0));
-			this.pearl.setInterpolationDuration(10);
-			this.pearl.startInterpolation();
+			if (this.pearl != null) WaystoneLook.turn(this.pearl, WaystoneLook.PEARL_Y, this.ticks / 10, 1f);
+			if (this.ticks % 40 != 1) return;
+			Stones.Stone s = Stones.at(this.level, this.stone);
+			if (s == null) return;
+			WaystoneBlock.Look now = new WaystoneBlock.Look(s.dark, s.rgb(), s.glow);
+			if (!now.equals(this.look)) draw(now);
 		}
 	}
 
@@ -116,11 +118,7 @@ public final class AltarBlock extends Block implements PolymerBlock, BlockWithEl
 	@Override
 	protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand,
 			BlockHitResult hit) {
-		if (stack.is(WaystonesMod.PEARL) && level instanceof ServerLevel sl && player instanceof ServerPlayer p) {
-			BlockPos lower = WaystoneBlock.lowerOf(sl, pos, state);
-			if (lower != null && PearlItem.bindAt(p, stack, sl, lower)) return InteractionResult.SUCCESS;
-		}
-		return InteractionResult.TRY_WITH_EMPTY_HAND;
+		return WaystoneBlock.useWith(stack, state, level, pos, player);
 	}
 
 	@Override
@@ -138,8 +136,7 @@ public final class AltarBlock extends Block implements PolymerBlock, BlockWithEl
 		if (level instanceof ServerLevel sl) {
 			BlockPos lower = WaystoneBlock.lowerOf(sl, pos, state);
 			if (lower != null) {
-				if (!player.isCreative()) popResource(level, lower, new ItemStack(WaystonesMod.WAYSTONE_ITEM));
-				level.setBlock(lower.above(), Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
+				if (!player.isCreative()) popResource(level, lower, WaystoneBlock.item(level, lower));
 				level.setBlock(lower, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
 			}
 		}
@@ -148,6 +145,6 @@ public final class AltarBlock extends Block implements PolymerBlock, BlockWithEl
 
 	@Override
 	protected ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state, boolean includeData) {
-		return new ItemStack(WaystonesMod.WAYSTONE_ITEM);
+		return level instanceof Level l ? WaystoneBlock.item(l, pos.relative(state.getValue(FACING).getOpposite())) : new ItemStack(WaystonesMod.WAYSTONE_ITEM);
 	}
 }

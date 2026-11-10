@@ -1231,147 +1231,41 @@ public final class Screens implements FabricClientGameTest {
 			menu(ctx, server, player, "window_admin_teleports_players", nl.libreria.teleports.TeleportsAdmin::players);
 			menu(ctx, server, player, "window_admin_teleports_player", p -> nl.libreria.teleports.TeleportsAdmin.player(p, p.getUUID()));
 			server.runOnServer(s -> nl.libreria.teleports.TeleportsAdmin.debugClear());
-			// Waystones: one you placed (day, night), the list you travel from, its settings, pearls in hand, a new village's
+			// Waystones: one you placed (day, night), more looks (dark stone, dyed, matte), the list you travel from, its
+			// settings, the pearls and both stones in hand; then new villages of every kind with their square
 			int wx = x + 40, wz = z;
 			ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.HIDDEN));
 			safe("waystone_day", () -> {
-				run(server, "time set 1000", f("fill %d %d %d %d %d %d minecraft:grass_block", wx - 10, y - 1, wz - 8, wx + 10, y - 1, wz + 12),
-						f("fill %d %d %d %d %d %d minecraft:air", wx - 10, y, wz - 8, wx + 10, y + 6, wz + 12), f("tp @a %d %d %d", wx + 2, y, wz - 1));
-				server.runOnServer(s -> nl.libreria.waystones.WaystonesDebug.scene(player, new BlockPos(wx, y, wz + 3), net.minecraft.core.Direction.NORTH));
-				ctx.waitTicks(30);
+				run(server, "time set 1000", f("fill %d %d %d %d %d %d minecraft:grass_block", wx - 10, y - 1, wz - 14, wx + 18, y - 1, wz + 12),
+						f("fill %d %d %d %d %d %d minecraft:air", wx - 10, y, wz - 14, wx + 18, y + 8, wz + 12), f("tp @a %d %d %d", wx - 2, y, wz - 2));
+				server.runOnServer(s -> {
+					nl.libreria.waystones.WaystonesDebug.scene(player, new BlockPos(wx, y, wz + 3), net.minecraft.core.Direction.NORTH);
+					nl.libreria.waystones.WaystonesDebug.colours(player, new BlockPos(wx, y, wz + 3), net.minecraft.core.Direction.NORTH);
+					nl.libreria.core.Guide.clear(player);
+				});
+				ctx.waitTicks(100);
 				ctx.getInput().lookAt(new BlockPos(wx, y + 1, wz + 3));
 				noToasts(ctx);
 				ctx.waitTicks(10);
 				ctx.takeScreenshot("waystone_day");
-			});
-			// Mock-up: the third design (three blocks, a rune floating in an open frame), light and dark stone, coloured by
-			// dyes, glowing or matte; a row of six beside the one there is now
-			String[][] looks = {{"0", "purple", "1", "Purple"}, {"1", "cyan", "1", "Cyan"}, {"0", "orange", "1", "Orange"},
-					{"1", "lime", "1", "Lime"}, {"0", "light_blue", "0", "Light blue · matte"}, {"1", "magenta", "1", "Magenta"}};
-			safe("mock3_row", () -> {
-				run(server, f("fill %d %d %d %d %d %d minecraft:grass_block", wx - 10, y - 1, wz - 16, wx + 26, y - 1, wz + 12),
-						f("fill %d %d %d %d %d %d minecraft:air", wx + 3, y, wz - 16, wx + 26, y + 8, wz + 12));
-				server.runOnServer(s -> {
-					for (int i = 0; i < looks.length; i++) {
-						String[] l = looks[i];
-						nl.libreria.waystones.WaystonesDebug.mock(player, new BlockPos(wx + 4 + 3 * i, y, wz + 3), net.minecraft.core.Direction.NORTH,
-								l[0].equals("1"), l[1], l[2].equals("1"), l[3]);
-					}
-				});
-				run(server, f("tp @a %d %d %d", wx + 11, y + 1, wz - 12));
-				server.runOnServer(s -> nl.libreria.core.Guide.clear(player));
-				ctx.waitTicks(120);
-				ctx.getInput().lookAt(new BlockPos(wx + 11, y + 1, wz + 3));
-				noToasts(ctx);
-				ctx.waitTicks(10);
-				ctx.takeScreenshot("mock3_row_day");
 				run(server, "time set 18000");
 				ctx.waitTicks(20);
-				ctx.takeScreenshot("mock3_row_night");
+				ctx.takeScreenshot("waystone_night");
 				run(server, "time set 1000");
 			});
-			// Close: the light one (purple) and the dark one (cyan), from the front and a little to the side
-			for (int[] v : new int[][] {{0, 0}, {1, 1}}) {
-				int mx = wx + 4 + 3 * v[0];
-				String name = v[1] == 0 ? "light_purple" : "dark_cyan";
-				safe("mock3_" + name, () -> {
-					run(server, f("tp @a %d %d %d", mx - 2, y, wz - 2));
-					ctx.waitTicks(40);
-					ctx.getInput().lookAt(new BlockPos(mx, y + 1, wz + 3));
-					noToasts(ctx);
-					ctx.waitTicks(10);
-					ctx.takeScreenshot("mock3_" + name + "_day");
-					run(server, "time set 18000");
-					ctx.waitTicks(20);
-					ctx.takeScreenshot("mock3_" + name + "_night");
-					run(server, "time set 1000");
-				});
-			}
-			// Glowing or matte (glow ink sac or ink sac), the same dye, at night
-			safe("mock3_glow_matte", () -> {
-				server.runOnServer(s -> {
-					nl.libreria.waystones.WaystonesDebug.clearMock();
-					nl.libreria.waystones.WaystonesDebug.mock(player, new BlockPos(wx + 9, y, wz + 3), net.minecraft.core.Direction.NORTH, true, "lime", true, "Glows");
-					nl.libreria.waystones.WaystonesDebug.mock(player, new BlockPos(wx + 13, y, wz + 3), net.minecraft.core.Direction.NORTH, true, "lime", false, "Matte");
-				});
-				run(server, f("tp @a %d %d %d", wx + 11, y, wz - 4), "time set 18000");
+			safe("waystone_looks", () -> {
+				run(server, f("tp @a %d %d %d", wx + 4, y + 1, wz - 9));
 				ctx.waitTicks(40);
-				ctx.getInput().lookAt(new BlockPos(wx + 11, y + 1, wz + 3));
+				ctx.getInput().lookAt(new BlockPos(wx + 4, y + 1, wz + 3));
 				noToasts(ctx);
 				ctx.waitTicks(10);
-				ctx.takeScreenshot("mock3_glow_matte_night");
-				run(server, "time set 1000");
-			});
-			// Mock-up: the village square per type of village (with its waystone), side by side and close; then in villages
-			// made just now (the game's /place structure), where the square finds its own spot by the bell
-			String[] plazaTypes = {"plains", "desert", "savanna", "snowy", "taiga"};
-			int px = x + 120, pz = z;
-			safe("mock_plazas", () -> {
-				run(server, "time set 1000", f("fill %d %d %d %d %d %d minecraft:grass_block", px - 8, y - 1, pz - 32, px + 50, y - 1, pz + 10),
-						f("fill %d %d %d %d %d %d minecraft:air", px - 8, y, pz - 32, px + 50, y + 12, pz + 10));
-				run(server, f("tp @a %d %d %d", px + 20, y + 14, pz - 28));
-				ctx.waitTicks(40);
-				server.runOnServer(s -> {
-					for (int i = 0; i < plazaTypes.length; i++) nl.libreria.waystones.WaystonesDebug.plaza(player, new BlockPos(px + 10 * i, y, pz), plazaTypes[i], 3);
-					nl.libreria.core.Guide.clear(player);
-				});
-				ctx.waitTicks(60);
-				ctx.getInput().lookAt(new BlockPos(px + 20, y, pz));
-				noToasts(ctx);
-				ctx.waitTicks(10);
-				ctx.takeScreenshot("mock_plazas_day");
+				ctx.takeScreenshot("waystone_looks_day");
 				run(server, "time set 18000");
 				ctx.waitTicks(20);
-				ctx.takeScreenshot("mock_plazas_night");
-				run(server, "time set 1000");
+				ctx.takeScreenshot("waystone_looks_night");
+				run(server, "time set 1000", f("tp @a %d %d %d", wx + 1, y, wz - 1));
+				ctx.waitTicks(10);
 			});
-			for (int i = 0; i < plazaTypes.length; i++) {
-				int qx = px + 10 * i;
-				String type = plazaTypes[i];
-				safe("mock_plaza_" + type, () -> {
-					run(server, f("tp @a %d %d %d", qx + 5, y + 3, pz - 8));
-					ctx.waitTicks(30);
-					ctx.getInput().lookAt(new BlockPos(qx, y + 1, pz));
-					noToasts(ctx);
-					ctx.waitTicks(10);
-					ctx.takeScreenshot("mock_plaza_" + type);
-				});
-			}
-			String[] realTypes = {"plains", "desert", "savanna", "snowy", "taiga"};
-			for (int i = 0; i < realTypes.length; i++) {
-				int vx = x + 600 + 220 * i;
-				String type = realTypes[i];
-				safe("mock_plaza_village_" + type, () -> {
-					run(server, f("tp @a %d %d %d", vx, y + 2, pz), "time set 1000", f("forceload add %d %d %d %d", vx - 80, pz - 80, vx + 80, pz + 80));
-					ctx.waitTicks(160);
-					server.runOnServer(s -> nl.libreria.waystones.WaystonesDebug.villages(false));
-					run(server, f("place structure minecraft:village_%s %d %d %d", type, vx, y, pz));
-					ctx.waitTicks(20);
-					var sq = server.computeOnServer(s -> nl.libreria.waystones.WaystonesDebug.villagePlaza(player, new BlockPos(vx, y, pz), type));
-					server.runOnServer(s -> nl.libreria.waystones.WaystonesDebug.villages(true));
-					run(server, "forceload remove all");
-					if (sq == null) {
-						LOG.warn("No room for a square in the {} village", type);
-						// From above, to see why
-						run(server, f("tp @a %d %d %d 0 90", vx, y + 40, pz));
-						ctx.waitTicks(60);
-						noToasts(ctx);
-						ctx.takeScreenshot("mock_plaza_village_" + type + "_above");
-						return;
-					}
-					BlockPos stand = sq.centre().relative(sq.front(), 9).relative(sq.front().getClockWise(), 3).above(5);
-					run(server, f("tp @a %d %d %d", stand.getX(), stand.getY(), stand.getZ()));
-					ctx.waitTicks(60);
-					ctx.getInput().lookAt(sq.centre());
-					noToasts(ctx);
-					ctx.waitTicks(10);
-					ctx.takeScreenshot("mock_plaza_village_" + type);
-				});
-			}
-			server.runOnServer(s -> nl.libreria.waystones.WaystonesDebug.clearMock());
-			run(server, f("tp @a %d %d %d", wx + 2, y, wz - 1));
-			ctx.waitTicks(10);
-			ctx.getInput().lookAt(new BlockPos(wx, y + 1, wz + 3));
 			menu(ctx, server, player, "waystone_list", nl.libreria.waystones.WaystonesDebug::list);
 			menu(ctx, server, player, "waystone_settings", nl.libreria.waystones.WaystonesDebug::settings);
 			menu(ctx, server, player, "window_admin_waystones", p -> nl.libreria.core.gui.AdminWindow.open(p, nl.libreria.waystones.WaystonesMod.MODULE));
@@ -1384,28 +1278,38 @@ public final class Screens implements FabricClientGameTest {
 				run(server, "clear @a");
 			});
 			server.runOnServer(s -> nl.libreria.waystones.WaystonesDebug.clear(player));
-			safe("waystone_village", () -> {
-				// A new village (the game's /place structure), where the player stands: its waystone by the bell
-				run(server, f("tp @a %d %d %d", x + 300, y, z));
-				ctx.waitTicks(60);
-				run(server, f("place structure minecraft:village_plains %d %d %d", x + 300, y, z));
-				BlockPos ws = server.computeOnServer(s -> nl.libreria.waystones.WaystonesDebug.lastVillage());
-				if (ws == null) {
-					LOG.warn("No village waystone");
-					return;
-				}
-				net.minecraft.core.Direction front = server.computeOnServer(s -> player.level().getBlockState(ws)
-						.getValue(nl.libreria.waystones.WaystoneBlock.FACING));
-				BlockPos stand = ws.relative(front, 4);
-				run(server, f("tp @a %d %d %d", stand.getX(), stand.getY() + 1, stand.getZ()), "time set 1000");
-				ctx.waitTicks(40);
-				ctx.getInput().lookAt(ws.above());
-				noToasts(ctx);
-				ctx.waitTicks(20);
-				ctx.takeScreenshot("waystone_village");
-				run(server, f("tp @a %d %d %d", x, y, z));
-				ctx.waitTicks(20);
-			});
+			String[] villageTypes = {"plains", "desert", "savanna", "snowy", "taiga"};
+			for (int i = 0; i < villageTypes.length; i++) {
+				int vx = x + 600 + 220 * i, vz = z;
+				String type = villageTypes[i];
+				safe("waystone_village_" + type, () -> {
+					run(server, f("tp @a %d %d %d", vx, y + 2, vz), "time set 1000", "effect give @a minecraft:slow_falling 600 0 true",
+							f("forceload add %d %d %d %d", vx - 80, vz - 80, vx + 80, vz + 80));
+					ctx.waitTicks(160);
+					run(server, f("place structure minecraft:village_%s %d %d %d", type, vx, y, vz));
+					ctx.waitTicks(10);
+					BlockPos ws = server.computeOnServer(s -> {
+						nl.libreria.waystones.WaystonesDebug.buildVillages(s);
+						return nl.libreria.waystones.WaystonesDebug.lastVillage();
+					});
+					run(server, "forceload remove all");
+					if (ws == null) {
+						LOG.warn("No waystone in the {} village", type);
+						return;
+					}
+					net.minecraft.core.Direction front = server.computeOnServer(s -> player.level().getBlockState(ws)
+							.getValue(nl.libreria.waystones.WaystoneBlock.FACING));
+					BlockPos stand = ws.relative(front, 9).relative(front.getClockWise(), 3).above(5);
+					run(server, f("tp @a %d %d %d", stand.getX(), stand.getY(), stand.getZ()));
+					ctx.waitTicks(80);
+					ctx.getInput().lookAt(ws.above());
+					noToasts(ctx);
+					ctx.waitTicks(10);
+					ctx.takeScreenshot("waystone_village_" + type);
+				});
+			}
+			run(server, "effect clear @a", f("tp @a %d %d %d", x, y, z));
+			ctx.waitTicks(20);
 			ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.FULL));
 			server.runOnServer(s -> {
 				nl.libreria.core.Links.KINDS.get(0).setting().set("https://discord.gg/example");

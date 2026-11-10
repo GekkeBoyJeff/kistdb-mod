@@ -17,6 +17,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
@@ -52,6 +54,21 @@ final class Stones {
 		/** Only the owner and the players they trust (on their land) may use it. */
 		public boolean secret;
 		public long made;
+		/** Dark stone (else light). */
+		public boolean dark;
+		/** The dye it was given ("" = its stone's own colour: purple on light stone, cyan on dark). */
+		public String dye = "";
+		/** Its runes glow (a glow ink sac), or not (an ink sac). */
+		public boolean glow = true;
+
+		DyeColor colour() {
+			DyeColor d = this.dye == null || this.dye.isEmpty() ? null : DyeColor.byName(this.dye, null);
+			return d != null ? d : this.dark ? DyeColor.CYAN : DyeColor.PURPLE;
+		}
+
+		int rgb() {
+			return WaystoneLook.shine(colour());
+		}
 
 		BlockPos pos() {
 			return new BlockPos(this.x, this.y, this.z);
@@ -131,8 +148,9 @@ final class Stones {
 	}
 
 	/** A player placed one: theirs, named after them until they name it. */
-	static Stone placed(ServerPlayer p, ServerLevel level, BlockPos lower, BlockState state) {
+	static Stone placed(ServerPlayer p, ServerLevel level, BlockPos lower, BlockState state, boolean dark) {
 		Stone s = ensure(level, lower, state);
+		s.dark = dark;
 		s.owner = p.getUUID();
 		s.ownerName = p.getName().getString();
 		s.village = false;
@@ -335,6 +353,44 @@ final class Stones {
 			case "minecraft:the_end" -> "End";
 			default -> dim.contains(":") ? dim.substring(dim.indexOf(':') + 1) : dim;
 		};
+	}
+
+	// ---------------------------------------------------------------- its colour
+
+	/**
+	 * A dye, a glow ink sac or an ink sac used on a waystone: its colour, glowing runes, or matte ones (as on a sign).
+	 * True when the item was one of those (used up when it changed something).
+	 */
+	static boolean paint(ServerPlayer p, ServerLevel level, BlockPos lower, ItemStack stack) {
+		String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath();
+		boolean glowInk = stack.is(Items.GLOW_INK_SAC), ink = stack.is(Items.INK_SAC);
+		DyeColor dye = id.endsWith("_dye") ? DyeColor.byName(id.substring(0, id.length() - 4), null) : null;
+		if (dye == null && !glowInk && !ink) return false;
+		if (!WaystonesMod.MODULE.on()) return true;
+		Stone s = ensure(level, lower, level.getBlockState(lower));
+		if (!mayBreak(p, s)) {
+			Notify.warn(p, WaystonesMod.WAYSTONE_ITEM, s.village ? "This waystone belongs to the village" : s.name + " is " + s.ownerName + "'s",
+					s.village ? "Only an operator can change how it looks." : "Only they and the people they trust can change how it looks.");
+			return true;
+		}
+		net.minecraft.sounds.SoundEvent sound;
+		if (dye != null) {
+			if (dye == s.colour()) return true;
+			s.dye = dye.getName();
+			sound = SoundEvents.DYE_USE;
+		} else if (glowInk) {
+			if (s.glow) return true;
+			s.glow = true;
+			sound = SoundEvents.GLOW_INK_SAC_USE;
+		} else {
+			if (!s.glow) return true;
+			s.glow = false;
+			sound = SoundEvents.INK_SAC_USE;
+		}
+		if (!p.isCreative()) stack.shrink(1);
+		STORE.markDirty();
+		level.playSound(null, lower.above(), sound, SoundSource.BLOCKS, 1f, 1f);
+		return true;
 	}
 
 	// ---------------------------------------------------------------- a right-click on the stone

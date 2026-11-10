@@ -1,0 +1,12 @@
+{
+ "model": {
+  "type": "minecraft:model",
+  "model": "libreria:item/waystone/dark/item",
+  "tints": [
+   {
+    "type": "minecraft:constant",
+    "value": 6288096
+   }
+  ]
+ }
+}

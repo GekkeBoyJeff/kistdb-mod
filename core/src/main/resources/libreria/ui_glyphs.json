@@ -8201,13 +8201,18 @@
    0,
    16
   ],
-  "libreria:waystone": [
+  "libreria:dark_waystone": [
    59398,
    0,
-   15
+   14
+  ],
+  "libreria:waystone": [
+   59399,
+   0,
+   14
   ],
   "libreria:waystone_pearl": [
-   59399,
+   59400,
    0,
    16
   ]
@@ -9885,15 +9890,15 @@
    8
   ],
   "hb.slot": [
-   59400,
+   59401,
    23
   ],
   "hb.shift": [
-   59401,
+   59402,
    5
   ],
   "hb.map": [
-   59402,
+   59403,
    17
   ]
  },

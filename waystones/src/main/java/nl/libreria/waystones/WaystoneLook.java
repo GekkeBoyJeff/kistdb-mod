@@ -25,6 +25,7 @@ import org.joml.Vector3f;
 final class WaystoneLook {
 	/** Where the floating rune turns: 1.25 blocks above the middle of the lower block (in the open frame). */
 	static final float RUNE_Y = 1.25f;
+	static final float RUNE_SCALE = 0.85f;
 	static final float PEARL_Y = 0.4375f;
 
 	private WaystoneLook() {
@@ -88,7 +89,7 @@ final class WaystoneLook {
 		h.addElement(cap);
 		ItemDisplayElement rune = part("shine/rune", rgb, glow, 1.5f);
 		rune.setTranslation(new Vector3f(0, RUNE_Y, 0));
-		rune.setScale(new Vector3f(0.85f));
+		rune.setScale(new Vector3f(RUNE_SCALE));
 		h.addElement(rune);
 		TextDisplayElement label = new TextDisplayElement(Component.empty());
 		label.setBillboardMode(Display.BillboardConstraints.CENTER);
