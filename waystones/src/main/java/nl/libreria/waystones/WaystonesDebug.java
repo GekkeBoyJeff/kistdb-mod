@@ -75,6 +75,34 @@ public final class WaystonesDebug {
 		return VillageWaystones.last;
 	}
 
+	// ---------------------------------------------------------------- mock-up of the second design (CI only)
+
+	private static final List<eu.pb4.polymer.virtualentity.api.ElementHolder> MOCK = new ArrayList<>();
+
+	/** The second design in one colourway at {@code lower} (its altar towards {@code front}), shown to {@code p} only. */
+	public static void mock(ServerPlayer p, BlockPos lower, Direction front, String variant, String label, int labelRgb) {
+		ServerLevel level = p.level();
+		var stone = new eu.pb4.polymer.virtualentity.api.ElementHolder();
+		var text = WaystoneLook.obelisk(stone, variant, labelRgb);
+		text.setText(nl.libreria.core.Ui.text(label, labelRgb));
+		net.minecraft.world.phys.Vec3 at = net.minecraft.world.phys.Vec3.atCenterOf(lower);
+		new eu.pb4.polymer.virtualentity.api.attachment.ManualAttachment(stone, level, () -> at);
+		stone.startWatching(p);
+		var altar = new eu.pb4.polymer.virtualentity.api.ElementHolder();
+		var pearl = WaystoneLook.altar(altar, variant, front);
+		pearl.setLeftRotation(new org.joml.Quaternionf().rotateY((float) Math.toRadians(30)));
+		net.minecraft.world.phys.Vec3 at2 = net.minecraft.world.phys.Vec3.atCenterOf(lower.relative(front));
+		new eu.pb4.polymer.virtualentity.api.attachment.ManualAttachment(altar, level, () -> at2);
+		altar.startWatching(p);
+		MOCK.add(stone);
+		MOCK.add(altar);
+	}
+
+	public static void clearMock() {
+		for (var h : MOCK) h.destroy();
+		MOCK.clear();
+	}
+
 	public static void clear(ServerPlayer p) {
 		if (stone != null) WaystonesTests.clear(p.level(), stone);
 		stone = null;

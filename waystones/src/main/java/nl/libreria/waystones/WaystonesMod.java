@@ -34,27 +34,6 @@ import nl.libreria.core.Tips;
  * The models and textures come with the server's resource pack.
  */
 public final class WaystonesMod implements ModInitializer {
-	public static final Module MODULE = Module.register("waystones", "Waystones", Items.LODESTONE,
-			"Waystones in villages and your own:", "travel between the ones you found.").in(Domain.PLACES, "Travel by waystone");
-
-	// ---------------------------------------------------------------- house rules (admin window)
-
-	static final ServerSetting.Toggle VILLAGES = MODULE.serverToggle("villages", "In new villages", Items.BELL, true,
-			"New villages get a waystone by", "their bell. Villages that are", "already there stay as they are.");
-	static final ServerSetting.Choice KNOWN = MODULE.serverChoice("known", "Village waystones known to", Items.BELL, 0,
-			new String[] {"Whoever finds them", "Everyone"}, "Whoever finds them: each player", "right-clicks it once first.",
-			"Everyone: every village's waystone", "is on everyone's list at once.");
-	static final ServerSetting.Number BLOCKS_PER_LEVEL = MODULE.serverNumber("blocks_per_level", "Blocks per XP level", Items.EXPERIENCE_BOTTLE,
-			1000, 0, 5000, 100, "blocks", "Travelling costs a level per so", "many blocks, never more than 1.5.",
-			"An ender pearl: free. 0: always free.");
-	static final ServerSetting.Toggle WORLDS = MODULE.serverToggle("worlds", "Between worlds", Items.OBSIDIAN, true,
-			"Waystones may take you to one in", "another world (the Nether, the End).");
-	static final ServerSetting.Toggle PEARLS = MODULE.serverToggle("pearls", "Waystone pearls", Items.ENDER_PEARL, true,
-			"Pearls bound to a waystone take", "you there from anywhere.");
-
-	static final Tips.Tip TIP = Tips.register("waystone", Domain.PLACES, Items.LODESTONE, "Waystones",
-			"Travel from here to every waystone you found.", "With an ender pearl it's free: right-click.");
-
 	// ---------------------------------------------------------------- blocks and items
 
 	static final Identifier WAYSTONE_ID = Identifier.fromNamespaceAndPath("libreria", "waystone");
@@ -75,6 +54,27 @@ public final class WaystonesMod implements ModInitializer {
 			new PolymerBlockItem(WAYSTONE, new Item.Properties().setId(ResourceKey.create(Registries.ITEM, WAYSTONE_ID)), Items.PAPER, true));
 	public static final PearlItem PEARL = Registry.register(BuiltInRegistries.ITEM, PEARL_ID,
 			new PearlItem(new Item.Properties().stacksTo(16).setId(ResourceKey.create(Registries.ITEM, PEARL_ID))));
+
+	public static final Module MODULE = Module.register("waystones", "Waystones", WAYSTONE_ITEM,
+			"Waystones in villages and your own:", "travel between the ones you found.").in(Domain.PLACES, "Travel by waystone");
+
+	// ---------------------------------------------------------------- house rules (admin window)
+
+	static final ServerSetting.Toggle VILLAGES = MODULE.serverToggle("villages", "Waystones in new villages", Items.BELL, true,
+			"New villages get a waystone by", "their bell. Villages that are", "already there stay as they are.");
+	static final ServerSetting.Choice KNOWN = MODULE.serverChoice("known", "Village waystones", Items.BELL, 0,
+			new String[] {"Each finds them", "Everyone knows them"}, "Each finds them: a player right-", "clicks one once before going there.",
+			"Everyone knows them: every village's", "waystone is on everyone's list.");
+	static final ServerSetting.Number BLOCKS_PER_LEVEL = MODULE.serverNumber("blocks_per_level", "One XP level per", Items.EXPERIENCE_BOTTLE,
+			1000, 0, 5000, 100, "blocks", "Travelling costs a level per so", "many blocks, never more than 1.5.",
+			"An ender pearl: free. 0: always free.");
+	static final ServerSetting.Toggle WORLDS = MODULE.serverToggle("worlds", "Travel between worlds", Items.OBSIDIAN, true,
+			"Waystones may take you to one in", "another world (the Nether, the End).");
+	static final ServerSetting.Toggle PEARLS = MODULE.serverToggle("pearls", "Waystone pearls", Items.ENDER_PEARL, true,
+			"Pearls bound to a waystone take", "you there from anywhere.");
+
+	static final Tips.Tip TIP = Tips.register("waystone", Domain.PLACES, WAYSTONE_ITEM, "Waystones",
+			"Travel from here to every waystone you found.", "With an ender pearl it's free: right-click.");
 
 	@Override
 	public void onInitialize() {

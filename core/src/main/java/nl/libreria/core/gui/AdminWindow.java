@@ -27,6 +27,11 @@ public final class AdminWindow {
 
 	public static void open(ServerPlayer player) {
 		if (!allowed(player)) return;
+		// With the pack: the same look as a player's settings
+		if (CanvasWindow.available(player)) {
+			AdminCanvas.open(player);
+			return;
+		}
 		Window w = Window.path("Settings", "Server settings")
 				.text(Ui.text("Rules for everybody on this server. Only operators see this window. Grouped by the part of "
 						+ "Libreria (the module) they belong to.", ChatFormatting.GRAY));
@@ -46,6 +51,10 @@ public final class AdminWindow {
 
 	public static void open(ServerPlayer player, Module module) {
 		if (!allowed(player)) return;
+		if (CanvasWindow.available(player)) {
+			AdminCanvas.open(player, module);
+			return;
+		}
 		Window w = Window.path("Settings", "Server settings", module.name);
 		w.item(new ItemStack(module.icon), Ui.text(module.settings().isEmpty() ? "Server-wide: this changes it for every player."
 				: "Server-wide: this changes it for every player. Under the house rules, the players' own settings: let each "

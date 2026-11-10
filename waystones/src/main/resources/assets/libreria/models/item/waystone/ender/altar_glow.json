@@ -1,0 +1,64 @@
+{
+ "textures": {
+  "s": "libreria:block/waystone/ender/stone",
+  "t": "libreria:block/waystone/ender/top",
+  "r": "libreria:block/waystone/ender/trim",
+  "p": "libreria:block/waystone/ender/panel",
+  "g": "libreria:block/waystone/ender/glyph",
+  "c": "libreria:block/waystone/ender/crystal",
+  "b": "libreria:block/waystone/ender/basin",
+  "w": "libreria:block/waystone/ender/pool",
+  "e": "libreria:block/waystone/ender/pearl",
+  "particle": "libreria:block/waystone/ender/stone"
+ },
+ "elements": [
+  {
+   "from": [
+    5,
+    12.01,
+    5
+   ],
+   "to": [
+    11,
+    12.01,
+    11
+   ],
+   "shade": false,
+   "faces": {
+    "up": {
+     "texture": "#w",
+     "uv": [
+      5,
+      5,
+      11,
+      11
+     ]
+    }
+   }
+  },
+  {
+   "from": [
+    6,
+    5,
+    4.98
+   ],
+   "to": [
+    10,
+    8,
+    4.98
+   ],
+   "shade": false,
+   "faces": {
+    "north": {
+     "texture": "#g",
+     "uv": [
+      6,
+      7,
+      10,
+      10
+     ]
+    }
+   }
+  }
+ ]
+}

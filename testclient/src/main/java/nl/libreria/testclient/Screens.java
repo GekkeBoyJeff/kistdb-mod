@@ -1235,8 +1235,8 @@ public final class Screens implements FabricClientGameTest {
 			int wx = x + 40, wz = z;
 			ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.HIDDEN));
 			safe("waystone_day", () -> {
-				run(server, "time set 1000", f("fill %d %d %d %d %d %d minecraft:grass_block", wx - 8, y - 1, wz - 8, wx + 8, y - 1, wz + 10),
-						f("fill %d %d %d %d %d %d minecraft:air", wx - 8, y, wz - 8, wx + 8, y + 6, wz + 10), f("tp @a %d %d %d", wx + 2, y, wz - 1));
+				run(server, "time set 1000", f("fill %d %d %d %d %d %d minecraft:grass_block", wx - 10, y - 1, wz - 8, wx + 10, y - 1, wz + 12),
+						f("fill %d %d %d %d %d %d minecraft:air", wx - 10, y, wz - 8, wx + 10, y + 6, wz + 12), f("tp @a %d %d %d", wx + 2, y, wz - 1));
 				server.runOnServer(s -> nl.libreria.waystones.WaystonesDebug.scene(player, new BlockPos(wx, y, wz + 3), net.minecraft.core.Direction.NORTH));
 				ctx.waitTicks(30);
 				ctx.getInput().lookAt(new BlockPos(wx, y + 1, wz + 3));
@@ -1244,13 +1244,43 @@ public final class Screens implements FabricClientGameTest {
 				ctx.waitTicks(10);
 				ctx.takeScreenshot("waystone_day");
 			});
-			safe("waystone_night", () -> {
+			// Mock-up: the second design, both colourways, beside the one there is now (left: now, middle: amethyst, right: ender)
+			safe("mock_waystone_row", () -> {
+				server.runOnServer(s -> {
+					nl.libreria.waystones.WaystonesDebug.mock(player, new BlockPos(wx + 4, y, wz + 3), net.minecraft.core.Direction.NORTH, "amethyst", "Amethyst", 0xD9B8FF);
+					nl.libreria.waystones.WaystonesDebug.mock(player, new BlockPos(wx + 8, y, wz + 3), net.minecraft.core.Direction.NORTH, "ender", "Ender", 0x9FFFEA);
+				});
+				run(server, f("tp @a %d %d %d", wx + 4, y, wz - 6));
+				ctx.waitTicks(20);
+				ctx.getInput().lookAt(new BlockPos(wx + 4, y, wz + 3));
+				noToasts(ctx);
+				ctx.waitTicks(10);
+				ctx.takeScreenshot("mock_waystone_row_day");
 				run(server, "time set 18000");
 				ctx.waitTicks(20);
-				noToasts(ctx);
-				ctx.takeScreenshot("waystone_night");
+				ctx.takeScreenshot("mock_waystone_row_night");
 				run(server, "time set 1000");
 			});
+			for (String[] v : new String[][] {{"amethyst", "4"}, {"ender", "8"}}) {
+				int mx = wx + Integer.parseInt(v[1]);
+				safe("mock_waystone_" + v[0], () -> {
+					// Close, from the front and a little to the side, the altar in front
+					run(server, f("tp @a %d %d %d", mx - 2, y, wz - 1));
+					ctx.waitTicks(15);
+					ctx.getInput().lookAt(new BlockPos(mx, y + 1, wz + 3));
+					noToasts(ctx);
+					ctx.waitTicks(10);
+					ctx.takeScreenshot("mock_waystone_" + v[0] + "_day");
+					run(server, "time set 18000");
+					ctx.waitTicks(20);
+					ctx.takeScreenshot("mock_waystone_" + v[0] + "_night");
+					run(server, "time set 1000");
+				});
+			}
+			server.runOnServer(s -> nl.libreria.waystones.WaystonesDebug.clearMock());
+			run(server, f("tp @a %d %d %d", wx + 2, y, wz - 1));
+			ctx.waitTicks(10);
+			ctx.getInput().lookAt(new BlockPos(wx, y + 1, wz + 3));
 			menu(ctx, server, player, "waystone_list", nl.libreria.waystones.WaystonesDebug::list);
 			menu(ctx, server, player, "waystone_settings", nl.libreria.waystones.WaystonesDebug::settings);
 			menu(ctx, server, player, "window_admin_waystones", p -> nl.libreria.core.gui.AdminWindow.open(p, nl.libreria.waystones.WaystonesMod.MODULE));

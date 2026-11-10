@@ -47,6 +47,10 @@ final class WaystonesWindows {
 	private static void settings(ServerPlayer p, Stones.Stone s, boolean fromAdmin) {
 		boolean op = Ui.isOp(p);
 		if (!Stones.owns(p, s) && !op) return;
+		if (WaystoneCanvas.available(p)) {
+			WaystoneCanvas.one(p, s, fromAdmin);
+			return;
+		}
 		Window w = fromAdmin ? Window.path("Server settings", "Waystones", s.name).wide() : Window.of(Domain.PLACES, "Waystones", s.name).wide();
 		String made = s.village ? "Placed with its village." : s.owner == null ? "Placed by the server." : "Placed by " + s.ownerName
 				+ (s.made > 0 ? ", " + Players.ago(s.made).toLowerCase(Locale.ROOT) : "") + ".";
@@ -98,6 +102,10 @@ final class WaystonesWindows {
 
 	static void admin(ServerPlayer p) {
 		if (!Ui.isOp(p)) return;
+		if (WaystoneCanvas.available(p)) {
+			WaystoneCanvas.All.open(p, 0);
+			return;
+		}
 		List<Stones.Stone> all = new ArrayList<>(Stones.list());
 		all.sort(Comparator.comparing((Stones.Stone s) -> s.village).thenComparing(s -> s.name.toLowerCase(Locale.ROOT)));
 		long villages = all.stream().filter(s -> s.village).count();
