@@ -131,7 +131,10 @@ public final class Catalog {
 		DUPLICATES.clear();
 		List<String> items = new ArrayList<>();
 		for (Item item : BuiltInRegistries.ITEM) {
-			String id = BuiltInRegistries.ITEM.getKey(item).getPath();
+			// The game's own items (a module's own, like a waystone, isn't part of "every item there is")
+			var key = BuiltInRegistries.ITEM.getKey(item);
+			if (!key.getNamespace().equals("minecraft")) continue;
+			String id = key.getPath();
 			if (obtainable(id)) items.add(id);
 		}
 		allItems = List.copyOf(items);

@@ -1233,6 +1233,7 @@ public final class Screens implements FabricClientGameTest {
 			server.runOnServer(s -> nl.libreria.teleports.TeleportsAdmin.debugClear());
 			// Waystones: one you placed (day, night), the list you travel from, its settings, pearls in hand, a new village's
 			int wx = x + 40, wz = z;
+			ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.HIDDEN));
 			safe("waystone_day", () -> {
 				run(server, "time set 1000", f("fill %d %d %d %d %d %d minecraft:grass_block", wx - 8, y - 1, wz - 8, wx + 8, y - 1, wz + 10),
 						f("fill %d %d %d %d %d %d minecraft:air", wx - 8, y, wz - 8, wx + 8, y + 6, wz + 10), f("tp @a %d %d %d", wx + 2, y, wz - 1));
@@ -1274,8 +1275,8 @@ public final class Screens implements FabricClientGameTest {
 				}
 				net.minecraft.core.Direction front = server.computeOnServer(s -> player.level().getBlockState(ws)
 						.getValue(nl.libreria.waystones.WaystoneBlock.FACING));
-				BlockPos stand = ws.relative(front, 4).relative(front.getClockWise(), 2);
-				run(server, f("tp @a %d %d %d", stand.getX(), stand.getY(), stand.getZ()), "time set 1000");
+				BlockPos stand = ws.relative(front, 4);
+				run(server, f("tp @a %d %d %d", stand.getX(), stand.getY() + 1, stand.getZ()), "time set 1000");
 				ctx.waitTicks(40);
 				ctx.getInput().lookAt(ws.above());
 				noToasts(ctx);
@@ -1284,6 +1285,7 @@ public final class Screens implements FabricClientGameTest {
 				run(server, f("tp @a %d %d %d", x, y, z));
 				ctx.waitTicks(20);
 			});
+			ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.FULL));
 			server.runOnServer(s -> {
 				nl.libreria.core.Links.KINDS.get(0).setting().set("https://discord.gg/example");
 				nl.libreria.core.Links.KINDS.get(2).setting().set("https://example.org/rules");

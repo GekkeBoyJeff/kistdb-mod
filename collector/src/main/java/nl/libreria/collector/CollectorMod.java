@@ -360,7 +360,8 @@ public final class CollectorMod implements ModInitializer {
 		for (int i = 0; i < inv.getContainerSize(); i++) {
 			ItemStack st = inv.getItem(i);
 			if (st.isEmpty()) continue;
-			if (d.items.add(BuiltInRegistries.ITEM.getKey(st.getItem()).getPath())) changed = true;
+			var key = BuiltInRegistries.ITEM.getKey(st.getItem());
+			if (key.getNamespace().equals("minecraft") && d.items.add(key.getPath())) changed = true;
 			if (CollectorCollections.scan(d, st)) STORE.markDirty(p);
 		}
 		if (changed) {

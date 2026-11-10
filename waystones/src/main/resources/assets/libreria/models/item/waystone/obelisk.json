@@ -152,22 +152,22 @@
    "shade": true,
    "faces": {
     "north": {
-     "texture": "#b"
+     "texture": "#c"
     },
     "south": {
-     "texture": "#b"
+     "texture": "#c"
     },
     "east": {
-     "texture": "#b"
+     "texture": "#c"
     },
     "west": {
-     "texture": "#b"
+     "texture": "#c"
     },
     "up": {
-     "texture": "#b"
+     "texture": "#c"
     },
     "down": {
-     "texture": "#b"
+     "texture": "#c"
     }
    }
   },

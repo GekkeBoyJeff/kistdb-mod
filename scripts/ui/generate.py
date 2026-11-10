@@ -1147,6 +1147,17 @@ def hud_fonts():
         first = im.convert('RGBA').crop((0, 0, im.width, im.width))
         w = actual_width(first, 0, first.width, first.height)
         icons[item] = [cp, 1 if tinted else 0, int(0.5 + w * 16 / im.width) + 1]
+    # Libreria's own items (a module's blocks and items): their pictures are in core, so the font never points at a
+    # picture that isn't there when a module is left out
+    for fname in sorted(os.listdir(os.path.join(OUT, 'assets', NS, 'textures', 'item', 'icon'))):
+        if not fname.endswith('.png'):
+            continue
+        name = fname[:-4]
+        im = Image.open(os.path.join(OUT, 'assets', NS, 'textures', 'item', 'icon', fname)).convert('RGBA')
+        cp = next_cp()
+        icon_providers.append({'type': 'bitmap', 'file': NS + ':item/icon/' + fname, 'height': 16, 'ascent': 0, 'chars': [chr(cp)]})
+        w = actual_width(im, 0, im.width, im.height)
+        icons[NS + ':' + name] = [cp, 0, int(0.5 + w * 16 / im.width) + 1]
     pad_top = PAD_TOP
     for k in range(HUD_LINES):
         shift = (HUD_PANEL_TOP + pad_top + LH * k) - HUD_NAME_Y

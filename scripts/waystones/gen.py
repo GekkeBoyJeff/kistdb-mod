@@ -89,6 +89,33 @@ def pearl_block():
     return img
 
 
+def obelisk_icon():
+    """The waystone as a flat 16x16 picture, for the icon slot of cards and buttons (Libreria's font, in core)."""
+    img = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
+    outline = (40, 40, 46, 255)
+    def rect(x0, y0, x1, y1, c):
+        for y in range(y0, y1 + 1):
+            for x in range(x0, x1 + 1):
+                img.putpixel((x, y), c)
+    # plinth, shaft, taper, cap (light from the left)
+    rect(3, 13, 12, 15, (94, 94, 100, 255))
+    rect(3, 13, 12, 13, (112, 112, 118, 255))
+    rect(5, 5, 10, 12, (138, 138, 142, 255))
+    rect(5, 5, 6, 12, (156, 156, 160, 255))
+    rect(6, 2, 9, 4, (150, 150, 154, 255))
+    rect(7, 0, 8, 1, (178, 178, 182, 255))
+    for (x, y) in ((7, 6), (8, 6), (7, 7), (7, 8), (8, 8), (7, 10), (8, 10), (8, 11)):
+        img.putpixel((x, y), (95, 242, 224, 255))
+    # a dark rim around it all
+    src = img.copy()
+    for y in range(16):
+        for x in range(16):
+            if src.getpixel((x, y))[3] == 0 and any(0 <= x + dx < 16 and 0 <= y + dy < 16 and src.getpixel((x + dx, y + dy))[3]
+                                                     for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))):
+                img.putpixel((x, y), outline)
+    return img
+
+
 def pearl_item():
     img = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
     cx, cy, r = 7.5, 8.0, 5.6
@@ -129,6 +156,11 @@ def main():
     save(runes(), "block", "waystone_runes.png")
     save(pearl_block(), "block", "waystone_pearl.png")
     save(pearl_item(), "item", "waystone_pearl.png")
+    # Icons for cards and buttons live in core (its font points at them; core is always there)
+    icons = os.path.join(os.path.dirname(__file__), "..", "..", "core", "src", "main", "resources", "assets", "libreria", "textures", "item", "icon")
+    os.makedirs(icons, exist_ok=True)
+    obelisk_icon().save(os.path.join(icons, "waystone.png"))
+    pearl_item().save(os.path.join(icons, "waystone_pearl.png"))
 
     textures = {"s": "libreria:block/waystone_bricks", "b": "libreria:block/waystone_base", "c": "libreria:block/waystone_cap",
                 "particle": "libreria:block/waystone_bricks"}
@@ -137,7 +169,7 @@ def main():
         element([2, 3, 2], [14, 4, 14], "#b"),
         element([3, 4, 3], [13, 20, 13], "#s"),
         element([4, 20, 4], [12, 27, 12], "#s"),
-        element([3.5, 27, 3.5], [12.5, 28, 12.5], "#b"),
+        element([3.5, 27, 3.5], [12.5, 28, 12.5], "#c"),
         element([5, 28, 5], [11, 30, 11], "#c"),
         element([6.5, 30, 6.5], [9.5, 32, 9.5], "#c"),
     ]}

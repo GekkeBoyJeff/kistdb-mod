@@ -256,7 +256,8 @@ public final class Glyphs {
 	@org.jetbrains.annotations.Nullable
 	public static int[] icon(net.minecraft.world.item.Item item) {
 		Identifier id = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(item);
-		return id.getNamespace().equals("minecraft") ? ICONS.get(id.getPath()) : null;
+		// The game's items by their name ("diamond"), Libreria's own by their full id ("libreria:waystone")
+		return ICONS.get(id.getNamespace().equals("minecraft") ? id.getPath() : id.toString());
 	}
 
 	/**
