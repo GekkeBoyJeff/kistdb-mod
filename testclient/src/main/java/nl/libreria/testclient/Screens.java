@@ -822,7 +822,8 @@ public final class Screens implements FabricClientGameTest {
 						f("fill %d %d %d %d %d %d minecraft:air", mx - 12, y, mz - 6, mx + 12, y + 6, mz + 10),
 						f("fill %d %d %d %d %d %d minecraft:oak_planks", mx - 9, y - 1, mz + 3, mx + 8, y - 1, mz + 7),
 						f("fill %d %d %d %d %d %d minecraft:spruce_planks", mx - 9, y, mz + 8, mx + 8, y + 3, mz + 8), f("tp @a %d %d %d 0 10", mx, y, mz - 2));
-				ctx.waitTicks(10);
+				server.runOnServer(sv -> nl.libreria.core.Guide.clear(player));
+				ctx.waitTicks(100);
 				server.runOnServer(sv -> nl.libreria.info.InfoMod.debugMannequinScene((ServerLevel) player.level(), new BlockPos(mx, y, mz + 5), "stances"));
 				ctx.waitTicks(20);
 				ctx.getInput().lookAt(new BlockPos(mx, y, mz + 5));
@@ -849,7 +850,7 @@ public final class Screens implements FabricClientGameTest {
 			});
 			menu(ctx, server, player, "mannequin_window_sitting", p -> nl.libreria.info.InfoMod.debugMannequinWindow(p, new BlockPos(mx + 4, y + 1, mz + 5), null));
 			safe("mannequin_hands", () -> {
-				run(server, "kill @e[type=minecraft:mannequin]", "kill @e[type=minecraft:armor_stand]",
+				run(server, "tp @e[type=minecraft:mannequin] ~ -100 ~", "kill @e[type=minecraft:mannequin]", "kill @e[type=minecraft:armor_stand]",
 						f("fill %d %d %d %d %d %d minecraft:air", mx - 9, y, mz + 3, mx + 8, y + 2, mz + 7), f("tp @a %d %d %d 0 10", mx, y, mz));
 				ctx.waitTicks(5);
 				server.runOnServer(sv -> nl.libreria.info.InfoMod.debugMannequinScene((ServerLevel) player.level(), new BlockPos(mx, y, mz + 5), "hands"));
@@ -858,11 +859,11 @@ public final class Screens implements FabricClientGameTest {
 						"crossbow[charged_projectiles=[{id:\"minecraft:arrow\",count:1}]]"};
 				int[] dx = {5, 1, -1, -3, -5};
 				for (int i = 0; i < items.length; i++) {
-					run(server, f("item replace entity @e[type=minecraft:mannequin,x=%d.5,y=%d,z=%d.5,distance=..0.7] weapon.mainhand with minecraft:%s", mx + dx[i], y,
-							mz + 5, items[i]));
+					run(server, f("item replace entity @e[type=minecraft:mannequin,x=%.1f,y=%d,z=%.1f,distance=..0.7] weapon.mainhand with minecraft:%s", mx + dx[i] + 0.5, y,
+							mz + 5.5, items[i]));
 				}
-				run(server, f("item replace entity @e[type=minecraft:mannequin,x=%d.5,y=%d,z=%d.5,distance=..0.7] weapon.mainhand with minecraft:iron_sword", mx + 3, y, mz + 5),
-						f("item replace entity @e[type=minecraft:mannequin,x=%d.5,y=%d,z=%d.5,distance=..0.7] weapon.offhand with minecraft:shield", mx + 3, y, mz + 5));
+				run(server, f("item replace entity @e[type=minecraft:mannequin,x=%.1f,y=%d,z=%.1f,distance=..0.7] weapon.mainhand with minecraft:iron_sword", mx + 3.5, y, mz + 5.5),
+						f("item replace entity @e[type=minecraft:mannequin,x=%.1f,y=%d,z=%.1f,distance=..0.7] weapon.offhand with minecraft:shield", mx + 3.5, y, mz + 5.5));
 				ctx.waitTicks(5);
 				server.runOnServer(sv -> nl.libreria.info.InfoMod.debugMannequinUse((ServerLevel) player.level(), new BlockPos(mx, y, mz + 5)));
 				ctx.waitTicks(20);
@@ -880,7 +881,7 @@ public final class Screens implements FabricClientGameTest {
 			});
 			menu(ctx, server, player, "mannequin_window", p -> nl.libreria.info.InfoMod.debugMannequinWindow(p, new BlockPos(mx + 5, y, mz + 5), "lantern"));
 			safe("mannequin_heads", () -> {
-				run(server, "kill @e[type=minecraft:mannequin]", f("tp @a %d %d %d 0 10", mx, y, mz));
+				run(server, "tp @e[type=minecraft:mannequin] ~ -100 ~", "kill @e[type=minecraft:mannequin]", f("tp @a %d %d %d 0 10", mx, y, mz));
 				ctx.waitTicks(5);
 				server.runOnServer(sv -> nl.libreria.info.InfoMod.debugMannequinScene((ServerLevel) player.level(), new BlockPos(mx, y, mz + 5), "heads"));
 				ctx.waitTicks(20);
@@ -888,7 +889,7 @@ public final class Screens implements FabricClientGameTest {
 				ctx.waitTicks(16);
 				noToasts(ctx);
 				ctx.takeScreenshot("mannequin_heads");
-				run(server, "kill @e[type=minecraft:mannequin]", "kill @e[type=minecraft:armor_stand]", f("tp @a %d %d %d", x, y, z));
+				run(server, "tp @e[type=minecraft:mannequin] ~ -100 ~", "kill @e[type=minecraft:mannequin]", "kill @e[type=minecraft:armor_stand]", f("tp @a %d %d %d", x, y, z));
 				ctx.waitTicks(5);
 				ctx.getInput().lookAt(0, 0);
 			});

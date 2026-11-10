@@ -136,7 +136,8 @@ final class Poses {
 		if (s == Stance.SIT || s == Stance.LEAN) {
 			Entity seat = m.getVehicle();
 			BlockState under = seat == null ? null : m.level().getBlockState(BlockPos.containing(seat.position().subtract(0, 0.25, 0)));
-			if (under != null && (under.getBlock() instanceof StairBlock || under.getBlock() instanceof SlabBlock)) return "on a seat";
+			if (under != null && under.getBlock() instanceof StairBlock) return "on a stair";
+			if (under != null && under.getBlock() instanceof SlabBlock) return "on a slab";
 			return "on the ground";
 		}
 		if (s == Stance.LIE) return m.isSleeping() ? "in a bed" : "on the ground";
@@ -169,14 +170,14 @@ final class Poses {
 				ArmorStand stand = seatEntity(level, seat.pos(), seat.yaw());
 				if (stand == null) return "There's no room to sit";
 				turnTo(m, seat.yaw());
-				m.setPose(to == Stance.LEAN ? Pose.CROUCHING : Pose.STANDING);
-				m.refreshDimensions();
 				keep(m, kept(m).withSpot(at));
 				if (!m.startRiding(stand, true, true)) {
 					stand.discard();
 					keep(m, kept(m).withSpot(null));
 					return "It can't sit here";
 				}
+				// (getting on something makes it stand: lean in after)
+				m.setPose(to == Stance.LEAN ? Pose.CROUCHING : Pose.STANDING);
 			}
 			case LIE -> {
 				BlockPos bed = bedAt(level, m.blockPosition());
@@ -354,7 +355,7 @@ final class Poses {
 
 	static void setLook(Mannequin m, float yaw, float pitch) {
 		track(m);
-		keep(m, kept(m).withHead(Mth.clamp(yaw, -70, 70)));
+		keep(m, kept(m).withHead(Mth.clamp(yaw, -50, 50)));
 		m.setXRot(Mth.clamp(pitch, -60, 60));
 		look(m);
 	}
@@ -367,9 +368,27 @@ final class Poses {
 		setLook(m, Mth.wrapDegrees(yaw - m.getYRot()), pitch);
 	}
 
-	/** Puts its head where it is kept (Minecraft forgets a turned head when it loads it). */
+	/**
+	 * Puts its head where it is kept. Only the players see it turned: for Minecraft it looks straight ahead, because a
+	 * player who first sees a mannequin takes its body to face where its head does (a turned head would turn all of it).
+	 * So the turn goes to the players after Minecraft's own updates, each tick it changes and to whoever sees it anew.
+	 */
 	static void look(Mannequin m) {
-		m.setYHeadRot(m.getYRot() + kept(m).head());
+		m.setYHeadRot(m.getYRot());
+		HEADS.add(m);
+	}
+
+	/** Mannequins whose turned heads go out to the players at the end of this tick. */
+	private static final Set<Mannequin> HEADS = new HashSet<>();
+
+	private static void sendHeads() {
+		if (HEADS.isEmpty()) return;
+		for (Mannequin m : HEADS) {
+			if (m.isRemoved() || !(m.level() instanceof ServerLevel level)) continue;
+			var packet = new net.minecraft.network.protocol.game.ClientboundRotateHeadPacket(m, Mth.packDegrees(m.getYRot() + kept(m).head()));
+			for (ServerPlayer p : level.players()) if (p.distanceToSqr(m) < 256 * 256) p.connection.send(packet);
+		}
+		HEADS.clear();
 	}
 
 	// ---------------------------------------------------------------- what its hands do
@@ -466,6 +485,11 @@ final class Poses {
 			if (e instanceof Mannequin m) LOADED.remove(m);
 			else if (e instanceof ArmorStand a) SEATS.remove(a);
 		});
+		// Someone sees it anew: its head turned for them too (after Minecraft showed it them)
+		net.fabricmc.fabric.api.networking.v1.EntityTrackingEvents.START_TRACKING.register((e, player) -> {
+			if (e instanceof Mannequin m && kept(m).head() != 0) HEADS.add(m);
+		});
+		net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents.END_SERVER_TICK.register(server -> sendHeads());
 	}
 
 	/** Every second: hands kept using, empty seats gone, a seat or bed that went away (it stands up where it stood). */

@@ -181,7 +181,7 @@ final class InfoTests {
 				var seat = m.getVehicle();
 				SelfTests.check(seat != null && Math.abs(seat.getY() - (at.getY() + 0.5)) < 0.01 && Math.abs(net.minecraft.util.Mth.wrapDegrees(m.getYRot() - 180)) < 1,
 						"in the stair, facing away from its back: " + (seat == null ? "-" : seat.getY()) + " " + m.getYRot());
-				SelfTests.check("on a seat".equals(Poses.where(m)), "where: " + Poses.where(m));
+				SelfTests.check("on a stair".equals(Poses.where(m)), "where: " + Poses.where(m));
 				Poses.set(m, Poses.Stance.LEAN);
 				SelfTests.check(Poses.stance(m) == Poses.Stance.LEAN && Poses.seated(m) && m.getPose() == net.minecraft.world.entity.Pose.CROUCHING, "leaning in");
 				seat = m.getVehicle();
@@ -212,8 +212,8 @@ final class InfoTests {
 				Poses.turn(m, 1);
 				SelfTests.check(Math.abs(net.minecraft.util.Mth.wrapDegrees(m.getYRot() - yaw - 45)) < 1, "a turn to its right");
 				Poses.setLook(m, Poses.Look.LEFT.yaw, Poses.Look.LEFT.pitch);
-				SelfTests.check(Math.abs(net.minecraft.util.Mth.wrapDegrees(m.getYHeadRot() - m.getYRot() + 50)) < 1 && Poses.look(m, true) == Poses.Look.LEFT,
-						"looking left");
+				SelfTests.check(Math.abs(Poses.kept(m).head() + 50) < 1 && Poses.look(m, true) == Poses.Look.LEFT && Math.abs(m.getYHeadRot() - m.getYRot()) < 1,
+						"looking left (for the players; straight for Minecraft)");
 				// Its hands: a bow drawn; taken away, it stops
 				m.setItemSlot(net.minecraft.world.entity.EquipmentSlot.MAINHAND, new ItemStack(Items.BOW));
 				SelfTests.check(Poses.acts(m).size() == 2, "a bow to use");
