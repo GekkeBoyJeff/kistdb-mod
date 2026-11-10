@@ -1342,13 +1342,14 @@ public final class Screens implements FabricClientGameTest {
 				int vx = x + 600 + 220 * i;
 				String type = realTypes[i];
 				safe("mock_plaza_village_" + type, () -> {
-					run(server, f("tp @a %d %d %d", vx, y + 2, pz), "time set 1000");
-					ctx.waitTicks(100);
+					run(server, f("tp @a %d %d %d", vx, y + 2, pz), "time set 1000", f("forceload add %d %d %d %d", vx - 80, pz - 80, vx + 80, pz + 80));
+					ctx.waitTicks(160);
 					server.runOnServer(s -> nl.libreria.waystones.WaystonesDebug.villages(false));
 					run(server, f("place structure minecraft:village_%s %d %d %d", type, vx, y, pz));
 					ctx.waitTicks(20);
 					var sq = server.computeOnServer(s -> nl.libreria.waystones.WaystonesDebug.villagePlaza(player, new BlockPos(vx, y, pz), type));
 					server.runOnServer(s -> nl.libreria.waystones.WaystonesDebug.villages(true));
+					run(server, "forceload remove all");
 					if (sq == null) {
 						LOG.warn("No room for a square in the {} village", type);
 						// From above, to see why

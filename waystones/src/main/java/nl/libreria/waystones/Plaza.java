@@ -76,11 +76,16 @@ final class Plaza {
 	}
 
 	/** Ground the square may be laid on, and what may be cleared above it (nothing anyone built). */
+	private static final java.util.Set<String> GROUND = java.util.Set.of("grass_block", "dirt", "coarse_dirt", "podzol", "mycelium",
+			"rooted_dirt", "mud", "moss_block", "dirt_path", "farmland", "sand", "red_sand", "suspicious_sand", "gravel", "clay", "snow_block",
+			"powder_snow", "stone", "andesite", "diorite", "granite", "deepslate", "tuff", "calcite", "sandstone", "red_sandstone",
+			"terracotta", "packed_ice", "ice");
+
 	static boolean natural(BlockState s) {
 		if (s.isAir() || s.canBeReplaced()) return s.getFluidState().isEmpty();
-		return s.is(BlockTags.DIRT) || s.is(BlockTags.SAND) || s.is(BlockTags.BASE_STONE_OVERWORLD) || s.is(Blocks.GRAVEL)
-				|| s.is(Blocks.DIRT_PATH) || s.is(Blocks.SNOW_BLOCK) || s.is(Blocks.SANDSTONE) || s.is(Blocks.RED_SANDSTONE)
-				|| s.is(Blocks.TERRACOTTA) || s.is(Blocks.CLAY) || s.is(Blocks.COARSE_DIRT) || s.is(Blocks.PODZOL) || s.is(Blocks.MUD);
+		if (s.is(Blocks.FARMLAND)) return false;
+		String id = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(s.getBlock()).getPath();
+		return GROUND.contains(id) || s.is(BlockTags.DIRT) || s.is(BlockTags.SAND) || s.is(BlockTags.BASE_STONE_OVERWORLD);
 	}
 
 	private static boolean open(BlockState s) {
