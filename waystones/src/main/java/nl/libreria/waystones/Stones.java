@@ -58,7 +58,7 @@ final class Stones {
 		}
 
 		String key() {
-			return key(this.dim, this.x, this.y, this.z);
+			return Stones.key(this.dim, this.x, this.y, this.z);
 		}
 
 		Direction front() {

@@ -19,7 +19,6 @@ import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
-import net.minecraft.world.level.material.PushReaction;
 import nl.libreria.core.Domain;
 import nl.libreria.core.Module;
 import nl.libreria.core.Pack;
@@ -63,11 +62,15 @@ public final class WaystonesMod implements ModInitializer {
 	static final Identifier PEARL_ID = Identifier.fromNamespaceAndPath("libreria", "waystone_pearl");
 
 	public static final WaystoneBlock WAYSTONE = Registry.register(BuiltInRegistries.BLOCK, WAYSTONE_ID,
-			new WaystoneBlock(BlockBehaviour.Properties.of().mapColor(MapColor.STONE).strength(2.5f, 1200f).sound(SoundType.STONE)
-					.pushReaction(PushReaction.BLOCK).noLootTable().noOcclusion().setId(ResourceKey.create(Registries.BLOCK, WAYSTONE_ID))));
+			new WaystoneBlock(stone().noOcclusion().setId(ResourceKey.create(Registries.BLOCK, WAYSTONE_ID))));
 	public static final AltarBlock ALTAR = Registry.register(BuiltInRegistries.BLOCK, ALTAR_ID,
-			new AltarBlock(BlockBehaviour.Properties.of().mapColor(MapColor.STONE).strength(2.5f, 1200f).sound(SoundType.STONE)
-					.pushReaction(PushReaction.BLOCK).noLootTable().setId(ResourceKey.create(Registries.BLOCK, ALTAR_ID))));
+			new AltarBlock(stone().noOcclusion().setId(ResourceKey.create(Registries.BLOCK, ALTAR_ID))));
+	/** Like obsidian in that pistons can't move it and explosions don't break it; as quick to mine as stone bricks. */
+	private static BlockBehaviour.Properties stone() {
+		return BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.OBSIDIAN).mapColor(MapColor.STONE).strength(2.5f, 1200f)
+				.sound(SoundType.STONE).noLootTable();
+	}
+
 	public static final Item WAYSTONE_ITEM = Registry.register(BuiltInRegistries.ITEM, WAYSTONE_ID,
 			new PolymerBlockItem(WAYSTONE, new Item.Properties().setId(ResourceKey.create(Registries.ITEM, WAYSTONE_ID)), Items.PAPER, true));
 	public static final PearlItem PEARL = Registry.register(BuiltInRegistries.ITEM, PEARL_ID,
