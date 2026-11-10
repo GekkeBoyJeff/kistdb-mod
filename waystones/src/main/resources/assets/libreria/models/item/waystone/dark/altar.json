@@ -1,0 +1,363 @@
+{
+ "textures": {
+  "s": "libreria:block/waystone/dark/stone",
+  "t": "libreria:block/waystone/dark/top",
+  "r": "libreria:block/waystone/dark/trim",
+  "p": "libreria:block/waystone/dark/panel",
+  "b": "libreria:block/waystone/dark/basin",
+  "particle": "libreria:block/waystone/dark/stone"
+ },
+ "elements": [
+  {
+   "from": [
+    1,
+    0,
+    1
+   ],
+   "to": [
+    15,
+    2,
+    15
+   ],
+   "shade": true,
+   "faces": {
+    "north": {
+     "texture": "#r",
+     "uv": [
+      1,
+      0,
+      15,
+      2
+     ]
+    },
+    "south": {
+     "texture": "#r",
+     "uv": [
+      1,
+      0,
+      15,
+      2
+     ]
+    },
+    "east": {
+     "texture": "#r",
+     "uv": [
+      1,
+      0,
+      15,
+      2
+     ]
+    },
+    "west": {
+     "texture": "#r",
+     "uv": [
+      1,
+      0,
+      15,
+      2
+     ]
+    },
+    "up": {
+     "texture": "#t",
+     "uv": [
+      1,
+      1,
+      15,
+      15
+     ]
+    },
+    "down": {
+     "texture": "#r",
+     "uv": [
+      1,
+      1,
+      15,
+      15
+     ]
+    }
+   }
+  },
+  {
+   "from": [
+    2,
+    2,
+    2
+   ],
+   "to": [
+    14,
+    3,
+    14
+   ],
+   "shade": true,
+   "faces": {
+    "north": {
+     "texture": "#s",
+     "uv": [
+      2,
+      0,
+      14,
+      1
+     ]
+    },
+    "south": {
+     "texture": "#s",
+     "uv": [
+      2,
+      0,
+      14,
+      1
+     ]
+    },
+    "east": {
+     "texture": "#s",
+     "uv": [
+      2,
+      0,
+      14,
+      1
+     ]
+    },
+    "west": {
+     "texture": "#s",
+     "uv": [
+      2,
+      0,
+      14,
+      1
+     ]
+    },
+    "up": {
+     "texture": "#t",
+     "uv": [
+      2,
+      2,
+      14,
+      14
+     ]
+    },
+    "down": {
+     "texture": "#s",
+     "uv": [
+      2,
+      2,
+      14,
+      14
+     ]
+    }
+   }
+  },
+  {
+   "from": [
+    5,
+    3,
+    5
+   ],
+   "to": [
+    11,
+    9,
+    11
+   ],
+   "shade": true,
+   "faces": {
+    "north": {
+     "texture": "#s",
+     "uv": [
+      5,
+      0,
+      11,
+      6
+     ]
+    },
+    "south": {
+     "texture": "#s",
+     "uv": [
+      5,
+      0,
+      11,
+      6
+     ]
+    },
+    "east": {
+     "texture": "#s",
+     "uv": [
+      5,
+      0,
+      11,
+      6
+     ]
+    },
+    "west": {
+     "texture": "#s",
+     "uv": [
+      5,
+      0,
+      11,
+      6
+     ]
+    }
+   }
+  },
+  {
+   "from": [
+    4,
+    9,
+    4
+   ],
+   "to": [
+    12,
+    10,
+    12
+   ],
+   "shade": true,
+   "faces": {
+    "north": {
+     "texture": "#r",
+     "uv": [
+      4,
+      1,
+      12,
+      2
+     ]
+    },
+    "south": {
+     "texture": "#r",
+     "uv": [
+      4,
+      1,
+      12,
+      2
+     ]
+    },
+    "east": {
+     "texture": "#r",
+     "uv": [
+      4,
+      1,
+      12,
+      2
+     ]
+    },
+    "west": {
+     "texture": "#r",
+     "uv": [
+      4,
+      1,
+      12,
+      2
+     ]
+    },
+    "up": {
+     "texture": "#r",
+     "uv": [
+      4,
+      4,
+      12,
+      12
+     ]
+    },
+    "down": {
+     "texture": "#r",
+     "uv": [
+      4,
+      4,
+      12,
+      12
+     ]
+    }
+   }
+  },
+  {
+   "from": [
+    3,
+    10,
+    3
+   ],
+   "to": [
+    13,
+    12,
+    13
+   ],
+   "shade": true,
+   "faces": {
+    "north": {
+     "texture": "#s",
+     "uv": [
+      3,
+      0,
+      13,
+      2
+     ]
+    },
+    "south": {
+     "texture": "#s",
+     "uv": [
+      3,
+      0,
+      13,
+      2
+     ]
+    },
+    "east": {
+     "texture": "#s",
+     "uv": [
+      3,
+      0,
+      13,
+      2
+     ]
+    },
+    "west": {
+     "texture": "#s",
+     "uv": [
+      3,
+      0,
+      13,
+      2
+     ]
+    },
+    "up": {
+     "texture": "#b",
+     "uv": [
+      3,
+      3,
+      13,
+      13
+     ]
+    },
+    "down": {
+     "texture": "#s",
+     "uv": [
+      3,
+      3,
+      13,
+      13
+     ]
+    }
+   }
+  },
+  {
+   "from": [
+    5,
+    4,
+    4.99
+   ],
+   "to": [
+    11,
+    9,
+    4.99
+   ],
+   "shade": false,
+   "faces": {
+    "north": {
+     "texture": "#p",
+     "uv": [
+      5,
+      6,
+      11,
+      11
+     ]
+    }
+   }
+  }
+ ]
+}

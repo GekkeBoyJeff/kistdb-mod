@@ -147,8 +147,8 @@ public final class AdminCanvas extends CanvasWindow {
 		for (int i = 0; i < all.size(); i++) {
 			Row r = all.get(i);
 			int h = height(r);
-			if (h == 2 && at == 5) {
-				// A two-row card can't sit across the gap: a one-row card of the same group goes before it, if there is one
+			if (h == 2 && (at == 5 || at == LIST_ROWS - 1)) {
+				// A two-row card can't sit across the gap or the page's end: a one-row card of the same group goes first, if any
 				for (int j = i + 1; j < all.size() && !(all.get(j) instanceof Header); j++) {
 					if (height(all.get(j)) == 1) {
 						all.add(i, all.remove(j));

@@ -1,0 +1,237 @@
+{
+ "textures": {
+  "g": "libreria:block/waystone/shine/glyph",
+  "c": "libreria:block/waystone/shine/crystal",
+  "w": "libreria:block/waystone/shine/pool",
+  "e": "libreria:block/waystone/shine/pearl",
+  "r": "libreria:block/waystone/shine/rune",
+  "particle": "libreria:block/waystone/shine/crystal"
+ },
+ "elements": [
+  {
+   "from": [
+    5,
+    28,
+    5
+   ],
+   "to": [
+    11,
+    30,
+    11
+   ],
+   "shade": false,
+   "faces": {
+    "north": {
+     "texture": "#c",
+     "uv": [
+      5,
+      0,
+      11,
+      2
+     ],
+     "tintindex": 0
+    },
+    "south": {
+     "texture": "#c",
+     "uv": [
+      5,
+      0,
+      11,
+      2
+     ],
+     "tintindex": 0
+    },
+    "east": {
+     "texture": "#c",
+     "uv": [
+      5,
+      0,
+      11,
+      2
+     ],
+     "tintindex": 0
+    },
+    "west": {
+     "texture": "#c",
+     "uv": [
+      5,
+      0,
+      11,
+      2
+     ],
+     "tintindex": 0
+    },
+    "up": {
+     "texture": "#c",
+     "uv": [
+      5,
+      5,
+      11,
+      11
+     ],
+     "tintindex": 0
+    },
+    "down": {
+     "texture": "#c",
+     "uv": [
+      5,
+      5,
+      11,
+      11
+     ],
+     "tintindex": 0
+    }
+   }
+  },
+  {
+   "from": [
+    6,
+    30,
+    6
+   ],
+   "to": [
+    10,
+    31,
+    10
+   ],
+   "shade": false,
+   "faces": {
+    "north": {
+     "texture": "#c",
+     "uv": [
+      6,
+      1,
+      10,
+      2
+     ],
+     "tintindex": 0
+    },
+    "south": {
+     "texture": "#c",
+     "uv": [
+      6,
+      1,
+      10,
+      2
+     ],
+     "tintindex": 0
+    },
+    "east": {
+     "texture": "#c",
+     "uv": [
+      6,
+      1,
+      10,
+      2
+     ],
+     "tintindex": 0
+    },
+    "west": {
+     "texture": "#c",
+     "uv": [
+      6,
+      1,
+      10,
+      2
+     ],
+     "tintindex": 0
+    },
+    "up": {
+     "texture": "#c",
+     "uv": [
+      6,
+      6,
+      10,
+      10
+     ],
+     "tintindex": 0
+    },
+    "down": {
+     "texture": "#c",
+     "uv": [
+      6,
+      6,
+      10,
+      10
+     ],
+     "tintindex": 0
+    }
+   }
+  },
+  {
+   "from": [
+    7,
+    31,
+    7
+   ],
+   "to": [
+    9,
+    32,
+    9
+   ],
+   "shade": false,
+   "faces": {
+    "north": {
+     "texture": "#c",
+     "uv": [
+      7,
+      1,
+      9,
+      2
+     ],
+     "tintindex": 0
+    },
+    "south": {
+     "texture": "#c",
+     "uv": [
+      7,
+      1,
+      9,
+      2
+     ],
+     "tintindex": 0
+    },
+    "east": {
+     "texture": "#c",
+     "uv": [
+      7,
+      1,
+      9,
+      2
+     ],
+     "tintindex": 0
+    },
+    "west": {
+     "texture": "#c",
+     "uv": [
+      7,
+      1,
+      9,
+      2
+     ],
+     "tintindex": 0
+    },
+    "up": {
+     "texture": "#c",
+     "uv": [
+      7,
+      7,
+      9,
+      9
+     ],
+     "tintindex": 0
+    },
+    "down": {
+     "texture": "#c",
+     "uv": [
+      7,
+      7,
+      9,
+      9
+     ],
+     "tintindex": 0
+    }
+   }
+  }
+ ]
+}

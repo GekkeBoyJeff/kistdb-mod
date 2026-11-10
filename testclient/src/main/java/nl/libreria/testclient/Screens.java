@@ -1244,41 +1244,64 @@ public final class Screens implements FabricClientGameTest {
 				ctx.waitTicks(10);
 				ctx.takeScreenshot("waystone_day");
 			});
-			// Mock-up: the second design, both colourways, beside the one there is now (left: now, middle: amethyst, right: ender)
-			safe("mock_waystone_row", () -> {
+			// Mock-up: the third design (three blocks, a rune floating in an open frame), light and dark stone, coloured by
+			// dyes, glowing or matte; a row of six beside the one there is now
+			String[][] looks = {{"0", "purple", "1", "Purple"}, {"1", "cyan", "1", "Cyan"}, {"0", "orange", "1", "Orange"},
+					{"1", "lime", "1", "Lime"}, {"0", "light_blue", "0", "Light blue · matte"}, {"1", "magenta", "1", "Magenta"}};
+			safe("mock3_row", () -> {
+				run(server, f("fill %d %d %d %d %d %d minecraft:grass_block", wx - 10, y - 1, wz - 16, wx + 26, y - 1, wz + 12),
+						f("fill %d %d %d %d %d %d minecraft:air", wx + 3, y, wz - 16, wx + 26, y + 8, wz + 12));
 				server.runOnServer(s -> {
-					nl.libreria.waystones.WaystonesDebug.mock(player, new BlockPos(wx + 4, y, wz + 3), net.minecraft.core.Direction.NORTH, "amethyst", "Amethyst", 0xD9B8FF);
-					nl.libreria.waystones.WaystonesDebug.mock(player, new BlockPos(wx + 8, y, wz + 3), net.minecraft.core.Direction.NORTH, "ender", "Ender", 0x9FFFEA);
+					for (int i = 0; i < looks.length; i++) {
+						String[] l = looks[i];
+						nl.libreria.waystones.WaystonesDebug.mock(player, new BlockPos(wx + 4 + 3 * i, y, wz + 3), net.minecraft.core.Direction.NORTH,
+								l[0].equals("1"), l[1], l[2].equals("1"), l[3]);
+					}
 				});
-				run(server, f("tp @a %d %d %d", wx + 4, y, wz - 6));
+				run(server, f("tp @a %d %d %d", wx + 11, y + 1, wz - 12));
 				server.runOnServer(s -> nl.libreria.core.Guide.clear(player));
-				// (cards from the teleport, like a speed record, gone first)
 				ctx.waitTicks(120);
-				ctx.getInput().lookAt(new BlockPos(wx + 4, y, wz + 3));
+				ctx.getInput().lookAt(new BlockPos(wx + 11, y + 1, wz + 3));
 				noToasts(ctx);
 				ctx.waitTicks(10);
-				ctx.takeScreenshot("mock_waystone_row_day");
+				ctx.takeScreenshot("mock3_row_day");
 				run(server, "time set 18000");
 				ctx.waitTicks(20);
-				ctx.takeScreenshot("mock_waystone_row_night");
+				ctx.takeScreenshot("mock3_row_night");
 				run(server, "time set 1000");
 			});
-			for (String[] v : new String[][] {{"amethyst", "4"}, {"ender", "8"}}) {
-				int mx = wx + Integer.parseInt(v[1]);
-				safe("mock_waystone_" + v[0], () -> {
-					// Close, from the front and a little to the side, the altar in front
-					run(server, f("tp @a %d %d %d", mx - 2, y, wz - 1));
+			// Close: the light one (purple) and the dark one (cyan), from the front and a little to the side
+			for (int[] v : new int[][] {{0, 0}, {1, 1}}) {
+				int mx = wx + 4 + 3 * v[0];
+				String name = v[1] == 0 ? "light_purple" : "dark_cyan";
+				safe("mock3_" + name, () -> {
+					run(server, f("tp @a %d %d %d", mx - 2, y, wz - 2));
 					ctx.waitTicks(40);
 					ctx.getInput().lookAt(new BlockPos(mx, y + 1, wz + 3));
 					noToasts(ctx);
 					ctx.waitTicks(10);
-					ctx.takeScreenshot("mock_waystone_" + v[0] + "_day");
+					ctx.takeScreenshot("mock3_" + name + "_day");
 					run(server, "time set 18000");
 					ctx.waitTicks(20);
-					ctx.takeScreenshot("mock_waystone_" + v[0] + "_night");
+					ctx.takeScreenshot("mock3_" + name + "_night");
 					run(server, "time set 1000");
 				});
 			}
+			// Glowing or matte (glow ink sac or ink sac), the same dye, at night
+			safe("mock3_glow_matte", () -> {
+				server.runOnServer(s -> {
+					nl.libreria.waystones.WaystonesDebug.clearMock();
+					nl.libreria.waystones.WaystonesDebug.mock(player, new BlockPos(wx + 9, y, wz + 3), net.minecraft.core.Direction.NORTH, true, "lime", true, "Glows");
+					nl.libreria.waystones.WaystonesDebug.mock(player, new BlockPos(wx + 13, y, wz + 3), net.minecraft.core.Direction.NORTH, true, "lime", false, "Matte");
+				});
+				run(server, f("tp @a %d %d %d", wx + 11, y, wz - 4), "time set 18000");
+				ctx.waitTicks(40);
+				ctx.getInput().lookAt(new BlockPos(wx + 11, y + 1, wz + 3));
+				noToasts(ctx);
+				ctx.waitTicks(10);
+				ctx.takeScreenshot("mock3_glow_matte_night");
+				run(server, "time set 1000");
+			});
 			server.runOnServer(s -> nl.libreria.waystones.WaystonesDebug.clearMock());
 			run(server, f("tp @a %d %d %d", wx + 2, y, wz - 1));
 			ctx.waitTicks(10);

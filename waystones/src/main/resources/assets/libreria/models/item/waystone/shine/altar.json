@@ -1,0 +1,62 @@
+{
+ "textures": {
+  "g": "libreria:block/waystone/shine/glyph",
+  "c": "libreria:block/waystone/shine/crystal",
+  "w": "libreria:block/waystone/shine/pool",
+  "e": "libreria:block/waystone/shine/pearl",
+  "r": "libreria:block/waystone/shine/rune",
+  "particle": "libreria:block/waystone/shine/crystal"
+ },
+ "elements": [
+  {
+   "from": [
+    5,
+    12.01,
+    5
+   ],
+   "to": [
+    11,
+    12.01,
+    11
+   ],
+   "shade": false,
+   "faces": {
+    "up": {
+     "texture": "#w",
+     "uv": [
+      5,
+      5,
+      11,
+      11
+     ],
+     "tintindex": 0
+    }
+   }
+  },
+  {
+   "from": [
+    6,
+    5,
+    4.98
+   ],
+   "to": [
+    10,
+    8,
+    4.98
+   ],
+   "shade": false,
+   "faces": {
+    "north": {
+     "texture": "#g",
+     "uv": [
+      6,
+      7,
+      10,
+      10
+     ],
+     "tintindex": 0
+    }
+   }
+  }
+ ]
+}
