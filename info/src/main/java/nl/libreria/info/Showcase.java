@@ -197,28 +197,19 @@ final class Showcase {
 		if (profile != null) m.setComponent(DataComponents.PROFILE, profile);
 	}
 
-	/** The poses a mannequin can be set to, in the order its window goes through them. */
-	static final List<net.minecraft.world.entity.Pose> POSES = List.of(net.minecraft.world.entity.Pose.STANDING,
-			net.minecraft.world.entity.Pose.CROUCHING, net.minecraft.world.entity.Pose.SLEEPING, net.minecraft.world.entity.Pose.SWIMMING);
-
-	static String poseName(net.minecraft.world.entity.Pose pose) {
-		return switch (pose) {
-			case CROUCHING -> "Crouching";
-			case SLEEPING -> "Lying down";
-			case SWIMMING -> "Swimming";
-			default -> "Standing";
-		};
-	}
-
-	/** Standing up: its back, hips and feet hold things as on a body; any other pose, they lie on the ground before it. */
+	/** Standing up (or sitting up): its back, hips and feet hold things as on a body; else they lie on the ground before it. */
 	static boolean upright(Mannequin m) {
-		return m.getPose() == net.minecraft.world.entity.Pose.STANDING;
+		return Poses.upright(m);
 	}
 
+	/** Minecraft's pose as one of its stances (for the self-test and the screenshots). */
 	static void pose(Mannequin m, net.minecraft.world.entity.Pose pose) {
-		m.setPose(pose);
-		m.refreshDimensions();
-		show(m);
+		Poses.set(m, switch (pose) {
+			case CROUCHING -> Poses.Stance.CROUCH;
+			case SLEEPING -> Poses.Stance.LIE;
+			case SWIMMING -> Poses.Stance.CRAWL;
+			default -> Poses.Stance.STAND;
+		});
 	}
 
 	/** Minecraft's own mannequin, made as the summon command makes one: unmoving, and unhurt by anything but our own hit. */
@@ -248,32 +239,60 @@ final class Showcase {
 		shown(p, all(m));
 	}
 
-	/** The window to take things off a mannequin: a button per thing it holds. */
+	/** Its window: how it stands, looks and holds things, and what it holds (click: take it off). */
 	static void window(ServerPlayer p, Mannequin m) {
+		if (MannequinCanvas.available(p)) {
+			MannequinCanvas.open(p, m);
+			return;
+		}
 		Window w = Window.of(Domain.PROGRESS, "Mannequin");
 		w.item(new ItemStack(Items.ARMOR_STAND), Ui.text("Click something to take it off. Right-click the mannequin with "
 				+ "something to put it on; with an empty hand, read its stories. Hit something on it: that comes off.", ChatFormatting.GRAY));
 		w.columns(3);
+		Poses.Stance now = Poses.stance(m);
+		Poses.Stance next = Poses.Stance.values()[(now.ordinal() + 1) % Poses.Stance.values().length];
+		w.button(Ui.text(now.doing, ChatFormatting.WHITE), Ui.text("Click: " + next.verb.toLowerCase(java.util.Locale.ROOT), ChatFormatting.GRAY), (pl, v) -> {
+			if (!usable(pl, m)) return;
+			String why = Poses.set(m, next);
+			if (why != null) Hud.flash(pl, Ui.text(why, ChatFormatting.GRAY));
+			Ui.click(pl);
+			window(pl, m);
+		});
+		Poses.Look look = Poses.look(m, false);
+		Poses.Look nextLook = Poses.Look.values()[(look.ordinal() + 1) % Poses.Look.values().length];
+		w.button(Ui.text(Poses.lookLabel(m), ChatFormatting.WHITE), Ui.text("Click: " + nextLook.label.toLowerCase(java.util.Locale.ROOT),
+				ChatFormatting.GRAY), (pl, v) -> {
+					if (!usable(pl, m)) return;
+					Poses.setLook(m, nextLook.yaw, nextLook.pitch);
+					Ui.click(pl);
+					window(pl, m);
+				});
+		var acts = Poses.acts(m);
+		var hand = Poses.hand(m);
+		var nextHand = acts.get((Math.max(0, acts.indexOf(hand)) + 1) % acts.size());
+		w.button(Ui.text(Poses.handLabel(m), ChatFormatting.WHITE), Ui.text(acts.size() > 1 ? "Click: something else" : "A bow, a shield, a spyglass, a horn "
+				+ "or a trident in a hand: it uses it", ChatFormatting.GRAY), (pl, v) -> {
+					if (!usable(pl, m)) return;
+					Poses.setHand(m, nextHand);
+					Ui.click(pl);
+					window(pl, m);
+				});
+		w.button(Ui.text("Turn it", ChatFormatting.WHITE), Ui.text("Facing " + Poses.facing(m), ChatFormatting.GRAY), (pl, v) -> {
+			if (!usable(pl, m)) return;
+			Poses.turn(m, 1);
+			Ui.click(pl);
+			window(pl, m);
+		});
 		w.button(Ui.text("Another look", ChatFormatting.WHITE), Ui.text("One of " + Ui.n(SKINS.size()) + " people", ChatFormatting.GRAY), (pl, v) -> {
 			if (!usable(pl, m)) return;
 			wear(m, -1);
 			Ui.click(pl);
 		});
-		var now = m.getPose();
-		var next = POSES.get((Math.max(0, POSES.indexOf(now)) + 1) % POSES.size());
-		w.button(Ui.text("Pose: " + poseName(now), ChatFormatting.WHITE), Ui.text("Click: " + poseName(next).toLowerCase(java.util.Locale.ROOT),
-				ChatFormatting.GRAY), (pl, v) -> {
-					if (!usable(pl, m)) return;
-					pose(m, next);
-					Ui.click(pl);
-					window(pl, m);
-				});
 		boolean left = m.getMainArm() == net.minecraft.world.entity.HumanoidArm.LEFT;
 		w.button(Ui.text(left ? "Left-handed" : "Right-handed", ChatFormatting.WHITE), Ui.text("Click: the other hand", ChatFormatting.GRAY),
 				(pl, v) -> {
 					if (!usable(pl, m)) return;
-					m.setMainArm(left ? net.minecraft.world.entity.HumanoidArm.RIGHT : net.minecraft.world.entity.HumanoidArm.LEFT);
-					show(m);
+					handed(m, !left);
 					Ui.click(pl);
 					window(pl, m);
 				});
@@ -285,16 +304,27 @@ final class Showcase {
 			any = true;
 			w.button(Component.empty().append(st.getHoverName().copy().withStyle(st2 -> st2.withItalic(false))), Ui.text(s.label, ChatFormatting.GRAY),
 					(pl, v) -> {
-						if (!usable(pl, m) || get(m, s).isEmpty()) return;
-						give(pl, get(m, s));
-						set(m, s, ItemStack.EMPTY);
-						Ui.click(pl);
+						takeOff(pl, m, s);
 						window(pl, m);
 					});
 		}
 		if (!any) w.item(new ItemStack(Items.BARRIER), Ui.text("It holds nothing yet.", ChatFormatting.GRAY));
 		w.bottom(Ui.text("✔ Done", ChatFormatting.GREEN), (pl, v) -> {
 		}).show(p);
+	}
+
+	/** Its main hand: the left one or the right one. */
+	static void handed(Mannequin m, boolean left) {
+		m.setMainArm(left ? net.minecraft.world.entity.HumanoidArm.LEFT : net.minecraft.world.entity.HumanoidArm.RIGHT);
+		show(m);
+	}
+
+	/** What is on this spot goes to the player. */
+	static void takeOff(ServerPlayer p, Mannequin m, Spot s) {
+		if (!usable(p, m) || get(m, s).isEmpty()) return;
+		give(p, get(m, s));
+		set(m, s, ItemStack.EMPTY);
+		Ui.click(p);
 	}
 
 	static boolean usable(ServerPlayer p, Entity e) {
@@ -362,9 +392,7 @@ final class Showcase {
 				off = 0;
 				it.remove();
 			}
-			r.m().setYRot(r.yaw() + off);
-			r.m().setYBodyRot(r.yaw() + off);
-			r.m().setYHeadRot(r.yaw() + off);
+			Poses.turnTo(r.m(), r.yaw() + off);
 		}
 	}
 
@@ -387,36 +415,44 @@ final class Showcase {
 
 	/** Where a spot of a mannequin is in the world, about (for hits, and for what drops). */
 	static Vec3 spotAt(Mannequin m, Spot s) {
+		// The six extra spots: where their picture is
+		ElementHolder holder = HOLDERS.get(m.getUUID());
+		if (s.slot == null && holder != null && holder.getElements().size() > s.extra()) {
+			ItemDisplayElement e = (ItemDisplayElement) holder.getElements().get(s.extra());
+			var t = e.getTranslation();
+			return around(m.position(), e.getYaw(), t.x(), t.y(), t.z());
+		}
 		boolean left = m.getMainArm() == net.minecraft.world.entity.HumanoidArm.LEFT;
-		boolean up = upright(m);
+		boolean seated = Poses.seated(m);
 		float h = m.getBbHeight() / 1.8f;
 		double x, y, z;
 		switch (s) {
 			case HEAD -> { x = 0; y = 1.7; z = 0; }
 			case CHEST -> { x = 0; y = 1.15; z = 0.05; }
-			case LEGS -> { x = 0; y = 0.65; z = 0; }
-			case FEET -> { x = 0; y = 0.12; z = 0; }
+			case LEGS -> { x = 0; y = seated ? 0.66 : 0.65; z = seated ? 0.35 : 0; }
+			case FEET -> { x = 0; y = seated ? 0.66 : 0.12; z = seated ? 0.72 : 0; }
 			case MAIN -> { x = left ? 0.38 : -0.38; y = 0.75; z = 0.12; }
-			case OFF -> { x = left ? -0.38 : 0.38; y = 0.75; z = 0.12; }
-			case BACK_L -> { x = up ? 0.12 : 0.66; y = up ? 1.3 : 0.05; z = up ? -0.24 : 0.78; }
-			case BACK_R -> { x = up ? -0.12 : -0.66; y = up ? 1.3 : 0.05; z = up ? -0.24 : 0.78; }
-			case HIP_L -> { x = up ? 0.36 : 0.22; y = up ? 0.8 : 0.05; z = up ? 0.02 : 0.78; }
-			case HIP_R -> { x = up ? -0.36 : -0.22; y = up ? 0.8 : 0.05; z = up ? 0.02 : 0.78; }
-			case GROUND_L -> { x = 0.3; y = 0.05; z = 0.38; }
-			default -> { x = -0.3; y = 0.05; z = 0.38; }
+			default -> { x = left ? -0.38 : 0.38; y = 0.75; z = 0.12; }
 		}
-		if (s.slot != null) y *= h;
-		double a = Math.toRadians(m.getYRot());
+		if (!seated) y *= h;
+		return around(m.position(), m.getYRot(), x, y, z);
+	}
+
+	/** A point {@code (x, y, z)} of something at {@code at} facing {@code yaw} (x: its left, z: ahead) in the world. */
+	private static Vec3 around(Vec3 at, float yaw, double x, double y, double z) {
+		double a = Math.toRadians(yaw);
 		// its left is +x when it faces +z; turned by its yaw
 		double wx = x * Math.cos(a) - z * Math.sin(a), wz = x * Math.sin(a) + z * Math.cos(a);
-		return m.position().add(wx, y, wz);
+		return at.add(wx, y, wz);
 	}
 
 	/** It comes down, with everything it held. */
 	static void pickUp(ServerPlayer p, Mannequin m) {
 		ServerLevel level = (ServerLevel) m.level();
-		for (ItemStack s : all(m)) if (!s.isEmpty()) drop(level, m.position(), s);
-		if (!p.hasInfiniteMaterials()) drop(level, m.position(), item("mannequin"));
+		Vec3 at = Poses.standingSpot(m);
+		Poses.takenDown(m);
+		for (ItemStack s : all(m)) if (!s.isEmpty()) drop(level, at, s);
+		if (!p.hasInfiniteMaterials()) drop(level, at, item("mannequin"));
 		ElementHolder h = HOLDERS.remove(m.getUUID());
 		if (h != null) h.destroy();
 		m.discard();
@@ -433,22 +469,89 @@ final class Showcase {
 
 	private static final Map<UUID, ElementHolder> HOLDERS = new HashMap<>();
 
+	/** How the six extra spots lie around it now: on its body, sitting, on the ground before it, beside its bed. */
+	enum Lay {
+		BODY, SEATED, LOW, BED
+	}
+
+	/**
+	 * Where its six extra spots go: {@code yaw} the way they face, {@code seat} and {@code floor} the height of what it
+	 * sits on and of the floor (from its feet), {@code ahead} how far before it things lie, {@code side} the side of its
+	 * bed they lie on (1: its left).
+	 */
+	record Frame(Lay lay, float yaw, float seat, float floor, float ahead, float side) {
+	}
+
+	static Frame frame(Mannequin m) {
+		float y = (float) m.getY();
+		if (m.isSleeping() && m.getSleepingPos().isPresent()) {
+			BlockPos bed = m.getSleepingPos().get();
+			var st = m.level().getBlockState(bed);
+			net.minecraft.core.Direction to = st.hasProperty(net.minecraft.world.level.block.BedBlock.FACING)
+					? st.getValue(net.minecraft.world.level.block.BedBlock.FACING) : net.minecraft.core.Direction.SOUTH;
+			// The side of the bed with room on the floor (its left first)
+			BlockPos left = bed.relative(to.getCounterClockWise());
+			float side = m.level().getBlockState(left).getCollisionShape(m.level(), left).isEmpty() ? 1 : -1;
+			return new Frame(Lay.BED, to.toYRot(), 0, bed.getY() - y, 0, side);
+		}
+		Entity seat = Poses.seated(m) ? m.getVehicle() : null;
+		float seatY = seat == null ? 0 : (float) seat.getY() - y, floorY = seatY;
+		if (seat != null) {
+			var under = m.level().getBlockState(BlockPos.containing(seat.getX(), seat.getY() - 0.25, seat.getZ()));
+			if (under.getBlock() instanceof net.minecraft.world.level.block.StairBlock || under.getBlock() instanceof net.minecraft.world.level.block.SlabBlock) {
+				floorY = seatY - 0.5f;
+			}
+		}
+		if (Poses.upright(m)) return new Frame(seat != null ? Lay.SEATED : Lay.BODY, m.getYRot(), seatY, floorY, 0.78f, 1);
+		return new Frame(Lay.LOW, m.getYRot(), seatY, floorY, seat != null ? 1.15f : 0.78f, 1);
+	}
+
 	/**
 	 * Where the six extra spots show, on the mannequin (x: its left, y: up, z: in front; it faces +z), and how each thing
-	 * lies there: crossed on the back, hanging at the hips, lying at its feet.
+	 * lies there: crossed on the back, hanging at the hips, lying at its feet. Sitting, what hangs at its hips lies on
+	 * the seat beside it and what is at its feet on the floor beside its legs; crouching, lying or crawling, all of it
+	 * lies on the ground before it; in a bed, in a row on the floor beside the bed.
 	 */
-	static void place(ItemDisplayElement e, Spot s, boolean upright, boolean standing) {
+	static void place(ItemDisplayElement e, Spot s, boolean upright, Frame f) {
 		float tilt = upright ? (float) Math.toRadians(45) : 0f;
-		if (!standing && s != Spot.GROUND_L && s != Spot.GROUND_R) {
-			// Not standing (crouching, lying): what it carries lies on the ground before it, in a row
-			float x = switch (s) {
-				case BACK_L -> 0.66f;
-				case HIP_L -> 0.22f;
-				case HIP_R -> -0.22f;
-				default -> -0.66f;
-			};
-			pose(e, x, 0.03f, 0.78f, new Quaternionf().rotateX((float) Math.toRadians(-90)), 0.5f);
-			return;
+		boolean ground = s == Spot.GROUND_L || s == Spot.GROUND_R;
+		float sign = s == Spot.BACK_L || s == Spot.HIP_L || s == Spot.GROUND_L ? 1 : -1;
+		switch (f.lay()) {
+			case BED -> {
+				pose(e, f.side() * 1.0f, f.floor() + 0.03f, 0.3f - s.extra() * 0.3f, new Quaternionf().rotateX((float) Math.toRadians(-90))
+						.rotateZ((float) Math.toRadians(90)), 0.5f);
+				return;
+			}
+			case LOW -> {
+				if (ground) {
+					pose(e, sign * 0.3f, f.floor() + 0.03f, f.ahead() - 0.4f, new Quaternionf().rotateX((float) Math.toRadians(-90))
+							.rotateZ((float) Math.toRadians(20 * sign)), 0.55f);
+					return;
+				}
+				// in a row on the ground before it
+				float x = switch (s) {
+					case BACK_L -> 0.66f;
+					case HIP_L -> 0.22f;
+					case HIP_R -> -0.22f;
+					default -> -0.66f;
+				};
+				pose(e, x, f.floor() + 0.03f, f.ahead(), new Quaternionf().rotateX((float) Math.toRadians(-90)), 0.5f);
+				return;
+			}
+			case SEATED -> {
+				if (s == Spot.HIP_L || s == Spot.HIP_R) {
+					// on the seat beside its thighs, pointing ahead
+					pose(e, sign * 0.4f, f.seat() + 0.03f, 0.2f, new Quaternionf().rotateX((float) Math.toRadians(90)).rotateZ((float) Math.toRadians(45)), 0.5f);
+					return;
+				}
+				if (ground) {
+					pose(e, sign * 0.48f, f.floor() + 0.03f, 0.62f, new Quaternionf().rotateX((float) Math.toRadians(-90))
+							.rotateZ((float) Math.toRadians(20 * sign)), 0.55f);
+					return;
+				}
+			}
+			default -> {
+			}
 		}
 		switch (s) {
 			case BACK_L -> pose(e, -0.02f, 1.32f, -0.21f, new Quaternionf().rotateZ(tilt + (float) Math.toRadians(45)), 0.85f);
@@ -490,13 +593,14 @@ final class Showcase {
 			HOLDERS.put(m.getUUID(), holder);
 		}
 		List<ItemStack> extra = extras(m);
+		Frame f = frame(m);
 		for (int i = 0; i < EXTRA_SPOTS; i++) {
 			ItemDisplayElement e = (ItemDisplayElement) holder.getElements().get(i);
 			ItemStack s = extra.get(i);
 			e.setItem(s.copy());
-			e.setYaw(m.getYRot());
+			e.setYaw(f.yaw());
 			Spot spot = Spot.values()[6 + i];
-			place(e, spot, (spot == Spot.BACK_L || spot == Spot.BACK_R) && !slanted(s), upright(m));
+			place(e, spot, (spot == Spot.BACK_L || spot == Spot.BACK_R) && !slanted(s), f);
 		}
 		holder.tick();
 	}
@@ -625,6 +729,7 @@ final class Showcase {
 			return InteractionResult.SUCCESS;
 		});
 		ServerEntityEvents.ENTITY_UNLOAD.register((entity, level) -> KNOCKS.remove(entity.getUUID()));
+		Poses.init();
 		loadSkins();
 	}
 

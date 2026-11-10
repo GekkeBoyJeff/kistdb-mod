@@ -142,6 +142,28 @@ public final class InfoMod implements ModInitializer {
 		}
 	}
 
+	/** For the screenshots: a row of mannequins in their stances ("stances"), holding things ("hands") or looking ("heads"). */
+	public static void debugMannequinScene(net.minecraft.server.level.ServerLevel level, net.minecraft.core.BlockPos origin, String scene) {
+		Poses.debugScene(level, origin, scene);
+	}
+
+	/** For the screenshots: the mannequins near {@code origin} use what they hold. */
+	public static void debugMannequinUse(net.minecraft.server.level.ServerLevel level, net.minecraft.core.BlockPos origin) {
+		Poses.debugUse(level, origin);
+	}
+
+	/** For the screenshots: the window of the mannequin of ours nearest {@code at}, with a story on it. */
+	public static void debugMannequinWindow(ServerPlayer p, net.minecraft.core.BlockPos at, String story) {
+		var level = (net.minecraft.server.level.ServerLevel) p.level();
+		var m = Poses.debugNearest(level, at);
+		if (m == null) return;
+		if (story != null) for (var s : Showcase.storyItems(level, story)) {
+			var spot = Showcase.spotFor(m, s);
+			if (spot != null) Showcase.set(m, spot, s);
+		}
+		Showcase.window(p, m);
+	}
+
 	/** For the screenshots: a row of {@code count} mannequins of ours from {@code from} to the west, each a different person. */
 	public static void debugMannequinRow(net.minecraft.server.level.ServerLevel level, net.minecraft.core.BlockPos from, int count, float yaw) {
 		for (int i = 0; i < count; i++) {
@@ -279,6 +301,7 @@ public final class InfoMod implements ModInitializer {
 			if (tick % 40 == 29) Found.tick(server);
 			if (tick % 10 == 1) StoryWall.tick(server);
 			Showcase.tick(server);
+			if (tick % 20 == 3) Poses.tick(server);
 		});
 
 		UseEntityCallback.EVENT.register((player, world, hand, entity, hit) -> {

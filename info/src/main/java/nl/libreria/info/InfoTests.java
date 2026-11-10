@@ -161,6 +161,85 @@ final class InfoTests {
 			SelfTests.check(Found.fix(null, sword, access) && Stand.stamp(sword).getStringOr("sig", "").equals(Found.sig(Found.byId("a:lantern:1"))),
 					"written again");
 		});
+		SelfTests.register("info.mannequin-poses", level -> {
+			BlockPos at = new BlockPos(60, 121, 44);
+			var stone = net.minecraft.world.level.block.Blocks.STONE.defaultBlockState();
+			var air = net.minecraft.world.level.block.Blocks.AIR.defaultBlockState();
+			for (int dx = -3; dx <= 3; dx++) for (int dz = -3; dz <= 3; dz++) {
+				level.setBlock(at.offset(dx, -1, dz), stone, 3);
+				for (int dy = 0; dy < 4; dy++) level.setBlock(at.offset(dx, dy, dz), air, 3);
+			}
+			var south = net.minecraft.core.Direction.SOUTH;
+			level.setBlock(at, net.minecraft.world.level.block.Blocks.OAK_STAIRS.defaultBlockState().setValue(net.minecraft.world.level.block.StairBlock.FACING, south), 3);
+			var m = Showcase.summon(level, at.getX() + 0.5, at.getY() + 1, at.getZ() + 0.5, 90);
+			SelfTests.check(m != null, "a mannequin");
+			if (m == null) return;
+			m.setAttached(Showcase.EXTRA, java.util.List.copyOf(Showcase.extras(m)));
+			try {
+				// On a stair: in it, as on a chair, its back to the stair's back; leaning in; up again where it stood
+				SelfTests.check(Poses.set(m, Poses.Stance.SIT) == null && Poses.stance(m) == Poses.Stance.SIT && Poses.seated(m), "sitting");
+				var seat = m.getVehicle();
+				SelfTests.check(seat != null && Math.abs(seat.getY() - (at.getY() + 0.5)) < 0.01 && Math.abs(net.minecraft.util.Mth.wrapDegrees(m.getYRot() - 180)) < 1,
+						"in the stair, facing away from its back: " + (seat == null ? "-" : seat.getY()) + " " + m.getYRot());
+				SelfTests.check("on a seat".equals(Poses.where(m)), "where: " + Poses.where(m));
+				Poses.set(m, Poses.Stance.LEAN);
+				SelfTests.check(Poses.stance(m) == Poses.Stance.LEAN && Poses.seated(m) && m.getPose() == net.minecraft.world.entity.Pose.CROUCHING, "leaning in");
+				seat = m.getVehicle();
+				Poses.set(m, Poses.Stance.STAND);
+				SelfTests.check(!m.isPassenger() && seat != null && seat.isRemoved() && Math.abs(m.getY() - (at.getY() + 1)) < 0.01, "up again where it stood: " + m.getY());
+				// On the ground
+				level.setBlock(at, air, 3);
+				m.setPos(at.getX() + 0.5, at.getY(), at.getZ() + 0.5);
+				Poses.set(m, Poses.Stance.SIT);
+				SelfTests.check(Poses.seated(m) && Math.abs(m.getVehicle().getY() - at.getY()) < 0.01 && "on the ground".equals(Poses.where(m)), "on the ground");
+				Poses.set(m, Poses.Stance.STAND);
+				// A bed: it lies in it (taken), and gets up where it stood (free again)
+				var west = net.minecraft.core.Direction.WEST;
+				var bed = net.minecraft.world.level.block.Blocks.RED_BED.defaultBlockState().setValue(net.minecraft.world.level.block.BedBlock.FACING, west);
+				level.setBlock(at.west(), bed.setValue(net.minecraft.world.level.block.BedBlock.PART, net.minecraft.world.level.block.state.properties.BedPart.HEAD), 3);
+				level.setBlock(at, bed.setValue(net.minecraft.world.level.block.BedBlock.PART, net.minecraft.world.level.block.state.properties.BedPart.FOOT), 3);
+				Poses.set(m, Poses.Stance.LIE);
+				SelfTests.check(m.isSleeping() && m.getSleepingPos().orElse(null) != null && m.getSleepingPos().get().equals(at.west())
+						&& level.getBlockState(at.west()).getValue(net.minecraft.world.level.block.BedBlock.OCCUPIED), "lying in the bed");
+				SelfTests.check(!Poses.turn(m, 1), "in a bed it doesn't turn");
+				Poses.set(m, Poses.Stance.STAND);
+				SelfTests.check(!m.isSleeping() && !level.getBlockState(at.west()).getValue(net.minecraft.world.level.block.BedBlock.OCCUPIED)
+						&& m.position().distanceTo(net.minecraft.world.phys.Vec3.atBottomCenterOf(at)) < 0.01, "out of bed where it stood");
+				level.setBlock(at, air, 3);
+				level.setBlock(at.west(), air, 3);
+				// Turning, its head
+				float yaw = m.getYRot();
+				Poses.turn(m, 1);
+				SelfTests.check(Math.abs(net.minecraft.util.Mth.wrapDegrees(m.getYRot() - yaw - 45)) < 1, "a turn to its right");
+				Poses.setLook(m, Poses.Look.LEFT.yaw, Poses.Look.LEFT.pitch);
+				SelfTests.check(Math.abs(net.minecraft.util.Mth.wrapDegrees(m.getYHeadRot() - m.getYRot() + 50)) < 1 && Poses.look(m, true) == Poses.Look.LEFT,
+						"looking left");
+				// Its hands: a bow drawn; taken away, it stops
+				m.setItemSlot(net.minecraft.world.entity.EquipmentSlot.MAINHAND, new ItemStack(Items.BOW));
+				SelfTests.check(Poses.acts(m).size() == 2, "a bow to use");
+				Poses.setHand(m, net.minecraft.world.InteractionHand.MAIN_HAND);
+				SelfTests.check(m.isUsingItem() && m.getUsedItemHand() == net.minecraft.world.InteractionHand.MAIN_HAND
+						&& "Drawing the bow".equals(Poses.handLabel(m)), "drawing the bow");
+				m.setItemSlot(net.minecraft.world.entity.EquipmentSlot.MAINHAND, ItemStack.EMPTY);
+				Poses.tick(level.getServer());
+				SelfTests.check(!m.isUsingItem() && Poses.hand(m) == null, "no bow: it stops");
+				// Sitting, taken down: the seat goes too
+				Poses.set(m, Poses.Stance.SIT);
+				seat = m.getVehicle();
+				Poses.takenDown(m);
+				m.discard();
+				SelfTests.check(seat != null && seat.isRemoved(), "taken down: its seat is gone");
+			} finally {
+				if (m.isAlive()) {
+					Poses.takenDown(m);
+					m.discard();
+				}
+				for (var e : level.getEntitiesOfClass(net.minecraft.world.entity.decoration.ArmorStand.class, new net.minecraft.world.phys.AABB(at).inflate(3))) {
+					if (Poses.isSeat(e)) e.discard();
+				}
+				for (int dx = -3; dx <= 3; dx++) for (int dz = -3; dz <= 3; dz++) for (int dy = 0; dy < 4; dy++) level.setBlock(at.offset(dx, dy, dz), air, 3);
+			}
+		});
 		SelfTests.register("info.showcase", level -> {
 			SelfTests.check("mannequin".equals(Showcase.kindOf(Showcase.item("mannequin"))) && "wall".equals(Showcase.kindOf(Showcase.item("wall")))
 					&& Showcase.kindOf(new ItemStack(Items.ARMOR_STAND)) == null, "the crafted items");

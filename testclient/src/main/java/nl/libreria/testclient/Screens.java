@@ -812,6 +812,88 @@ public final class Screens implements FabricClientGameTest {
 				ctx.getInput().lookAt(0, 0);
 			});
 
+			// Mannequin poses: a row in every stance (standing, sitting on a stair, leaning in, sitting on the ground,
+			// crouching, lying in a bed, crawling), close up; then using what they hold (a bow, a shield, a spyglass, a horn,
+			// a trident, a loaded crossbow); where their heads look; and the window
+			int mx = x - 40, mz = z;
+			ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.HIDDEN));
+			safe("mannequin_stances", () -> {
+				run(server, "time set 1000", "kill @e[type=minecraft:mannequin]", f("fill %d %d %d %d %d %d minecraft:grass_block", mx - 12, y - 1, mz - 6, mx + 12, y - 1, mz + 10),
+						f("fill %d %d %d %d %d %d minecraft:air", mx - 12, y, mz - 6, mx + 12, y + 6, mz + 10),
+						f("fill %d %d %d %d %d %d minecraft:oak_planks", mx - 9, y - 1, mz + 3, mx + 8, y - 1, mz + 7),
+						f("fill %d %d %d %d %d %d minecraft:spruce_planks", mx - 9, y, mz + 8, mx + 8, y + 3, mz + 8), f("tp @a %d %d %d 0 10", mx, y, mz - 2));
+				ctx.waitTicks(10);
+				server.runOnServer(sv -> nl.libreria.info.InfoMod.debugMannequinScene((ServerLevel) player.level(), new BlockPos(mx, y, mz + 5), "stances"));
+				ctx.waitTicks(20);
+				ctx.getInput().lookAt(new BlockPos(mx, y, mz + 5));
+				ctx.waitTicks(16);
+				noToasts(ctx);
+				ctx.takeScreenshot("mannequin_stances");
+				run(server, f("tp @a %d %d %d 0 10", mx + 3, y, mz + 1));
+				ctx.waitTicks(5);
+				ctx.getInput().lookAt(new BlockPos(mx + 3, y, mz + 5));
+				ctx.waitTicks(16);
+				ctx.takeScreenshot("mannequin_sitting");
+				run(server, f("tp @a %d %d %d 0 10", mx + 8, y + 1, mz + 2));
+				ctx.waitTicks(5);
+				ctx.getInput().lookAt(new BlockPos(mx + 3, y, mz + 5));
+				ctx.waitTicks(16);
+				ctx.takeScreenshot("mannequin_sitting_side");
+				run(server, f("tp @a %d %d %d 0 10", mx - 4, y, mz + 1));
+				ctx.waitTicks(5);
+				ctx.getInput().lookAt(new BlockPos(mx - 4, y, mz + 5));
+				ctx.waitTicks(16);
+				ctx.takeScreenshot("mannequin_lying");
+				run(server, f("tp @a %d %d %d 0 10", mx + 3, y, mz + 2));
+				ctx.waitTicks(5);
+			});
+			menu(ctx, server, player, "mannequin_window_sitting", p -> nl.libreria.info.InfoMod.debugMannequinWindow(p, new BlockPos(mx + 4, y + 1, mz + 5), null));
+			safe("mannequin_hands", () -> {
+				run(server, "kill @e[type=minecraft:mannequin]", "kill @e[type=minecraft:armor_stand]",
+						f("fill %d %d %d %d %d %d minecraft:air", mx - 9, y, mz + 3, mx + 8, y + 2, mz + 7), f("tp @a %d %d %d 0 10", mx, y, mz));
+				ctx.waitTicks(5);
+				server.runOnServer(sv -> nl.libreria.info.InfoMod.debugMannequinScene((ServerLevel) player.level(), new BlockPos(mx, y, mz + 5), "hands"));
+				ctx.waitTicks(5);
+				String[] items = {"bow", "spyglass", "goat_horn[instrument=\"minecraft:ponder_goat_horn\"]", "trident",
+						"crossbow[charged_projectiles=[{id:\"minecraft:arrow\",count:1}]]"};
+				int[] dx = {5, 1, -1, -3, -5};
+				for (int i = 0; i < items.length; i++) {
+					run(server, f("item replace entity @e[type=minecraft:mannequin,x=%d.5,y=%d,z=%d.5,distance=..0.7] weapon.mainhand with minecraft:%s", mx + dx[i], y,
+							mz + 5, items[i]));
+				}
+				run(server, f("item replace entity @e[type=minecraft:mannequin,x=%d.5,y=%d,z=%d.5,distance=..0.7] weapon.mainhand with minecraft:iron_sword", mx + 3, y, mz + 5),
+						f("item replace entity @e[type=minecraft:mannequin,x=%d.5,y=%d,z=%d.5,distance=..0.7] weapon.offhand with minecraft:shield", mx + 3, y, mz + 5));
+				ctx.waitTicks(5);
+				server.runOnServer(sv -> nl.libreria.info.InfoMod.debugMannequinUse((ServerLevel) player.level(), new BlockPos(mx, y, mz + 5)));
+				ctx.waitTicks(20);
+				ctx.getInput().lookAt(new BlockPos(mx, y, mz + 5));
+				ctx.waitTicks(16);
+				noToasts(ctx);
+				ctx.takeScreenshot("mannequin_hands");
+				run(server, f("tp @a %d %d %d 0 10", mx + 7, y + 1, mz + 2));
+				ctx.waitTicks(5);
+				ctx.getInput().lookAt(new BlockPos(mx + 2, y + 1, mz + 5));
+				ctx.waitTicks(16);
+				ctx.takeScreenshot("mannequin_hands_side");
+				run(server, f("tp @a %d %d %d 0 10", mx + 4, y, mz + 2));
+				ctx.waitTicks(5);
+			});
+			menu(ctx, server, player, "mannequin_window", p -> nl.libreria.info.InfoMod.debugMannequinWindow(p, new BlockPos(mx + 5, y, mz + 5), "lantern"));
+			safe("mannequin_heads", () -> {
+				run(server, "kill @e[type=minecraft:mannequin]", f("tp @a %d %d %d 0 10", mx, y, mz));
+				ctx.waitTicks(5);
+				server.runOnServer(sv -> nl.libreria.info.InfoMod.debugMannequinScene((ServerLevel) player.level(), new BlockPos(mx, y, mz + 5), "heads"));
+				ctx.waitTicks(20);
+				ctx.getInput().lookAt(new BlockPos(mx, y + 1, mz + 5));
+				ctx.waitTicks(16);
+				noToasts(ctx);
+				ctx.takeScreenshot("mannequin_heads");
+				run(server, "kill @e[type=minecraft:mannequin]", "kill @e[type=minecraft:armor_stand]", f("tp @a %d %d %d", x, y, z));
+				ctx.waitTicks(5);
+				ctx.getInput().lookAt(0, 0);
+			});
+			ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.FULL));
+
 			// Tooltips: found gear with its text (a part of a story, named), what each enchantment does and what it adds
 			// to the attack damage; a book; a pickaxe with its owner's words; then the same sword with the details off
 			safe("tooltips", () -> {
