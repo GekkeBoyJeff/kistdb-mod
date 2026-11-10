@@ -1,1 +1,5 @@
-net.minecraft.world.level.material.PushReaction
+net.minecraft.client.model.HumanoidModel$ArmPose
+net.minecraft.world.item.ItemUseAnimation
+!net.minecraft.client.renderer.entity.player.AvatarRenderer
++net.minecraft.world.entity.decoration.ArmorStand
+!net.minecraft.client.model.HumanoidModel
