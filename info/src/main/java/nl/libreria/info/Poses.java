@@ -529,7 +529,7 @@ final class Poses {
 			case "stances" -> {
 				level.setBlock(o.offset(4, 0, 0), oak, 3);
 				level.setBlock(o.offset(2, 0, 0), net.minecraft.world.level.block.Blocks.SPRUCE_STAIRS.defaultBlockState().setValue(StairBlock.FACING, Direction.SOUTH), 3);
-				var bed = net.minecraft.world.level.block.Blocks.RED_BED.defaultBlockState().setValue(BedBlock.FACING, Direction.WEST);
+				var bed = nl.libreria.core.Ui.block("red_bed").setValue(BedBlock.FACING, Direction.WEST);
 				level.setBlock(o.offset(-5, 0, 0), bed.setValue(BedBlock.PART, BedPart.HEAD), 3);
 				level.setBlock(o.offset(-4, 0, 0), bed.setValue(BedBlock.PART, BedPart.FOOT), 3);
 				String[] st = {"stand", "sit", "lean", "sit", "crouch", "lie", "crawl"};

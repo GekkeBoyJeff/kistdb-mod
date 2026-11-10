@@ -195,7 +195,7 @@ final class InfoTests {
 				Poses.set(m, Poses.Stance.STAND);
 				// A bed: it lies in it (taken), and gets up where it stood (free again)
 				var west = net.minecraft.core.Direction.WEST;
-				var bed = net.minecraft.world.level.block.Blocks.RED_BED.defaultBlockState().setValue(net.minecraft.world.level.block.BedBlock.FACING, west);
+				var bed = nl.libreria.core.Ui.block("red_bed").setValue(net.minecraft.world.level.block.BedBlock.FACING, west);
 				level.setBlock(at.west(), bed.setValue(net.minecraft.world.level.block.BedBlock.PART, net.minecraft.world.level.block.state.properties.BedPart.HEAD), 3);
 				level.setBlock(at, bed.setValue(net.minecraft.world.level.block.BedBlock.PART, net.minecraft.world.level.block.state.properties.BedPart.FOOT), 3);
 				Poses.set(m, Poses.Stance.LIE);

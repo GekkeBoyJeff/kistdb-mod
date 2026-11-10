@@ -36,10 +36,6 @@ final class MannequinCanvas extends CanvasWindow {
 		this.m = m;
 	}
 
-	static boolean available(ServerPlayer p) {
-		return CanvasWindow.available(p);
-	}
-
 	static void open(ServerPlayer p, Mannequin m) {
 		new MannequinCanvas(p, m).show();
 	}
