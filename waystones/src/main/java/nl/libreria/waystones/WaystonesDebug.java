@@ -137,9 +137,15 @@ public final class WaystonesDebug {
 				}
 			}
 		}
-		if (bell == null) return null;
+		if (bell == null) {
+			nl.libreria.core.Libreria.LOG.warn("Mock-up: no bell near {}", around);
+			return null;
+		}
 		Plaza.Site site = Plaza.find(level, bell);
-		if (site == null) return null;
+		if (site == null) {
+			nl.libreria.core.Libreria.LOG.warn("Mock-up: no room for a square near the bell at {}", bell);
+			return null;
+		}
 		Plaza.Palette pal = Plaza.palette(Plaza.Style.of(style));
 		Plaza.build(level, site, pal);
 		mock(p, site.centre(), site.front(), pal.dark(), pal.dye().getName(), true, cap(Plaza.Style.of(style).name()) + " village");

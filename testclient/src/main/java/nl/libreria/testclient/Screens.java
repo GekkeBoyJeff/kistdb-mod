@@ -1337,7 +1337,7 @@ public final class Screens implements FabricClientGameTest {
 					ctx.takeScreenshot("mock_plaza_" + type);
 				});
 			}
-			String[] realTypes = {"plains", "desert", "snowy"};
+			String[] realTypes = {"plains", "desert", "savanna", "snowy", "taiga"};
 			for (int i = 0; i < realTypes.length; i++) {
 				int vx = x + 600 + 220 * i;
 				String type = realTypes[i];

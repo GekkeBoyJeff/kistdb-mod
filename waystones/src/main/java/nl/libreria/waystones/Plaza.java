@@ -138,7 +138,8 @@ final class Plaza {
 				}
 			}
 		}
-		return rough - Math.min(paths, 6) * 0.5;
+		// Flat and touching the village's paths is best
+		return rough + (6 - Math.min(paths, 6)) * 0.5;
 	}
 
 	// ---------------------------------------------------------------- building it
