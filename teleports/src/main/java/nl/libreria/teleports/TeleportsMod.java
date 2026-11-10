@@ -35,13 +35,13 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class TeleportsMod implements ModInitializer {
 	public static final Module MODULE = Module.register("teleports", "Teleports", Items.ENDER_PEARL,
-			"Homes, asking to teleport to someone,", "back to where you were, and spawn.").in(Domain.PLACES, "Teleports");
+			"Homes, asking to teleport to someone,", "back to where you were, and spawn.").in(Domain.PLACES, "Teleporting");
 
 	/** Who may ask you: everyone, the people you trust on your land, nobody. */
 	public static final Setting.Choice ASKS = MODULE.choice("asks", "Teleport asks from", Items.ENDER_PEARL, 0,
 			new int[] {0, 1, 2}, new String[] {"Everyone", "People I trust", "Nobody"},
 			"Who may ask to come to you, or ask", "you to come to them. People you trust:", "those you trust on your land.")
-			.in(Domain.PLACES, "Teleports");
+			.in(Domain.PLACES, "Teleporting");
 
 	// ---------------------------------------------------------------- house rules (admin window)
 

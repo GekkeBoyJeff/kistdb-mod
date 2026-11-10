@@ -36,7 +36,7 @@ final class Homes {
 	static void register() {
 		PlaceList.kind(KIND, "Homes", Ui.item("red_bed"), 5)
 				.about("Your homes. Click one to go there.")
-				.empty("No homes yet. Stand where you", "live and click Set a home here,", "or type /sethome.")
+				.empty("No homes yet. Stand where you", "live and click New home,", "or type /sethome.")
 				.help("/sethome [name]: a home where you stand", "(the same name again moves it).", "/home: to your favourite home (★).",
 						"/home <name>: to that one.", "/delhome <name>: delete it.")
 				.action(Homes::setButton);
@@ -74,9 +74,10 @@ final class Homes {
 		TeleportsMod.Data d = TeleportsMod.PLAYERS.get(p);
 		int max = TeleportsMod.maxHomes(p.getUUID());
 		boolean room = d.homes.size() < max;
-		GuiElementBuilder b = Menu.button(Ui.item("red_bed"), "Set a home here", room ? ChatFormatting.GREEN : ChatFormatting.GRAY,
-				d.homes.size() + " of " + max + (max == 1 ? " home" : " homes"),
-				room ? "You get to name it." : "No room: move or delete one.");
+		String count = d.homes.size() + " of " + max + (max == 1 ? " home" : " homes");
+		GuiElementBuilder b = room
+				? Menu.button(Ui.item("red_bed"), "New home", ChatFormatting.GREEN, count, "A home where you stand now;", "you get to name it.")
+				: Menu.button(Ui.item("red_bed"), "New home", ChatFormatting.GRAY, count, "No room: move or delete one.");
 		Menu.actions(b, room ? "Click: name it and set it" : "Right-click a home: move it here");
 		return b.setCallback((i, t, a, g) -> {
 			if (room) nameWindow(p);

@@ -78,7 +78,7 @@ final class TeleportWindow extends CanvasWindow {
 		c.text(Domain.PLACES.label, x, 5, Domain.PLACES.rgb);
 		x += Glyphs.width(Component.literal(Domain.PLACES.label));
 		c.text(" › ", x, 5, Glyphs.muted);
-		c.text("Teleport to a player", x + Glyphs.width(Component.literal(" › ")), 5, TEXT);
+		c.text("Teleport", x + Glyphs.width(Component.literal(" › ")), 5, TEXT);
 
 		int left = Canvas.cellX(1) + 4, width = Canvas.cellX(9) - Canvas.CARD_MARGIN - left;
 		int from = this.page * ROWS.length;
@@ -100,7 +100,7 @@ final class TeleportWindow extends CanvasWindow {
 			if (this.page > 0) small(c, 3, 1, "‹");
 			if (this.page < pages - 1) small(c, 4, 1, "›");
 		}
-		small(c, 5, 4, "Asks: " + whoMayAsk());
+		small(c, pages > 1 ? 5 : 4, pages > 1 ? 4 : 5, "Who may ask");
 		return c;
 	}
 
@@ -153,7 +153,7 @@ final class TeleportWindow extends CanvasWindow {
 			if (this.page > 0) area(3, 9, 1, 1, Ui.text("Previous page", ChatFormatting.WHITE), List.of(), p -> turn(-1));
 			if (this.page < pages - 1) area(4, 9, 1, 1, Ui.text("Next page", ChatFormatting.WHITE), List.of(), p -> turn(1));
 		}
-		area(5, 9, 4, 1, Ui.text("Who may ask you: " + whoMayAsk(), ChatFormatting.WHITE),
+		area(pages > 1 ? 5 : 4, 9, pages > 1 ? 4 : 5, 1, Ui.text("Who may ask you: " + whoMayAsk(), ChatFormatting.WHITE),
 				List.of(Ui.text("Everyone, the people you trust on", ChatFormatting.GRAY), Ui.text("your land, or nobody.", ChatFormatting.GRAY),
 						Component.empty(), Ui.text("▸ Click: change", ChatFormatting.YELLOW)), p -> {
 					if (TeleportsMod.ASKS.isForced()) {
