@@ -43,11 +43,11 @@ final class Plaza {
 					Blocks.OAK_FENCE.defaultBlockState(), Blocks.OAK_STAIRS.defaultBlockState(), Blocks.POTTED_POPPY.defaultBlockState(),
 					Blocks.COBBLESTONE.defaultBlockState(), false, DyeColor.PURPLE);
 			case DESERT -> new Palette(Blocks.CUT_SANDSTONE.defaultBlockState(), Blocks.SMOOTH_SANDSTONE.defaultBlockState(),
-					Blocks.SANDSTONE.defaultBlockState(), Blocks.ORANGE_TERRACOTTA.defaultBlockState(), Blocks.CHISELED_SANDSTONE.defaultBlockState(),
+					Blocks.SANDSTONE.defaultBlockState(), nl.libreria.core.Ui.block("orange_terracotta"), Blocks.CHISELED_SANDSTONE.defaultBlockState(),
 					Blocks.SANDSTONE_WALL.defaultBlockState(), Blocks.SMOOTH_SANDSTONE_STAIRS.defaultBlockState(), Blocks.POTTED_CACTUS.defaultBlockState(),
 					Blocks.SANDSTONE.defaultBlockState(), false, DyeColor.CYAN);
 			case SAVANNA -> new Palette(Blocks.ACACIA_PLANKS.defaultBlockState(), Blocks.TERRACOTTA.defaultBlockState(),
-					Blocks.COARSE_DIRT.defaultBlockState(), Blocks.ORANGE_TERRACOTTA.defaultBlockState(), Blocks.YELLOW_TERRACOTTA.defaultBlockState(),
+					Blocks.COARSE_DIRT.defaultBlockState(), nl.libreria.core.Ui.block("orange_terracotta"), nl.libreria.core.Ui.block("yellow_terracotta"),
 					Blocks.ACACIA_FENCE.defaultBlockState(), Blocks.ACACIA_STAIRS.defaultBlockState(), Blocks.POTTED_ACACIA_SAPLING.defaultBlockState(),
 					Blocks.COARSE_DIRT.defaultBlockState(), false, DyeColor.ORANGE);
 			case SNOWY -> new Palette(Blocks.SPRUCE_PLANKS.defaultBlockState(), Blocks.SNOW_BLOCK.defaultBlockState(),
