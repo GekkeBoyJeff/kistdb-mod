@@ -1,1 +1,16 @@
-net.minecraft.world.level.material.PushReaction
++net.minecraft.world.inventory.AbstractContainerMenu
++net.minecraft.world.inventory.InventoryMenu
+net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket
+net.minecraft.network.protocol.game.ClientboundContainerSetContentPacket
+net.minecraft.network.protocol.game.ClientboundSetPlayerInventoryPacket
++net.minecraft.server.network.ServerCommonPacketListenerImpl
++net.minecraft.world.item.trading.MerchantOffer
+net.minecraft.world.item.trading.MerchantOffers
++net.minecraft.world.entity.npc.villager.AbstractVillager
++net.minecraft.world.entity.npc.villager.Villager
++net.minecraft.world.entity.npc.AbstractVillager
++net.minecraft.world.entity.npc.Villager
++net.minecraft.world.inventory.MerchantMenu
++net.minecraft.world.inventory.MerchantResultSlot
+? ServerPlayer$
+? VillagerTrades
