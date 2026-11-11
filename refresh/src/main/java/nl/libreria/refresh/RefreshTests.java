@@ -55,6 +55,39 @@ final class RefreshTests {
 			Region.remove(file, i -> true);
 			SelfTests.check(!Files.exists(file), "empty: the file goes");
 		});
+		// The restart step, on a world of its own: a plan takes two of three chunks out (blocks, things, places), the
+		// world gets a new layout, the chunk left is remembered as kept land
+		SelfTests.register("refresh.restart", level -> {
+			Path root = Files.createTempDirectory("libreria-refresh-world");
+			String id = "libreria:refresh_test";
+			var dim = net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.DIMENSION, net.minecraft.resources.Identifier.parse(id));
+			Path folder = net.minecraft.world.level.dimension.DimensionType.getStorageFolder(dim, root);
+			for (String sub : new String[] {"region", "entities", "poi"}) {
+				Path d = folder.resolve(sub);
+				Files.createDirectories(d);
+				try (RegionFile rf = new RegionFile(new RegionStorageInfo("test", dim, sub), Region.file(d, -1, 0), d, false)) {
+					for (int i = 0; i < 3; i++) {
+						CompoundTag t = new CompoundTag();
+						t.putInt("n", i);
+						try (DataOutputStream out = rf.getChunkDataOutputStream(new ChunkPos(-32 + i, 5))) {
+							NbtIo.write(t, out);
+						}
+					}
+				}
+			}
+			Path dir = Layout.dir(root);
+			Restart.writePlan(dir.resolve("plan-test.bin"), id, true, java.util.List.of(Scan.key(-32, 5), Scan.key(-31, 5)));
+			int before = Layout.layout(id);
+			String done = Restart.applyOne(root, dir, dir.resolve("plan-test.bin"));
+			int left = 0;
+			for (String sub : new String[] {"region", "entities", "poi"}) {
+				int[] head = Region.header(Region.file(folder.resolve(sub), -1, 0));
+				for (int i = 0; i < 1024; i++) if (head[i] != 0) left++;
+			}
+			SelfTests.check(done != null && left == 3, "two of three chunks out of blocks, things and places: " + left + " left, " + done);
+			SelfTests.check(Layout.layout(id) == before + 1, "a new layout for its structures");
+			SelfTests.check(Files.isRegularFile(dir.resolve("kept-" + Layout.safe(id) + ".bin")), "the land that stayed is remembered");
+		});
 		// A chunk's colours from how it is saved are the colours of the chunk itself
 		SelfTests.register("refresh.colors", level -> {
 			LevelChunk chunk = level.getChunk(3, 3);
@@ -69,7 +102,7 @@ final class RefreshTests {
 			}
 			SelfTests.check(read && known > 200 && same >= 230, "saved colours read: " + known + " known, " + same + " the same; keys " + tag.keySet()
 					+ (tag.get("Heightmaps") instanceof CompoundTag hm ? " heightmaps " + hm.keySet() : "") + " sections " + tag.getListOrEmpty("sections").size()
-					+ " status " + tag.getStringOr("Status", "?"));
+					+ " status " + tag.getStringOr("Status", "?") + " · " + Colors.debug(tag, level.getMinY(), level.getHeight()));
 		});
 		// What stays and what goes
 		SelfTests.register("refresh.plan", level -> {

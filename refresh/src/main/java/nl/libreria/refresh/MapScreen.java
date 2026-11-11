@@ -76,7 +76,7 @@ final class MapScreen {
 	static final int TW = 5, TH = 3, W = TW * 128, H = TH * 128;
 	/** From the camera to the screen (blocks), how far the view may turn from its middle, text size. */
 	private static final double DIST = 2.14;
-	private static final float MAX_YAW = 47f, MAX_PITCH = 33f, TEXT = 0.4f;
+	private static final float MAX_YAW = 47f, MAX_PITCH = 33f, TEXT = 0.35f;
 	private static final double PX = 0.025 * TEXT;
 	private static final int[] ZOOMS = {1, 2, 4, 8, 16};
 	private static final Identifier FREEZE = Identifier.fromNamespaceAndPath("libreria", "refresh_map");
@@ -264,6 +264,7 @@ final class MapScreen {
 		var menu = p.inventoryMenu;
 		ItemStack hand = new ItemStack(Items.PAPER);
 		hand.set(DataComponents.ITEM_MODEL, EMPTY_MODEL);
+		hand.set(DataComponents.CUSTOM_NAME, Component.empty());
 		for (int slot = 36; slot <= 44; slot++) {
 			p.connection.send(new net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket(menu.containerId, menu.getStateId(), slot, hand.copy()));
 		}
@@ -757,16 +758,22 @@ final class MapScreen {
 		String world = worldName(v.dim);
 		Plan.Ctx c = v.ctx;
 		Scan.World w = Scan.world(v.dim);
-		double left = -TW / 2.0 + 0.06, top = TH / 2.0 - 0.06, rightEdge = TW / 2.0 - 0.06, bottom = -TH / 2.0 + 0.06;
-		// Top left: what this is, and what stays
+		// (the bottom of the screen is the hotbar's: everything sits at the top)
+		double left = -TW / 2.0 + 0.06, top = TH / 2.0 - 0.06, rightEdge = TW / 2.0 - 0.06;
+		// Top left: what this is, what stays, the keys
 		MutableComponent title = t("World refresh", ACCENT).append(t(" › ", MUTED)).append(t(world, WHITE)).append(t("\n", WHITE));
-		title.append(t("Stays: claims and " + RefreshMod.ROOM.get() + " chunk" + (RefreshMod.ROOM.get() == 1 ? "" : "s") + " around them,\n", GREY));
-		title.append(t(RefreshMod.NEAR.get() > 0 ? "and where people were near " + RefreshMod.NEAR.get() + "+ min" : "nothing else on its own", GREY));
+		title.append(t("Stays: claims, " + RefreshMod.ROOM.get() + " chunk" + (RefreshMod.ROOM.get() == 1 ? "" : "s") + " around them", GREY));
+		title.append(t(RefreshMod.NEAR.get() > 0 ? "\nand where people were near " + RefreshMod.NEAR.get() + "+ min" : "", GREY));
 		if (v.dim.equals(Level.END)) title.append(t("\nand the main island", GREY));
+		title.append(t("\n\nWASD", WHITE)).append(t(": move the map", GREY));
+		title.append(t("\nScroll", WHITE)).append(t(": zoom", GREY));
+		title.append(t("\nRight-click", WHITE)).append(t(" (hold): stay / go", GREY));
+		title.append(t("\nLeft-click", WHITE)).append(t(": a whole region", GREY));
+		title.append(t("\nSneak", WHITE)).append(t(": done", GREY));
 		place(v, v.title, title, left, top, false);
-		// Top middle: the worlds
+		// Top middle: the worlds, then the sums, then whether it takes part and done
 		double tabsWidth = 0;
-		for (String n : WORLD_NAMES) tabsWidth += widthOf(n) + 4 * PX;
+		for (String n : WORLD_NAMES) tabsWidth += widthOf(n) + 2 * PX;
 		tabsWidth += 2 * 6 * PX;
 		double tu = -tabsWidth / 2;
 		for (int i = 0; i < 3; i++) {
@@ -777,46 +784,50 @@ final class MapScreen {
 			el.setBackground(on ? CHIP_ON : CHIP);
 			place(v, el, t(WORLD_NAMES[i], on ? WHITE : exists ? GREY : MUTED), tu, top, false);
 			double tw = widthOf(WORLD_NAMES[i]) + 2 * PX;
-			if (exists && !on) v.buttons.add(new Button(tu - PX, tu + tw, top - 10 * PX - PX, top + PX, () -> switchTo(v, dim)));
+			if (exists && !on) v.buttons.add(new Button(tu - PX, tu + tw, top - 11 * PX, top + PX, () -> switchTo(v, dim)));
 			tu += tw + 6 * PX;
 		}
-		// Top right: what the colours mean
-		MutableComponent legend = t("■ ", 0x8CC446).append(t("Stays\n", WHITE)).append(t("■ ", 0x993333)).append(t("Goes (made anew)\n", WHITE))
-				.append(t("□ ", 0x00D93A)).append(t("Claim\n", WHITE)).append(t("□ ", YELLOW)).append(t("Kept by you\n", WHITE))
-				.append(t("■ ", 0x3C3C40)).append(t("Not made yet", WHITE));
-		place(v, v.legend, legend, rightEdge, top, true);
-		// Bottom left: the sums and the keys
 		MutableComponent sums = Component.empty();
-		if (w != null && !Restart.ready(w)) {
-			sums.append(t("Reading the world… " + Math.round(w.progress() * 100) + "%\n", YELLOW));
-		}
+		if (w != null && !Restart.ready(w)) sums.append(t("Reading the world… " + Math.round(w.progress() * 100) + "%\n", YELLOW));
 		if (!c.on) {
-			sums.append(t("This world takes no part: nothing goes", MUTED));
+			sums.append(t("This world takes no part", MUTED));
 		} else if (v.count != null) {
-			sums.append(t(Ui.n(v.count.stay()) + " chunks stay", GREEN)).append(t("  ·  ", MUTED)).append(t(Ui.n(v.count.go()) + " go", REDT))
-					.append(t("  ·  about " + mb(v.count.bytes()) + " less on disk", GREY));
+			sums.append(t(Ui.n(v.count.stay()) + " stay", GREEN)).append(t("  ·  ", MUTED)).append(t(Ui.n(v.count.go()) + " go", REDT))
+					.append(t("\nabout " + mb(v.count.bytes()) + " less on disk", GREY));
 		}
-		sums.append(t("\nWASD: move  ·  scroll: zoom  ·  right-click (hold): paint stay/go", GREY));
-		sums.append(t("\nleft-click: a whole region  ·  sneak: done", GREY));
-		int lines = sums.getString().split("\n").length;
-		place(v, v.sums, sums, left, bottom + lines * 10 * PX, false);
-		// Bottom right: whether this world takes part, and done
-		String doneText = "✔ Done";
-		v.done.setBackground(CHIP);
-		place(v, v.done, t(doneText, WHITE), rightEdge, bottom + 10 * PX, true);
-		double dw = widthOf(doneText) + 2 * PX;
-		v.buttons.add(new Button(rightEdge - dw, rightEdge + PX, bottom - PX, bottom + 11 * PX, () -> finish(v, true)));
-		String takesText = c.on ? "Takes part: yes" : "Takes part: no";
+		int sumLines = sums.getString().split("\n").length;
+		double sumsTop = top - 14 * PX;
+		placeCentred(v, v.sums, sums, 0, sumsTop);
+		double chipsTop = sumsTop - sumLines * 10 * PX - 5 * PX;
+		String takesText = c.on ? "Takes part: yes" : "Takes part: no", doneText = "Done";
+		double tw2 = widthOf(takesText) + 2 * PX, dw = widthOf(doneText) + 2 * PX, gap = 6 * PX;
+		double cu = -(tw2 + gap + dw) / 2;
 		v.takes.setBackground(c.on ? CHIP_ON : CHIP);
-		double tr = rightEdge - dw - 6 * PX;
-		place(v, v.takes, t(takesText, WHITE), tr, bottom + 10 * PX, true);
-		double tw2 = widthOf(takesText) + 2 * PX;
-		v.buttons.add(new Button(tr - tw2, tr + PX, bottom - PX, bottom + 11 * PX, () -> {
+		place(v, v.takes, t(takesText, WHITE), cu, chipsTop, false);
+		v.buttons.add(new Button(cu - PX, cu + tw2, chipsTop - 11 * PX, chipsTop + PX, () -> {
 			Plan.Dim d = Plan.dim(c.id);
 			d.on = !d.on;
 			Plan.STORE.markDirty();
 			rebuild(v);
 		}));
+		double du = cu + tw2 + gap;
+		v.done.setBackground(CHIP);
+		place(v, v.done, t(doneText, WHITE), du, chipsTop, false);
+		v.buttons.add(new Button(du - PX, du + dw, chipsTop - 11 * PX, chipsTop + PX, () -> finish(v, true)));
+		// Top right: what the colours mean
+		MutableComponent legend = t("■ ", 0x8CC446).append(t("Stays\n", WHITE)).append(t("■ ", 0x993333)).append(t("Goes (made anew)\n", WHITE))
+				.append(t("□ ", 0x00D93A)).append(t("Claim\n", WHITE)).append(t("□ ", YELLOW)).append(t("Kept by you\n", WHITE))
+				.append(t("■ ", 0x3C3C40)).append(t("Not made yet", WHITE));
+		place(v, v.legend, legend, rightEdge, top, true);
+	}
+
+	/** A text centred on {@code u}, its top at {@code vv}. */
+	private static void placeCentred(View v, TextDisplayElement el, Component text, double u, double vv) {
+		el.setText(text);
+		List<Component> lines = new ArrayList<>();
+		for (String line : text.getString().split("\n")) lines.add(Component.literal(line));
+		el.setTextAlignment(Display.TextDisplay.Align.CENTER);
+		el.setOffset(v.screen(u, vv - lines.size() * 10 * PX, 0.03).subtract(v.origin));
 	}
 
 	private static String mb(long bytes) {

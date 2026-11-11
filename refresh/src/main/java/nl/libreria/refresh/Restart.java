@@ -60,20 +60,24 @@ final class Restart {
 			if (!ready(w)) continue;
 			List<Long> going = Plan.going(ctx, w);
 			try {
-				Files.createDirectories(dir);
-				try (DataOutputStream o = new DataOutputStream(new java.io.BufferedOutputStream(Files.newOutputStream(f)))) {
-					o.writeInt(MAGIC);
-					o.writeUTF(id);
-					o.writeBoolean(RefreshMod.MOVE.get());
-					o.writeInt(going.size());
-					for (long k : going) o.writeLong(k);
-				}
+				writePlan(f, id, RefreshMod.MOVE.get(), going);
 				out.put(id, going.size());
 			} catch (IOException e) {
 				RefreshMod.LOG.error("World refresh: can't write the plan for {}: {}", id, e.toString());
 			}
 		}
 		return out;
+	}
+
+	static void writePlan(Path f, String id, boolean move, List<Long> going) throws IOException {
+		Files.createDirectories(f.getParent());
+		try (DataOutputStream o = new DataOutputStream(new java.io.BufferedOutputStream(Files.newOutputStream(f)))) {
+			o.writeInt(MAGIC);
+			o.writeUTF(id);
+			o.writeBoolean(move);
+			o.writeInt(going.size());
+			for (long k : going) o.writeLong(k);
+		}
 	}
 
 	/** Nothing planned any more. */
@@ -116,7 +120,7 @@ final class Restart {
 		}
 	}
 
-	private static String applyOne(Path root, Path dir, Path plan) throws IOException {
+	static String applyOne(Path root, Path dir, Path plan) throws IOException {
 		String id;
 		boolean move;
 		Set<Long> going = new HashSet<>();

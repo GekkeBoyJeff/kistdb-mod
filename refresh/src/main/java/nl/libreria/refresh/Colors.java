@@ -103,7 +103,7 @@ final class Colors {
 		ListTag list = tag.getListOrEmpty("sections");
 		for (int k = 0; k < list.size(); k++) {
 			if (!(list.get(k) instanceof CompoundTag sec)) continue;
-			int sy = sec.getIntOr("Y", Integer.MIN_VALUE);
+			int sy = sectionY(sec);
 			CompoundTag states = sec.getCompoundOrEmpty("block_states");
 			ListTag pal = states.getListOrEmpty("palette");
 			if (sy == Integer.MIN_VALUE || pal.isEmpty()) continue;
@@ -175,6 +175,34 @@ final class Colors {
 				out[off + i] = mc.getPackedId(b);
 			}
 		}
+	}
+
+	/** A section's height (in sections), saved as a byte. */
+	private static int sectionY(CompoundTag sec) {
+		Tag t = sec.get("Y");
+		if (t == null) return Integer.MIN_VALUE;
+		if (t instanceof net.minecraft.nbt.ByteTag b) return b.value();
+		if (t instanceof net.minecraft.nbt.IntTag i) return i.value();
+		return sec.getIntOr("Y", Integer.MIN_VALUE);
+	}
+
+	/** For the self-test: what the first column of a saved chunk is made of. */
+	static String debug(CompoundTag tag, int minY, int height) {
+		long[] surface = surface(tag);
+		if (surface == null) return "no height map";
+		int hbits = 32 - Integer.numberOfLeadingZeros(height);
+		int v = (int) (surface[0] & ((1L << hbits) - 1));
+		ListTag list = tag.getListOrEmpty("sections");
+		StringBuilder sb = new StringBuilder("v0=" + v + " y0=" + (minY + v - 1) + " longs=" + surface.length + " sections");
+		for (int k = 0; k < list.size(); k++) {
+			if (list.get(k) instanceof CompoundTag sec) {
+				sb.append(' ').append(sectionY(sec)).append(':').append(sec.get("Y") == null ? "-" : sec.get("Y").getClass().getSimpleName());
+				ListTag pal = sec.getCompoundOrEmpty("block_states").getListOrEmpty("palette");
+				if (!pal.isEmpty() && pal.get(0) instanceof CompoundTag e) sb.append('=').append(e.getStringOr("Name", "?"));
+			}
+			if (k > 6) break;
+		}
+		return sb.toString();
 	}
 
 	/** The height map of the surface as saved (its name's case has changed over the years). */
