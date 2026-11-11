@@ -53,6 +53,7 @@ final class Mockups {
 	 * Lighthouse (a hollow tower with a beam of light). And how one is made: the foundation you build round a waystone.
 	 */
 	private static void grandWaystones(ClientGameTestContext ctx, TestServerContext server, ServerPlayer player, int x, int y, int z) {
+		viewer = player;
 		int gz = z + 16;
 		run(server, "kill @e[type=!minecraft:player]", "clear @a", "time set 1000", "weather clear",
 				f("fill %d %d %d %d %d %d minecraft:grass_block", x - 24, y - 1, z - 6, x + 24, y - 1, z + 30),
@@ -79,8 +80,8 @@ final class Mockups {
 		}
 		// How it's made: the foundation round a waystone (and the heart in your hand), by day
 		int fx = x, fz = z + 4;
-		run(server, "time set 1000", f("fill %d %d %d %d %d %d minecraft:air", x - 24, y, gz - 4, x + 24, y + 24, gz + 4),
-				"kill @e[type=minecraft:block_display]");
+		clearTiles(server);
+		run(server, "time set 1000", f("fill %d %d %d %d %d %d minecraft:air", x - 24, y, gz - 4, x + 24, y + 24, gz + 4));
 		foundation(server, fx, y, fz);
 		server.runOnServer(sv -> nl.libreria.waystones.WaystonesDebug.scene(player, new BlockPos(fx, y + 1, fz), net.minecraft.core.Direction.NORTH));
 		run(server, "item replace entity @a weapon.mainhand with minecraft:nether_star");
@@ -117,14 +118,30 @@ final class Mockups {
 		}
 	}
 
-	/** A floating block (a display): its middle at (x, y, z), scaled, turned about an axis by an angle (degrees). */
+	/** The player the floating parts are shown to (Polymer elements, as the real thing would be). */
+	private static ServerPlayer viewer;
+
+	/** A floating block (a display element): its middle at (x, y, z), scaled, turned about an axis by an angle (degrees). */
 	private static void floating(TestServerContext server, double x, double y, double z, String block, float sx, float sy, float sz,
 			float ax, float ay, float az, float degrees) {
-		org.joml.Quaternionf q = new org.joml.Quaternionf().rotateAxis((float) Math.toRadians(degrees), new org.joml.Vector3f(ax, ay, az).normalize());
-		org.joml.Vector3f centre = new org.joml.Vector3f(sx / 2, sy / 2, sz / 2).rotate(q).negate();
-		run(server, f("summon minecraft:block_display %.3f %.3f %.3f {block_state:{Name:\"%s\"},brightness:{sky:15,block:15},view_range:4f,"
-				+ "transformation:{left_rotation:[%ff,%ff,%ff,%ff],right_rotation:[0f,0f,0f,1f],translation:[%ff,%ff,%ff],scale:[%ff,%ff,%ff]}}",
-				x, y, z, block, q.x, q.y, q.z, q.w, centre.x, centre.y, centre.z, sx, sy, sz));
+		ServerPlayer p = viewer;
+		server.runOnServer(sv -> {
+			org.joml.Quaternionf q = new org.joml.Quaternionf().rotateAxis((float) Math.toRadians(degrees), new org.joml.Vector3f(ax, ay, az).normalize());
+			org.joml.Vector3f centre = new org.joml.Vector3f(sx / 2, sy / 2, sz / 2).rotate(q).negate();
+			var holder = new eu.pb4.polymer.virtualentity.api.ElementHolder();
+			var e = new eu.pb4.polymer.virtualentity.api.elements.BlockDisplayElement(Ui.block(block.replace("minecraft:", "")));
+			e.setLeftRotation(q);
+			e.setTranslation(centre);
+			e.setScale(new org.joml.Vector3f(sx, sy, sz));
+			e.setBrightness(new net.minecraft.util.Brightness(15, 15));
+			e.setDisplaySize(Math.max(sx, sz) + 1, sy + 1);
+			e.setViewRange(4f);
+			holder.addElement(e);
+			Vec3 at = new Vec3(x, y, z);
+			new eu.pb4.polymer.virtualentity.api.attachment.ManualAttachment(holder, (ServerLevel) p.level(), () -> at);
+			holder.startWatching(p);
+			TILES.add(holder);
+		});
 	}
 
 	/** The Spire: light stone on a stepped base, purple runes on four sides, a tall needle, a gem floating on top. */
