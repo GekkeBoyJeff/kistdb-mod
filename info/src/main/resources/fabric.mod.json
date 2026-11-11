@@ -10,6 +10,7 @@
 	"entrypoints": {
 		"main": ["nl.libreria.info.InfoMod"]
 	},
+	"mixins": ["libreria_info.mixins.json"],
 	"depends": {
 		"minecraft": "~26.3",
 		"fabric-api": "*",

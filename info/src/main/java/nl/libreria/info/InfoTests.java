@@ -161,6 +161,48 @@ final class InfoTests {
 			SelfTests.check(Found.fix(null, sword, access) && Stand.stamp(sword).getStringOr("sig", "").equals(Found.sig(Found.byId("a:lantern:1"))),
 					"written again");
 		});
+		SelfTests.register("info.trade-stories", level -> {
+			String item = Found.anyStoryItem();
+			SelfTests.check(item != null, "an item a story is told on");
+			if (item == null) return;
+			var it = net.minecraft.core.registries.BuiltInRegistries.ITEM.getValue(net.minecraft.resources.Identifier.withDefaultNamespace(item));
+			var v = net.minecraft.world.entity.EntityTypes.VILLAGER.create(level, net.minecraft.world.entity.EntitySpawnReason.COMMAND);
+			SelfTests.check(v != null, "a villager");
+			if (v == null) return;
+			var emerald = new net.minecraft.world.item.trading.ItemCost(net.minecraft.world.item.Items.EMERALD, 9);
+			var offers = new net.minecraft.world.item.trading.MerchantOffers();
+			offers.add(new net.minecraft.world.item.trading.MerchantOffer(emerald, new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.WHEAT), 16, 2, 0.05f));
+			offers.add(new net.minecraft.world.item.trading.MerchantOffer(emerald, new net.minecraft.world.item.ItemStack(it), 12, 5, 0.2f));
+			v.setOffers(offers);
+			var r = new java.util.Random(3);
+			// The gear offer gets its chance (the wheat doesn't), readable in the offer, with the dot
+			var o = TradeStories.roll(v, null, 1.0, r);
+			SelfTests.check(o == offers.get(1), "the gear offer carries a story: " + (o == null ? "none" : TradeStories.describe(o.getResult())));
+			if (o == null) return;
+			SelfTests.check(TradeStories.isStory(o.getResult()) && TradeStories.describe(o.getResult()).contains("sold by a villager"),
+					"for sale, by whom: " + TradeStories.describe(o.getResult()));
+			var dotted = TradeStories.dotted(o.getResult());
+			var cmd = dotted.get(net.minecraft.core.component.DataComponents.CUSTOM_MODEL_DATA);
+			SelfTests.check(cmd != null && cmd.flags().size() > TradeStories.DOT && cmd.flags().get(TradeStories.DOT), "the dot: " + cmd);
+			SelfTests.check(TradeStories.undotted(dotted).get(net.minecraft.core.component.DataComponents.CUSTOM_MODEL_DATA) == null, "the dot out again");
+			// One story in a villager's life: a new offer later gets no chance any more
+			offers.add(new net.minecraft.world.item.trading.MerchantOffer(emerald, new net.minecraft.world.item.ItemStack(it), 12, 5, 0.2f));
+			SelfTests.check(TradeStories.roll(v, null, 1.0, r) == null && !TradeStories.isStory(offers.get(2).getResult()), "one story in its life");
+			// Bought: the buyer's copy keeps the story, the offer sells the plain thing from then on
+			var got = o.assemble();
+			TradeStories.traded(o);
+			SelfTests.check(TradeStories.isStory(got), "what was bought keeps the story");
+			SelfTests.check(!TradeStories.isStory(o.getResult()) && Lore.get(o.getResult(), Lore.FOUND).isEmpty()
+					&& !o.getResult().has(net.minecraft.core.component.DataComponents.CUSTOM_DATA), "the offer plain again: " + o.getResult().getComponentsPatch());
+			// A one-off text (not a part of a story) gets no dot
+			var plain = new net.minecraft.world.item.ItemStack(it);
+			net.minecraft.world.item.component.CustomData.update(net.minecraft.core.component.DataComponents.CUSTOM_DATA, plain, root -> {
+				var st = new net.minecraft.nbt.CompoundTag();
+				st.putString("id", "l:whatever");
+				root.put(Found.STAMP, st);
+			});
+			SelfTests.check(!TradeStories.isStory(plain), "a one-off text has no dot");
+		});
 		SelfTests.register("info.mannequin-poses", level -> {
 			BlockPos at = new BlockPos(60, 121, 44);
 			var stone = net.minecraft.world.level.block.Blocks.STONE.defaultBlockState();

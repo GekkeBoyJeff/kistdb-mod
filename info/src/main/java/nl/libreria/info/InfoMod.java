@@ -257,6 +257,7 @@ public final class InfoMod implements ModInitializer {
 		VillagerNames.init();
 		Weapons.init();
 		Found.init();
+		TradeStories.init();
 		Showcase.init();
 		nl.libreria.core.Pack.addAssets("libreria_info");
 		InfoCollections.init();

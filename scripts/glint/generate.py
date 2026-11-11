@@ -767,8 +767,9 @@ def frame_node(item, rarity):
 
 # Flags the server sets on an item, only in what one player's client sees (custom_model_data flags): the thing they
 # searched for lights up (a glow behind it, a pulsing border instead of its grade frame), the rest of the chest it lies
-# in dims. And a deep shade: what you don't have yet in a collection (Progress), a silhouette in front of anything
-WANTED_FLAG, DIM_FLAG, SHADE_FLAG = 0, 1, 2
+# in dims. And a deep shade: what you don't have yet in a collection (Progress), a silhouette in front of anything.
+# And a gold dot in the top left corner: the item carries a part of a story (found gear, a villager's trade).
+WANTED_FLAG, DIM_FLAG, SHADE_FLAG, STORY_FLAG = 0, 1, 2, 3
 
 
 def placed(model, z):
@@ -789,12 +790,22 @@ def with_frame(model, item, rarity):
         flag(WANTED_FLAG, placed(f'{NS}:item/frame/wanted', 0.12), frame_node(item, rarity)),
         flag(DIM_FLAG, placed(f'{NS}:item/frame/dim', 0.6)),
         flag(SHADE_FLAG, placed(f'{NS}:item/frame/shade', 1.5)),
+        flag(STORY_FLAG, placed(f'{NS}:item/frame/story', 1.8)),
     ]}
     return {'type': 'minecraft:select', 'property': 'minecraft:display_context', 'cases': [{'when': 'gui', 'model': gui}],
             'fallback': model}
 
 
 WANTED_FRAMES = 16
+
+
+def story_dot():
+    """A gold dot (2 x 2) in the top left corner, 2 pixels in from the edge: clear of the grade frames."""
+    img = Image.new('RGBA', (16, 16), (0, 0, 0, 0))
+    for x in (2, 3):
+        for y in (2, 3):
+            img.putpixel((x, y), (240, 200, 110, 255))
+    return img
 
 
 def wanted_textures():
@@ -967,6 +978,11 @@ def main():
             write_json(path + '.mcmeta', {'animation': {'frametime': frametime, 'interpolate': True}})
         write_json(os.path.join(assets, NS, f'models/item/frame/{name}.json'),
                    {'parent': 'minecraft:item/generated', 'textures': {'layer0': f'{NS}:item/frame/{name}'}})
+    # The story dot (not in the "frames off" pack either: it tells something, it isn't a frame)
+    path = os.path.join(assets, NS, 'textures/item/frame/story.png')
+    story_dot().save(path, optimize=True)
+    write_json(os.path.join(assets, NS, 'models/item/frame/story.json'),
+               {'parent': 'minecraft:item/generated', 'textures': {'layer0': f'{NS}:item/frame/story'}})
     written = set()
 
     overlay_models = {f: [] for f in FAMILIES}

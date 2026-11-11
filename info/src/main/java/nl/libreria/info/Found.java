@@ -444,6 +444,24 @@ final class Found {
 		return null;
 	}
 
+	/** A part of a story told on exactly this item (a villager's offer), the viewer's own stories first; or null. */
+	static @Nullable Text storyFor(String item, Origin from, Random r, @Nullable ServerPlayer viewer) {
+		return piece(item, from, data(), r, viewer == null ? Set.of() : partsOf(viewer));
+	}
+
+	/** An item some story is told on (for the screenshots and the self-test): iron or diamond gear first. */
+	static @Nullable String anyStoryItem() {
+		String any = null;
+		for (Text t : PIECES) {
+			for (String k : t.kinds()) {
+				if (!FINDABLE.contains(k)) continue;
+				if (k.startsWith("iron_") || k.startsWith("diamond_")) return k;
+				if (any == null) any = k;
+			}
+		}
+		return any;
+	}
+
 	/** The story parts ("a:story:part") a player has: held once, or handed to them. */
 	static Set<String> partsOf(ServerPlayer p) {
 		Seen seen = SEEN.get(p);
@@ -652,6 +670,7 @@ final class Found {
 			for (int i = 0; i < inv.getContainerSize(); i++) {
 				ItemStack s = inv.getItem(i);
 				if (s.isEmpty()) continue;
+				if (has(s, TradeStories.TRADE)) TradeStories.bought(p, s);
 				if (has(s, PENDING)) stamp(p, s);
 				else if (has(s, STAMP)) fix(p, s, p.level().registryAccess());
 				String piece = pieceOf(s);

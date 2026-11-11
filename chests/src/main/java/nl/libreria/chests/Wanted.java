@@ -160,10 +160,14 @@ public final class Wanted {
 		return stack;
 	}
 
+	/** These flags on, the ones the item has already kept (another module's: the story dot). */
 	private static CustomModelData flags(ItemStack stack, List<Boolean> flags) {
 		CustomModelData had = stack.get(DataComponents.CUSTOM_MODEL_DATA);
-		return had == null ? new CustomModelData(List.of(), flags, List.of(), List.of())
-				: new CustomModelData(had.floats(), flags, had.strings(), had.colors());
+		List<Boolean> merged = new ArrayList<>(had == null ? List.of() : had.flags());
+		while (merged.size() < flags.size()) merged.add(false);
+		for (int i = 0; i < flags.size(); i++) if (flags.get(i)) merged.set(i, true);
+		return had == null ? new CustomModelData(List.of(), merged, List.of(), List.of())
+				: new CustomModelData(had.floats(), merged, had.strings(), had.colors());
 	}
 
 	/** What a creative client sends back: our flags out again. */

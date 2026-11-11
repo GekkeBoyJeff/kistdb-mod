@@ -1951,6 +1951,54 @@ public final class Screens implements FabricClientGameTest {
 				LOG.info("LIBRERIA-HIDDEN after closing, hotbar slot 2 holds: {}", back);
 				run(server, "item replace entity @p hotbar.1 with minecraft:air");
 			});
+			// A villager's trade with a part of a story: the offer (its tooltip, the dot), then bought (in your inventory)
+			safe("trade_story", () -> {
+				run(server, "item replace entity @p hotbar.0 with minecraft:air");
+				var villager = new java.util.concurrent.atomic.AtomicReference<net.minecraft.world.entity.npc.villager.Villager>();
+				server.runOnServer(s -> {
+					var v = nl.libreria.info.TradeStories.debugVillager(player, null);
+					villager.set(v);
+					if (v != null) {
+						v.setTradingPlayer(player);
+						v.openTradingScreen(player, v.getDisplayName(), 1);
+					}
+				});
+				ctx.waitTicks(12);
+				double scale = ctx.computeOnClient(mc -> (double) mc.getWindow().getGuiScale());
+				int w = ctx.computeOnClient(mc -> mc.getWindow().getGuiScaledWidth());
+				int h = ctx.computeOnClient(mc -> mc.getWindow().getGuiScaledHeight());
+				int left = (w - 276) / 2, top = (h - 166) / 2;
+				// Pick the second offer (its item in the result slot), then point at its item in the list
+				ctx.computeOnClient(mc -> {
+					var open = mc.gui.screen();
+					if (open == null) return "none";
+					var ev = new net.minecraft.client.input.MouseButtonEvent(left + 49, top + 48, new net.minecraft.client.input.MouseButtonInfo(1, 0));
+					open.mouseClicked(ev, false);
+					open.mouseReleased(ev);
+					return open.getClass().getSimpleName();
+				});
+				ctx.getInput().setCursorPos((left + 81) * scale, (top + 48) * scale);
+				noToasts(ctx);
+				ctx.waitTicks(6);
+				ctx.takeScreenshot("trade_story_offer");
+				close(ctx, server, player);
+				server.runOnServer(s -> {
+					var v = villager.get();
+					if (v != null) nl.libreria.info.TradeStories.debugBuy(player, v);
+					LOG.info("LIBRERIA-TRADE bought: {}", nl.libreria.info.TradeStories.describe(player.getInventory().getItem(0)));
+					if (v != null) v.discard();
+				});
+				ctx.waitTicks(4);
+				key(ctx, "pressKey", ctx.computeOnClient(mc -> mc.options.keyInventory));
+				ctx.waitTicks(10);
+				int il = (w - 176) / 2, it = (h - 166) / 2;
+				ctx.getInput().setCursorPos((il + 16) * scale, (it + 150) * scale);
+				noToasts(ctx);
+				ctx.waitTicks(4);
+				ctx.takeScreenshot("trade_story_bought");
+				close(ctx, server, player);
+				run(server, "item replace entity @p hotbar.0 with minecraft:air");
+			});
 			for (Module.HubEntry e : Module.allHubEntries()) {
 				// The land map isn't a menu (and would stay open behind the others)
 				if (e.name().equals("Land map")) continue;
