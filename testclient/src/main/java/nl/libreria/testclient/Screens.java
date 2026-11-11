@@ -1369,6 +1369,21 @@ public final class Screens implements FabricClientGameTest {
 				ctx.takeScreenshot("waystone_items");
 				run(server, "clear @a");
 			});
+			// Coloured in the crafting grid: a waystone, a red dye, a glow ink sac (pointing at the result)
+			safe("waystone_craft_colour", () -> {
+				server.runOnServer(s -> nl.libreria.waystones.WaystonesDebug.craftColour(player));
+				ctx.waitTicks(12);
+				double scale = ctx.computeOnClient(mc -> (double) mc.getWindow().getGuiScale());
+				int w = ctx.computeOnClient(mc -> mc.getWindow().getGuiScaledWidth());
+				int h = ctx.computeOnClient(mc -> mc.getWindow().getGuiScaledHeight());
+				int left = (w - 176) / 2, top = (h - 166) / 2;
+				ctx.getInput().setCursorPos((left + 124 + 8) * scale, (top + 35 + 8) * scale);
+				noToasts(ctx);
+				ctx.waitTicks(4);
+				ctx.takeScreenshot("waystone_craft_colour");
+				close(ctx, server, player);
+				run(server, "clear @a");
+			});
 			server.runOnServer(s -> nl.libreria.waystones.WaystonesDebug.clear(player));
 			String[] villageTypes = {"plains", "desert", "savanna", "snowy", "taiga"};
 			for (int i = 0; i < villageTypes.length; i++) {

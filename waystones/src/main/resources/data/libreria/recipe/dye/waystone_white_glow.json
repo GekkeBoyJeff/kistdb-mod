@@ -1,0 +1,34 @@
+{
+	"type": "minecraft:crafting_shapeless",
+	"category": "misc",
+	"group": "libreria_waystone_look",
+	"ingredients": [
+		"libreria:waystone",
+		"minecraft:white_dye",
+		"minecraft:glow_ink_sac"
+	],
+	"result": {
+		"id": "libreria:waystone",
+		"count": 1,
+		"components": {
+			"minecraft:custom_data": {
+				"libreria_waystone_look": {
+					"glow": true,
+					"dye": "white"
+				}
+			},
+			"minecraft:custom_model_data": {
+				"colors": [
+					16054015
+				]
+			},
+			"minecraft:lore": [
+				{
+					"text": "Runes: white, glowing",
+					"color": "gray",
+					"italic": false
+				}
+			]
+		}
+	}
+}

@@ -122,7 +122,7 @@ final class WaystonesTests {
 			BlockPos a = ground(level, 640, 680);
 			try {
 				Stones.Stone s = place(level, mason, a, Direction.SOUTH);
-				SelfTests.check(!s.dark && s.colour() == net.minecraft.world.item.DyeColor.PURPLE && s.glow, "light stone, purple, glowing as it comes");
+				SelfTests.check(!s.dark && s.colour() == net.minecraft.world.item.DyeColor.PURPLE && !s.glow, "light stone, purple, matte as it comes");
 				ItemStack red = new ItemStack(nl.libreria.core.Ui.item("red_dye"), 2);
 				SelfTests.check(Stones.paint(mason, level, a, red) && "red".equals(s.dye) && red.getCount() == 1, "a dye colours it (and is used)");
 				SelfTests.check(Stones.paint(mason, level, a, red) && red.getCount() == 1, "the same dye again: nothing used");
@@ -138,6 +138,28 @@ final class WaystonesTests {
 				Stones.Stone d = Stones.at(level, a);
 				SelfTests.check(d != null && d.dark && d.colour() == net.minecraft.world.item.DyeColor.CYAN
 						&& WaystoneBlock.item(level, a).is(WaystonesMod.DARK_WAYSTONE_ITEM), "a dark waystone: cyan as it comes, and drops as itself");
+				// Coloured in the crafting grid: a waystone with a dye and a glow ink sac; placed, it takes that look; broken, it drops it again
+				var input = net.minecraft.world.item.crafting.CraftingInput.of(3, 1, java.util.List.of(new ItemStack(WaystonesMod.WAYSTONE_ITEM),
+						new ItemStack(nl.libreria.core.Ui.item("red_dye")), new ItemStack(Items.GLOW_INK_SAC)));
+				var recipe = level.recipeAccess().getRecipeFor(net.minecraft.world.item.crafting.RecipeType.CRAFTING, input, level);
+				SelfTests.check(recipe.isPresent(), "a recipe for a waystone, a red dye and a glow ink sac");
+				if (recipe.isPresent()) {
+					ItemStack crafted = recipe.get().value().assemble(input, level.registryAccess());
+					ItemStack expected = new ItemStack(WaystonesMod.WAYSTONE_ITEM);
+					Stones.lookOn(expected, "red", true, false);
+					SelfTests.check(ItemStack.isSameItemSameComponents(crafted, expected), "it makes the same item a broken red glowing one drops: "
+							+ crafted.getComponentsPatch() + " / " + expected.getComponentsPatch());
+					Stones.Stone fresh = new Stones.Stone();
+					Stones.lookFrom(crafted, fresh);
+					SelfTests.check("red".equals(fresh.dye) && fresh.glow, "placed: red, glowing");
+				}
+				var plain = net.minecraft.world.item.crafting.CraftingInput.of(2, 1, java.util.List.of(new ItemStack(WaystonesMod.DARK_WAYSTONE_ITEM),
+						new ItemStack(nl.libreria.core.Ui.item("lime_dye"))));
+				var lime = level.recipeAccess().getRecipeFor(net.minecraft.world.item.crafting.RecipeType.CRAFTING, plain, level);
+				Stones.Stone limeStone = new Stones.Stone();
+				if (lime.isPresent()) Stones.lookFrom(lime.get().value().assemble(plain, level.registryAccess()), limeStone);
+				SelfTests.check(lime.isPresent() && lime.get().value().assemble(plain, level.registryAccess()).is(WaystonesMod.DARK_WAYSTONE_ITEM) && "lime".equals(limeStone.dye) && !limeStone.glow,
+						"a dark one with a lime dye: lime, matte");
 			} finally {
 				clear(level, a);
 			}

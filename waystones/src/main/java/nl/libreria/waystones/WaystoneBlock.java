@@ -190,6 +190,7 @@ public final class WaystoneBlock extends Block implements PolymerBlock, BlockWit
 		boolean dark = stack.is(WaystonesMod.DARK_WAYSTONE_ITEM);
 		if (placer instanceof ServerPlayer p) {
 			Stones.Stone s = Stones.placed(p, sl, pos, state, dark);
+			Stones.lookFrom(stack, s);
 			Component custom = stack.get(DataComponents.CUSTOM_NAME);
 			if (custom != null && !custom.getString().isBlank()) {
 				s.name = WaystonesWindows.clean(custom.getString());
@@ -213,10 +214,12 @@ public final class WaystoneBlock extends Block implements PolymerBlock, BlockWit
 		return ok ? state : Blocks.AIR.defaultBlockState();
 	}
 
-	/** The waystone item for the stone at {@code lower}: light or dark. */
+	/** The waystone item for the stone at {@code lower}: light or dark, with its colour and glow (placed again, it keeps them). */
 	static ItemStack item(Level level, BlockPos lower) {
 		Stones.Stone s = Stones.at(level, lower);
-		return new ItemStack(s != null && s.dark ? WaystonesMod.DARK_WAYSTONE_ITEM : WaystonesMod.WAYSTONE_ITEM);
+		ItemStack out = new ItemStack(s != null && s.dark ? WaystonesMod.DARK_WAYSTONE_ITEM : WaystonesMod.WAYSTONE_ITEM);
+		if (s != null && (s.glow || s.dye != null && !s.dye.isEmpty())) Stones.lookOn(out, s.dye, s.glow, s.dark);
+		return out;
 	}
 
 	@Override

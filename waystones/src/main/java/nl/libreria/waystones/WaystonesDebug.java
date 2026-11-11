@@ -65,6 +65,25 @@ public final class WaystonesDebug {
 		s.shared = false;
 	}
 
+	/** A crafting table window with a waystone, a red dye and a glow ink sac in the grid (the result: a red, glowing one). */
+	public static void craftColour(ServerPlayer p) {
+		var level = p.level();
+		var at = p.blockPosition();
+		p.openMenu(new net.minecraft.world.SimpleMenuProvider((id, inv, pl) -> new net.minecraft.world.inventory.CraftingMenu(id, inv,
+				net.minecraft.world.inventory.ContainerLevelAccess.create(level, at)) {
+			@Override
+			public boolean stillValid(net.minecraft.world.entity.player.Player player) {
+				return true;
+			}
+		}, net.minecraft.network.chat.Component.translatable("container.crafting")));
+		if (!(p.containerMenu instanceof net.minecraft.world.inventory.CraftingMenu m)) return;
+		m.getSlot(4).set(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.GLOW_INK_SAC));
+		m.getSlot(5).set(new net.minecraft.world.item.ItemStack(WaystonesMod.WAYSTONE_ITEM));
+		m.getSlot(6).set(new net.minecraft.world.item.ItemStack(nl.libreria.core.Ui.item("red_dye")));
+		m.slotsChanged(m.getSlot(5).container);
+		m.broadcastChanges();
+	}
+
 	public static void admin(ServerPlayer p) {
 		WaystonesWindows.admin(p);
 	}

@@ -4,8 +4,9 @@
   "model": "libreria:item/waystone/dark/item",
   "tints": [
    {
-    "type": "minecraft:constant",
-    "value": 6288096
+    "type": "minecraft:custom_model_data",
+    "index": 0,
+    "default": 6288096
    }
   ]
  }

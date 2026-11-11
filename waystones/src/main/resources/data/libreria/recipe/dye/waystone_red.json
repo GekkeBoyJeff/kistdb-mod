@@ -1,0 +1,33 @@
+{
+	"type": "minecraft:crafting_shapeless",
+	"category": "misc",
+	"group": "libreria_waystone_look",
+	"ingredients": [
+		"libreria:waystone",
+		"minecraft:red_dye"
+	],
+	"result": {
+		"id": "libreria:waystone",
+		"count": 1,
+		"components": {
+			"minecraft:custom_data": {
+				"libreria_waystone_look": {
+					"glow": false,
+					"dye": "red"
+				}
+			},
+			"minecraft:custom_model_data": {
+				"colors": [
+					16734800
+				]
+			},
+			"minecraft:lore": [
+				{
+					"text": "Runes: red",
+					"color": "gray",
+					"italic": false
+				}
+			]
+		}
+	}
+}

@@ -4,8 +4,9 @@
   "model": "libreria:item/waystone/light/item",
   "tints": [
    {
-    "type": "minecraft:constant",
-    "value": 13081584
+    "type": "minecraft:custom_model_data",
+    "index": 0,
+    "default": 13081584
    }
   ]
  }

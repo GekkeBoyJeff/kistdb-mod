@@ -60,8 +60,8 @@ final class Stones {
 		public boolean dark;
 		/** The dye it was given ("" = its stone's own colour: purple on light stone, cyan on dark). */
 		public String dye = "";
-		/** Its runes glow (a glow ink sac), or not (an ink sac). */
-		public boolean glow = true;
+		/** Its runes glow (a glow ink sac), or not (an ink sac; as a new one is). */
+		public boolean glow;
 
 		DyeColor colour() {
 			DyeColor d = this.dye == null || this.dye.isEmpty() ? null : DyeColor.byName(this.dye, null);
@@ -364,6 +364,38 @@ final class Stones {
 	}
 
 	// ---------------------------------------------------------------- its colour
+
+	/** On a waystone item: the look it takes when placed (a dye, glowing runes), from the crafting grid or a broken one. */
+	static final String LOOK = "libreria_waystone_look";
+
+	/**
+	 * A waystone item with this look: what it takes when placed, its colour on the item's runes, and a line saying it.
+	 * The colouring recipes (scripts/waystones/dye_recipes.py) make exactly this item.
+	 */
+	static void lookOn(ItemStack stack, @Nullable String dye, boolean glow, boolean dark) {
+		DyeColor own = dark ? DyeColor.CYAN : DyeColor.PURPLE;
+		DyeColor c = dye == null || dye.isEmpty() ? own : DyeColor.byName(dye, own);
+		net.minecraft.nbt.CompoundTag look = new net.minecraft.nbt.CompoundTag();
+		look.putBoolean("glow", glow);
+		if (dye != null && !dye.isEmpty()) look.putString("dye", dye);
+		net.minecraft.world.item.component.CustomData.update(net.minecraft.core.component.DataComponents.CUSTOM_DATA, stack, root -> root.put(LOOK, look));
+		stack.set(net.minecraft.core.component.DataComponents.CUSTOM_MODEL_DATA,
+				new net.minecraft.world.item.component.CustomModelData(List.of(), List.of(), List.of(), List.of(WaystoneLook.shine(c))));
+		stack.set(net.minecraft.core.component.DataComponents.LORE, new net.minecraft.world.item.component.ItemLore(List.of(
+				net.minecraft.network.chat.Component.literal("Runes: " + c.getName().replace('_', ' ') + (glow ? ", glowing" : ""))
+						.withStyle(st -> st.withColor(ChatFormatting.GRAY).withItalic(false)))));
+	}
+
+	/** A placed waystone takes the look its item carried. */
+	static void lookFrom(ItemStack stack, Stone s) {
+		net.minecraft.world.item.component.CustomData cd = stack.get(net.minecraft.core.component.DataComponents.CUSTOM_DATA);
+		if (cd == null) return;
+		net.minecraft.nbt.CompoundTag look = cd.copyTag().getCompoundOrEmpty(LOOK);
+		if (look.isEmpty()) return;
+		s.dye = look.getStringOr("dye", "");
+		s.glow = look.getBooleanOr("glow", false);
+		STORE.markDirty();
+	}
 
 	/**
 	 * A dye, a glow ink sac or an ink sac used on a waystone: its colour, glowing runes, or matte ones (as on a sign).

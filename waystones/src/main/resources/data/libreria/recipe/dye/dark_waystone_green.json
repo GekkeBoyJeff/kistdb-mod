@@ -1,0 +1,33 @@
+{
+	"type": "minecraft:crafting_shapeless",
+	"category": "misc",
+	"group": "libreria_waystone_look",
+	"ingredients": [
+		"libreria:dark_waystone",
+		"minecraft:green_dye"
+	],
+	"result": {
+		"id": "libreria:dark_waystone",
+		"count": 1,
+		"components": {
+			"minecraft:custom_data": {
+				"libreria_waystone_look": {
+					"glow": false,
+					"dye": "green"
+				}
+			},
+			"minecraft:custom_model_data": {
+				"colors": [
+					8372810
+				]
+			},
+			"minecraft:lore": [
+				{
+					"text": "Runes: green",
+					"color": "gray",
+					"italic": false
+				}
+			]
+		}
+	}
+}

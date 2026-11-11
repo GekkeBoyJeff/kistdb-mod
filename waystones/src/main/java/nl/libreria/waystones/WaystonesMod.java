@@ -89,6 +89,7 @@ public final class WaystonesMod implements ModInitializer {
 		MODULE.commands("Right-click a waystone – find it, travel from it",
 				"Shift + right-click your waystone – its name, private or open",
 				"A dye on your waystone – its colour; a glow ink sac: it glows, an ink sac: matte",
+				"Or in the crafting grid: a waystone with a dye (and a glow ink sac)",
 				"Waystone pearl on a waystone – bind the stack to it", "Right-click a bound pearl – travel there");
 		WaystonePlaces.register();
 		VillageWaystones.register();
