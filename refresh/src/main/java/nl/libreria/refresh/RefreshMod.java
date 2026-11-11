@@ -40,6 +40,11 @@ public final class RefreshMod implements ModInitializer {
 		ServerLifecycleEvents.SERVER_STARTED.register(server -> {
 			Scan.start(server);
 			done(server);
+			// Whatever was planned happened at this start: nothing is planned now
+			if (Plan.STORE.get().planned) {
+				Plan.STORE.get().planned = false;
+				Plan.STORE.markDirty();
+			}
 		});
 		ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
 			MapScreen.closeAll();
