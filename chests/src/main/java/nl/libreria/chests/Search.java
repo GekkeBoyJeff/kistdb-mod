@@ -42,6 +42,17 @@ public final class Search {
 	public record Box(Store.Entry entry, double distance, boolean live, Map<Item, Integer> counts, List<ItemStack> stacks) {
 	}
 
+	/**
+	 * Does this chest count for this player's item search? Only on their own land (in their own claims; not where they're
+	 * trusted, not free land), unless the server turned that off or has no claims.
+	 */
+	public static boolean counts(ServerPlayer player, ServerLevel level, BlockPos pos) {
+		if (!ChestsMod.OWN_LAND.get()) return true;
+		var land = nl.libreria.core.Services.land();
+		if (land.isEmpty() || !land.get().active()) return true;
+		return player.getUUID().equals(land.get().ownerAt(level, pos));
+	}
+
 	/** Alle containers van de speler in deze dimensie, dichtstbijzijnde eerst. Live gelezen waar mogelijk. */
 	public static List<Box> boxes(ServerPlayer player, boolean includeNoIndex) {
 		ServerLevel level = player.level();
@@ -53,7 +64,7 @@ public final class Search {
 			if (!e.dim.equals(dim) || (e.noIndex && !includeNoIndex)) continue;
 			BlockPos key = e.pos();
 			double dist = pos.distanceTo(Vec3.atCenterOf(key));
-			if (dist > radius()) continue;
+			if (dist > radius() || !counts(player, level, key)) continue;
 			Map<Item, Integer> counts = new LinkedHashMap<>();
 			List<ItemStack> stacks = new ArrayList<>();
 			boolean live = Containers.isLoaded(level, key);

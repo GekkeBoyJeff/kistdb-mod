@@ -85,6 +85,45 @@ final class ChestsTests {
 			e.noLabel = false;
 			SelfTests.check(e.labelled(true) && e.labelled(false), "both");
 		});
+		SelfTests.register("chests.own-land", level -> {
+			// Only chests in your own claims are in your item search: not where you're trusted, not free land
+			FakePlayer p = FakePlayer.get(level, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "Searcher"));
+			java.util.UUID other = java.util.UUID.randomUUID();
+			var before = nl.libreria.core.Services.land().orElse(null);
+			BlockPos mine = new BlockPos(300, 70, 300), theirs = new BlockPos(340, 70, 300), free = new BlockPos(380, 70, 300);
+			boolean[] on = {true};
+			nl.libreria.core.Services.provideLand(new nl.libreria.core.Services.Land() {
+				@Override
+				public boolean active() {
+					return on[0];
+				}
+
+				@Override
+				public java.util.UUID ownerAt(net.minecraft.server.level.ServerLevel l, BlockPos pos) {
+					return pos.getX() < 320 ? p.getUUID() : pos.getX() < 360 ? other : null;
+				}
+
+				@Override
+				public boolean trusts(java.util.UUID owner, java.util.UUID o) {
+					return true;
+				}
+			});
+			boolean setting = ChestsMod.OWN_LAND.get();
+			try {
+				ChestsMod.OWN_LAND.set(true);
+				SelfTests.check(Search.counts(p, level, mine), "a chest in your own claim");
+				SelfTests.check(!Search.counts(p, level, theirs), "not in a claim where you're trusted");
+				SelfTests.check(!Search.counts(p, level, free), "not on free land");
+				on[0] = false;
+				SelfTests.check(Search.counts(p, level, free), "claims turned off: every chest");
+				on[0] = true;
+				ChestsMod.OWN_LAND.set(false);
+				SelfTests.check(Search.counts(p, level, theirs) && Search.counts(p, level, free), "the server setting off: every chest");
+			} finally {
+				ChestsMod.OWN_LAND.set(setting);
+				nl.libreria.core.Services.provideLand(before);
+			}
+		});
 		SelfTests.register("chests.supply", level -> {
 			FakePlayer p = FakePlayer.get(level);
 			BlockPos at = new BlockPos(40, 120, 40);

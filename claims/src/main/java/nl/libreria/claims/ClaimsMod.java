@@ -242,6 +242,11 @@ public final class ClaimsMod implements ModInitializer {
 		nl.libreria.core.gui.Markers.addSource(ClaimsMod::compassMarker);
 		nl.libreria.core.Services.provideLand(new nl.libreria.core.Services.Land() {
 			@Override
+			public boolean active() {
+				return MODULE.on();
+			}
+
+			@Override
 			public java.util.UUID ownerAt(ServerLevel level, BlockPos pos) {
 				Claim c = claimAt(level, new ChunkPos(pos.getX() >> 4, pos.getZ() >> 4));
 				return c == null ? null : c.owner;

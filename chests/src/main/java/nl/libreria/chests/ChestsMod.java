@@ -39,6 +39,9 @@ public final class ChestsMod implements ModInitializer {
 			"Sorting, searching your chests by icon", "and showing the way to the right chest.").in(Domain.YOU, "Search & sorting");
 	public static final nl.libreria.core.ServerSetting.Number SEARCH_RADIUS = MODULE.serverNumber("search_radius", "Search range",
 			Items.SPYGLASS, 256, 32, 512, 16, "blocks", "How far away chests still count when", "you search your items.");
+	public static final nl.libreria.core.ServerSetting.Toggle OWN_LAND = MODULE.serverToggle("search_own_land", "Only chests on your own land",
+			Items.FILLED_MAP, true, "Your item search only knows the", "chests in your own claims: not where", "you're trusted, not free land (no",
+			"claim: nothing). Off: every chest", "you opened.");
 	public static final Setting.Toggle SEARCH_BUTTON = MODULE.toggle("zoekknop", "Right-click beside your inventory searches", true, Items.SPYGLASS,
 			"The magnifying glass beside your", "inventory: a right-click opens your", "items. Off: a right-click sorts.");
 	public static final Setting.Toggle SORT_BUTTON = MODULE.toggle("sorteerknop", "Sort button in chests", true, Items.CHEST,

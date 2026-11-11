@@ -10,6 +10,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import nl.libreria.chests.Beam;
+import nl.libreria.chests.ChestsMod;
 import nl.libreria.chests.QuickStack;
 import nl.libreria.chests.Search;
 import nl.libreria.chests.Store;
@@ -218,7 +219,8 @@ public final class ChestsGui extends Menu {
 			return button(Items.CHEST, Store.get(this.player.getUUID()).entries.isEmpty() ? "No chests yet" : "No chests nearby",
 					ChatFormatting.GOLD,
 					"Open a chest, barrel or shulker", "box once: Libreria remembers it.",
-					"Chests within " + (int) Search.radius() + " m in this world", "show up here.");
+					ChestsMod.OWN_LAND.get() ? "Chests in your own claims within" : "Chests within " + (int) Search.radius() + " m in this world",
+					ChestsMod.OWN_LAND.get() ? (int) Search.radius() + " m in this world show up here." : "show up here.");
 		}
 		return button(Items.BARRIER, "None here", ChatFormatting.RED,
 				this.show == Show.SKIPPED ? "No chests are left out of search." : "All your chests are left out of search.",

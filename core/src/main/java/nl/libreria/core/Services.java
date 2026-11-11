@@ -63,6 +63,11 @@ public final class Services {
 
 	/** Who owns land; ClaimsMod provides it. Chests use it: crafting and refilling only take from your own land. */
 	public interface Land {
+		/** Are claims on (the claims module can be turned off by the operators)? */
+		default boolean active() {
+			return true;
+		}
+
 		/** The owner of the chunk at {@code pos}, or null for free land. */
 		@Nullable java.util.UUID ownerAt(net.minecraft.server.level.ServerLevel level, net.minecraft.core.BlockPos pos);
 

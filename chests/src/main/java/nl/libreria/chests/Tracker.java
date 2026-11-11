@@ -46,9 +46,14 @@ public final class Tracker {
 
 		ServerLevel level = (ServerLevel) world;
 		BlockPos key = Containers.keyOf(level, pos);
+		Guide.arrivedAt(sp, level, pos);
+		// Only chests on your own land are in your item search: no search that sends you a thousand blocks away
+		if (!Search.counts(sp, level, key)) {
+			nl.libreria.core.Tips.once(sp, TIP_OWN_LAND);
+			return InteractionResult.PASS;
+		}
 		boolean isNew = Store.track(sp.getUUID(), level, key, Containers.blockId(level, key));
 		OPEN.put(sp.getUUID(), new Open(Store.dimId(level), key, level.getServer().getTickCount()));
-		Guide.arrivedAt(sp, level, pos);
 
 		Store.Entry entry = Store.get(sp.getUUID()).find(Store.dimId(level), key);
 		if (entry != null && entry.noIndex) {
@@ -121,6 +126,9 @@ public final class Tracker {
 		return open.key();
 	}
 
+	static final nl.libreria.core.Tips.Tip TIP_OWN_LAND = nl.libreria.core.Tips.register("chests_own_land", nl.libreria.core.Domain.YOU,
+			net.minecraft.world.item.Items.FILLED_MAP, "Item search: your own land", "Only chests in your own claims are in",
+			"your item search: it never sends you far.");
 	static final nl.libreria.core.Tips.Tip TIP_CHEST = nl.libreria.core.Tips.register("chest", nl.libreria.core.Domain.YOU,
 			net.minecraft.world.item.Items.CHEST, "Sorting a chest", "Double-click an empty slot to sort it.",
 			"The Sort button: right-click puts your matching items in.");

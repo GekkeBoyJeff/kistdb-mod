@@ -214,6 +214,12 @@ public final class Screens implements FabricClientGameTest {
 					f("summon minecraft:cow %d %d %d {NoAI:1b,Rotation:[180f,0f]}", x + 3, y, z - 2),
 					f("summon minecraft:creeper %d %d %d {NoAI:1b,Rotation:[180f,0f]}", x - 3, y, z - 2),
 					f("tp @a %d %d %d 0 0", x, y, z));
+			// The chests of the scene stand on your own land (the item search only knows chests in your own claims)
+			server.runOnServer(s -> {
+				for (int[] c : new int[][] {{x - 2, z + 2}, {x + 1, z + 2}}) {
+					ClaimsMod.debugClaim(player.level(), new net.minecraft.world.level.ChunkPos(c[0] >> 4, c[1] >> 4), player.getUUID(), player.getName().getString());
+				}
+			});
 			// A title for the name tag (an epic one)
 			server.runOnServer(s -> {
 				CollectorMod.STORE.get(player).earned.put("fok.500", System.currentTimeMillis());
