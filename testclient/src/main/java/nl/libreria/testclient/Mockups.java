@@ -36,22 +36,183 @@ final class Mockups {
 		run(server, "kill @e[type=!minecraft:player]", "clear @a", "time set midnight",
 				f("fill %d %d %d %d %d %d minecraft:grass_block", x - 16, y - 1, z - 6, x + 16, y - 1, z + 24),
 				f("fill %d %d %d %d %d %d minecraft:air", x - 16, y, z - 6, x + 16, y + 8, z + 24));
+		// (the mock-ups of before were chosen and built: spawnSpots, ping, stands)
 		try {
-			spawnSpots(ctx, server, player, x, y, z);
+			grandWaystones(ctx, server, player, x, y, z);
 		} catch (Throwable t) {
-			LOG.error("mock spawn spots failed", t);
-		}
-		try {
-			ping(ctx, server, player, x, y, z);
-		} catch (Throwable t) {
-			LOG.error("mock ping failed", t);
-		}
-		try {
-			stands(ctx, server, player, x, y, z);
-		} catch (Throwable t) {
-			LOG.error("mock stands failed", t);
+			LOG.error("mock grand waystones failed", t);
 		}
 		LOG.info("LIBRERIA-MOCKUPS DONE");
+	}
+
+	// ---------------------------------------------------------------- grand waystones (Nov 2026)
+
+	/**
+	 * A grand waystone, three ways, 5 × 5 and tall, built from real blocks (displays for what floats): the Spire (light
+	 * stone, purple runes, a floating gem), the Gate (blackstone, cyan runes, a rune tablet floating in an arch) and the
+	 * Lighthouse (a hollow tower with a beam of light). And how one is made: the foundation you build round a waystone.
+	 */
+	private static void grandWaystones(ClientGameTestContext ctx, TestServerContext server, ServerPlayer player, int x, int y, int z) {
+		int gz = z + 16;
+		run(server, "kill @e[type=!minecraft:player]", "clear @a", "time set 1000", "weather clear",
+				f("fill %d %d %d %d %d %d minecraft:grass_block", x - 24, y - 1, z - 6, x + 24, y - 1, z + 30),
+				f("fill %d %d %d %d %d %d minecraft:air", x - 24, y, z - 6, x + 24, y + 12, z + 30),
+				f("fill %d %d %d %d %d %d minecraft:air", x - 24, y + 13, z + 6, x + 24, y + 24, z + 30));
+		spire(server, x - 12, y, gz);
+		gate(server, x, y, gz);
+		lighthouse(server, x + 12, y, gz);
+		// All three, by day and at night
+		view(server, x + 0.5, y + 6, z - 8.5, x + 0.5, y + 6, gz + 0.5);
+		ctx.waitTicks(60);
+		Screens.shot(ctx, "mock_grand_all_day");
+		run(server, "time set 18000");
+		ctx.waitTicks(40);
+		Screens.shot(ctx, "mock_grand_all_night");
+		// Each up close, at dusk
+		run(server, "time set 12800");
+		int[] cx = {x - 12, x, x + 12};
+		String[] names = {"spire", "gate", "lighthouse"};
+		for (int i = 0; i < 3; i++) {
+			view(server, cx[i] + 7.5, y + 2.5, gz - 8.5, cx[i] + 0.5, y + 6.5, gz + 0.5);
+			ctx.waitTicks(40);
+			Screens.shot(ctx, "mock_grand_" + names[i]);
+		}
+		// How it's made: the foundation round a waystone (and the heart in your hand), by day
+		int fx = x, fz = z + 4;
+		run(server, "time set 1000", f("fill %d %d %d %d %d %d minecraft:air", x - 24, y, gz - 4, x + 24, y + 24, gz + 4),
+				"kill @e[type=minecraft:block_display]");
+		foundation(server, fx, y, fz);
+		server.runOnServer(sv -> nl.libreria.waystones.WaystonesDebug.scene(player, new BlockPos(fx, y + 1, fz), net.minecraft.core.Direction.NORTH));
+		run(server, "item replace entity @a weapon.mainhand with minecraft:nether_star");
+		view(server, fx + 5.5, y + 3.5, fz - 6.5, fx + 0.5, y + 1.5, fz + 0.5);
+		ctx.waitTicks(40);
+		Screens.shot(ctx, "mock_grand_foundation");
+		run(server, "item replace entity @a weapon.mainhand with minecraft:air");
+	}
+
+	/** The player stands at (ax, ay, az) and looks at (tx, ty, tz). */
+	private static void view(TestServerContext server, double ax, double ay, double az, double tx, double ty, double tz) {
+		double dx = tx - ax, dy = ty - (ay + 1.62), dz = tz - az;
+		float yaw = (float) Math.toDegrees(Math.atan2(-dx, dz));
+		float pitch = (float) -Math.toDegrees(Math.atan2(dy, Math.sqrt(dx * dx + dz * dz)));
+		run(server, f("tp @a %.2f %.2f %.2f %.1f %.1f", ax, ay, az, yaw, pitch));
+	}
+
+	/**
+	 * Builds layers of a 5 × 5 plan (centred on cx, cz; each layer five rows of five letters, north first), bottom up
+	 * from y, the letters looked up in {@code key} (a space: nothing).
+	 */
+	private static void layers(TestServerContext server, int cx, int y, int cz, java.util.Map<Character, String> key, String[][] plan) {
+		for (int l = 0; l < plan.length; l++) {
+			for (int r = 0; r < 5; r++) {
+				String row = plan[l][r];
+				for (int c = 0; c < 5; c++) {
+					char ch = row.charAt(c);
+					if (ch == ' ') continue;
+					String block = key.get(ch);
+					if (block == null) continue;
+					run(server, f("setblock %d %d %d %s", cx - 2 + c, y + l, cz - 2 + r, block));
+				}
+			}
+		}
+	}
+
+	/** A floating block (a display): its middle at (x, y, z), scaled, turned about an axis by an angle (degrees). */
+	private static void floating(TestServerContext server, double x, double y, double z, String block, float sx, float sy, float sz,
+			float ax, float ay, float az, float degrees) {
+		org.joml.Quaternionf q = new org.joml.Quaternionf().rotateAxis((float) Math.toRadians(degrees), new org.joml.Vector3f(ax, ay, az).normalize());
+		org.joml.Vector3f centre = new org.joml.Vector3f(sx / 2, sy / 2, sz / 2).rotate(q).negate();
+		run(server, f("summon minecraft:block_display %.3f %.3f %.3f {block_state:{Name:\"%s\"},brightness:{sky:15,block:15},view_range:4f,"
+				+ "transformation:{left_rotation:[%ff,%ff,%ff,%ff],right_rotation:[0f,0f,0f,1f],translation:[%ff,%ff,%ff],scale:[%ff,%ff,%ff]}}",
+				x, y, z, block, q.x, q.y, q.z, q.w, centre.x, centre.y, centre.z, sx, sy, sz));
+	}
+
+	/** The Spire: light stone on a stepped base, purple runes on four sides, a tall needle, a gem floating on top. */
+	private static void spire(TestServerContext server, int cx, int y, int cz) {
+		java.util.Map<Character, String> k = java.util.Map.ofEntries(java.util.Map.entry('S', "minecraft:stone_bricks"),
+				java.util.Map.entry('C', "minecraft:chiseled_stone_bricks"), java.util.Map.entry('M', "minecraft:smooth_stone"),
+				java.util.Map.entry('d', "minecraft:smooth_stone_slab"), java.util.Map.entry('u', "minecraft:stone_brick_slab[type=top]"),
+				java.util.Map.entry('W', "minecraft:stone_brick_wall"), java.util.Map.entry('E', "minecraft:end_rod"),
+				java.util.Map.entry('F', "minecraft:pearlescent_froglight"), java.util.Map.entry('A', "minecraft:amethyst_block"),
+				java.util.Map.entry('X', "minecraft:amethyst_cluster[facing=up]"), java.util.Map.entry('Q', "minecraft:quartz_pillar"));
+		layers(server, cx, y, cz, k, new String[][] {
+				{"CSSSC", "SMMMS", "SMMMS", "SMMMS", "CSSSC"},
+				{"WdddW", "dSCSd", "dCSCd", "dSCSd", "WdddW"},
+				{"W   W", " CFC ", " FSF ", " CFC ", "W   W"},
+				{"E   E", " SAS ", " ASA ", " SAS ", "E   E"},
+				{"     ", " CuC ", " uSu ", " CuC ", "     "},
+				{"     ", "     ", "  Q  ", "     ", "     "},
+				{"     ", "     ", "  Q  ", "     ", "     "},
+				{"     ", "     ", "  F  ", "     ", "     "},
+				{"     ", "     ", "  C  ", "     ", "     "},
+				{"     ", "     ", "  A  ", "     ", "     "},
+				{"     ", "     ", "  X  ", "     ", "     "}});
+		floating(server, cx + 0.5, y + 12.4, cz + 0.5, "minecraft:amethyst_block", 0.75f, 0.75f, 0.75f, 1, 0, 1, 45);
+		floating(server, cx + 0.5, y + 12.4, cz + 0.5, "minecraft:pearlescent_froglight", 0.35f, 0.35f, 0.35f, 1, 0, 1, 45);
+	}
+
+	/** The Gate: blackstone pillars and an arch, cyan lanterns, a rune tablet floating over a lodestone in the middle. */
+	private static void gate(TestServerContext server, int cx, int y, int cz) {
+		java.util.Map<Character, String> k = java.util.Map.ofEntries(java.util.Map.entry('B', "minecraft:polished_blackstone_bricks"),
+				java.util.Map.entry('K', "minecraft:chiseled_polished_blackstone"), java.util.Map.entry('P', "minecraft:polished_blackstone"),
+				java.util.Map.entry('G', "minecraft:gilded_blackstone"), java.util.Map.entry('L', "minecraft:lodestone"),
+				java.util.Map.entry('w', "minecraft:polished_blackstone_brick_wall"), java.util.Map.entry('s', "minecraft:soul_lantern"),
+				java.util.Map.entry('h', "minecraft:soul_lantern[hanging=true]"), java.util.Map.entry('O', "minecraft:crying_obsidian"),
+				java.util.Map.entry('e', "minecraft:polished_blackstone_brick_stairs[facing=west,half=top]"),
+				java.util.Map.entry('f', "minecraft:polished_blackstone_brick_stairs[facing=east,half=top]"),
+				java.util.Map.entry('b', "minecraft:polished_blackstone_slab[type=bottom]"), java.util.Map.entry('R', "minecraft:sea_lantern"));
+		layers(server, cx, y, cz, k, new String[][] {
+				{"KBBBK", "BPPPB", "BPPPB", "BPPPB", "KBBBK"},
+				{"w   w", "B   B", "K L K", "B   B", "w   w"},
+				{"s   s", "B   B", "R   R", "B   B", "s   s"},
+				{"     ", "B   B", "K   K", "B   B", "     "},
+				{"     ", "b   b", "B   B", "b   b", "     "},
+				{"     ", "     ", "R   R", "     ", "     "},
+				{"     ", "     ", "B   B", "     ", "     "},
+				{"     ", "     ", "Ke fK", "     ", "     "},
+				{"     ", "     ", "BGOGB", "     ", "     "},
+				{"     ", "     ", "bbKbb", "     ", "     "},
+				{"     ", "     ", "  R  ", "     ", "     "}});
+		run(server, f("setblock %d %d %d minecraft:soul_lantern[hanging=true]", cx, y + 7, cz));
+		// The tablet: dark stone with a line of cyan light, floating over the lodestone
+		floating(server, cx + 0.5, y + 3.6, cz + 0.5, "minecraft:polished_deepslate", 1.1f, 1.8f, 0.22f, 0, 1, 0, 0);
+		floating(server, cx + 0.5, y + 3.6, cz + 0.5, "minecraft:sea_lantern", 0.14f, 1.3f, 0.26f, 0, 1, 0, 0);
+		floating(server, cx + 0.5, y + 3.9, cz + 0.5, "minecraft:sea_lantern", 0.7f, 0.12f, 0.26f, 0, 1, 0, 0);
+	}
+
+	/** The Lighthouse: a hollow tower with windows and rune bands, a crown, and a beam of light in its colour. */
+	private static void lighthouse(TestServerContext server, int cx, int y, int cz) {
+		java.util.Map<Character, String> k = java.util.Map.ofEntries(java.util.Map.entry('S', "minecraft:stone_bricks"),
+				java.util.Map.entry('C', "minecraft:chiseled_stone_bricks"), java.util.Map.entry('M', "minecraft:smooth_stone"),
+				java.util.Map.entry('g', "minecraft:purple_stained_glass"), java.util.Map.entry('F', "minecraft:pearlescent_froglight"),
+				java.util.Map.entry('A', "minecraft:amethyst_block"), java.util.Map.entry('W', "minecraft:stone_brick_wall"),
+				java.util.Map.entry('E', "minecraft:end_rod"), java.util.Map.entry('d', "minecraft:smooth_stone_slab"),
+				java.util.Map.entry('D', "minecraft:oak_door[half=lower,facing=north]"), java.util.Map.entry('U', "minecraft:oak_door[half=upper,facing=north]"));
+		String ring = "SSSSS|S   S|S   S|S   S|SSSSS";
+		String rune = "CSFSC|S   S|F   F|S   S|CSFSC";
+		String win = "SSgSS|S   S|g   g|S   S|SSgSS";
+		String band = "CCCCC|C   C|C   C|C   C|CCCCC";
+		layers(server, cx, y, cz, k, new String[][] {
+				{"CMMMC", "MMMMM", "MMAMM", "MMMMM", "CMMMC"},
+				"SSDSS|S   S|S   S|S   S|SSSSS".split("\\|"), "SSUSS|S   S|S   S|S   S|SSSSS".split("\\|"),
+				band.split("\\|"), win.split("\\|"), ring.split("\\|"), rune.split("\\|"), win.split("\\|"), band.split("\\|"),
+				{"SSSSS", "SMMMS", "SMAMS", "SMMMS", "SSSSS"},
+				{"W   W", "     ", "  A  ", "     ", "W   W"},
+				{"E   E", "     ", "  F  ", "     ", "E   E"}});
+		// The beam, in the runes' colour, from the crown up
+		floating(server, cx + 0.5, y + 12 + 24, cz + 0.5, "minecraft:purple_stained_glass", 0.45f, 48f, 0.45f, 0, 1, 0, 0);
+	}
+
+	/** The foundation you build round a waystone before it becomes grand: a 5 × 5 floor, four corner posts with lights. */
+	private static void foundation(TestServerContext server, int cx, int y, int cz) {
+		java.util.Map<Character, String> k = java.util.Map.ofEntries(java.util.Map.entry('S', "minecraft:stone_bricks"),
+				java.util.Map.entry('C', "minecraft:chiseled_stone_bricks"), java.util.Map.entry('M', "minecraft:smooth_stone"),
+				java.util.Map.entry('A', "minecraft:amethyst_block"), java.util.Map.entry('W', "minecraft:stone_brick_wall"),
+				java.util.Map.entry('E', "minecraft:end_rod"));
+		layers(server, cx, y, cz, k, new String[][] {
+				{"CSSSC", "SMMMS", "SMAMS", "SMMMS", "CSSSC"},
+				{"W   W", "     ", "     ", "     ", "W   W"},
+				{"E   E", "     ", "     ", "     ", "E   E"}});
 	}
 
 	/**
