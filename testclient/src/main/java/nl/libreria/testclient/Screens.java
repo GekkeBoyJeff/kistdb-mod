@@ -1928,6 +1928,29 @@ public final class Screens implements FabricClientGameTest {
 				menu(ctx, server, player, "start_" + d.word, p -> nl.libreria.core.Start.domain(p, d));
 			}
 			menu(ctx, server, player, "places_land", p -> nl.libreria.core.PlaceList.open(p, "land"));
+			// A window over your inventory: your real items never show through it, even when the inventory is sent again
+			safe("places_hidden_inventory", () -> {
+				run(server, "item replace entity @p hotbar.1 with minecraft:diamond_pickaxe");
+				ctx.waitTicks(4);
+				server.runOnServer(s -> nl.libreria.core.PlaceList.open(player, "waystones"));
+				ctx.waitTicks(12);
+				server.runOnServer(s -> {
+					player.inventoryMenu.sendAllDataToRemote();
+					player.inventoryMenu.broadcastChanges();
+				});
+				ctx.waitTicks(6);
+				String seen = ctx.computeOnClient(mc -> mc.player.containerMenu.slots.size() > 82
+						? net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(mc.player.containerMenu.getSlot(82).getItem().getItem()).toString() : "?");
+				LOG.info("LIBRERIA-HIDDEN hotbar slot 2 in the window shows: {}", seen);
+				ctx.getInput().setCursorPos(2, 2);
+				noToasts(ctx);
+				ctx.takeScreenshot("places_hidden_inventory");
+				close(ctx, server, player);
+				ctx.waitTicks(4);
+				String back = ctx.computeOnClient(mc -> net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(mc.player.getInventory().getItem(1).getItem()).toString());
+				LOG.info("LIBRERIA-HIDDEN after closing, hotbar slot 2 holds: {}", back);
+				run(server, "item replace entity @p hotbar.1 with minecraft:air");
+			});
 			for (Module.HubEntry e : Module.allHubEntries()) {
 				// The land map isn't a menu (and would stay open behind the others)
 				if (e.name().equals("Land map")) continue;
