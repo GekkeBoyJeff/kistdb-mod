@@ -47,7 +47,8 @@ public final class RefreshMod implements ModInitializer {
 			// The list of what goes, with the land as it is now (claims made since, time spent since)
 			if (Plan.STORE.get().planned) Restart.write(server);
 		});
-		ServerChunkEvents.CHUNK_UNLOAD.register((level, chunk) -> Scan.live(level, chunk));
+		ServerChunkEvents.CHUNK_LOAD.register(Scan::loaded);
+		ServerChunkEvents.CHUNK_UNLOAD.register(Scan::unloaded);
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
 			Scan.tick(server);
 			MapScreen.tick(server);

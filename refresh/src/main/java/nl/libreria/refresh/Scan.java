@@ -177,7 +177,7 @@ final class Scan {
 
 	static void stop(MinecraftServer server) {
 		// What's loaded now is the freshest
-		for (ServerLevel lv : server.getAllLevels()) lv.getChunkSource().chunkMap.forEachReadyToSendChunk(c -> live(lv, c));
+		for (ServerLevel lv : server.getAllLevels()) refreshLoaded(lv);
 		if (exec != null) {
 			exec.shutdown();
 			try {
@@ -297,9 +297,23 @@ final class Scan {
 		r.dirty = true;
 	}
 
+	/** The chunks loaded now, per world (Minecraft only lists those a player sees). */
+	private static final Map<ResourceKey<Level>, Map<Long, LevelChunk>> LOADED = new ConcurrentHashMap<>();
+
+	static void loaded(ServerLevel lv, LevelChunk c) {
+		LOADED.computeIfAbsent(lv.dimension(), k -> new ConcurrentHashMap<>()).put(key(c.getPos().x(), c.getPos().z()), c);
+	}
+
+	static void unloaded(ServerLevel lv, LevelChunk c) {
+		live(lv, c);
+		Map<Long, LevelChunk> m = LOADED.get(lv.dimension());
+		if (m != null) m.remove(key(c.getPos().x(), c.getPos().z()));
+	}
+
 	/** Every chunk loaded now, straight from the world (when its map opens). */
 	static void refreshLoaded(ServerLevel lv) {
-		lv.getChunkSource().chunkMap.forEachReadyToSendChunk(c -> live(lv, c));
+		Map<Long, LevelChunk> m = LOADED.get(lv.dimension());
+		if (m != null) for (LevelChunk c : new ArrayList<>(m.values())) live(lv, c);
 	}
 
 	// ---------------------------------------------------------------- remembering

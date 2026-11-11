@@ -108,7 +108,7 @@ final class Colors {
 			ListTag pal = states.getListOrEmpty("palette");
 			if (sy == Integer.MIN_VALUE || pal.isEmpty()) continue;
 			String[] names = new String[pal.size()];
-			for (int p = 0; p < pal.size(); p++) names[p] = pal.get(p) instanceof CompoundTag e ? e.getStringOr("Name", "minecraft:air") : "minecraft:air";
+			for (int p = 0; p < pal.size(); p++) names[p] = blockName(pal.get(p));
 			long[] data = states.get("data") instanceof LongArrayTag d ? d.getAsLongArray() : null;
 			int bits = Math.max(4, 32 - Integer.numberOfLeadingZeros(Math.max(1, names.length - 1)));
 			sections.put(sy, new Section(names, data, bits));
@@ -177,6 +177,17 @@ final class Colors {
 		}
 	}
 
+	/** A block of a saved palette: {Name: …} (or just its name, with its properties after it). */
+	private static String blockName(Tag t) {
+		if (t instanceof CompoundTag e) return e.getStringOr("Name", "minecraft:air");
+		if (t instanceof net.minecraft.nbt.StringTag st) {
+			String v = st.value();
+			int b = v.indexOf('[');
+			return b < 0 ? v : v.substring(0, b);
+		}
+		return "minecraft:air";
+	}
+
 	/** A section's height (in sections), saved as a byte. */
 	private static int sectionY(CompoundTag sec) {
 		Tag t = sec.get("Y");
@@ -196,9 +207,16 @@ final class Colors {
 		StringBuilder sb = new StringBuilder("v0=" + v + " y0=" + (minY + v - 1) + " longs=" + surface.length + " sections");
 		for (int k = 0; k < list.size(); k++) {
 			if (list.get(k) instanceof CompoundTag sec) {
-				sb.append(' ').append(sectionY(sec)).append(':').append(sec.get("Y") == null ? "-" : sec.get("Y").getClass().getSimpleName());
-				ListTag pal = sec.getCompoundOrEmpty("block_states").getListOrEmpty("palette");
-				if (!pal.isEmpty() && pal.get(0) instanceof CompoundTag e) sb.append('=').append(e.getStringOr("Name", "?"));
+				sb.append(' ').append(sectionY(sec)).append(sec.keySet());
+				Tag bs = sec.get("block_states");
+				if (bs instanceof CompoundTag b) {
+					sb.append(b.keySet());
+					Tag pal = b.get("palette");
+					sb.append(pal == null ? "-" : pal.getClass().getSimpleName());
+					if (pal instanceof ListTag l && !l.isEmpty()) sb.append('=').append(l.get(0).getClass().getSimpleName()).append(':').append(l.get(0));
+				} else {
+					sb.append(bs == null ? "no block_states" : bs.getClass().getSimpleName());
+				}
 			}
 			if (k > 6) break;
 		}
