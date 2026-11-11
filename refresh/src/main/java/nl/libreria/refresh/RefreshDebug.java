@@ -43,6 +43,14 @@ public final class RefreshDebug {
 		MapScreen.debugZoom(p, zoom);
 	}
 
+	public static void brush(ServerPlayer p, boolean painting, boolean stays, boolean region, boolean stroke) {
+		MapScreen.debugBrush(p, painting, stays, region, stroke);
+	}
+
+	public static void brush(ServerPlayer p, boolean painting, boolean stays, boolean region, boolean stroke) {
+		MapScreen.debugBrush(p, painting, stays, region, stroke);
+	}
+
 	public static void world(ServerPlayer p, String dim) {
 		MapScreen.debugWorld(p, key(dim));
 	}

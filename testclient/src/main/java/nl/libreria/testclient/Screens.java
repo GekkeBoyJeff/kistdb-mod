@@ -1404,6 +1404,17 @@ public final class Screens implements FabricClientGameTest {
 				ctx.waitTicks(40);
 				noToasts(ctx);
 				ctx.takeScreenshot("refresh_map");
+				// The brush: painting chunks to keep (a stroke done), then a whole region to let go (its outline)
+				server.runOnServer(s -> nl.libreria.refresh.RefreshDebug.brush(player, true, true, false, true));
+				ctx.waitTicks(15);
+				ctx.takeScreenshot("refresh_map_paint");
+				server.runOnServer(s -> {
+					nl.libreria.refresh.RefreshDebug.zoom(player, 1);
+					nl.libreria.refresh.RefreshDebug.brush(player, false, false, true, false);
+				});
+				ctx.waitTicks(15);
+				ctx.takeScreenshot("refresh_map_region");
+				server.runOnServer(s -> nl.libreria.refresh.RefreshDebug.brush(player, false, true, false, false));
 				server.runOnServer(s -> nl.libreria.refresh.RefreshDebug.zoom(player, 0));
 				ctx.waitTicks(15);
 				ctx.takeScreenshot("refresh_map_far");

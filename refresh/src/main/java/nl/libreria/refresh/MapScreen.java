@@ -55,7 +55,6 @@ import nl.libreria.core.Hud;
 import nl.libreria.core.Services;
 import nl.libreria.core.Ui;
 import nl.libreria.core.gui.Glyphs;
-import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
 /**
@@ -63,8 +62,9 @@ import org.joml.Vector3f;
  * you see it; you stand still meanwhile): every chunk of a world from above, the ones that go darkened with red
  * stripes, claims framed green, what you kept framed yellow. Where you look is the pointer (the screen follows your
  * mouse, and pushing past its edge moves the map); WASD moves the map, scrolling zooms (from a chunk a pixel to a block
- * a pixel), holding right-click paints chunks to stay or go, left-click does a whole region (32 × 32 chunks). Tabs on
- * top switch between the worlds, sneak (or Done) takes you back.
+ * a pixel). The brush keeps chunks or lets them go (space switches): a click turns it on, every chunk the pointer
+ * passes is painted, the next click turns it off; at region size (ctrl) a click does a whole region (32 × 32 chunks).
+ * Tabs on top switch between the worlds, sneak (or Done) takes you back.
  *
  * <p>The screen is 5 × 3 maps in invisible glow item frames, drawn by the server into map pictures that exist only
  * for you, with text displays for the words and dark panels around.
@@ -82,7 +82,7 @@ final class MapScreen {
 	private static final Identifier FREEZE = Identifier.fromNamespaceAndPath("libreria", "refresh_map");
 	private static final Brightness FULL = new Brightness(15, 15);
 	private static final String HUD = "refresh.map";
-	private static final int BG = 0xD0101218, CHIP = 0xC02A2D36, CHIP_ON = 0xD0A06A10;
+	private static final int BG = 0xD0101218, CHIP = 0xC02A2D36, CHIP_ON = 0xD0A06A10, KEEP_ON = 0xD08C7A12, GO_ON = 0xD0962E26;
 	private static int nextMap = 1_950_000_000;
 
 	/** An item frame only one player sees: a map hanging on nothing, facing {@code facing}. */
@@ -126,9 +126,12 @@ final class MapScreen {
 		final int[] mapIds = new int[TW * TH];
 		final byte[][] sent = new byte[TW * TH][];
 		final TextDisplayElement title = new TextDisplayElement(), legend = new TextDisplayElement(), sums = new TextDisplayElement(),
-				done = new TextDisplayElement(), takes = new TextDisplayElement();
+				done = new TextDisplayElement(), takes = new TextDisplayElement(), keepChip = new TextDisplayElement(), goChip = new TextDisplayElement(),
+				chunkChip = new TextDisplayElement(), regionChip = new TextDisplayElement(), hint = new TextDisplayElement();
 		final List<TextDisplayElement> tabs = new ArrayList<>();
 		final List<Button> buttons = new ArrayList<>();
+		/** Where words hide the map (u0, u1, v0, v1): no painting under them. */
+		final List<double[]> covers = new ArrayList<>();
 		ResourceKey<Level> dim;
 		Plan.Ctx ctx;
 		Plan.Count count;
@@ -136,10 +139,13 @@ final class MapScreen {
 		double cx, cz;
 		int zoom = 2;
 		float yaw, pitch, lastYaw, lastPitch;
-		int age, lastSlot, lastPaint = -100, lastDraw = -100, lastCount = -100;
-		boolean cameraSet, sneakReleased, dirty = true;
-		/** Painting: chunks to stay (true) or go; the last chunk painted. */
-		@Nullable Boolean paintStays;
+		int age, lastSlot, lastDraw = -100, lastCount = -100, lastClick = -100, lastRight = -100, lastSound = -100;
+		boolean cameraSet, sneakReleased, dirty = true, wasSwinging, wasJumping, wasSprinting;
+		/**
+		 * The brush: whether it paints now (a click turns it on, the next off), what it paints (keep, else let go), and
+		 * whether a click does a whole region at once instead; the last chunk painted.
+		 */
+		boolean painting, brushStays = true, regionSize;
 		long lastPainted = Long.MIN_VALUE;
 		long hover = Long.MIN_VALUE;
 		double pu, pv;
@@ -229,7 +235,9 @@ final class MapScreen {
 				fr.setInteractionHandler(new VirtualElement.InteractionHandler() {
 					@Override
 					public void interact(ServerPlayer player, InteractionHand hand, Vec3 pos, boolean secondary) {
-						if (hand == InteractionHand.MAIN_HAND) rightClick(player);
+						// Right-click does nothing here (but it swings your arm: that is no left-click)
+						View w = VIEWS.get(player.getUUID());
+						if (w != null) w.lastRight = w.age;
 					}
 
 					@Override
@@ -240,7 +248,11 @@ final class MapScreen {
 				v.holder.addElement(fr);
 			}
 		}
-		for (TextDisplayElement t : List.of(v.title, v.legend, v.sums, v.done, v.takes)) text(v, t);
+		for (TextDisplayElement t : List.of(v.title, v.legend, v.sums, v.done, v.takes, v.keepChip, v.goChip, v.chunkChip, v.regionChip, v.hint)) text(v, t);
+		var in = p.getLastClientInput();
+		v.wasSwinging = p.isSwinging();
+		v.wasJumping = in.jump();
+		v.wasSprinting = in.sprint();
 		for (int k = 0; k < 3; k++) {
 			TextDisplayElement t = new TextDisplayElement();
 			text(v, t);
@@ -352,6 +364,25 @@ final class MapScreen {
 		v.dirty = true;
 	}
 
+	/**
+	 * For the screenshots: the brush (painting or not, keep or let go, a chunk or a region); with {@code stroke}, a stroke
+	 * painted as if the pointer came from the lower left to where it is.
+	 */
+	static void debugBrush(ServerPlayer p, boolean painting, boolean stays, boolean region, boolean stroke) {
+		View v = VIEWS.get(p.getUUID());
+		if (v == null) return;
+		v.regionSize = region;
+		v.brushStays = stays;
+		v.painting = painting && !region;
+		v.lastPainted = Long.MIN_VALUE;
+		if (stroke && v.hover != Long.MIN_VALUE) {
+			v.lastPainted = Scan.key(Scan.kx(v.hover) - 14, Scan.kz(v.hover) + 6);
+			stroke(v);
+		}
+		v.dirty = true;
+		words(v);
+	}
+
 	static void debugWorld(ServerPlayer p, ResourceKey<Level> dim) {
 		View v = VIEWS.get(p.getUUID());
 		if (v != null) switchTo(v, dim);
@@ -399,6 +430,7 @@ final class MapScreen {
 				continue;
 			}
 			pointer(v);
+			if (v.painting && !v.regionSize) stroke(v);
 			if (v.age - v.lastCount > 40) {
 				v.lastCount = v.age;
 				recount(v);
@@ -465,6 +497,22 @@ final class MapScreen {
 				Ui.sound(p, SoundEvents.UI_BUTTON_CLICK.value(), 0.15f, 1.4f + 0.1f * z);
 			}
 		}
+		// Left-click (the arm swings; a right-click on the screen swings it too), space: the brush, ctrl: its size
+		boolean swinging = p.isSwinging();
+		if (swinging && !v.wasSwinging && v.age - v.lastRight > 1) leftClick(p);
+		v.wasSwinging = swinging;
+		boolean jump = in.jump();
+		if (jump && !v.wasJumping && v.age > 4) {
+			Ui.click(p);
+			setBrush(v, !v.brushStays);
+		}
+		v.wasJumping = jump;
+		boolean sprint = in.sprint();
+		if (sprint && !v.wasSprinting && v.age > 4) {
+			Ui.click(p);
+			setSize(v, !v.regionSize);
+		}
+		v.wasSprinting = sprint;
 	}
 
 	private static int zoom(View v) {
@@ -496,70 +544,100 @@ final class MapScreen {
 
 	// ---------------------------------------------------------------- clicks
 
-	private static void rightClick(ServerPlayer p) {
+	/** Left-click: a button; else the brush on or off, or (region size) the whole region under the pointer. */
+	private static void leftClick(ServerPlayer p) {
 		View v = VIEWS.get(p.getUUID());
-		if (v == null || v.age < 4) return;
+		// (one click comes twice: the hit on the screen, and the arm's swing)
+		if (v == null || v.age < 4 || v.ctx == null || v.age - v.lastClick <= 3) return;
+		v.lastClick = v.age;
 		if (button(v)) return;
-		long c = v.hover;
-		if (c == Long.MIN_VALUE) return;
-		Scan.World w = Scan.world(v.dim);
-		if (w == null) return;
-		// A new stroke: it paints the opposite of the first chunk
-		boolean fresh = v.age - v.lastPaint > 7;
-		v.lastPaint = v.age;
-		if (fresh) {
-			Plan.Why why = v.ctx.why(w, Scan.kx(c), Scan.kz(c));
-			if (!v.ctx.pickable(why)) {
-				Hud.flash(p, Ui.text(Character.toUpperCase(why.words.charAt(0)) + why.words.substring(1) + ": it always stays", ChatFormatting.GRAY));
-				v.paintStays = null;
-				return;
-			}
-			v.paintStays = !why.stays;
-			v.lastPainted = Long.MIN_VALUE;
+		if (!v.ctx.on) {
+			v.painting = false;
+			Hud.flash(p, Ui.text("This world takes no part: turn on \"Takes part\" first", ChatFormatting.GRAY));
+			return;
 		}
-		if (v.paintStays == null) return;
-		// Along the way from the last chunk painted (the pointer moves between clicks)
+		if (v.regionSize) {
+			region(v);
+			return;
+		}
+		v.painting = !v.painting;
+		v.lastPainted = Long.MIN_VALUE;
+		Ui.sound(p, SoundEvents.UI_BUTTON_CLICK.value(), 0.3f, v.painting ? 1.5f : 1.0f);
+		v.dirty = true;
+		words(v);
+		if (v.painting) stroke(v);
+	}
+
+	/** The brush paints: every chunk from the last one painted to the one under the pointer (not under the words). */
+	private static void stroke(View v) {
+		long c = v.hover;
+		Scan.World w = Scan.world(v.dim);
+		if (c == Long.MIN_VALUE || w == null || v.ctx == null || covered(v)) {
+			v.lastPainted = Long.MIN_VALUE;
+			return;
+		}
+		if (c == v.lastPainted) return;
 		int x1 = Scan.kx(c), z1 = Scan.kz(c);
 		int x0 = v.lastPainted == Long.MIN_VALUE ? x1 : Scan.kx(v.lastPainted), z0 = v.lastPainted == Long.MIN_VALUE ? z1 : Scan.kz(v.lastPainted);
 		int n = Math.max(Math.abs(x1 - x0), Math.abs(z1 - z0));
 		boolean any = false;
 		for (int s = 0; s <= n; s++) {
 			int x = n == 0 ? x1 : Math.round(x0 + (x1 - x0) * s / (float) n), z = n == 0 ? z1 : Math.round(z0 + (z1 - z0) * s / (float) n);
-			any |= paint(v, w, x, z, v.paintStays);
+			any |= paint(v, w, x, z, v.brushStays);
 		}
 		v.lastPainted = c;
 		if (any) {
 			changed(v);
-			Ui.sound(p, SoundEvents.UI_BUTTON_CLICK.value(), 0.08f, v.paintStays ? 1.6f : 1.2f);
+			if (v.age - v.lastSound >= 2) {
+				v.lastSound = v.age;
+				Ui.sound(v.p, SoundEvents.UI_BUTTON_CLICK.value(), 0.08f, v.brushStays ? 1.6f : 1.2f);
+			}
 		}
 	}
 
-	/** Left-click: a button, or the whole region under the pointer (most of it stays: all of it goes, else all stays). */
-	private static void leftClick(ServerPlayer p) {
-		View v = VIEWS.get(p.getUUID());
-		if (v == null || v.age < 4) return;
-		if (button(v)) return;
+	/** The whole region under the pointer (32 × 32 chunks), as the brush says. */
+	private static void region(View v) {
 		long c = v.hover;
 		Scan.World w = Scan.world(v.dim);
-		if (c == Long.MIN_VALUE || w == null) return;
+		if (c == Long.MIN_VALUE || w == null || covered(v)) return;
 		int rx = Scan.kx(c) >> 5, rz = Scan.kz(c) >> 5;
-		int stay = 0, total = 0;
+		int n = 0;
 		for (int i = 0; i < 1024; i++) {
-			int x = rx * 32 + (i & 31), z = rz * 32 + (i >> 5);
-			Plan.Why why = v.ctx.why(w, x, z);
-			if (why == Plan.Why.NOT_MADE || !v.ctx.pickable(why)) continue;
-			total++;
-			if (why.stays) stay++;
+			if (paint(v, w, rx * 32 + (i & 31), rz * 32 + (i >> 5), v.brushStays)) n++;
 		}
-		if (total == 0) return;
-		boolean to = stay * 2 < total;
-		boolean any = false;
-		for (int i = 0; i < 1024; i++) any |= paint(v, w, rx * 32 + (i & 31), rz * 32 + (i >> 5), to);
-		if (any) {
-			changed(v);
-			Ui.sound(p, SoundEvents.BOOK_PAGE_TURN, 0.5f, to ? 1.4f : 1.0f);
-			Hud.flash(p, Ui.text("A whole region " + (to ? "stays" : "goes"), to ? ChatFormatting.GREEN : ChatFormatting.RED));
+		if (n == 0) {
+			Hud.flash(v.p, Ui.text("Nothing to change in this region", ChatFormatting.GRAY));
+			return;
 		}
+		changed(v);
+		Ui.sound(v.p, SoundEvents.BOOK_PAGE_TURN, 0.5f, v.brushStays ? 1.4f : 1.0f);
+		Hud.flash(v.p, Ui.text("A whole region " + (v.brushStays ? "kept" : "let go") + " (" + Ui.n(n) + " chunk" + (n == 1 ? "" : "s") + ")",
+				v.brushStays ? ChatFormatting.YELLOW : ChatFormatting.RED));
+	}
+
+	/** What the brush paints: chunks to keep, or to let go. */
+	private static void setBrush(View v, boolean stays) {
+		if (v.brushStays == stays) return;
+		v.brushStays = stays;
+		v.dirty = true;
+		words(v);
+	}
+
+	/** A chunk at a time (painting), or a whole region a click. */
+	private static void setSize(View v, boolean region) {
+		if (v.regionSize == region) return;
+		v.regionSize = region;
+		v.painting = false;
+		v.lastPainted = Long.MIN_VALUE;
+		v.dirty = true;
+		words(v);
+	}
+
+	private static boolean covered(View v) {
+		for (double[] r : v.covers) {
+			if (v.pu >= r[0] && v.pu <= r[1] && v.pv >= r[2] && v.pv <= r[3]) return true;
+		}
+		return false;
 	}
 
 	/** One chunk to stay or go (when it may be picked). @return whether it changed */
@@ -582,7 +660,8 @@ final class MapScreen {
 
 	private static void changed(View v) {
 		v.dirty = true;
-		v.lastCount = -100;
+		// counted again soon (at most every 5 ticks while painting)
+		v.lastCount = Math.min(v.lastCount, v.age - 36);
 	}
 
 	private static boolean button(View v) {
@@ -625,6 +704,8 @@ final class MapScreen {
 	private static void switchTo(View v, ResourceKey<Level> dim) {
 		if (dim.equals(v.dim) || Scan.world(dim) == null) return;
 		v.dim = dim;
+		v.painting = false;
+		v.lastPainted = Long.MIN_VALUE;
 		ServerLevel shown = v.p.level().getServer().getLevel(dim);
 		if (shown != null) Scan.refreshLoaded(shown);
 		center(v, v.p);
@@ -637,6 +718,8 @@ final class MapScreen {
 	private static final byte CLAIM = MapColor.EMERALD.getPackedId(MapColor.Brightness.HIGH);
 	private static final byte KEPT = MapColor.GOLD.getPackedId(MapColor.Brightness.HIGH);
 	private static final byte HOVER = MapColor.SNOW.getPackedId(MapColor.Brightness.HIGH);
+	/** The brush's colour on the map: keep like what you kept, let go a bright red. */
+	private static final byte BRUSH_KEEP = KEPT, BRUSH_GO = MapColor.FIRE.getPackedId(MapColor.Brightness.HIGH);
 	private static final byte YOU = MapColor.SNOW.getPackedId(MapColor.Brightness.HIGH);
 	private static final byte UNREAD = MapColor.COLOR_GRAY.getPackedId(MapColor.Brightness.LOW);
 
@@ -654,8 +737,11 @@ final class MapScreen {
 		byte[] px = new byte[W * H];
 		Map<Long, Plan.Why> whys = new HashMap<>();
 		double ox = v.cx - W / 2.0 / z, oz = v.cz - H / 2.0 / z;
-		int hx = Scan.kx(v.hover), hz = Scan.kz(v.hover);
+		int hx = Scan.kx(v.hover), hz = Scan.kz(v.hover), hrx = hx >> 5, hrz = hz >> 5;
 		boolean hovering = v.hover != Long.MIN_VALUE;
+		// The chunk under the pointer: white, or the brush's colour while it paints; a region: its outline, always so
+		byte hoverColor = v.painting || v.regionSize ? (v.brushStays ? BRUSH_KEEP : BRUSH_GO) : HOVER;
+		int thick = z >= 2 ? 2 : 1, side = 32 * z;
 		for (int y = 0; y < H; y++) {
 			double wz = oz + y / (double) z;
 			int cz = Mth.floor(wz);
@@ -682,9 +768,20 @@ final class MapScreen {
 				boolean edge = z >= 4 && (ex == 0 || ez == 0 || ex == z - 1 || ez == z - 1);
 				if (why == Plan.Why.CLAIM && (z < 4 || edge && border(v, w, whys, cx, cz, ex, ez, z, Plan.Why.CLAIM))) c = CLAIM;
 				if (why == Plan.Why.KEPT && (z < 4 || edge && border(v, w, whys, cx, cz, ex, ez, z, Plan.Why.KEPT))) c = KEPT;
-				if (hovering && cx == hx && cz == hz && (z < 4 || edge)) c = HOVER;
+				boolean framed = false;
+				if (hovering && !v.regionSize && cx == hx && cz == hz && (z < 4 || edge)) {
+					c = hoverColor;
+					framed = true;
+				}
+				if (hovering && v.regionSize && cx >> 5 == hrx && cz >> 5 == hrz) {
+					int gx = Math.floorMod(cx, 32) * z + ex, gz = Math.floorMod(cz, 32) * z + ez;
+					if (gx < thick || gz < thick || gx >= side - thick || gz >= side - thick) {
+						c = hoverColor;
+						framed = true;
+					}
+				}
 				// Regions (every 32 chunks): a faint line
-				if (z >= 2 && (Math.floorMod(cx, 32) == 0 && ex == 0 || Math.floorMod(cz, 32) == 0 && ez == 0) && c != CLAIM && c != KEPT && c != HOVER) {
+				if (z >= 2 && (Math.floorMod(cx, 32) == 0 && ex == 0 || Math.floorMod(cz, 32) == 0 && ez == 0) && c != CLAIM && c != KEPT && !framed) {
 					c = darker(c);
 				}
 				px[x + y * W] = c;
@@ -747,6 +844,7 @@ final class MapScreen {
 		double w = width * PX, h = height * PX;
 		double cu = right ? u - w / 2 : u + w / 2;
 		el.setOffset(v.screen(cu, vv - h, 0.03).subtract(v.origin));
+		v.covers.add(new double[] {cu - w / 2 - PX, cu + w / 2 + PX, vv - h - PX, vv + PX});
 	}
 
 	private static double widthOf(String s) {
@@ -754,7 +852,9 @@ final class MapScreen {
 	}
 
 	private static void words(View v) {
+		if (v.ctx == null) return;
 		v.buttons.clear();
+		v.covers.clear();
 		String world = worldName(v.dim);
 		Plan.Ctx c = v.ctx;
 		Scan.World w = Scan.world(v.dim);
@@ -767,8 +867,9 @@ final class MapScreen {
 		if (v.dim.equals(Level.END)) title.append(t("\nand the main island", GREY));
 		title.append(t("\n\nWASD", WHITE)).append(t(": move the map", GREY));
 		title.append(t("\nScroll", WHITE)).append(t(": zoom", GREY));
-		title.append(t("\nRight-click", WHITE)).append(t(" (hold): stay / go", GREY));
-		title.append(t("\nLeft-click", WHITE)).append(t(": a whole region", GREY));
+		title.append(t("\nClick", WHITE)).append(t(v.regionSize ? ": a whole region" : ": paint on / off", GREY));
+		title.append(t("\nSpace", WHITE)).append(t(": keep / let go", GREY));
+		title.append(t("\nCtrl", WHITE)).append(t(": chunk / region", GREY));
 		title.append(t("\nSneak", WHITE)).append(t(": done", GREY));
 		place(v, v.title, title, left, top, false);
 		// Top middle: the worlds, then the sums, then whether it takes part and done
@@ -814,6 +915,40 @@ final class MapScreen {
 		v.done.setBackground(CHIP);
 		place(v, v.done, t(doneText, WHITE), du, chipsTop, false);
 		v.buttons.add(new Button(du - PX, du + dw, chipsTop - 11 * PX, chipsTop + PX, () -> finish(v, true)));
+		// The brush: what it paints (keep, let go), its size (a chunk, a region), and what a click does now
+		double brushTop = chipsTop - 14 * PX, pair = 3 * PX, between = 12 * PX;
+		String[] names = {"Keep", "Let go", "Chunk", "Region"};
+		TextDisplayElement[] els = {v.keepChip, v.goChip, v.chunkChip, v.regionChip};
+		boolean[] on = {v.brushStays, !v.brushStays, !v.regionSize, v.regionSize};
+		int[] onColor = {KEEP_ON, GO_ON, CHIP_ON, CHIP_ON};
+		Runnable[] actions = {() -> setBrush(v, true), () -> setBrush(v, false), () -> setSize(v, false), () -> setSize(v, true)};
+		double row = 0;
+		for (int i = 0; i < 4; i++) row += widthOf(names[i]) + 2 * PX;
+		row += pair * 2 + between;
+		double bu = -row / 2;
+		for (int i = 0; i < 4; i++) {
+			double bw = widthOf(names[i]) + 2 * PX;
+			els[i].setBackground(on[i] ? onColor[i] : CHIP);
+			place(v, els[i], t(names[i], on[i] ? WHITE : GREY), bu, brushTop, false);
+			if (!on[i]) v.buttons.add(new Button(bu - PX, bu + bw, brushTop - 11 * PX, brushTop + PX, actions[i]));
+			bu += bw + (i == 1 ? between : pair);
+		}
+		String hint;
+		int hintColor = GREY, hintBack = CHIP;
+		if (!c.on) {
+			hint = "Turn on \"Takes part\" to paint";
+			hintColor = MUTED;
+		} else if (v.regionSize) {
+			hint = v.brushStays ? "Click a region to keep it" : "Click a region to let it go";
+		} else if (v.painting) {
+			hint = "Painting… click to stop";
+			hintColor = WHITE;
+			hintBack = v.brushStays ? KEEP_ON : GO_ON;
+		} else {
+			hint = v.brushStays ? "Click to paint chunks to keep" : "Click to paint chunks to let go";
+		}
+		v.hint.setBackground(hintBack);
+		place(v, v.hint, t(hint, hintColor), -(widthOf(hint) + 2 * PX) / 2 + PX, brushTop - 14 * PX, false);
 		// Top right: what the colours mean
 		MutableComponent legend = t("■ ", 0x8CC446).append(t("Stays\n", WHITE)).append(t("■ ", 0x993333)).append(t("Goes (made anew)\n", WHITE))
 				.append(t("□ ", 0x00D93A)).append(t("Claim\n", WHITE)).append(t("□ ", YELLOW)).append(t("Kept by you\n", WHITE))
@@ -827,7 +962,9 @@ final class MapScreen {
 		List<Component> lines = new ArrayList<>();
 		for (String line : text.getString().split("\n")) lines.add(Component.literal(line));
 		el.setTextAlignment(Display.TextDisplay.Align.CENTER);
-		el.setOffset(v.screen(u, vv - lines.size() * 10 * PX, 0.03).subtract(v.origin));
+		double w = Glyphs.width(lines) * PX, h = lines.size() * 10 * PX;
+		el.setOffset(v.screen(u, vv - h, 0.03).subtract(v.origin));
+		v.covers.add(new double[] {u - w / 2 - PX, u + w / 2 + PX, vv - h - PX, vv + PX});
 	}
 
 	private static String mb(long bytes) {
@@ -846,7 +983,11 @@ final class MapScreen {
 		} else {
 			int x = Scan.kx(v.hover), z = Scan.kz(v.hover);
 			Plan.Why why = v.ctx.why(w, x, z);
-			MutableComponent m = t("Chunk " + x + ", " + z, WHITE);
+			MutableComponent m = Component.empty();
+			int brush = v.brushStays ? YELLOW : REDT;
+			if (v.regionSize) m.append(t("Region " + (x >> 5) + ", " + (z >> 5), brush)).append(t("  ·  ", MUTED));
+			else if (v.painting) m.append(t("Painting: " + (v.brushStays ? "keep" : "let go"), brush)).append(t("  ·  ", MUTED));
+			m.append(t("Chunk " + x + ", " + z, WHITE));
 			if (why == Plan.Why.NOT_MADE) {
 				m.append(t("  ·  never made yet", MUTED));
 			} else {
