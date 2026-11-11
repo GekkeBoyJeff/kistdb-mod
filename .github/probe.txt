@@ -1,1 +1,23 @@
-net.minecraft.world.level.material.PushReaction
++net.minecraft.world.level.chunk.ChunkGeneratorStructureState
++net.minecraft.server.level.ChunkMap
+net.minecraft.world.level.chunk.storage.SerializableChunkData
+net.minecraft.world.level.chunk.storage.SerializableChunkData$SectionData
+net.minecraft.world.level.dimension.DimensionType
++net.minecraft.world.level.chunk.ChunkGenerator
+net.minecraft.world.level.levelgen.structure.placement.StructurePlacement
+net.minecraft.world.level.material.MapColor
+net.minecraft.world.level.chunk.LevelChunkSection
+net.minecraft.world.level.levelgen.Heightmap
+net.minecraft.util.SimpleBitStorage
+net.minecraft.world.level.storage.LevelResource
+net.minecraft.world.level.storage.LevelStorageSource$LevelStorageAccess
+net.minecraft.world.entity.player.Input
+net.minecraft.network.protocol.game.ClientboundMapItemDataPacket
+net.minecraft.world.level.chunk.storage.ChunkStorage
+net.minecraft.world.level.chunk.storage.RegionFile
+net.minecraft.world.level.chunk.storage.RegionStorageInfo
++net.minecraft.world.level.block.entity.TheEndGatewayBlockEntity
+net.minecraft.world.level.chunk.status.ChunkStatus
+? SerializableChunkData
+? ChunkGeneratorStructureState
+? dimension/DimensionType
