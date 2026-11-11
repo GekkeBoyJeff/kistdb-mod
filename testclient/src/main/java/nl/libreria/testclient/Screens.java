@@ -1997,6 +1997,9 @@ public final class Screens implements FabricClientGameTest {
 				noToasts(ctx);
 				ctx.waitTicks(4);
 				ctx.takeScreenshot("trade_story_bought");
+				ctx.getInput().setCursorPos(2, 2);
+				ctx.waitTicks(4);
+				ctx.takeScreenshot("trade_story_bought_slot");
 				close(ctx, server, player);
 				run(server, "item replace entity @p hotbar.0 with minecraft:air");
 			});

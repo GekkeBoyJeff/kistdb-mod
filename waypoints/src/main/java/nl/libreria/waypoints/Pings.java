@@ -239,9 +239,7 @@ final class Pings {
 		Ping ping = ACTIVE.remove(owner);
 		PingMarks.removeOwner(owner);
 		// and the way to it, for whoever was being shown it
-		if (ping != null) {
-			for (ServerPlayer viewer : ping.level().players()) if (Guide.isTo(viewer, ping.at())) Guide.clear(viewer);
-		}
+		if (ping != null) Guide.clearTo(ping.level(), ping.at());
 	}
 
 	/** For the screenshots: a stand-in player may ping again right away. */
