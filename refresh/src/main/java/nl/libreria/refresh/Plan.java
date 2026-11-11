@@ -157,7 +157,8 @@ final class Plan {
 					stay++;
 				} else {
 					go++;
-					bytes += r.sectors[i] * (long) Region.SECTOR;
+					// (a chunk only seen loaded so far: about three sectors)
+					bytes += (r.sectors[i] > 0 ? r.sectors[i] : 3) * (long) Region.SECTOR;
 				}
 			}
 		}

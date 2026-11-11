@@ -297,6 +297,11 @@ final class Scan {
 		r.dirty = true;
 	}
 
+	/** Every chunk loaded now, straight from the world (when its map opens). */
+	static void refreshLoaded(ServerLevel lv) {
+		lv.getChunkSource().chunkMap.forEachReadyToSendChunk(c -> live(lv, c));
+	}
+
 	// ---------------------------------------------------------------- remembering
 
 	private static final int MAGIC = 0x4C524631;

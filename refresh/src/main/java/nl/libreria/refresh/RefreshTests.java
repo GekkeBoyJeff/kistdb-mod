@@ -67,7 +67,9 @@ final class RefreshTests {
 				if (live[i] == saved[i]) same++;
 				if (saved[i] != Colors.UNKNOWN) known++;
 			}
-			SelfTests.check(read && known > 200 && same >= 230, "saved colours read: " + known + " known, " + same + " the same");
+			SelfTests.check(read && known > 200 && same >= 230, "saved colours read: " + known + " known, " + same + " the same; keys " + tag.keySet()
+					+ (tag.get("Heightmaps") instanceof CompoundTag hm ? " heightmaps " + hm.keySet() : "") + " sections " + tag.getListOrEmpty("sections").size()
+					+ " status " + tag.getStringOr("Status", "?"));
 		});
 		// What stays and what goes
 		SelfTests.register("refresh.plan", level -> {
@@ -111,6 +113,7 @@ final class RefreshTests {
 		// The worlds are being read; new structures keep out of land kept from before
 		SelfTests.register("refresh.scan", level -> {
 			Scan.World w = Scan.world(Level.OVERWORLD);
+			Scan.refreshLoaded(level);
 			SelfTests.check(w != null && !w.chunks().isEmpty(), "the overworld is read: " + (w == null ? 0 : w.chunks().size()) + " chunks");
 			Layout.testKept(Level.OVERWORLD.identifier().toString(), java.util.Set.of(Scan.key(40, 40)));
 			try {

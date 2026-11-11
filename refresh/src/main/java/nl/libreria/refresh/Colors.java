@@ -97,8 +97,7 @@ final class Colors {
 	 * made has no height map yet): then {@code out} keeps {@link #UNKNOWN}.
 	 */
 	static boolean fromTag(CompoundTag tag, int minY, int height, byte[] out, int off) {
-		CompoundTag maps = tag.getCompoundOrEmpty("Heightmaps");
-		long[] surface = maps.get("WORLD_SURFACE") instanceof LongArrayTag la ? la.getAsLongArray() : null;
+		long[] surface = surface(tag);
 		if (surface == null || surface.length == 0) return false;
 		Map<Integer, Section> sections = new java.util.HashMap<>();
 		ListTag list = tag.getListOrEmpty("sections");
@@ -176,6 +175,19 @@ final class Colors {
 				out[off + i] = mc.getPackedId(b);
 			}
 		}
+	}
+
+	/** The height map of the surface as saved (its name's case has changed over the years). */
+	static long[] surface(CompoundTag tag) {
+		CompoundTag maps = null;
+		for (String k : tag.keySet()) if (k.equalsIgnoreCase("heightmaps") && tag.get(k) instanceof CompoundTag c) maps = c;
+		if (maps == null) return null;
+		long[] motion = null;
+		for (String k : maps.keySet()) {
+			if (k.equalsIgnoreCase("world_surface")) return longs(maps.get(k));
+			if (k.equalsIgnoreCase("motion_blocking")) motion = longs(maps.get(k));
+		}
+		return motion;
 	}
 
 	/** A tag's long array, or null. */

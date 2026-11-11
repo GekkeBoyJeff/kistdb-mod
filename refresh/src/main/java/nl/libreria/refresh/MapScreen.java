@@ -75,8 +75,8 @@ final class MapScreen {
 
 	static final int TW = 5, TH = 3, W = TW * 128, H = TH * 128;
 	/** From the camera to the screen (blocks), how far the view may turn from its middle, text size. */
-	private static final double DIST = 2.78;
-	private static final float MAX_YAW = 41f, MAX_PITCH = 26f, TEXT = 0.4f;
+	private static final double DIST = 2.14;
+	private static final float MAX_YAW = 47f, MAX_PITCH = 33f, TEXT = 0.4f;
 	private static final double PX = 0.025 * TEXT;
 	private static final int[] ZOOMS = {1, 2, 4, 8, 16};
 	private static final Identifier FREEZE = Identifier.fromNamespaceAndPath("libreria", "refresh_map");
@@ -250,8 +250,24 @@ final class MapScreen {
 		v.holder.startWatching(p);
 		p.connection.send(VirtualEntityUtils.createClientboundSetPassengersPacket(v.seat.getEntityId(), new int[] {p.getId()}));
 		freeze(p, true);
+		emptyHands(p);
+		ServerLevel shown = p.level().getServer().getLevel(dim);
+		if (shown != null) Scan.refreshLoaded(shown);
 		Ui.sound(p, SoundEvents.BOOK_PAGE_TURN, 0.8f, 0.8f);
 		rebuild(v);
+	}
+
+	private static final Identifier EMPTY_MODEL = Identifier.fromNamespaceAndPath("libreria", "gui/empty");
+
+	/** Only on your own screen: nothing in your hands (an invisible item: an empty hand still shows your arm). */
+	private static void emptyHands(ServerPlayer p) {
+		var menu = p.inventoryMenu;
+		ItemStack hand = new ItemStack(Items.PAPER);
+		hand.set(DataComponents.ITEM_MODEL, EMPTY_MODEL);
+		for (int slot = 36; slot <= 44; slot++) {
+			p.connection.send(new net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket(menu.containerId, menu.getStateId(), slot, hand.copy()));
+		}
+		p.connection.send(new net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket(menu.containerId, menu.getStateId(), 45, ItemStack.EMPTY));
 	}
 
 	private static void darkPanel(View v, Vec3 at, Vec3 along, float w, float h) {
@@ -315,6 +331,8 @@ final class MapScreen {
 		if (!v.p.hasDisconnected()) {
 			v.p.connection.send(VirtualEntityUtils.createClientboundSetCameraPacket(v.p.getId()));
 			Hud.hide(v.p, HUD);
+			// Your real hotbar again
+			v.p.inventoryMenu.sendAllDataToRemote();
 			if (back) RefreshCanvas.open(v.p);
 		}
 	}
@@ -433,6 +451,7 @@ final class MapScreen {
 			if (d > 4) d -= 9;
 			if (d < -4) d += 9;
 			v.lastSlot = slot;
+			emptyHands(p);
 			int z = Mth.clamp(v.zoom - Integer.signum(d), 0, ZOOMS.length - 1);
 			if (z != v.zoom) {
 				// Zoom around the pointer: the chunk under it stays under it
@@ -591,6 +610,7 @@ final class MapScreen {
 		Scan.World w = Scan.world(v.dim);
 		if (w == null) return;
 		v.ctx = new Plan.Ctx(v.p.level().getServer(), v.dim);
+		v.lastCount = v.age;
 		v.count = Plan.count(v.ctx, w);
 		words(v);
 	}
@@ -604,6 +624,8 @@ final class MapScreen {
 	private static void switchTo(View v, ResourceKey<Level> dim) {
 		if (dim.equals(v.dim) || Scan.world(dim) == null) return;
 		v.dim = dim;
+		ServerLevel shown = v.p.level().getServer().getLevel(dim);
+		if (shown != null) Scan.refreshLoaded(shown);
 		center(v, v.p);
 		v.zoom = 2;
 		rebuild(v);
