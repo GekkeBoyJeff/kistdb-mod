@@ -156,6 +156,8 @@ final class Scan {
 	// ---------------------------------------------------------------- start, stop
 
 	static void start(MinecraftServer server) {
+		// (once: the self-tests may need it before the server says it has started)
+		if (exec != null && !exec.isShutdown()) return;
 		WORLDS.clear();
 		exec = Executors.newSingleThreadExecutor(r -> {
 			Thread t = new Thread(r, "Libreria world refresh");

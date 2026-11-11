@@ -145,6 +145,8 @@ final class RefreshTests {
 		});
 		// The worlds are being read; new structures keep out of land kept from before
 		SelfTests.register("refresh.scan", level -> {
+			Scan.start(level.getServer());
+			level.getChunk(5, 5);
 			Scan.World w = Scan.world(Level.OVERWORLD);
 			Scan.refreshLoaded(level);
 			SelfTests.check(w != null && !w.chunks().isEmpty(), "the overworld is read: " + (w == null ? 0 : w.chunks().size()) + " chunks");
