@@ -144,7 +144,7 @@ final class WaystonesTests {
 				var recipe = level.recipeAccess().getRecipeFor(net.minecraft.world.item.crafting.RecipeType.CRAFTING, input, level);
 				SelfTests.check(recipe.isPresent(), "a recipe for a waystone, a red dye and a glow ink sac");
 				if (recipe.isPresent()) {
-					ItemStack crafted = recipe.get().value().assemble(input, level.registryAccess());
+					ItemStack crafted = recipe.get().value().assemble(input);
 					ItemStack expected = new ItemStack(WaystonesMod.WAYSTONE_ITEM);
 					Stones.lookOn(expected, "red", true, false);
 					SelfTests.check(ItemStack.isSameItemSameComponents(crafted, expected), "it makes the same item a broken red glowing one drops: "
@@ -157,8 +157,8 @@ final class WaystonesTests {
 						new ItemStack(nl.libreria.core.Ui.item("lime_dye"))));
 				var lime = level.recipeAccess().getRecipeFor(net.minecraft.world.item.crafting.RecipeType.CRAFTING, plain, level);
 				Stones.Stone limeStone = new Stones.Stone();
-				if (lime.isPresent()) Stones.lookFrom(lime.get().value().assemble(plain, level.registryAccess()), limeStone);
-				SelfTests.check(lime.isPresent() && lime.get().value().assemble(plain, level.registryAccess()).is(WaystonesMod.DARK_WAYSTONE_ITEM) && "lime".equals(limeStone.dye) && !limeStone.glow,
+				if (lime.isPresent()) Stones.lookFrom(lime.get().value().assemble(plain), limeStone);
+				SelfTests.check(lime.isPresent() && lime.get().value().assemble(plain).is(WaystonesMod.DARK_WAYSTONE_ITEM) && "lime".equals(limeStone.dye) && !limeStone.glow,
 						"a dark one with a lime dye: lime, matte");
 			} finally {
 				clear(level, a);
@@ -203,6 +203,19 @@ final class WaystonesTests {
 				SelfTests.check(!Stones.known(walker, s), "private to each player until they find it");
 				SelfTests.check(!Stones.mayShare(walker, s), "who hasn't found it can't share it");
 				SelfTests.check(Stones.discover(walker, s) && Stones.knownBy(walker).contains(s), "found: on their list");
+				// Its chunk made anew (the world refresh): off every list (checked on a copy, the real one stays for the rest)
+				Stones.Stone copy = new Stones.Stone();
+				copy.dim = s.dim;
+				copy.x = s.x + 4096;
+				copy.y = s.y;
+				copy.z = s.z;
+				copy.village = true;
+				Stones.STORE.get().stones.put(copy.key(), copy);
+				Stones.discover(walker, copy);
+				SelfTests.check(Stones.knownBy(walker).contains(copy), "another one, found");
+				long chunk = ((copy.x >> 4) & 0xFFFFFFFFL) | ((long) (copy.z >> 4) << 32);
+				nl.libreria.core.Services.chunksGone(level.getServer(), copy.dim, java.util.Set.of(chunk, chunk + 1));
+				SelfTests.check(!Stones.knownBy(walker).contains(copy) && Stones.knownBy(walker).contains(s), "its chunk made anew: it's gone, the other stays");
 				// Who found a village's waystone may put it on everyone's list: then it's there for who never found it too
 				FakePlayer stranger = FakePlayer.get(level, new GameProfile(UUID.randomUUID(), "Stranger"));
 				SelfTests.check(Stones.mayShare(walker, s) && !Stones.mayShare(stranger, s), "who found it may share it, a stranger not");

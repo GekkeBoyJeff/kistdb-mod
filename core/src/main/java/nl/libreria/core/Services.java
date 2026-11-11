@@ -102,6 +102,31 @@ public final class Services {
 		land = l;
 	}
 
+	/**
+	 * Chunks of a world that were made anew (the world refresh), {@code dimension} its id ("minecraft:overworld"), each
+	 * chunk as a key (x in the low 32 bits, z in the high): what a module keeps about places in them is gone too.
+	 */
+	public interface ChunksGone {
+		void gone(net.minecraft.server.MinecraftServer server, String dimension, java.util.Set<Long> chunks);
+	}
+
+	private static final List<ChunksGone> CHUNKS_GONE = new java.util.concurrent.CopyOnWriteArrayList<>();
+
+	public static void onChunksGone(ChunksGone listener) {
+		CHUNKS_GONE.add(listener);
+	}
+
+	/** Tells every module (after the worlds opened again) which chunks were made anew. */
+	public static void chunksGone(net.minecraft.server.MinecraftServer server, String dimension, java.util.Set<Long> chunks) {
+		for (ChunksGone l : CHUNKS_GONE) {
+			try {
+				l.gone(server, dimension, chunks);
+			} catch (RuntimeException e) {
+				Libreria.LOG.warn("Chunks made anew: a module failed to forget them", e);
+			}
+		}
+	}
+
 	public static Optional<Land> land() {
 		return Optional.ofNullable(land);
 	}

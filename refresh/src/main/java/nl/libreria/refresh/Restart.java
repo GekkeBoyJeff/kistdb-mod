@@ -120,6 +120,29 @@ final class Restart {
 		}
 	}
 
+	/** After the worlds opened: every module forgets what it kept about the chunks made anew (then that's done). */
+	static void tellGone(MinecraftServer server) {
+		Path dir = Layout.dir(Scan.root(server));
+		if (!Files.isDirectory(dir)) return;
+		try (var files = Files.list(dir)) {
+			for (Path p : files.toList()) {
+				if (!p.getFileName().toString().startsWith("gone-")) continue;
+				try (DataInputStream in = new DataInputStream(new java.io.BufferedInputStream(Files.newInputStream(p)))) {
+					String id = in.readUTF();
+					int n = in.readInt();
+					Set<Long> gone = new HashSet<>();
+					for (int i = 0; i < n; i++) gone.add(in.readLong());
+					nl.libreria.core.Services.chunksGone(server, id, gone);
+				} catch (IOException e) {
+					RefreshMod.LOG.warn("World refresh: can't read {}: {}", p.getFileName(), e.toString());
+				}
+				Files.deleteIfExists(p);
+			}
+		} catch (IOException e) {
+			RefreshMod.LOG.warn("World refresh: can't tell the other modules what went: {}", e.toString());
+		}
+	}
+
 	static String applyOne(Path root, Path dir, Path plan) throws IOException {
 		String id;
 		boolean move;
@@ -146,6 +169,13 @@ final class Restart {
 				int n = Region.remove(f, e.getValue()::contains);
 				if (sub.equals("region")) removed += n;
 			}
+		}
+		// Which chunks were made anew, for the other modules once the worlds are open (waystones that stood there go)
+		try (java.io.DataOutputStream out = new java.io.DataOutputStream(new java.io.BufferedOutputStream(
+				Files.newOutputStream(dir.resolve("gone-" + Layout.safe(id) + ".bin"))))) {
+			out.writeUTF(id);
+			out.writeInt(going.size());
+			for (long k : going) out.writeLong(k);
 		}
 		if (move) Layout.bump(id);
 		// The land that stays (from before this refresh): no new structure may reach into it

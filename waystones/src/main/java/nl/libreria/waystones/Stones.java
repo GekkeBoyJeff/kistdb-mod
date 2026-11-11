@@ -168,6 +168,23 @@ final class Stones {
 		if (all().remove(key(dim(level), lower.getX(), lower.getY(), lower.getZ())) != null) STORE.markDirty();
 	}
 
+	/** Chunks of a world made anew (the world refresh): the waystones that stood in them are gone, off every list. */
+	static int chunksGone(String dimension, java.util.Set<Long> chunks) {
+		int n = 0;
+		for (var it = all().values().iterator(); it.hasNext();) {
+			Stone s = it.next();
+			long chunk = ((s.x >> 4) & 0xFFFFFFFFL) | ((long) (s.z >> 4) << 32);
+			if (!s.dim.equals(dimension) || !chunks.contains(chunk)) continue;
+			it.remove();
+			n++;
+		}
+		if (n > 0) {
+			STORE.markDirty();
+			Libreria.LOG.info("Waystones: {} gone with the chunks made anew in {}", n, dimension);
+		}
+		return n;
+	}
+
 	// ---------------------------------------------------------------- who may
 
 	static boolean owns(ServerPlayer p, Stone s) {

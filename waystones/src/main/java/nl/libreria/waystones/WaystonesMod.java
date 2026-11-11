@@ -93,6 +93,7 @@ public final class WaystonesMod implements ModInitializer {
 				"Waystone pearl on a waystone – bind the stack to it", "Right-click a bound pearl – travel there");
 		WaystonePlaces.register();
 		VillageWaystones.register();
+		nl.libreria.core.Services.onChunksGone((server, dimension, chunks) -> Stones.chunksGone(dimension, chunks));
 
 		// Breaking: a village's waystone only an operator, a player's its owner and the people they trust
 		PlayerBlockBreakEvents.BEFORE.register((level, player, pos, state, be) -> {
