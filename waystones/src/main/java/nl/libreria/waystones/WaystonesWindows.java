@@ -46,7 +46,8 @@ final class WaystonesWindows {
 
 	private static void settings(ServerPlayer p, Stones.Stone s, boolean fromAdmin) {
 		boolean op = Ui.isOp(p);
-		if (!Stones.owns(p, s) && !op) return;
+		boolean names = Stones.owns(p, s) || op;
+		if (!names && !Stones.mayShare(p, s)) return;
 		if (WaystoneCanvas.available(p)) {
 			WaystoneCanvas.one(p, s, fromAdmin);
 			return;
@@ -55,17 +56,24 @@ final class WaystonesWindows {
 		String made = s.village ? "Placed with its village." : s.owner == null ? "Placed by the server." : "Placed by " + s.ownerName
 				+ (s.made > 0 ? ", " + Players.ago(s.made).toLowerCase(Locale.ROOT) : "") + ".";
 		w.text(Ui.text(where(s) + ". " + made, ChatFormatting.GRAY));
-		w.field("name", Ui.text("Name", ChatFormatting.WHITE), s.name, 32);
-		if (!s.village && s.owner != null) {
+		if (names) w.field("name", Ui.text("Name", ChatFormatting.WHITE), s.name, 32);
+		w.toggle("shared", Ui.text("On everyone's list (also who never found it)", ChatFormatting.WHITE), s.shared);
+		if (names && !s.village && s.owner != null) {
 			w.toggle("secret", Ui.text("Private: only " + (Stones.owns(p, s) ? "you" : s.ownerName) + " and the people "
 					+ (Stones.owns(p, s) ? "you trust" : "they trust"), ChatFormatting.WHITE), s.secret);
 		}
 		w.button(Ui.text("✔ Save", ChatFormatting.GREEN), null, (pl, v) -> {
-			String name = clean(v.text("name", s.name));
-			if (!name.isEmpty()) s.name = name;
-			if (!s.village && s.owner != null) s.secret = v.bool("secret", s.secret);
+			if (names) {
+				String name = clean(v.text("name", s.name));
+				if (!name.isEmpty()) s.name = name;
+				if (!s.village && s.owner != null) s.secret = v.bool("secret", s.secret);
+			}
+			s.shared = v.bool("shared", s.shared);
+			// on everyone's list is open to everyone: it can't be private as well
+			if (s.shared) s.secret = false;
 			Stones.STORE.markDirty();
-			Notify.done(pl, WaystonesMod.WAYSTONE_ITEM, "Saved: " + s.name, s.secret ? "Private: only the owner and who they trust." : "Open to everyone who found it.");
+			Notify.done(pl, WaystonesMod.WAYSTONE_ITEM, "Saved: " + s.name, s.secret ? "Private: only the owner and who they trust."
+					: s.shared ? "On everyone's list." : "Open to everyone who found it.");
 			if (fromAdmin) admin(pl);
 		});
 		if (op) {

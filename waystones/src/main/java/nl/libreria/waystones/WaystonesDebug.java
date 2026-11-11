@@ -56,6 +56,15 @@ public final class WaystonesDebug {
 		if (s != null) WaystonesWindows.settings(p, s);
 	}
 
+	/** Its window once it's on everyone's list (and back to open after). */
+	public static void settingsShared(ServerPlayer p) {
+		Stones.Stone s = stone == null ? null : Stones.at(p.level(), stone);
+		if (s == null) return;
+		s.shared = true;
+		WaystonesWindows.settings(p, s);
+		s.shared = false;
+	}
+
 	public static void admin(ServerPlayer p) {
 		WaystonesWindows.admin(p);
 	}

@@ -49,8 +49,21 @@ final class WaypointsTests {
 				SelfTests.check(Pings.markers(b).stream().anyMatch(m -> m.name().equals("Pinger's ping")), "on the map for others");
 				SelfTests.check("north".equals(Pings.direction(a, spot)), "the direction: north is -z (" + Pings.direction(a, spot) + ")");
 				SelfTests.check("east".equals(Pings.direction(a, new Vec3(130.5, 80, 100.5))), "east is +x");
-				Pings.clear(a.getUUID());
-				SelfTests.check(!Pings.ACTIVE.containsKey(a.getUUID()) && !Pings.show(b, a.getUUID()), "cleared: gone for everyone");
+				// The keys again at your own ping (the spot, or up its light): it goes; looking elsewhere: a new ping instead
+				var eyes = net.minecraft.commands.arguments.EntityAnchorArgument.Anchor.EYES;
+				a.lookAt(eyes, spot.add(0, 0.5, 0));
+				SelfTests.check(Pings.lookingAtOwn(a), "looking at your ping");
+				a.lookAt(eyes, spot.add(0.4, 14, 0));
+				SelfTests.check(Pings.lookingAtOwn(a), "looking up its pillar of light");
+				a.lookAt(eyes, spot.add(6, 0, 0));
+				SelfTests.check(!Pings.lookingAtOwn(a), "looking beside it");
+				a.lookAt(eyes, new Vec3(100.5, 80, 120.5));
+				SelfTests.check(!Pings.lookingAtOwn(a), "looking away from it");
+				SelfTests.check(!Pings.lookingAtOwn(b), "someone else's ping isn't yours to take away");
+				a.lookAt(eyes, spot.add(0, 0.5, 0));
+				Pings.takeAway(a);
+				SelfTests.check(!Pings.ACTIVE.containsKey(a.getUUID()) && !Pings.show(b, a.getUUID()), "taken away: gone for everyone");
+				SelfTests.check(!Guide.has(b), "and nobody is shown the way to it any more");
 				SelfTests.check(!PingMarks.has(a, a.getUUID()) && !PingMarks.has(b, a.getUUID()), "and off the spot");
 				SelfTests.check(Pings.SECONDS == 30 && Pings.REACH >= 128, "30 seconds, far enough to ping a hill");
 				// on top of a block; on the side of a trunk: in front of it, on the ground

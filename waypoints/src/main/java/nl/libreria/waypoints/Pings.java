@@ -37,7 +37,7 @@ import org.jetbrains.annotations.Nullable;
  * Everyone in the same world within {@link #SEE} blocks sees it on the spot for {@link #SECONDS} seconds ({@link PingMarks},
  * in the look the server picked), gets a card with who pinged what and how far, and the way there in the action bar
  * (unless they're already being shown the way somewhere: then a chat line offers it). One ping per player; a new one
- * takes the old one's place.
+ * takes the old one's place, and the same keys at your own ping (the spot, or its pillar of light) take it away.
  */
 final class Pings {
 	static final int SECONDS = 30;
@@ -66,7 +66,8 @@ final class Pings {
 			if (!WaypointsMod.MODULE.on() || !sneaking || key == Hotkeys.Key.SWAP_HANDS) return false;
 			int mode = WaypointsMod.PING_KEY.get(player);
 			if (mode != 0 && mode != 1) return false;
-			ping(player);
+			if (lookingAtOwn(player)) takeAway(player);
+			else ping(player);
 			// the client already took the item out of the hand: give it its slot back
 			player.containerMenu.sendAllDataToRemote();
 			return true;
@@ -76,6 +77,10 @@ final class Pings {
 			if (!sneaking) return false;
 			int mode = WaypointsMod.PING_KEY.get(player);
 			if (mode != 0 && mode != 2) return false;
+			if (lookingAtOwn(player)) {
+				takeAway(player);
+				return true;
+			}
 			ServerLevel level = (ServerLevel) player.level();
 			// the side you look at (pick block only gives the block)
 			BlockHitResult hit = level.clip(new ClipContext(player.getEyePosition(), Vec3.atCenterOf(pos), ClipContext.Block.OUTLINE,
@@ -195,9 +200,48 @@ final class Pings {
 		return true;
 	}
 
+	/**
+	 * Does the player look at their own ping: at the spot, or anywhere up its pillar of light (within a block and a half
+	 * of it, a little more far away)?
+	 */
+	static boolean lookingAtOwn(ServerPlayer p) {
+		Ping ping = ACTIVE.get(p.getUUID());
+		if (ping == null || ping.level() != p.level() || ping.until() < System.currentTimeMillis()) return false;
+		Vec3 eye = p.getEyePosition(), look = p.getViewVector(1f), at = ping.at();
+		double ex = at.x - eye.x, ez = at.z - eye.z;
+		double flat = Math.sqrt(look.x * look.x + look.z * look.z);
+		double off, along;
+		if (flat < 1e-3) {
+			// straight up or down: how far the ping stands beside you
+			off = Math.sqrt(ex * ex + ez * ez);
+			along = Math.abs(at.y - eye.y);
+			if (look.y < 0 ? at.y > eye.y + 1 : at.y + 1 < eye.y) return false;
+		} else {
+			// the point of the look closest to the ping's upright line (the spot and the light above it)
+			double t = (ex * look.x + ez * look.z) / flat;
+			if (t <= 0) return false;
+			double cx = look.x / flat * t - ex, cz = look.z / flat * t - ez;
+			off = Math.sqrt(cx * cx + cz * cz);
+			along = t / flat;
+			if (eye.y + look.y * along < at.y - 1.5) return false;
+		}
+		return along <= REACH && off <= Math.max(1.5, along * 0.05);
+	}
+
+	/** Your ping goes away (sneak + Q at it again). */
+	static void takeAway(ServerPlayer p) {
+		clear(p.getUUID());
+		Ui.sound(p, SoundEvents.NOTE_BLOCK_BELL, 0.4f, 1.2f);
+		nl.libreria.core.Hud.flash(p, Ui.text("Ping taken away", ChatFormatting.GRAY));
+	}
+
 	static void clear(UUID owner) {
-		ACTIVE.remove(owner);
+		Ping ping = ACTIVE.remove(owner);
 		PingMarks.removeOwner(owner);
+		// and the way to it, for whoever was being shown it
+		if (ping != null) {
+			for (ServerPlayer viewer : ping.level().players()) if (Guide.isTo(viewer, ping.at())) Guide.clear(viewer);
+		}
 	}
 
 	/** For the screenshots: a stand-in player may ping again right away. */

@@ -62,7 +62,7 @@ public final class WaypointsMod implements ModInitializer {
 	static final nl.libreria.core.Tips.Tip TIP_DEATH = nl.libreria.core.Tips.register("death_point", Domain.PLACES, Items.SKELETON_SKULL,
 			"The way back", "Follow the beam back to where you died.", "Lost it? Land & places › Death & graves.");
 	static final nl.libreria.core.Tips.Tip TIP_PING = nl.libreria.core.Tips.register("ping", Domain.PLACES, Items.SPYGLASS,
-			"Ping a spot", "Look at it and press {sneak} + {drop}:", "everyone near you sees where.");
+			"Ping a spot", "Look at it and press {sneak} + {drop}:", "everyone near you sees where.", "The same again at your ping: it goes.");
 
 	/** Where someone died (private, per player). */
 	public static final class Point {

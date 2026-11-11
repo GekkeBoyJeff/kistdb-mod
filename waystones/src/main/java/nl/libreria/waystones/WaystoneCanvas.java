@@ -4,10 +4,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
-import java.util.function.Consumer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
@@ -23,14 +21,14 @@ import nl.libreria.core.gui.CanvasWindow;
 import nl.libreria.core.gui.Glyphs;
 
 /**
- * The waystone windows in Libreria's own look. One waystone (its owner, or an operator): where it is and whose, its
- * name (click: type a new one), open or private (a switch), and for operators: go there, remove it. All waystones
+ * The waystone windows in Libreria's own look. One waystone (its owner, an operator, or for a village's who found it):
+ * where it is and whose, its name (click: type a new one; owner and operators), who can use it (click: the next of only
+ * the owner and who they trust, everyone who found it, everyone: on everyone's list; a village's has the last two), and
+ * for operators: go there, remove it. All waystones
  * (operators): a list, the nearest first, with whose each is; click one for its window.
  */
 final class WaystoneCanvas {
 	static final int ACCENT = 0xC79BF0;
-	private static final Identifier SWITCH_ON = Identifier.fromNamespaceAndPath("libreria", "gui/switch_on");
-	private static final Identifier SWITCH_OFF = Identifier.fromNamespaceAndPath("libreria", "gui/switch_off");
 	private static final int TEXT = 0xFFFFFF, VALUE = 0x8FE3F0, DANGER = 0xE0605A;
 	private static final int ROOM_FULL = 18 * 9 - 2 * Canvas.CARD_MARGIN - 12;
 	private static final int ROOM = 18 * 8 - 2 * Canvas.CARD_MARGIN - 12;
@@ -88,6 +86,42 @@ final class WaystoneCanvas {
 			return !this.stone.village && this.stone.owner != null;
 		}
 
+		/** May give it another name: its owner, an operator. */
+		private boolean canName() {
+			return Stones.owns(this.player, this.stone) || op();
+		}
+
+		/** May change who can use it: the owner or an operator; a village's, who found it too. */
+		private boolean canChoose() {
+			return canSecret() ? canName() : Stones.mayShare(this.player, this.stone);
+		}
+
+		private static final int PRIVATE = 0, OPEN = 1, SHARED = 2;
+
+		private List<Integer> choices() {
+			return canSecret() ? List.of(PRIVATE, OPEN, SHARED) : List.of(OPEN, SHARED);
+		}
+
+		private int now() {
+			return this.stone.secret ? PRIVATE : this.stone.shared ? SHARED : OPEN;
+		}
+
+		private String said(int choice) {
+			Stones.Stone s = this.stone;
+			boolean mine = Stones.owns(this.player, s);
+			return switch (choice) {
+				case PRIVATE -> "Only " + (mine ? "you" : s.ownerName) + " and who " + (mine ? "you trust" : "they trust");
+				case SHARED -> "On everyone's list";
+				default -> "Everyone who found it";
+			};
+		}
+
+		private int next() {
+			List<Integer> c = choices();
+			int at = c.indexOf(now());
+			return c.get((at + 1) % c.size());
+		}
+
 		@Override
 		protected Canvas draw() {
 			Stones.Stone s = this.stone;
@@ -103,14 +137,14 @@ final class WaystoneCanvas {
 			int y1 = Canvas.cellY(2) + 2 + (18 * 2 - 4 - 18) / 2;
 			c.text("Name", left, y1, TEXT);
 			c.text(Canvas.fit(s.name, ROOM_FULL - 16), left, y1 + 10, VALUE);
-			c.text("›", Canvas.cellX(9) - Canvas.CARD_MARGIN - 8, y1 + 10, Glyphs.muted);
-			// Open or private (rows 4–5)
-			if (canSecret()) {
-				c.card(0, 4, 8, 2, s.secret ? ACCENT : Glyphs.neutral);
+			if (canName()) c.text("›", Canvas.cellX(9) - Canvas.CARD_MARGIN - 8, y1 + 10, Glyphs.muted);
+			// Who can use it (rows 4–5): only you and who you trust, who found it, everyone
+			if (canSecret() || canChoose()) {
+				c.card(0, 4, 9, 2, now() == OPEN ? Glyphs.neutral : ACCENT);
 				int y = Canvas.cellY(4) + 2 + (18 * 2 - 4 - 18) / 2;
-				c.text("Private", left, y, TEXT);
-				c.text(Canvas.fit(s.secret ? "Only " + (Stones.owns(this.player, s) ? "you" : s.ownerName) + " and who "
-						+ (Stones.owns(this.player, s) ? "you trust" : "they trust") : "Everyone who found it", ROOM - 4), left, y + 10, VALUE);
+				c.text("Who can use it", left, y, TEXT);
+				c.text(Canvas.fit(said(now()), ROOM_FULL - 16), left, y + 10, VALUE);
+				if (canChoose()) c.text("›", Canvas.cellX(9) - Canvas.CARD_MARGIN - 8, y + 10, Glyphs.muted);
 			}
 			// Operators (rows 6–8)
 			if (op()) {
@@ -132,27 +166,38 @@ final class WaystoneCanvas {
 			area(0, 0, 9, 2, Ui.text(s.name, ACCENT).withStyle(ChatFormatting.BOLD), List.of(Ui.text(where(s), ChatFormatting.WHITE),
 					Ui.text(whose(s), ChatFormatting.GRAY)), p -> {
 					});
-			area(0, 2, 9, 2, Ui.text("Name", ChatFormatting.WHITE).withStyle(ChatFormatting.BOLD), List.of(Ui.text("Now: " + s.name, ChatFormatting.AQUA),
-					Ui.text("Shown above the stone, in everyone's list", ChatFormatting.GRAY), Ui.text("and on the pearls bound to it.", ChatFormatting.GRAY),
-					Component.empty(), Ui.text("▸ Click: give it another name", ChatFormatting.YELLOW)), p -> rename(p, s, this.fromAdmin));
-			if (canSecret()) {
-				Component name = Ui.text("Private", ChatFormatting.WHITE).withStyle(ChatFormatting.BOLD);
-				List<Component> lore = List.of(Ui.text("Now: " + (s.secret ? "private" : "open"), ChatFormatting.AQUA),
-						Ui.text("Open: everyone who found it can travel", ChatFormatting.GRAY), Ui.text("here. Private: only the owner and the", ChatFormatting.GRAY),
-						Ui.text("people they trust on their land.", ChatFormatting.GRAY), Component.empty(),
-						Ui.text("▸ Click: make it " + (s.secret ? "open" : "private"), ChatFormatting.YELLOW));
-				Consumer<ServerPlayer> flip = p -> {
-					if (!Stones.owns(p, s) && !Ui.isOp(p)) return;
-					s.secret = !s.secret;
+			if (canName()) {
+				area(0, 2, 9, 2, Ui.text("Name", ChatFormatting.WHITE).withStyle(ChatFormatting.BOLD), List.of(Ui.text("Now: " + s.name, ChatFormatting.AQUA),
+						Ui.text("Shown above the stone, in everyone's list", ChatFormatting.GRAY), Ui.text("and on the pearls bound to it.", ChatFormatting.GRAY),
+						Component.empty(), Ui.text("▸ Click: give it another name", ChatFormatting.YELLOW)), p -> rename(p, s, this.fromAdmin));
+			} else {
+				area(0, 2, 9, 2, Ui.text("Name", ChatFormatting.WHITE).withStyle(ChatFormatting.BOLD), List.of(Ui.text(s.name, ChatFormatting.AQUA),
+						Ui.text("A village's waystone keeps its village's name.", ChatFormatting.GRAY)), p -> {
+						});
+			}
+			if (canSecret() || canChoose()) {
+				Component name = Ui.text("Who can use it", ChatFormatting.WHITE).withStyle(ChatFormatting.BOLD);
+				List<Component> lore = new ArrayList<>();
+				lore.add(Ui.text("Now: " + said(now()), ChatFormatting.AQUA));
+				if (canSecret()) lore.add(Ui.text("Only " + (Stones.owns(this.player, s) ? "you" : "the owner") + " and who " + (Stones.owns(this.player, s) ? "you trust" : "they trust"),
+						ChatFormatting.GRAY));
+				lore.add(Ui.text("Everyone who found it: who right-clicked", ChatFormatting.GRAY));
+				lore.add(Ui.text("it once can travel here.", ChatFormatting.GRAY));
+				lore.add(Ui.text("On everyone's list: everyone can, found", ChatFormatting.GRAY));
+				lore.add(Ui.text("or not.", ChatFormatting.GRAY));
+				if (canChoose()) {
+					lore.add(Component.empty());
+					lore.add(Ui.text("▸ Click: " + said(next()).toLowerCase(java.util.Locale.ROOT), ChatFormatting.YELLOW));
+				}
+				area(0, 4, 9, 2, name, lore, p -> {
+					if (!canChoose()) return;
+					int to = next();
+					s.secret = to == PRIVATE;
+					s.shared = to == SHARED;
 					Stones.STORE.markDirty();
-					Notify.whisper(p, Ui.text(s.name + ": " + (s.secret ? "private" : "open to everyone who found it"), ChatFormatting.GRAY));
+					Notify.whisper(p, Ui.text(s.name + ": " + said(to).toLowerCase(java.util.Locale.ROOT), ChatFormatting.GRAY));
 					refresh();
-				};
-				area(0, 4, 8, 2, name, lore, flip);
-				ItemStack sw = new ItemStack(Items.PAPER);
-				sw.set(net.minecraft.core.component.DataComponents.ITEM_MODEL, s.secret ? SWITCH_ON : SWITCH_OFF);
-				icon(8, 4, sw, name, lore, flip);
-				area(8, 5, 1, 1, name, lore, flip);
+				});
 			}
 			if (op()) {
 				area(0, 7, 9, 1, Ui.text("Go there", ChatFormatting.WHITE).withStyle(ChatFormatting.BOLD),

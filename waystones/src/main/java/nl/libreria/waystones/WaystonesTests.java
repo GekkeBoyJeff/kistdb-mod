@@ -179,7 +179,15 @@ final class WaystonesTests {
 				SelfTests.check(s != null && s.village && s.owner == null && s.colour() == net.minecraft.world.item.DyeColor.CYAN && !s.dark,
 						"in the village's look: light stone, cyan");
 				SelfTests.check(!Stones.known(walker, s), "private to each player until they find it");
+				SelfTests.check(!Stones.mayShare(walker, s), "who hasn't found it can't share it");
 				SelfTests.check(Stones.discover(walker, s) && Stones.knownBy(walker).contains(s), "found: on their list");
+				// Who found a village's waystone may put it on everyone's list: then it's there for who never found it too
+				FakePlayer stranger = FakePlayer.get(level, new GameProfile(UUID.randomUUID(), "Stranger"));
+				SelfTests.check(Stones.mayShare(walker, s) && !Stones.mayShare(stranger, s), "who found it may share it, a stranger not");
+				s.shared = true;
+				SelfTests.check(Stones.known(stranger, s) && Stones.knownBy(stranger).contains(s), "shared: on everyone's list");
+				s.shared = false;
+				SelfTests.check(!Stones.known(stranger, s), "not shared any more: off the stranger's list");
 				SelfTests.check(!Stones.mayBreak(walker, s), "only an operator may break a village's waystone");
 				// Not on a house: a square never goes over anything built
 				SelfTests.check(Plaza.fits(level, bell.east(20), Direction.WEST, 3) >= 0 && !Plaza.natural(Blocks.OAK_PLANKS.defaultBlockState())

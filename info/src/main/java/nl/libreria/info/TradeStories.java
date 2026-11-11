@@ -60,7 +60,7 @@ public final class TradeStories {
 	public static void trading(Villager v, Player player) {
 		if (!InfoMod.MODULE.on() || !Found.ENABLED.get() || !(player instanceof ServerPlayer p) || CHANCE.get() <= 0) return;
 		try {
-			double chance = CHANCE.get() / 100.0 * (v.getTags().contains(BRED) ? 0.1 : 1);
+			double chance = CHANCE.get() / 100.0 * (v.entityTags().contains(BRED) ? 0.1 : 1);
 			roll(v, p, chance, new Random(p.getRandom().nextLong() ^ System.nanoTime()));
 		} catch (RuntimeException e) {
 			Libreria.LOG.warn("Trade stories: weighing the offers of {} failed", v.getUUID(), e);
@@ -73,7 +73,7 @@ public final class TradeStories {
 		int from = rolled(v);
 		if (offers.size() <= from) return null;
 		setRolled(v, offers.size());
-		if (v.getTags().contains(HAD)) return null;
+		if (v.entityTags().contains(HAD)) return null;
 		for (int i = from; i < offers.size(); i++) {
 			MerchantOffer o = offers.get(i);
 			ItemStack res = o.getResult();
@@ -89,7 +89,7 @@ public final class TradeStories {
 	}
 
 	private static int rolled(Villager v) {
-		for (String tag : v.getTags()) {
+		for (String tag : v.entityTags()) {
 			if (!tag.startsWith(ROLLED)) continue;
 			try {
 				return Integer.parseInt(tag.substring(ROLLED.length()));
@@ -101,7 +101,7 @@ public final class TradeStories {
 	}
 
 	private static void setRolled(Villager v, int n) {
-		for (String tag : List.copyOf(v.getTags())) if (tag.startsWith(ROLLED)) v.removeTag(tag);
+		for (String tag : List.copyOf(v.entityTags())) if (tag.startsWith(ROLLED)) v.removeTag(tag);
 		v.addTag(ROLLED + n);
 	}
 

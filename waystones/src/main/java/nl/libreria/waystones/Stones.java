@@ -53,6 +53,8 @@ final class Stones {
 		public boolean village;
 		/** Only the owner and the players they trust (on their land) may use it. */
 		public boolean secret;
+		/** On everyone's list, found or not (its owner, an operator, or for a village's who found it, shared it). */
+		public boolean shared;
 		public long made;
 		/** Dark stone (else light). */
 		public boolean dark;
@@ -178,6 +180,12 @@ final class Stones {
 		return s.owner != null && Services.land().map(l -> l.trusts(s.owner, p.getUUID())).orElse(false);
 	}
 
+	/** May put it on everyone's list (or take it off): its owner, an operator, and for a village's who found it. */
+	static boolean mayShare(ServerPlayer p, Stone s) {
+		if (owns(p, s) || Ui.isOp(p)) return true;
+		return s.village && FOUND.get(p).found.contains(s.key());
+	}
+
 	/** May break it: a player's, its owner or someone they trust; a village's, only an operator. */
 	static boolean mayBreak(ServerPlayer p, @Nullable Stone s) {
 		if (Ui.isOp(p)) return true;
@@ -186,9 +194,9 @@ final class Stones {
 		return owns(p, s) || s.owner != null && Services.land().map(l -> l.trusts(s.owner, p.getUUID())).orElse(false);
 	}
 
-	/** On their list: found, theirs, or a village's when the server makes those known to everyone. */
+	/** On their list: found, theirs, shared with everyone, or a village's when the server makes those known to everyone. */
 	static boolean known(ServerPlayer p, Stone s) {
-		if (owns(p, s) || FOUND.get(p).found.contains(s.key())) return true;
+		if (owns(p, s) || s.shared || FOUND.get(p).found.contains(s.key())) return true;
 		return s.village && WaystonesMod.KNOWN.get() == 1;
 	}
 
@@ -412,7 +420,7 @@ final class Stones {
 			Libreria.LOG.debug("{} found the waystone {}", p.getName().getString(), s.name);
 			nl.libreria.core.Tips.once(p, WaystonesMod.TIP);
 		}
-		if (p.isShiftKeyDown() && (owns(p, s) || Ui.isOp(p))) {
+		if (p.isShiftKeyDown() && mayShare(p, s)) {
 			WaystonesWindows.settings(p, s);
 			return;
 		}

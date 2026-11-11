@@ -310,6 +310,12 @@ public final class Guide {
 		return ACTIVE.containsKey(player.getUUID());
 	}
 
+	/** Is this player being shown the way to (about) this point? */
+	public static boolean isTo(ServerPlayer player, Vec3 point) {
+		Beam b = ACTIVE.get(player.getUUID());
+		return b != null && b.center != null && b.center.distanceToSqr(point) < 1.0;
+	}
+
 	public static void clear(ServerPlayer player) {
 		Beam b = ACTIVE.remove(player.getUUID());
 		if (b != null) {

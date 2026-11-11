@@ -62,7 +62,9 @@ final class WaystonePlaces {
 						Stones.travel(q, s, true);
 					});
 				} else if (Stones.owns(p, s) || Ui.isOp(p)) {
-					pl.details("name, private or open", q -> WaystonesWindows.settings(q, s));
+					pl.details("name, who can use it", q -> WaystonesWindows.settings(q, s));
+				} else if (Stones.mayShare(p, s)) {
+					pl.details("on everyone's list or not", q -> WaystonesWindows.settings(q, s));
 				}
 				out.add(pl);
 			}
@@ -75,6 +77,7 @@ final class WaystonePlaces {
 				: Stones.owns(p, s) ? Ui.text("Yours", 0xC79BF0)
 				: s.owner != null ? Ui.kv("Made by ", s.ownerName, ChatFormatting.WHITE) : Ui.text("A waystone", ChatFormatting.GRAY);
 		if (s.secret) return new Component[] {whose, Ui.text("Private: its owner and who they trust", ChatFormatting.GRAY)};
+		if (s.shared) return new Component[] {whose, Ui.text("On everyone's list", ChatFormatting.GRAY)};
 		return new Component[] {whose};
 	}
 
@@ -109,8 +112,10 @@ final class WaystonePlaces {
 	/** At your own waystone: its settings, from the list. */
 	private static @Nullable GuiElementBuilder settingsButton(ServerPlayer p) {
 		Stones.Stone s = at(p);
-		if (s == null || !(Stones.owns(p, s) || Ui.isOp(p))) return null;
-		GuiElementBuilder b = Menu.button(Items.NAME_TAG, "Settings", ChatFormatting.WHITE, s.name, "Its name, and who may use it.");
+		if (s == null || !Stones.mayShare(p, s)) return null;
+		boolean names = Stones.owns(p, s) || Ui.isOp(p);
+		GuiElementBuilder b = Menu.button(Items.NAME_TAG, "Settings", ChatFormatting.WHITE, s.name,
+				names ? "Its name, and who may use it." : "On everyone's list or not.");
 		Menu.actions(b, "Click: change them");
 		return b.setCallback((i, t, a, g) -> WaystonesWindows.settings(p, s));
 	}
