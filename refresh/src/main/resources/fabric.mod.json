@@ -1,0 +1,19 @@
+{
+	"schemaVersion": 1,
+	"id": "libreria_refresh",
+	"version": "${version}",
+	"name": "Libreria World refresh",
+	"description": "Make parts of a world anew without touching the bases: a map of every chunk (what stays: claims, where people spent time, what you pick; what goes), per world. At the next restart the rest is wiped and comes back fresh when someone goes there, with its structures in new places (strongholds stay). Operators only; server-side with the server's resource pack; requires Libreria (core).",
+	"authors": ["Jeffrey"],
+	"license": "MIT",
+	"environment": "*",
+	"entrypoints": {
+		"main": ["nl.libreria.refresh.RefreshMod"]
+	},
+	"mixins": ["libreria_refresh.mixins.json"],
+	"depends": {
+		"minecraft": "~26.3",
+		"fabric-api": "*",
+		"libreria": ">=${core_version}"
+	}
+}

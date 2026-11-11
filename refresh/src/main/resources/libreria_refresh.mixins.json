@@ -1,0 +1,14 @@
+{
+	"required": true,
+	"package": "nl.libreria.refresh.mixin",
+	"compatibilityLevel": "JAVA_25",
+	"mixins": [
+		"ChunkMapMixin",
+		"StructureStateAccessor",
+		"StructureSkipMixin",
+		"ItemFrameAccess"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}

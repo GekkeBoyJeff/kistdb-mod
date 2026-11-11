@@ -262,6 +262,22 @@ public final class ClaimsMod implements ModInitializer {
 				Owner o = STORE.get().owners.get(owner);
 				return o != null && o.trusted.containsKey(other);
 			}
+
+			@Override
+			public java.util.Map<Long, String> claimedChunks(String dimension) {
+				java.util.Map<Long, String> out = new java.util.HashMap<>();
+				String prefix = dimension + "|";
+				for (var e : STORE.get().claims.entrySet()) {
+					if (!e.getKey().startsWith(prefix)) continue;
+					String[] f = e.getKey().substring(prefix.length()).split("\\|");
+					if (f.length != 2) continue;
+					try {
+						out.put((Integer.parseInt(f[0]) & 0xFFFFFFFFL) | ((long) Integer.parseInt(f[1]) << 32), e.getValue().ownerName);
+					} catch (NumberFormatException ignored) {
+					}
+				}
+				return out;
+			}
 		});
 		// Getting hurt closes the land map at once
 		net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.AFTER_DAMAGE.register((entity, source, base, taken, blocked) -> {

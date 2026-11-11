@@ -81,6 +81,14 @@ public final class Services {
 		default int saved(java.util.UUID player) {
 			return 0;
 		}
+
+		/**
+		 * Every claimed chunk of a world ({@code dimension}: its id, "minecraft:overworld"), as a key (chunk x in the low
+		 * 32 bits, z in the high 32) → the owner's name.
+		 */
+		default java.util.Map<Long, String> claimedChunks(String dimension) {
+			return java.util.Map.of();
+		}
 	}
 
 	private static @Nullable Land land;

@@ -51,6 +51,10 @@ public final class AdminWindow {
 
 	public static void open(ServerPlayer player, Module module) {
 		if (!allowed(player)) return;
+		if (module.adminPage() != null) {
+			module.adminPage().accept(player);
+			return;
+		}
 		if (CanvasWindow.available(player)) {
 			AdminCanvas.open(player, module);
 			return;

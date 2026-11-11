@@ -53,6 +53,10 @@ public final class AdminCanvas extends CanvasWindow {
 	}
 
 	public static void open(ServerPlayer p, Module module) {
+		if (module != null && module.adminPage() != null) {
+			module.adminPage().accept(p);
+			return;
+		}
 		new AdminCanvas(p, module, 0).show();
 	}
 

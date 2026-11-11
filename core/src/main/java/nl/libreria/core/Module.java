@@ -163,6 +163,18 @@ public final class Module {
 		return Collections.unmodifiableList(this.adminButtons);
 	}
 
+	/** A window of its own for this module's server settings (instead of the usual list). Operators only. */
+	private @org.jetbrains.annotations.Nullable Consumer<ServerPlayer> adminPage;
+
+	public Module adminPage(Consumer<ServerPlayer> page) {
+		this.adminPage = page;
+		return this;
+	}
+
+	public @org.jetbrains.annotations.Nullable Consumer<ServerPlayer> adminPage() {
+		return this.adminPage;
+	}
+
 	// ---------------------------------------------------------------- server-wide settings (admin window)
 
 	final List<ServerSetting> serverSettings = new ArrayList<>();

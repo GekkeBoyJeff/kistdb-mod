@@ -1395,6 +1395,27 @@ public final class Screens implements FabricClientGameTest {
 			}
 			run(server, "effect clear @a", f("tp @a %d %d %d", x, y, z));
 			ctx.waitTicks(20);
+			// World refresh: its settings, then the map of the overworld (as it opens, far, near) and of the Nether
+			server.runOnServer(s -> nl.libreria.refresh.RefreshDebug.prepare(player));
+			for (int k = 0; k < 40 && server.computeOnServer(s -> nl.libreria.refresh.RefreshDebug.progress()) < 1; k++) ctx.waitTicks(20);
+			menu(ctx, server, player, "refresh_window", nl.libreria.refresh.RefreshDebug::window);
+			safe("refresh_map", () -> {
+				server.runOnServer(s -> nl.libreria.refresh.RefreshDebug.map(player, "minecraft:overworld", 2));
+				ctx.waitTicks(40);
+				noToasts(ctx);
+				ctx.takeScreenshot("refresh_map");
+				server.runOnServer(s -> nl.libreria.refresh.RefreshDebug.zoom(player, 0));
+				ctx.waitTicks(15);
+				ctx.takeScreenshot("refresh_map_far");
+				server.runOnServer(s -> nl.libreria.refresh.RefreshDebug.zoom(player, 4));
+				ctx.waitTicks(15);
+				ctx.takeScreenshot("refresh_map_near");
+				server.runOnServer(s -> nl.libreria.refresh.RefreshDebug.world(player, "minecraft:the_nether"));
+				ctx.waitTicks(20);
+				ctx.takeScreenshot("refresh_map_nether");
+				server.runOnServer(s -> nl.libreria.refresh.RefreshDebug.close(player));
+				ctx.waitTicks(10);
+			});
 			ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.FULL));
 			server.runOnServer(s -> {
 				nl.libreria.core.Links.KINDS.get(0).setting().set("https://discord.gg/example");
