@@ -243,8 +243,11 @@ final class Grand {
 		s.grand = false;
 		RISING.remove(s.key());
 		if (to != null) {
-			to.getInventory().placeItemBackInInventory(stone);
-			to.getInventory().placeItemBackInInventory(new ItemStack(Items.NETHER_STAR));
+			for (ItemStack back : new ItemStack[] {stone, new ItemStack(Items.NETHER_STAR)}) {
+				if (!to.getInventory().add(back) && !back.isEmpty()) {
+					to.level().addFreshEntity(new net.minecraft.world.entity.item.ItemEntity(to.level(), to.getX(), to.getY(), to.getZ(), back));
+				}
+			}
 			Notify.done(to, Items.NETHER_STAR, "Taken down: " + s.name, "The waystone and the nether star are back in your inventory.");
 		}
 	}

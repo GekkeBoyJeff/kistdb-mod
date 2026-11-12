@@ -47,10 +47,10 @@ public final class WaystonesMod implements ModInitializer {
 			new WaystoneBlock(stone().noOcclusion().setId(ResourceKey.create(Registries.BLOCK, WAYSTONE_ID))));
 	public static final AltarBlock ALTAR = Registry.register(BuiltInRegistries.BLOCK, ALTAR_ID,
 			new AltarBlock(stone().noOcclusion().setId(ResourceKey.create(Registries.BLOCK, ALTAR_ID))));
-	/** A grand waystone's blocks: nobody breaks them (it's taken down from its window), pistons and explosions neither. */
+	/** A grand waystone's blocks: nobody breaks them (it's taken down from its window), explosions neither; pistons can't move them. */
 	public static final GrandBlock GRAND = Registry.register(BuiltInRegistries.BLOCK, GRAND_ID,
 			new GrandBlock(BlockBehaviour.Properties.of().mapColor(MapColor.STONE).strength(-1f, 3_600_000f).sound(SoundType.DEEPSLATE_BRICKS)
-					.noLootTable().noOcclusion().pushReaction(net.minecraft.world.level.material.PushReaction.BLOCK).isValidSpawn((s, l, p, e) -> false)
+					.noLootTable().noOcclusion().isValidSpawn((s, l, p, e) -> false)
 					.setId(ResourceKey.create(Registries.BLOCK, GRAND_ID))));
 	/** Like obsidian in that pistons can't move it and explosions don't break it; as quick to mine as stone bricks. */
 	private static BlockBehaviour.Properties stone() {
