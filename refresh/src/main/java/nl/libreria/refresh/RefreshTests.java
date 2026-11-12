@@ -117,6 +117,21 @@ final class RefreshTests {
 					+ (tag.get("Heightmaps") instanceof CompoundTag hm ? " heightmaps " + hm.keySet() : "") + " sections " + tag.getListOrEmpty("sections").size()
 					+ " status " + tag.getStringOr("Status", "?") + " · " + Colors.debug(tag, level.getMinY(), level.getHeight()));
 		});
+		// As the server stops, the list is worked out again: it only gets shorter
+		SelfTests.register("refresh.stop", level -> {
+			java.util.List<Long> now = java.util.List.of(1L, 2L, 3L, 4L);
+			java.util.List<Long> left = Restart.onlyPlanned(now, java.util.Set.of(1L, 2L, 9L), java.util.Set.of(4L));
+			SelfTests.check(left.equals(java.util.List.of(1L, 2L, 4L)), "land walked on since planning stays (3), let go by hand comes on (4): " + left);
+			try {
+				Path f = Files.createTempFile("libreria-plan", ".bin");
+				Restart.writePlan(f, "minecraft:overworld", true, java.util.List.of(5L, 6L));
+				SelfTests.check(java.util.Set.of(5L, 6L).equals(Restart.readPlan(f)) && Restart.readPlan(f.resolveSibling("none.bin")) == null,
+						"a written list read back");
+				Files.deleteIfExists(f);
+			} catch (java.io.IOException e) {
+				throw new RuntimeException(e);
+			}
+		});
 		// What stays and what goes
 		SelfTests.register("refresh.plan", level -> {
 			Scan.World w = new Scan.World(Level.OVERWORLD, Path.of("."), Path.of("."), level.getMinY(), level.getHeight());

@@ -50,8 +50,8 @@ public final class RefreshMod implements ModInitializer {
 		ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
 			MapScreen.closeAll();
 			Scan.stop(server);
-			// The list of what goes, with the land as it is now (claims made since, time spent since)
-			if (Plan.STORE.get().planned) Restart.write(server);
+			// The list of what goes, with the land as it is now (claims made since, time spent since): never more than planned
+			if (Plan.STORE.get().planned) Restart.write(server, true);
 		});
 		ServerChunkEvents.CHUNK_LOAD.register((level, chunk, generated) -> Scan.loaded(level, chunk));
 		ServerChunkEvents.CHUNK_UNLOAD.register(Scan::unloaded);

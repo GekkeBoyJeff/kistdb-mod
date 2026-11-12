@@ -44,6 +44,15 @@ final class Restart {
 	 * isn't read wholly yet keeps the list it had. @return per world, how many chunks go
 	 */
 	static Map<String, Integer> write(MinecraftServer server) {
+		return write(server, false);
+	}
+
+	/**
+	 * The same, as the server stops ({@code again}): the lists only get shorter than when the refresh was planned (a
+	 * claim made since, time spent since, a chunk kept by hand), never longer, so land first walked on after planning (a
+	 * trip, villages found) stays; only what's let go by hand since comes on. A world that had no list keeps none.
+	 */
+	static Map<String, Integer> write(MinecraftServer server, boolean again) {
 		Map<String, Integer> out = new HashMap<>();
 		Path dir = Layout.dir(Scan.root(server));
 		for (Scan.World w : Scan.WORLDS.values()) {
@@ -59,6 +68,11 @@ final class Restart {
 			}
 			if (!ready(w)) continue;
 			List<Long> going = Plan.going(ctx, w);
+			if (again) {
+				Set<Long> before = readPlan(f);
+				if (before == null) continue;
+				going = onlyPlanned(going, before, ctx.letGo);
+			}
 			try {
 				writePlan(f, id, RefreshMod.MOVE.get(), going);
 				out.put(id, going.size());
@@ -77,6 +91,29 @@ final class Restart {
 			o.writeBoolean(move);
 			o.writeInt(going.size());
 			for (long k : going) o.writeLong(k);
+		}
+	}
+
+	/** What still goes of what was planned (and what was let go by hand since). */
+	static List<Long> onlyPlanned(List<Long> going, Set<Long> planned, Set<Long> letGo) {
+		List<Long> out = new ArrayList<>();
+		for (long k : going) if (planned.contains(k) || letGo.contains(k)) out.add(k);
+		return out;
+	}
+
+	/** The chunks a written list has going, or null when there's none (or it can't be read). */
+	static @org.jetbrains.annotations.Nullable Set<Long> readPlan(Path f) {
+		if (!Files.isRegularFile(f)) return null;
+		try (DataInputStream in = new DataInputStream(new java.io.BufferedInputStream(Files.newInputStream(f)))) {
+			if (in.readInt() != MAGIC) return null;
+			in.readUTF();
+			in.readBoolean();
+			int n = in.readInt();
+			Set<Long> out = new HashSet<>();
+			for (int i = 0; i < n; i++) out.add(in.readLong());
+			return out;
+		} catch (IOException e) {
+			return null;
 		}
 	}
 
