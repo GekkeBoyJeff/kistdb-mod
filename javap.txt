@@ -1,0 +1,11 @@
+Compiled from "PushReaction.java"
+public final class net.minecraft.world.level.material.PushReaction extends java.lang.Enum<net.minecraft.world.level.material.PushReaction> {
+  public static final net.minecraft.world.level.material.PushReaction PUSH_PULL;
+  public static final net.minecraft.world.level.material.PushReaction PUSH;
+  public static final net.minecraft.world.level.material.PushReaction POPPED;
+  public static final net.minecraft.world.level.material.PushReaction IMMOVEABLE;
+  public static final net.minecraft.world.level.material.PushReaction IGNORE_ENTITY;
+  public static net.minecraft.world.level.material.PushReaction[] values();
+  public static net.minecraft.world.level.material.PushReaction valueOf(java.lang.String);
+}
+vanilla assets from .gradle/loom-cache/minecraftMaven/net/minecraft/minecraft-merged-27659ce045/26.3/minecraft-merged-27659ce045-26.3.jar
