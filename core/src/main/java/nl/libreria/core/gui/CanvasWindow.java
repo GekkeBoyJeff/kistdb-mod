@@ -285,7 +285,13 @@ public abstract class CanvasWindow extends SimpleGui {
 		List<Canvas.Run> heading = new ArrayList<>(runs.stream().filter(r -> r.y() < top).toList());
 		heading.sort(Comparator.comparingInt(Canvas.Run::x));
 		StringBuilder title = new StringBuilder();
-		for (Canvas.Run r : heading) title.append(r.text());
+		int end = Integer.MIN_VALUE;
+		for (Canvas.Run r : heading) {
+			// pieces that touch belong together ("You", " › ", "Players"); a gap between them is a space
+			if (title.length() > 0 && r.x() > end + 4) title.append("   ");
+			title.append(r.text());
+			end = r.x() + r.width();
+		}
 		String t = title.toString().strip();
 		Window w = Window.of(Ui.text(t.isEmpty() ? "Libreria" : t, ChatFormatting.WHITE).withStyle(ChatFormatting.BOLD)).wide();
 		// The text, without what's written on the buttons (it's their label)

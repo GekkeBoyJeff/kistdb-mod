@@ -140,7 +140,7 @@ public final class Canvas {
 	}
 
 	/** A piece of text drawn on the canvas: what it says and where (its top left). */
-	public record Run(String text, int x, int y) {
+	public record Run(String text, int x, int y, int width) {
 	}
 
 	private final List<Run> runs = new ArrayList<>();
@@ -153,8 +153,8 @@ public final class Canvas {
 	/** Text with its top at ({@code x}, {@code y}). */
 	public Canvas text(Component text, int x, int y, int rgb, boolean shadow) {
 		if (y < MIN_Y || y > MAX_Y) return this;
-		this.runs.add(new Run(text.getString(), x, y));
 		int w = Glyphs.width(text);
+		this.runs.add(new Run(text.getString(), x, y, w));
 		move(x);
 		FontDescription font = font(y);
 		MutableComponent c = text.copy().withStyle(s -> {
