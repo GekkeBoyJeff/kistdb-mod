@@ -95,12 +95,25 @@ final class RefreshTests {
 			Colors.fromChunk(chunk, live, 0);
 			CompoundTag tag = SerializableChunkData.copyOf(level, chunk).write();
 			boolean read = Colors.fromTag(tag, level.getMinY(), level.getHeight(), saved, 0);
-			int same = 0, known = 0;
+			// Saved, a block has the colour of its kind (a log's bark or top, a bed's foot or head aren't saved apart): the
+			// columns with such a block on top (a village of the flat world's own may stand here) don't count
+			int same = 0, known = 0, fair = 0;
 			for (int i = 0; i < 256; i++) {
-				if (live[i] == saved[i]) same++;
 				if (saved[i] != Colors.UNKNOWN) known++;
+				int x = i & 15, z = i >> 4;
+				net.minecraft.core.BlockPos.MutableBlockPos pos = new net.minecraft.core.BlockPos.MutableBlockPos((chunk.getPos().x() << 4) + x,
+						chunk.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.WORLD_SURFACE, x, z), (chunk.getPos().z() << 4) + z);
+				net.minecraft.world.level.block.state.BlockState top = chunk.getBlockState(pos);
+				for (int steps = 0; steps < 48 && pos.getY() >= level.getMinY() && top.getMapColor(chunk, pos) == net.minecraft.world.level.material.MapColor.NONE; steps++) {
+					pos.move(0, -1, 0);
+					top = chunk.getBlockState(pos);
+				}
+				if (top.getMapColor(chunk, pos) != top.getBlock().defaultMapColor()) continue;
+				fair++;
+				if (live[i] == saved[i]) same++;
 			}
-			SelfTests.check(read && known > 200 && same >= 230, "saved colours read: " + known + " known, " + same + " the same; keys " + tag.keySet()
+			SelfTests.check(read && known > 200 && fair >= 64 && same >= fair * 230 / 256, "saved colours read: " + known + " known, " + same + " of " + fair
+					+ " the same; keys " + tag.keySet()
 					+ (tag.get("Heightmaps") instanceof CompoundTag hm ? " heightmaps " + hm.keySet() : "") + " sections " + tag.getListOrEmpty("sections").size()
 					+ " status " + tag.getStringOr("Status", "?") + " · " + Colors.debug(tag, level.getMinY(), level.getHeight()));
 		});
