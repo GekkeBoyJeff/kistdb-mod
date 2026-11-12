@@ -29,8 +29,10 @@ final class CoreTests {
 						"the players window as a dialog: " + (w == null ? "none" : w.titleText() + " " + w.buttonLabels()));
 				ProfileWindow.open(p, id, "", q -> PlayersWindow.open(q));
 				var profile = nl.libreria.core.dialog.Dialogs.open(id);
-				SelfTests.check(profile != null && profile != w && !profile.bodyText().isEmpty(),
-						"a profile as a dialog says what the window says: " + (profile == null ? "none" : profile.bodyText()));
+				SelfTests.check(profile != null && profile != w && profile.titleText().contains("profile") && profile.buttonLabels().contains("Back")
+						&& profile.buttonLabels().contains("Progress") && !profile.bodyText().contains("Back"),
+						"a profile as a dialog: its title, and its buttons (Back, Progress) as buttons: " + (profile == null ? "none"
+								: profile.titleText() + " " + profile.bodyText() + " " + profile.buttonLabels()));
 				// A button does what the area does (Back: to the players)
 				String back = profile == null ? null : profile.buttonLabels().stream().filter(l -> l.startsWith("Back")).findFirst().orElse(null);
 				SelfTests.check(back != null && profile.press(p, back) && nl.libreria.core.dialog.Dialogs.open(id) != profile

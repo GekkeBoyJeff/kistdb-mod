@@ -34,6 +34,9 @@ public abstract class CanvasWindow extends SimpleGui {
 	public static final Identifier TOOLTIP = Identifier.fromNamespaceAndPath("libreria", "panel");
 
 	protected final ServerPlayer player;
+	/** What an area does that only tells something (no click): shown as text, not a button, when the window is a dialog. */
+	protected static final Consumer<ServerPlayer> NOTE = p -> {
+	};
 
 	protected CanvasWindow(ServerPlayer player) {
 		super(MenuType.GENERIC_9x6, player, true);
@@ -192,7 +195,7 @@ public abstract class CanvasWindow extends SimpleGui {
 			@Nullable Consumer<ServerPlayer> right) {
 		boolean holds(Canvas.Run r) {
 			return r.x() >= Canvas.cellX(this.col) && r.x() < Canvas.cellX(this.col + this.w) && r.y() >= Canvas.cellY(this.row)
-					&& r.y() < Canvas.cellY(this.row + this.h);
+					&& r.y() < Canvas.cellY(this.row + this.h - 1) + 18;
 		}
 	}
 
@@ -222,15 +225,9 @@ public abstract class CanvasWindow extends SimpleGui {
 		}
 	}
 
-	/** Something to click (not only a note): it says how ("▸ Click…"), or says nothing more (Back, the next page). */
+	/** Something to click (not a {@link #NOTE}). */
 	private static boolean clickable(Entry e) {
-		if (e.left() == null) return false;
-		if (e.lines().isEmpty()) return true;
-		for (Component l : e.lines()) {
-			String t = l.getString().strip();
-			if (t.startsWith("▸") || t.startsWith("Click")) return true;
-		}
-		return false;
+		return e.left() != null && e.left() != NOTE;
 	}
 
 	private static boolean arrow(String t) {

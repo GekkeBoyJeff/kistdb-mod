@@ -181,16 +181,14 @@ final class WaystoneCanvas {
 		protected void fill() {
 			Stones.Stone s = this.stone;
 			area(0, 0, 9, 2, Ui.text(s.name, ACCENT).withStyle(ChatFormatting.BOLD), List.of(Ui.text(where(s), ChatFormatting.WHITE),
-					Ui.text(whose(s), ChatFormatting.GRAY)), p -> {
-					});
+					Ui.text(whose(s), ChatFormatting.GRAY)), NOTE);
 			if (canName()) {
 				area(0, 2, 9, 2, Ui.text("Name", ChatFormatting.WHITE).withStyle(ChatFormatting.BOLD), List.of(Ui.text("Now: " + s.name, ChatFormatting.AQUA),
 						Ui.text("Shown above the stone, in everyone's list", ChatFormatting.GRAY), Ui.text("and on the pearls bound to it.", ChatFormatting.GRAY),
 						Component.empty(), Ui.text("▸ Click: give it another name", ChatFormatting.YELLOW)), p -> rename(p, s, this.fromAdmin));
 			} else {
 				area(0, 2, 9, 2, Ui.text("Name", ChatFormatting.WHITE).withStyle(ChatFormatting.BOLD), List.of(Ui.text(s.name, ChatFormatting.AQUA),
-						Ui.text("A village's waystone keeps its village's name.", ChatFormatting.GRAY)), p -> {
-						});
+						Ui.text("A village's waystone keeps its village's name.", ChatFormatting.GRAY)), NOTE);
 			}
 			if (canSecret() || canChoose()) {
 				Component name = Ui.text("Who can use it", ChatFormatting.WHITE).withStyle(ChatFormatting.BOLD);

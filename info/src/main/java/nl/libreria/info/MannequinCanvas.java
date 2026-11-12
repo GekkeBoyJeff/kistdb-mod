@@ -206,8 +206,7 @@ final class MannequinCanvas extends CanvasWindow {
 			ItemStack st = Showcase.get(m, s);
 			if (st.isEmpty()) {
 				area(spotCol(i), spotRow(i), 1, 1, bold(s.label), List.of(grey("Nothing here. Right-click the"), grey("mannequin with something: it")
-						, grey("puts it where it fits.")), p -> {
-						});
+						, grey("puts it where it fits.")), NOTE);
 				continue;
 			}
 			List<Component> lore = List.of(Ui.text(s.label, ChatFormatting.GRAY), Component.empty(), hint("Click: take it off"));

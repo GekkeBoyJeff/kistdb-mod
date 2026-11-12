@@ -69,8 +69,7 @@ public final class CollectionWindow extends CanvasWindow {
 
 	/** For the self-tests: the picture of a collection as {@code who} has it, as JSON. */
 	static String picture(ServerPlayer viewer, UUID who, Completion.Collection col) {
-		return new CollectionWindow(viewer, who, col, q -> {
-		}).pictureJson();
+		return new CollectionWindow(viewer, who, col, NOTE).pictureJson();
 	}
 
 	private boolean own() {
@@ -142,15 +141,13 @@ public final class CollectionWindow extends CanvasWindow {
 				}
 			}
 			int row = GRID[i / 9], col = i % 9;
-			icon(col, row, icon, Ui.text(e.name(), has ? 0xFFFFFF : 0x9AA0AC), lore, q -> {
-			});
+			icon(col, row, icon, Ui.text(e.name(), has ? 0xFFFFFF : 0x9AA0AC), lore, NOTE);
 		}
 		List<Component> about = new ArrayList<>();
 		for (String l : Canvas.wrap(this.col.about(), 180)) about.add(Ui.text(l, ChatFormatting.GRAY));
 		about.add(Component.empty());
 		about.add(Ui.text("In colour: " + this.col.yes().toLowerCase(java.util.Locale.ROOT) + ". Dark: not yet.", ChatFormatting.DARK_GRAY));
-		area(0, 0, 9, 1, Ui.text(this.col.name, ProgressWindow.GOLD).withStyle(ChatFormatting.BOLD), about, q -> {
-		});
+		area(0, 0, 9, 1, Ui.text(this.col.name, ProgressWindow.GOLD).withStyle(ChatFormatting.BOLD), about, NOTE);
 		Component back = Ui.text("Back", ChatFormatting.WHITE).withStyle(ChatFormatting.BOLD);
 		Component top = Ui.text("Top list", ChatFormatting.WHITE).withStyle(ChatFormatting.BOLD);
 		List<Component> topLore = List.of(Ui.text("Who has the most " + this.col.name.toLowerCase(java.util.Locale.ROOT) + ".", ChatFormatting.GRAY));

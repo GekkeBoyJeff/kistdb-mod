@@ -229,13 +229,11 @@ public final class GoalWindow extends CanvasWindow {
 			long mine = r.done.getOrDefault(this.player.getUUID(), 0L);
 			about.add(1, Ui.text("You: " + Ui.n(mine / k.divisor()), ChatFormatting.AQUA));
 		}
-		area(0, 0, 9, 2, bold, about, p -> {
-		});
+		area(0, 0, 9, 2, bold, about, NOTE);
 		if (r != null) {
 			Goals.Kind k = Goals.kind(r.kind);
 			area(0, 2, 9, 1, Ui.text(Goals.percent(r) + "%", Domain.PROGRESS.rgb).withStyle(ChatFormatting.BOLD),
-					List.of(Ui.text(Ui.n(Goals.total(r) / k.divisor()) + " of " + Ui.n(r.target / k.divisor()), ChatFormatting.GRAY)), p -> {
-					});
+					List.of(Ui.text(Ui.n(Goals.total(r) / k.divisor()) + " of " + Ui.n(r.target / k.divisor()), ChatFormatting.GRAY)), NOTE);
 			List<Map.Entry<UUID, Long>> rank = ranking(r.done);
 			for (int i = 0; i < TOP.length && i < rank.size(); i++) person(TOP[i], rank.get(i), k);
 			for (int i = TOP.length; i < rank.size(); i++) {
@@ -255,10 +253,8 @@ public final class GoalWindow extends CanvasWindow {
 	private void person(int row, Map.Entry<UUID, Long> e, Goals.Kind k) {
 		Component name = Ui.text(name(e.getKey()), Domain.PROGRESS.rgb).withStyle(ChatFormatting.BOLD);
 		List<Component> lore = List.of(Ui.text(Ui.n(e.getValue() / k.divisor()) + " for this goal", ChatFormatting.GRAY));
-		area(1, row, 8, 1, name, lore, p -> {
-		});
-		icon(0, row, head(e.getKey()), name, lore, p -> {
-		});
+		area(1, row, 8, 1, name, lore, NOTE);
+		icon(0, row, head(e.getKey()), name, lore, NOTE);
 	}
 
 	private void fillPast() {
@@ -280,10 +276,8 @@ public final class GoalWindow extends CanvasWindow {
 			long mine = p.done.getOrDefault(this.player.getUUID(), 0L);
 			if (mine > 0) lore.add(Ui.text("You: " + Ui.n(mine / k.divisor()), ChatFormatting.AQUA));
 			Component name = Ui.text(k.name(), p.reached ? Domain.PROGRESS.rgb : 0x9AA0AC).withStyle(ChatFormatting.BOLD);
-			area(1, PAST_ROWS[i], 8, 1, name, lore, pl -> {
-			});
-			icon(0, PAST_ROWS[i], new ItemStack(k.icon()), name, lore, pl -> {
-			});
+			area(1, PAST_ROWS[i], 8, 1, name, lore, NOTE);
+			icon(0, PAST_ROWS[i], new ItemStack(k.icon()), name, lore, NOTE);
 		}
 		Component back = Ui.text("Back", ChatFormatting.WHITE).withStyle(ChatFormatting.BOLD);
 		java.util.function.Consumer<ServerPlayer> toNow = p -> {

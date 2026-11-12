@@ -57,8 +57,7 @@ public final class ProgressWindow extends CanvasWindow {
 
 	/** For the self-tests: the picture of someone's progress, as JSON. */
 	static String picture(ServerPlayer viewer, UUID who, Completion.Tab tab) {
-		ProgressWindow w = new ProgressWindow(viewer, who, "Test", "Top lists", q -> {
-		});
+		ProgressWindow w = new ProgressWindow(viewer, who, "Test", "Top lists", NOTE);
 		w.tab = tab;
 		return w.pictureJson();
 	}

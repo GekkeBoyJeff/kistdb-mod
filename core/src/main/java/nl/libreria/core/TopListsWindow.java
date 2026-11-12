@@ -47,8 +47,7 @@ public final class TopListsWindow extends CanvasWindow {
 
 	/** For the self-tests: the picture of a list (null: every list), as JSON. */
 	static String picture(ServerPlayer p, String board) {
-		TopListsWindow w = new TopListsWindow(p, board, q -> {
-		});
+		TopListsWindow w = new TopListsWindow(p, board, NOTE);
 		w.load();
 		return w.pictureJson();
 	}
@@ -236,8 +235,7 @@ public final class TopListsWindow extends CanvasWindow {
 		area(0, 0, 4, 2, Ui.text("‹ " + Completion.boardName(prev), ProgressWindow.GOLD).withStyle(ChatFormatting.BOLD),
 				List.of(Ui.text("▸ Click: the previous list", ChatFormatting.YELLOW)), q -> switchTo(prev));
 		area(4, 0, 1, 2, Ui.text(Completion.boardName(this.board), ProgressWindow.GOLD).withStyle(ChatFormatting.BOLD),
-				List.of(Ui.text(this.ranking.size() + " players", ChatFormatting.GRAY)), q -> {
-				});
+				List.of(Ui.text(this.ranking.size() + " players", ChatFormatting.GRAY)), NOTE);
 		area(5, 0, 4, 2, Ui.text(Completion.boardName(next) + " ›", ProgressWindow.GOLD).withStyle(ChatFormatting.BOLD),
 				List.of(Ui.text("▸ Click: the next list", ChatFormatting.YELLOW)), q -> switchTo(next));
 		for (int[] s : places()) {

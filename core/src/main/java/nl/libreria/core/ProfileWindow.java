@@ -89,8 +89,7 @@ public final class ProfileWindow extends CanvasWindow {
 	/** For the self-test: the picture of someone's profile, as JSON. */
 	static String picture(ServerPlayer viewer, UUID who) {
 		Players.Known k = Players.get(viewer.level().getServer(), who);
-		return k == null ? "" : new ProfileWindow(viewer, k, "Players", q -> {
-		}).pictureJson();
+		return k == null ? "" : new ProfileWindow(viewer, k, "Players", NOTE).pictureJson();
 	}
 
 	/** A player's head (their own skin when Minecraft knows it). */
@@ -194,8 +193,7 @@ public final class ProfileWindow extends CanvasWindow {
 			about.add(Component.empty().append(Ui.text(m[0] + ": ", ChatFormatting.GRAY)).append(Ui.text(m[1], ChatFormatting.WHITE)));
 		}
 		Component name = Ui.text(this.who.label(), Domain.YOU.rgb).withStyle(ChatFormatting.BOLD);
-		area(0, 0, 9, 2, name, about, p -> {
-		});
+		area(0, 0, 9, 2, name, about, NOTE);
 		Profile.Showcase sc = Profile.showcase();
 		if (sc != null) {
 			Consumer<ServerPlayer> reopen = q -> open(q, this.who.id(), this.via, this.back);
