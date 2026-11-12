@@ -218,8 +218,9 @@ public final class GrandBlock extends Block implements PolymerBlock, BlockWithEl
 			if (s != null) name(s);
 		}
 
+		/** The drawing's front (its steps and opening) towards {@link #front} (an item display shows a model turned half round). */
 		private Quaternionf turn() {
-			return new Quaternionf().rotateY((float) Math.toRadians(180 - this.front.toYRot()));
+			return new Quaternionf().rotateY((float) Math.toRadians(-this.front.toYRot()));
 		}
 
 		private void draw(WaystoneBlock.Look look) {
