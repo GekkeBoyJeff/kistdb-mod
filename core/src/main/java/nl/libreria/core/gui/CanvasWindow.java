@@ -315,13 +315,13 @@ public abstract class CanvasWindow extends SimpleGui {
 				}
 			}
 			String label = String.join(" · ", lines(on));
-			if (label.isEmpty()) label = e.name().getString();
+			if (label.isEmpty()) label = Canvas.plain(e.name()).strip();
 			Component tip = e.lines().isEmpty() ? null : Component.empty();
 			if (tip != null) {
 				var c = Component.empty();
 				for (int i = 0; i < e.lines().size(); i++) {
 					if (i > 0) c.append("\n");
-					c.append(e.lines().get(i));
+					c.append(Component.literal(Canvas.plain(e.lines().get(i))).withStyle(e.lines().get(i).getStyle()));
 				}
 				tip = c;
 			}
@@ -332,7 +332,7 @@ public abstract class CanvasWindow extends SimpleGui {
 			if (e.right() != null) {
 				String how = null;
 				for (Component l : e.lines()) {
-					String s = l.getString().strip();
+					String s = Canvas.plain(l).strip();
 					int at = s.toLowerCase(java.util.Locale.ROOT).indexOf("right-click");
 					if (at >= 0) how = s.substring(at + "right-click".length()).replaceFirst("^[:\\s]+", "").strip();
 				}

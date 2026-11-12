@@ -145,6 +145,20 @@ public final class Canvas {
 
 	private final List<Run> runs = new ArrayList<>();
 
+	/**
+	 * What a piece of text says in letters only: without the pack's pictures in it (an icon is a letter of a font of
+	 * ours, or a private-use one), which a game without the pack (Bedrock's) would show as a box or a letter of its own.
+	 */
+	public static String plain(Component text) {
+		StringBuilder b = new StringBuilder();
+		text.visit((net.minecraft.network.chat.FormattedText.StyledContentConsumer<Object>) (st, s) -> {
+			boolean picture = st.getFont() instanceof FontDescription.Resource r && r.id().getNamespace().equals("libreria");
+			if (!picture) s.codePoints().filter(cp -> Character.getType(cp) != Character.PRIVATE_USE).forEach(b::appendCodePoint);
+			return java.util.Optional.empty();
+		}, net.minecraft.network.chat.Style.EMPTY);
+		return b.toString();
+	}
+
 	/** Every piece of text drawn, in the order it was drawn (a window shown as a dialog says the same). */
 	public List<Run> runs() {
 		return this.runs;
@@ -154,7 +168,7 @@ public final class Canvas {
 	public Canvas text(Component text, int x, int y, int rgb, boolean shadow) {
 		if (y < MIN_Y || y > MAX_Y) return this;
 		int w = Glyphs.width(text);
-		this.runs.add(new Run(text.getString(), x, y, w));
+		this.runs.add(new Run(plain(text), x, y, w));
 		move(x);
 		FontDescription font = font(y);
 		MutableComponent c = text.copy().withStyle(s -> {

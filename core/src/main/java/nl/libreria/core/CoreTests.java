@@ -20,6 +20,8 @@ final class CoreTests {
 			UUID id = p.getUUID();
 			SelfTests.check(!Bedrock.is(p), "a Java player isn't a Bedrock player");
 			Bedrock.pretend(id, true);
+			// Someone who has been here (only they have a profile)
+			Players.note(id, "Bedrock", System.currentTimeMillis(), System.currentTimeMillis());
 			try {
 				SelfTests.check(Bedrock.is(p) && !Pack.has(p) && !nl.libreria.core.gui.CanvasWindow.available(p), "a Bedrock player gets no pack windows");
 				// A window drawn from the pack, opened for them: the same window as a dialog (Geyser shows it as a form)
@@ -47,6 +49,7 @@ final class CoreTests {
 				throw new RuntimeException(e);
 			} finally {
 				Bedrock.pretend(id, false);
+				Players.forget(id);
 			}
 			SelfTests.check(!Bedrock.is(p), "and back to Java");
 		});

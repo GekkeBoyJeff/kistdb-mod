@@ -22,6 +22,8 @@ import org.jetbrains.annotations.Nullable;
  * for blocks uses it, and so does the land map.
  */
 public final class TopCard {
+	/** The most a Bedrock player's boss bar takes in one line (letters) before the rest goes above the hotbar. */
+	private static final int BEDROCK_BAR = 48;
 	/** One row: a little picture (icon name, or "" for none), a grey label, optional pips and a value. */
 	public record Row(String icon, String label, double fraction, int barColor, int segments, Component value) {
 		public static Row text(String icon, String label, Component value) {
@@ -198,8 +200,15 @@ public final class TopCard {
 				top.bar.setProgress(0f);
 			} else {
 				// Without the pack: an ordinary boss bar with the name and subtitle
-				top.bar.setName(Component.empty().append(c.name()).append(Component.literal("  ·  ").withStyle(ChatFormatting.DARK_GRAY))
-						.append(c.subtitle()));
+				Component line = Component.empty().append(c.name()).append(Component.literal("  ·  ").withStyle(ChatFormatting.DARK_GRAY))
+						.append(c.subtitle());
+				if (nl.libreria.core.Bedrock.is(p) && line.getString().length() > BEDROCK_BAR) {
+					// Bedrock: a boss bar is one line, so a long one runs off the screen: the name there, the rest above the hotbar
+					top.bar.setName(c.name());
+					p.sendOverlayMessage(c.subtitle());
+				} else {
+					top.bar.setName(line);
+				}
 				top.bar.setColor(barColor(c.accent()));
 				top.bar.setProgress(1f);
 			}
