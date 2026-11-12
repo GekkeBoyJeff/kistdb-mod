@@ -39,6 +39,15 @@ final class CoreTests {
 				String back = profile == null ? null : profile.buttonLabels().stream().filter(l -> l.startsWith("Back")).findFirst().orElse(null);
 				SelfTests.check(back != null && profile.press(p, back) && nl.libreria.core.dialog.Dialogs.open(id) != profile
 						&& nl.libreria.core.dialog.Dialogs.open(id).titleText().contains("Players"), "its Back button goes back (" + back + ")");
+				// Text for them: without the pack's pictures, the rest as it was
+				var icon = net.minecraft.network.chat.Component.literal("").withStyle(s -> s.withFont(new net.minecraft.network.chat.FontDescription.Resource(
+						net.minecraft.resources.Identifier.fromNamespaceAndPath("libreria", "icons"))));
+				var named = net.minecraft.network.chat.Component.empty().append(icon).append(net.minecraft.network.chat.Component.literal(" Miner!")
+						.withStyle(net.minecraft.ChatFormatting.GREEN));
+				var plainText = net.minecraft.network.chat.Component.literal("Players");
+				SelfTests.check(Bedrock.clean(named).getString().equals(" Miner!") && Bedrock.clean(plainText) == plainText
+						&& Bedrock.clean(named).getSiblings().get(1).getStyle().getColor() != null,
+						"Bedrock text: no pictures (" + Bedrock.clean(named).getString() + ")");
 				// The Bedrock pack and Geyser's item mappings are in the jar, and go where Geyser looks
 				java.nio.file.Path dir = java.nio.file.Files.createTempDirectory("libreria-geyser");
 				java.nio.file.Files.createDirectories(dir.resolve("Geyser-Fabric"));

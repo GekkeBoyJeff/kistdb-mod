@@ -118,6 +118,48 @@ public final class Bedrock {
 		if (looked) Libreria.LOG.info("Bedrock players: recognised through {}", geyserIs != null ? "Geyser" : "Floodgate");
 	}
 
+	// ---------------------------------------------------------------- text without the pack's pictures
+
+	/**
+	 * Text as a Bedrock player can read it: the pack's pictures in it (letters of a font of ours, or private-use ones)
+	 * left out, since their game has neither (it would show a box, or one of its own button pictures). Everything else
+	 * stays as it is (colours, keys, translations); text without pictures comes back as it was.
+	 */
+	public static net.minecraft.network.chat.Component clean(net.minecraft.network.chat.Component text) {
+		return pictures(text, net.minecraft.network.chat.Style.EMPTY) ? rebuild(text, net.minecraft.network.chat.Style.EMPTY) : text;
+	}
+
+	private static boolean picture(net.minecraft.network.chat.Style style) {
+		return style.getFont() instanceof net.minecraft.network.chat.FontDescription.Resource r && r.id().getNamespace().equals("libreria");
+	}
+
+	private static boolean privateUse(String s) {
+		return s.codePoints().anyMatch(cp -> Character.getType(cp) == Character.PRIVATE_USE);
+	}
+
+	private static boolean pictures(net.minecraft.network.chat.Component c, net.minecraft.network.chat.Style parent) {
+		net.minecraft.network.chat.Style style = c.getStyle().applyTo(parent);
+		if (c.getContents() instanceof net.minecraft.network.chat.contents.PlainTextContents t && !t.text().isEmpty()
+				&& (picture(style) || privateUse(t.text()))) return true;
+		for (net.minecraft.network.chat.Component sib : c.getSiblings()) if (pictures(sib, style)) return true;
+		return false;
+	}
+
+	private static net.minecraft.network.chat.MutableComponent rebuild(net.minecraft.network.chat.Component c, net.minecraft.network.chat.Style parent) {
+		net.minecraft.network.chat.Style style = c.getStyle().applyTo(parent);
+		net.minecraft.network.chat.MutableComponent out;
+		if (c.getContents() instanceof net.minecraft.network.chat.contents.PlainTextContents t) {
+			StringBuilder b = new StringBuilder();
+			if (!picture(style)) t.text().codePoints().filter(cp -> Character.getType(cp) != Character.PRIVATE_USE).forEach(b::appendCodePoint);
+			out = net.minecraft.network.chat.Component.literal(b.toString());
+		} else {
+			out = net.minecraft.network.chat.MutableComponent.create(c.getContents());
+		}
+		out.setStyle(c.getStyle());
+		for (net.minecraft.network.chat.Component sib : c.getSiblings()) out.append(rebuild(sib, style));
+		return out;
+	}
+
 	private static boolean installed() {
 		var loader = net.fabricmc.loader.api.FabricLoader.getInstance();
 		return loader.isModLoaded("geyser-fabric") || loader.isModLoaded("floodgate");

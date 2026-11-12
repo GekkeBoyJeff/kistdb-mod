@@ -321,6 +321,33 @@ public final class Window {
 
 	public void show(ServerPlayer player) {
 		Dialogs.opened(player, this);
-		player.connection.send(new ClientboundShowDialogPacket(Holder.direct(build())));
+		player.connection.send(new ClientboundShowDialogPacket(Holder.direct(nl.libreria.core.Bedrock.is(player) ? forBedrock() : build())));
+	}
+
+	/** The same dialog without the pack's pictures in its text (a Bedrock player's game has none of them). */
+	Dialog forBedrock() {
+		CommonDialogData common = new CommonDialogData(nl.libreria.core.Bedrock.clean(this.title),
+				Optional.ofNullable(this.externalTitle).map(nl.libreria.core.Bedrock::clean), true, false, DialogAction.CLOSE,
+				this.body.stream().map(Window::forBedrock).toList(), List.copyOf(this.inputs));
+		if (this.buttons.isEmpty()) {
+			ActionButton ok = this.bottom != null ? forBedrock(this.bottom)
+					: new ActionButton(new CommonButtonData(Ui.text("Done", ChatFormatting.WHITE), Optional.empty(), 200), Optional.empty());
+			return new NoticeDialog(common, ok);
+		}
+		return new MultiActionDialog(common, this.buttons.stream().map(Window::forBedrock).toList(),
+				Optional.ofNullable(this.bottom).map(Window::forBedrock), this.columns);
+	}
+
+	private static ActionButton forBedrock(ActionButton b) {
+		CommonButtonData d = b.button();
+		return new ActionButton(new CommonButtonData(nl.libreria.core.Bedrock.clean(d.label()), d.tooltip().map(nl.libreria.core.Bedrock::clean),
+				d.width()), b.action());
+	}
+
+	private static DialogBody forBedrock(DialogBody b) {
+		if (b instanceof PlainMessage m) return new PlainMessage(nl.libreria.core.Bedrock.clean(m.contents()), m.width());
+		if (b instanceof ItemBody i) return new ItemBody(i.item(), i.description().map(m -> new PlainMessage(nl.libreria.core.Bedrock.clean(m.contents()), m.width())),
+				i.showDecorations(), i.showTooltip(), i.width(), i.height());
+		return b;
 	}
 }
