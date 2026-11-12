@@ -264,8 +264,70 @@ final class WaystonesTests {
 			}
 		});
 
+		SelfTests.register("waystones.grand", level -> {
+			FakePlayer mason = FakePlayer.get(level, new GameProfile(UUID.randomUUID(), "Mason"));
+			BlockPos lower = ground(level, 1000, 600), other = ground(level, 1300, 600);
+			Direction south = Direction.SOUTH;
+			try {
+				for (int dx = -3; dx <= 3; dx++) {
+					for (int dz = -3; dz <= 3; dz++) {
+						for (int dy = 0; dy <= 10; dy++) level.setBlock(lower.offset(dx, dy, dz), Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
+						level.setBlock(lower.offset(dx, -1, dz), Blocks.STONE.defaultBlockState(), Block.UPDATE_ALL);
+					}
+				}
+				Stones.Stone s = place(level, mason, lower, south), o = place(level, mason, other, Direction.NORTH);
+				ItemStack heart = new ItemStack(WaystonesMod.HEART, 2);
+				Grand.raise(mason, level, lower, heart);
+				SelfTests.check(!s.grand && heart.getCount() == 2 && level.getBlockState(lower).is(WaystonesMod.WAYSTONE),
+						"without a sculk floor it stays an ordinary waystone, the heart unused");
+				SelfTests.check(Grand.missingFloor(level, lower, south).size() == 23, "23 blocks of sculk round its feet (not under it or its altar)");
+				for (int j = 0; j < 5; j++) {
+					for (int i = 0; i < 5; i++) {
+						if (i == 2 && (j == 2 || j == 1)) continue;
+						level.setBlock(Grand.at(lower, south, i, j, -1), Blocks.SCULK.defaultBlockState(), Block.UPDATE_ALL);
+					}
+				}
+				Grand.raise(mason, level, lower, heart);
+				SelfTests.check(s.grand && heart.getCount() == 1, "on a sculk floor it becomes a grand waystone; the heart is used");
+				BlockState mid = level.getBlockState(lower);
+				SelfTests.check(mid.is(WaystonesMod.GRAND) && GrandBlock.isMiddle(mid) && Stones.at(level, lower) == s && Stones.standing(level, lower),
+						"the waystone's own block is the shrine's middle; it's still on the lists");
+				BlockPos roof = Grand.at(lower, south, 2, 2, 7);
+				SelfTests.check(level.getBlockState(roof).is(WaystonesMod.GRAND) && GrandBlock.middleOf(roof, level.getBlockState(roof)).equals(lower),
+						"the roof knows where the middle is");
+				SelfTests.check(Grand.at(lower, south, 2, 0, 0).equals(lower.south(2)) && level.getBlockState(lower.below()).is(WaystonesMod.GRAND),
+						"the opening faces where its altar did; the floor is part of it");
+				SelfTests.check(level.getBlockState(Grand.at(lower, south, 2, 2, 2)).isAir() && GrandBlock.walkOn(level.getBlockState(Grand.at(lower, south, 2, 1, 0)))
+						&& GrandBlock.walkOn(level.getBlockState(Grand.at(lower, south, 2, 0, 0))) && !GrandBlock.walkOn(level.getBlockState(Grand.at(lower, south, 0, 0, 0))),
+						"the heart's place is open; the opening and inside are half a block to step onto; a pillar isn't");
+				SelfTests.check(WaystonesMod.GRAND.getDestroyProgress(level.getBlockState(roof), mason, level, roof) == 0, "nobody breaks it");
+				// Leaving from it is free; from an ordinary one it isn't
+				mason.giveExperienceLevels(-100);
+				mason.experienceProgress = 0;
+				Vec3 at = Stones.arrival(level, s);
+				mason.teleportTo(level, at.x, at.y, at.z, java.util.Set.of(), 0, 0, false);
+				SelfTests.check(Math.abs(at.y - (lower.getY() + 0.5)) < 0.01 && at.distanceTo(Vec3.atBottomCenterOf(lower)) < 1.2,
+						"you arrive inside, on the plinth before the pedestal (" + at + ")");
+				SelfTests.check(Stones.travel(mason, o, false, s) && near(mason, other), "leaving from a grand waystone is free, without XP");
+				SelfTests.check(!Stones.travel(mason, s, false, o), "from an ordinary one it costs XP");
+				// Taken down: gone, floor and all; the waystone and the nether star come back
+				Grand.takeDown(s, level, mason);
+				SelfTests.check(level.getBlockState(lower).isAir() && level.getBlockState(lower.below()).isAir() && level.getBlockState(roof).isAir()
+						&& Stones.at(level, lower) == null, "taken down: the shrine and its floor are gone, and it's off the lists");
+				SelfTests.check(mason.getInventory().countItem(Items.NETHER_STAR) == 1 && mason.getInventory().countItem(WaystonesMod.WAYSTONE_ITEM) == 1,
+						"the waystone and the nether star come back");
+			} finally {
+				for (int dx = -3; dx <= 3; dx++) {
+					for (int dz = -3; dz <= 3; dz++) for (int dy = -1; dy <= 10; dy++) level.setBlock(lower.offset(dx, dy, dz), Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
+				}
+				Stones.removed(level, lower);
+				clear(level, other);
+				Stones.removed(level, other);
+			}
+		});
+
 		SelfTests.register("waystones.recipes", level -> {
-			for (String id : new String[] {"waystone", "dark_waystone", "waystone_pearl"}) {
+			for (String id : new String[] {"waystone", "dark_waystone", "waystone_pearl", "waystone_heart"}) {
 				SelfTests.check(level.getServer().getRecipeManager()
 						.byKey(ResourceKey.create(Registries.RECIPE, Identifier.fromNamespaceAndPath("libreria", id))).isPresent(), "the recipe " + id);
 			}

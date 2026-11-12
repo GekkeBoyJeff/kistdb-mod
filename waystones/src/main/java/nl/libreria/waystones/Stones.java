@@ -62,6 +62,8 @@ final class Stones {
 		public String dye = "";
 		/** Its runes glow (a glow ink sac), or not (an ink sac; as a new one is). */
 		public boolean glow;
+		/** A grand waystone (a shrine 5 × 5 round it, see {@link Grand}): leaving from it is free. */
+		public boolean grand;
 
 		DyeColor colour() {
 			DyeColor d = this.dye == null || this.dye.isEmpty() ? null : DyeColor.byName(this.dye, null);
@@ -162,6 +164,12 @@ final class Stones {
 		FOUND.get(p).found.add(s.key());
 		FOUND.markDirty(p);
 		return s;
+	}
+
+	/** A waystone stands at {@code lower}: an ordinary one's lower block, or a grand one's own block. */
+	static boolean standing(Level level, BlockPos lower) {
+		BlockState st = level.getBlockState(lower);
+		return st.is(WaystonesMod.WAYSTONE) || st.is(WaystonesMod.GRAND) && GrandBlock.isMiddle(st);
 	}
 
 	static void removed(Level level, BlockPos lower) {
@@ -270,9 +278,15 @@ final class Stones {
 	 * Travels to {@code to}: paying with an ender pearl (free of XP), or with XP. False (with why) when it can't.
 	 */
 	static boolean travel(ServerPlayer p, Stone to, boolean withPearl) {
+		return travel(p, to, withPearl, null);
+	}
+
+	/** Travels from the waystone {@code from} (null: not at one): leaving from a grand waystone is free. */
+	static boolean travel(ServerPlayer p, Stone to, boolean withPearl, @Nullable Stone from) {
 		ServerLevel level = check(p, to);
 		if (level == null) return false;
-		if (!p.isCreative()) {
+		boolean free = from != null && from.grand && !withPearl;
+		if (!p.isCreative() && !free) {
 			if (withPearl) {
 				if (!takePearl(p)) {
 					Notify.info(p, Items.ENDER_PEARL, "No ender pearl", "With an ender pearl the trip is free; without, it costs a little XP.");
@@ -303,7 +317,7 @@ final class Stones {
 			Notify.warn(p, Items.OBSIDIAN, "Not between worlds", "Waystones only reach their own world here.");
 			return null;
 		}
-		if (!level.getBlockState(to.pos()).is(WaystonesMod.WAYSTONE)) {
+		if (!standing(level, to.pos())) {
 			if (all().remove(to.key()) != null) STORE.markDirty();
 			Notify.warn(p, Items.BARRIER, "That waystone is gone", to.name + " isn't there any more.");
 			return null;
@@ -346,6 +360,11 @@ final class Stones {
 	static Vec3 arrival(ServerLevel level, Stone s) {
 		BlockPos lower = s.pos();
 		Direction f = s.front();
+		// a grand one: inside, on the plinth before its pedestal
+		BlockPos inside = lower.relative(f);
+		if (s.grand && level.getBlockState(inside).is(WaystonesMod.GRAND) && open(level, inside.above()) && open(level, inside.above(2))) {
+			return Vec3.atBottomCenterOf(inside).add(0, 0.5, 0);
+		}
 		List<BlockPos> tries = new ArrayList<>();
 		tries.add(lower.relative(f, 2));
 		tries.add(lower.relative(f).relative(f.getClockWise()));
@@ -456,7 +475,7 @@ final class Stones {
 	static void use(ServerPlayer p, ServerLevel level, BlockPos lower) {
 		if (!WaystonesMod.MODULE.on()) return;
 		BlockState state = level.getBlockState(lower);
-		if (!state.is(WaystonesMod.WAYSTONE)) return;
+		if (!standing(level, lower)) return;
 		Stone s = ensure(level, lower, state);
 		if (!mayUse(p, s)) {
 			Notify.warn(p, Items.BARRIER, s.name + " is private", "Only " + s.ownerName + " and the people they trust can use it.");

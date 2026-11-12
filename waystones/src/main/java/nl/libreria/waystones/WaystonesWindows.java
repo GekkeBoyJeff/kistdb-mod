@@ -76,6 +76,17 @@ final class WaystonesWindows {
 					: s.shared ? "On everyone's list." : "Open to everyone who found it.");
 			if (fromAdmin) admin(pl);
 		});
+		if (s.grand && Stones.owns(p, s)) {
+			w.button(Ui.text("Take it down", ChatFormatting.RED), Ui.text("The waystone and the nether star come back", ChatFormatting.GRAY), (pl, v) -> {
+				Window c = Window.path(s.name, "Take it down");
+				c.text(Ui.text("Take " + s.name + " down? The shrine and its floor go, and it's off everyone's list. You get the waystone and the "
+						+ "nether star back; the diamonds and the sculk are gone.", ChatFormatting.GRAY));
+				c.button(Ui.text("Take it down", ChatFormatting.RED), null, (q, vv) -> {
+					if (s.grand && Grand.mayTakeDown(q, s)) Grand.takeDown(s, Stones.level(q.level().getServer(), s.dim), q);
+				});
+				c.cancel(q -> settings(q, s, fromAdmin)).show(pl);
+			});
+		}
 		if (op) {
 			w.button(Ui.text("Go there", ChatFormatting.WHITE), Ui.text("Free, as an operator", ChatFormatting.GRAY), (pl, v) -> {
 				ServerLevel level = Stones.check(pl, s);
@@ -98,6 +109,11 @@ final class WaystonesWindows {
 	/** Takes the waystone away (and its record, even when its block is gone already). */
 	static void remove(ServerPlayer p, Stones.Stone s) {
 		ServerLevel level = Stones.level(p.level().getServer(), s.dim);
+		if (s.grand) {
+			Grand.takeDown(s, level, null);
+			Notify.done(p, Items.BARRIER, "Removed: " + s.name, where(s));
+			return;
+		}
 		if (level != null && level.getBlockState(s.pos()).is(WaystonesMod.WAYSTONE)) {
 			level.setBlock(s.pos().above(), Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
 			level.setBlock(s.pos(), Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);

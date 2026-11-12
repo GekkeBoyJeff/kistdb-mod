@@ -56,9 +56,9 @@ final class WaystoneCanvas {
 	}
 
 	private static String whose(Stones.Stone s) {
-		if (s.village) return "A village's waystone";
-		if (s.owner == null) return "Placed by the server";
-		return "Placed by " + s.ownerName + (s.made > 0 ? ", " + Players.ago(s.made).toLowerCase(Locale.ROOT) : "");
+		if (s.village) return s.grand ? "A village's grand waystone" : "A village's waystone";
+		if (s.owner == null) return s.grand ? "A grand waystone" : "Placed by the server";
+		return (s.grand ? "Grand · placed by " : "Placed by ") + s.ownerName + (s.made > 0 ? ", " + Players.ago(s.made).toLowerCase(Locale.ROOT) : "");
 	}
 
 	private static String where(Stones.Stone s) {
@@ -80,6 +80,11 @@ final class WaystoneCanvas {
 
 		private boolean op() {
 			return Ui.isOp(this.player);
+		}
+
+		/** A grand waystone of theirs: they take it down (and get the waystone and the nether star). */
+		private boolean takesDown() {
+			return this.stone.grand && Stones.owns(this.player, this.stone);
 		}
 
 		private boolean canSecret() {
@@ -153,11 +158,23 @@ final class WaystoneCanvas {
 				c.text("Go there", left, Canvas.cellY(7) + 5, TEXT);
 				c.text("›", Canvas.cellX(9) - Canvas.CARD_MARGIN - 8, Canvas.cellY(7) + 5, Glyphs.muted);
 				c.card(0, 8, 9, 1, DANGER);
-				c.text("Remove it", left, Canvas.cellY(8) + 5, TEXT);
+				c.text(takesDown() ? "Take it down" : "Remove it", left, Canvas.cellY(8) + 5, TEXT);
 				c.text("›", Canvas.cellX(9) - Canvas.CARD_MARGIN - 8, Canvas.cellY(8) + 5, Glyphs.muted);
+			} else if (takesDown()) {
+				// Its owner: a grand waystone comes down from here
+				c.text("Grand waystone", Canvas.cellX(0) + 3, Canvas.cellY(6) + 5, ACCENT);
+				c.card(0, 7, 9, 1, DANGER);
+				c.text("Take it down", left, Canvas.cellY(7) + 5, TEXT);
+				c.text("›", Canvas.cellX(9) - Canvas.CARD_MARGIN - 8, Canvas.cellY(7) + 5, Glyphs.muted);
 			}
 			small(c, 0, 9, "Back");
 			return c;
+		}
+
+		private void takeDownArea(int row) {
+			area(0, row, 9, 1, Ui.text("Take it down", 0xE0605A).withStyle(ChatFormatting.BOLD), List.of(Ui.text("The shrine and its floor go;", ChatFormatting.GRAY),
+					Ui.text("it's off everyone's list. You get the", ChatFormatting.GRAY), Ui.text("waystone and the nether star back.", ChatFormatting.GRAY),
+					Component.empty(), Ui.text("▸ Click: take it down (you're asked first)", ChatFormatting.YELLOW)), p -> confirmTakeDown(p, this.stone, this.fromAdmin));
 		}
 
 		@Override
@@ -207,15 +224,37 @@ final class WaystoneCanvas {
 							p.closeContainer();
 							Stones.go(p, level, s);
 						});
-				area(0, 8, 9, 1, Ui.text("Remove it", 0xE0605A).withStyle(ChatFormatting.BOLD), List.of(Ui.text("The stone and its altar go;", ChatFormatting.GRAY),
-						Ui.text("it's off everyone's list. Nothing drops.", ChatFormatting.GRAY), Component.empty(),
+				if (takesDown()) takeDownArea(8);
+				else area(0, 8, 9, 1, Ui.text("Remove it", 0xE0605A).withStyle(ChatFormatting.BOLD), List.of(Ui.text(s.grand ? "The shrine and its floor go;"
+						: "The stone and its altar go;", ChatFormatting.GRAY), Ui.text("it's off everyone's list. Nothing drops.", ChatFormatting.GRAY), Component.empty(),
 						Ui.text("▸ Click: remove (you're asked first)", ChatFormatting.YELLOW)), p -> confirmRemove(p, s, this.fromAdmin));
+			} else if (takesDown()) {
+				takeDownArea(7);
 			}
 			area(0, 9, 9, 1, Ui.text("Back", ChatFormatting.WHITE).withStyle(ChatFormatting.BOLD), List.of(), p -> {
 				if (this.fromAdmin) All.open(p, 0);
 				else PlaceList.open(p, WaystonePlaces.KIND);
 			});
 		}
+	}
+
+	/** (For the screenshots: the question, as from its window.) */
+	static void askTakeDown(ServerPlayer p, Stones.Stone s) {
+		confirmTakeDown(p, s, false);
+	}
+
+	/** Take it down: asked first; the waystone and the nether star come back. */
+	private static void confirmTakeDown(ServerPlayer p, Stones.Stone s, boolean fromAdmin) {
+		Window c = Window.path(s.name, "Take it down");
+		c.text(Ui.text("Take " + s.name + " down? The shrine and its floor go, and it's off everyone's list. You get the waystone and the nether "
+				+ "star back; the diamonds and the sculk are gone.", ChatFormatting.GRAY));
+		c.button(Ui.text("Take it down", ChatFormatting.RED), null, (q, vv) -> {
+			if (!Grand.mayTakeDown(q, s) || !s.grand) return;
+			Grand.takeDown(s, Stones.level(q.level().getServer(), s.dim), q);
+			if (fromAdmin) All.open(q, 0);
+			else q.closeContainer();
+		});
+		c.cancel(q -> one(q, s, fromAdmin)).show(p);
 	}
 
 	/** Shift + right-click on your waystone, Settings in the list: its window. */
@@ -327,7 +366,7 @@ final class WaystoneCanvas {
 				lore.add(Component.empty());
 				lore.add(Ui.text("▸ Click: name, private, go there, remove", ChatFormatting.YELLOW));
 				Component name = Ui.text(s.name, ACCENT).withStyle(ChatFormatting.BOLD);
-				icon(0, ROWS[i], new ItemStack(WaystonesMod.WAYSTONE_ITEM), name, lore, p -> one(p, s, true));
+				icon(0, ROWS[i], new ItemStack(s.grand ? WaystonesMod.HEART : WaystonesMod.WAYSTONE_ITEM), name, lore, p -> one(p, s, true));
 				area(1, ROWS[i], 8, 1, name, lore, p -> one(p, s, true));
 			}
 			area(0, 9, 3, 1, Ui.text("Back", ChatFormatting.WHITE).withStyle(ChatFormatting.BOLD), List.of(),

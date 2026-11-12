@@ -3,5 +3,7 @@
  "block.libreria.waystone_altar": "Waystone Altar",
  "item.libreria.waystone": "Waystone",
  "item.libreria.waystone_pearl": "Waystone Pearl",
- "item.libreria.dark_waystone": "Dark Waystone"
+ "item.libreria.dark_waystone": "Dark Waystone",
+ "block.libreria.grand_waystone": "Grand Waystone",
+ "item.libreria.waystone_heart": "Waystone Heart"
 }

@@ -36,16 +36,81 @@ final class Mockups {
 		run(server, "kill @e[type=!minecraft:player]", "clear @a", "time set midnight",
 				f("fill %d %d %d %d %d %d minecraft:grass_block", x - 16, y - 1, z - 6, x + 16, y - 1, z + 24),
 				f("fill %d %d %d %d %d %d minecraft:air", x - 16, y, z - 6, x + 16, y + 8, z + 24));
-		// (the mock-ups of before were chosen and built: spawnSpots, ping, stands)
+		// (the mock-ups of before were chosen and built: spawnSpots, ping, stands, grand waystones)
 		try {
-			grandWaystones(ctx, server, player, x, y, z);
+			grand(ctx, server, player, x, y, z);
 		} catch (Throwable t) {
-			LOG.error("mock grand waystones failed", t);
+			LOG.error("grand waystones failed", t);
 		}
 		LOG.info("LIBRERIA-MOCKUPS DONE");
 	}
 
-	// ---------------------------------------------------------------- grand waystones (Nov 2026)
+	// ---------------------------------------------------------------- grand waystones, built (Nov 2026)
+
+	/**
+	 * The grand waystone in the game, with the shader pack: the sculk floor laid round a waystone and the heart in hand;
+	 * it rising; risen; three side by side (light purple, dark cyan glowing, light orange matte) by day and at night; up
+	 * close; inside before the pedestal; the dark one at night.
+	 */
+	private static void grand(ClientGameTestContext ctx, TestServerContext server, ServerPlayer player, int x, int y, int z) {
+		int gz = z + 16;
+		run(server, "kill @e[type=!minecraft:player]", "clear @a", "time set 1000", "weather clear",
+				f("fill %d %d %d %d %d %d minecraft:grass_block", x - 24, y - 1, z - 14, x + 24, y - 1, z + 30),
+				f("fill %d %d %d %d %d %d minecraft:air", x - 24, y, z - 14, x + 24, y + 12, z + 30),
+				f("fill %d %d %d %d %d %d minecraft:air", x - 24, y + 13, z + 6, x + 24, y + 24, z + 30));
+		BlockPos mid = new BlockPos(x, y, gz);
+		var north = net.minecraft.core.Direction.NORTH;
+		// The floor laid, the waystone on it, the heart in hand
+		server.runOnServer(sv -> {
+			nl.libreria.waystones.WaystonesDebug.grandFloor(player, mid, north, false);
+			nl.libreria.waystones.WaystonesDebug.heartInHand(player);
+			nl.libreria.core.Guide.clear(player);
+		});
+		view(server, x + 4.5, y, gz - 5.5, x + 0.5, y + 0.3, gz + 0.5);
+		ctx.waitTicks(60);
+		Screens.shot(ctx, "grand_floor");
+		// It rises (a right-click with the heart), then stands
+		view(server, x + 7.5, y, gz - 9.5, x + 0.5, y + 4, gz + 0.5);
+		ctx.waitTicks(10);
+		server.runOnServer(sv -> nl.libreria.waystones.WaystonesDebug.useHeart(player, mid));
+		ctx.waitTicks(50);
+		Screens.shot(ctx, "grand_rising");
+		ctx.waitTicks(90);
+		Screens.shot(ctx, "grand_risen");
+		// Two more beside it: dark stone (cyan, glowing), light stone dyed orange (matte)
+		server.runOnServer(sv -> {
+			nl.libreria.waystones.WaystonesDebug.grand(player, mid.west(8), north, true, "", true, "Nightfall", false);
+			nl.libreria.waystones.WaystonesDebug.grand(player, mid.east(8), north, false, "orange", false, "Sunstone", false);
+		});
+		run(server, "item replace entity @a weapon.mainhand with minecraft:air");
+		view(server, x + 0.5, y + 3, gz - 21.5, x + 0.5, y + 4.5, gz + 0.5);
+		ctx.waitTicks(60);
+		Screens.shot(ctx, "grand_all_day");
+		run(server, "time set 18000");
+		ctx.waitTicks(40);
+		Screens.shot(ctx, "grand_all_night");
+		// Up close at dusk, inside, the dark one at night
+		run(server, "time set 12600");
+		view(server, x + 5.5, y, gz - 6.5, x + 0.5, y + 3.5, gz + 0.5);
+		ctx.waitTicks(40);
+		Screens.shot(ctx, "grand_close");
+		run(server, "time set 1000");
+		view(server, x + 0.5, y + 0.5, gz - 0.5 - 1, x + 0.5, y + 3.6, gz + 0.5);
+		ctx.waitTicks(40);
+		Screens.shot(ctx, "grand_inside");
+		view(server, x - 8 + 0.5, y + 0.5, gz - 4.5, x - 8 + 0.5, y + 2.6, gz + 0.5);
+		run(server, "time set 18000");
+		ctx.waitTicks(40);
+		Screens.shot(ctx, "grand_dark_night");
+		view(server, x - 3.5, y + 0.5, gz + 10.5, x + 0.5, y + 4, gz + 0.5);
+		run(server, "time set 6000");
+		ctx.waitTicks(40);
+		Screens.shot(ctx, "grand_back");
+		run(server, "time set 1000");
+		server.runOnServer(sv -> nl.libreria.waystones.WaystonesDebug.clearGrand(player));
+	}
+
+	// ---------------------------------------------------------------- grand waystones, mock-ups (Nov 2026)
 
 	/**
 	 * A grand waystone, three ways, 5 × 5 and tall, built from real blocks (displays for what floats): the Spire (light

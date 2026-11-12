@@ -65,6 +65,11 @@ def shard():
     return crystal(7, 15, 4, 10)
 
 
+def shard_small():
+    """The little ones on the roof's corners."""
+    return crystal(5, 11, 3, 7)
+
+
 if __name__ == "__main__":
     import sys
     out = sys.argv[1] if len(sys.argv) > 1 else "/home/claude/mock/grand/tex"

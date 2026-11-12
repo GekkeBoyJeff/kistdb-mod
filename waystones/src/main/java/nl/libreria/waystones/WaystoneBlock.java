@@ -234,7 +234,9 @@ public final class WaystoneBlock extends Block implements PolymerBlock, BlockWit
 	@Override
 	protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean moved) {
 		if (state.getValue(PART) == 0 && !level.getBlockState(pos).is(this)) {
-			Stones.removed(level, pos);
+			// (becoming a grand waystone it stays on the lists)
+			Stones.Stone s = Stones.at(level, pos);
+			if (s == null || !s.grand) Stones.removed(level, pos);
 			BlockPos altar = pos.relative(state.getValue(FACING));
 			BlockState a = level.getBlockState(altar);
 			if (a.is(WaystonesMod.ALTAR) && a.getValue(AltarBlock.FACING) == state.getValue(FACING)) {
@@ -275,11 +277,15 @@ public final class WaystoneBlock extends Block implements PolymerBlock, BlockWit
 		return useWith(stack, state, level, pos, player);
 	}
 
-	/** An item on the stone or its altar: pearls are bound to it, a dye or ink sac changes how it looks. */
+	/** An item on the stone or its altar: a Waystone Heart makes it grand, pearls are bound to it, a dye or ink sac changes how it looks. */
 	static InteractionResult useWith(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player) {
 		if (level instanceof ServerLevel sl && player instanceof ServerPlayer p) {
 			BlockPos lower = lowerOf(sl, pos, state);
 			if (lower != null) {
+				if (stack.is(WaystonesMod.HEART)) {
+					Grand.raise(p, sl, lower, stack);
+					return InteractionResult.SUCCESS;
+				}
 				if (stack.is(WaystonesMod.PEARL) && PearlItem.bindAt(p, stack, sl, lower)) return InteractionResult.SUCCESS;
 				if (Stones.paint(p, sl, lower, stack)) return InteractionResult.SUCCESS;
 			}

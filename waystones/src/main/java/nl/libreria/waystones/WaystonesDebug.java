@@ -135,6 +135,81 @@ public final class WaystonesDebug {
 		VillageWaystones.tick(server);
 	}
 
+	// ---------------------------------------------------------------- grand waystones
+
+	private static final List<BlockPos> GRAND = new ArrayList<>();
+	private static @Nullable BlockPos grandOne;
+
+	/** A 5 × 5 sculk floor in the ground round {@code lower}, the room above it cleared, and a waystone on it facing {@code front}. */
+	public static Stones.Stone grandFloor(ServerPlayer p, BlockPos lower, Direction front, boolean dark) {
+		ServerLevel level = p.level();
+		for (int[] c : Grand.places()) {
+			BlockPos b = Grand.at(lower, front, c[0], c[1], c[2]);
+			level.setBlock(b, c[2] < 0 ? net.minecraft.world.level.block.Blocks.SCULK.defaultBlockState()
+					: net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), net.minecraft.world.level.block.Block.UPDATE_ALL);
+		}
+		net.minecraft.world.level.block.state.BlockState st = WaystonesMod.WAYSTONE.defaultBlockState().setValue(WaystoneBlock.FACING, front);
+		level.setBlock(lower, st, net.minecraft.world.level.block.Block.UPDATE_ALL);
+		WaystonesMod.WAYSTONE.setPlacedBy(level, lower, st, p, new ItemStack(dark ? WaystonesMod.DARK_WAYSTONE_ITEM : WaystonesMod.WAYSTONE_ITEM));
+		Stones.Stone s = Stones.at(level, lower);
+		MADE.add(s.key());
+		GRAND.add(lower);
+		return s;
+	}
+
+	/** A grand waystone at {@code lower} (on its floor), in this look and name; {@code rise}: it comes up out of the ground now. */
+	public static void grand(ServerPlayer p, BlockPos lower, Direction front, boolean dark, String dye, boolean glow, String name, boolean rise) {
+		Stones.Stone s = grandFloor(p, lower, front, dark);
+		s.dye = dye;
+		s.glow = glow;
+		s.name = name;
+		Grand.build(p.level(), lower, front, s, rise);
+		grandOne = lower;
+	}
+
+	/** The heart in the hand of the player, as they're about to use it. */
+	public static void heartInHand(ServerPlayer p) {
+		p.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, new ItemStack(WaystonesMod.HEART));
+	}
+
+	/** Uses the heart in their hand on the waystone at {@code lower} (as a right-click would). */
+	public static void useHeart(ServerPlayer p, BlockPos lower) {
+		ItemStack h = p.getMainHandItem();
+		if (!h.is(WaystonesMod.HEART)) h = new ItemStack(WaystonesMod.HEART);
+		Grand.raise(p, p.level(), lower, h);
+		Stones.Stone s = Stones.at(p.level(), lower);
+		if (s != null && s.grand) grandOne = lower;
+	}
+
+	/** The last grand waystone's window (theirs: with Take it down). */
+	public static void grandSettings(ServerPlayer p) {
+		Stones.Stone s = grandOne == null ? null : Stones.at(p.level(), grandOne);
+		if (s != null) WaystonesWindows.settings(p, s);
+	}
+
+	/** Asked before it's taken down. */
+	public static void grandTakeDown(ServerPlayer p) {
+		Stones.Stone s = grandOne == null ? null : Stones.at(p.level(), grandOne);
+		if (s != null) WaystoneCanvas.askTakeDown(p, s);
+	}
+
+	/** The list, as when you right-click the last grand waystone (every trip free). */
+	public static void grandList(ServerPlayer p) {
+		Stones.Stone s = grandOne == null ? null : Stones.at(p.level(), grandOne);
+		if (s != null) WaystonePlaces.travelFrom(p, s);
+	}
+
+	public static void clearGrand(ServerPlayer p) {
+		for (BlockPos b : GRAND) {
+			Stones.Stone s = Stones.at(p.level(), b);
+			if (s != null && s.grand) Grand.takeDown(s, p.level(), null);
+			else WaystonesTests.clear(p.level(), b);
+			Stones.removed(p.level(), b);
+		}
+		GRAND.clear();
+		grandOne = null;
+	}
+
 	public static void clear(ServerPlayer p) {
 		if (stone != null) WaystonesTests.clear(p.level(), stone);
 		for (BlockPos at : EXTRA) WaystonesTests.clear(p.level(), at);

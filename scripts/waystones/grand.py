@@ -396,11 +396,17 @@ def heart_sprite(d, cx, cy, cz):
 
 def arch(d, side):
     """An arch between two pillars on one side: a band of trim along its curve, bricks above, a carved keystone."""
+    # 2-pixel slices along the curve; slices at the same height are one box (fewer faces)
+    runs = []
     for x in range(19, 61, 2):
         t = (x + 1 - 40) / 21
-        yi = 60 + 18 * math.sqrt(max(0.0, 1 - t * t))
-        yi = math.floor(yi)
-        parts = (([x, yi, 11], [x + 2, yi + 2, 17], "r", "trim"), ([x, yi + 2, 11], [x + 2, 82, 17], "@B", "stone"))
+        yi = math.floor(60 + 18 * math.sqrt(max(0.0, 1 - t * t)))
+        if runs and runs[-1][2] == yi:
+            runs[-1][1] = x + 2
+        else:
+            runs.append([x, x + 2, yi])
+    for x0, x1, yi in runs:
+        parts = (([x0, yi, 11], [x1, yi + 2, 17], "r", "trim"), ([x0, yi + 2, 11], [x1, 82, 17], "@B", "stone"))
         for frm, to, tex, kind in parts:
             if to[1] <= frm[1]:
                 continue
@@ -409,13 +415,13 @@ def arch(d, side):
     gx = along(side, [38.5, 76, 10.47], [41.5, 80, 10.47])
     # a rune on the keystone, outside
     if side == "north":
-        d.plane([38, 76, 10.45], [42, 79, 10.45], "north", "g", [6, 7, 10, 10], True)
+        d.plane([38, 76, 10.2], [42, 79, 10.2], "north", "g", [6, 7, 10, 10], True)
     elif side == "south":
-        d.plane([38, 76, 69.55], [42, 79, 69.55], "south", "g", [6, 7, 10, 10], True)
+        d.plane([38, 76, 69.8], [42, 79, 69.8], "south", "g", [6, 7, 10, 10], True)
     elif side == "west":
-        d.plane([10.45, 76, 38], [10.45, 79, 42], "west", "g", [6, 7, 10, 10], True)
+        d.plane([10.2, 76, 38], [10.2, 79, 42], "west", "g", [6, 7, 10, 10], True)
     else:
-        d.plane([69.55, 76, 38], [69.55, 79, 42], "east", "g", [6, 7, 10, 10], True)
+        d.plane([69.8, 76, 38], [69.8, 79, 42], "east", "g", [6, 7, 10, 10], True)
 
 
 def along(side, frm, to):
@@ -436,25 +442,42 @@ def balustrade(d, side, gap=None):
     for a, b in spans:
         d.box(*along(side, [a, 10, 11.5], [b, 12, 16.5]), "@A", "stone", "@A")
         d.box(*along(side, [a, 24, 11], [b, 27, 17]), "@M", "stone", "@M")
-        d.box(*along(side, [a, 23, 12], [b, 24, 16]), "r", "trim", faces=SIDES + ("down",))
+        d.box(*along(side, [a + 3, 23, 12], [b - 3, 24, 16]), "r", "trim", faces=SIDES + ("down",))
         x = a + 2
         while x + 2 <= b - 1:
-            d.box(*along(side, [x, 12, 13], [x + 2, 23, 15]), "@M", "stone", faces=SIDES)
+            d.box(*along(side, [x, 12, 13], [x + 2, 23, 15]), "@M", "local", faces=SIDES)
             x += 4
         # end posts
         for e in (a, b - 3):
             d.box(*along(side, [e, 12, 12], [e + 3, 24, 16]), "@B", "stone", faces=SIDES)
 
 
-def shrine5():
+def shrine5(floor="stone", heart=True):
     """Version 5: open on every side, with arches between the pillars and a low balustrade (an opening in front for the
-    steps), runes on the pillars and the keystones; the heart a pixel-art crystal on crossed planes with shards round it."""
+    steps), runes on the pillars and the keystones; the heart a pixel-art crystal on crossed planes with shards round it.
+    floor "sculk": no plinth, it stands on the 5 x 5 sculk floor it was made on (real blocks, drawn here for the preview);
+    "block": the plinth a whole block high (in the game it is the floor it was made on). heart False: without the heart (in the
+    game it turns on its own)."""
     d = Design()
-    d.box([0, 0, 0], [80, 4, 80], "@A", "stone", "@A")
-    d.box([2, 4, 6], [78, 8, 78], "@B", "stone", "@M")
-    d.box([1, 8, 5], [79, 10, 79], "r", "trim", "@M")
-    for z0, y1 in ((0.5, 6), (2.5, 8), (4.5, 10)):
-        d.box([28, 4, z0], [52, y1, 6], "@A", "stone", "@M")
+    if floor == "sculk":
+        for i in range(5):
+            for j in range(5):
+                d.box([16 * i, -6, 16 * j], [16 * i + 16, 10, 16 * j + 16], "v:sculk", "block")
+    elif floor == "slab":
+        # In the game: half a block high (you step onto it, as onto a slab: real slabs under it, the sculk floor below
+        # in the ground), a little wider than its 5 x 5 so it covers them; the steps in front of it
+        d.box([-2, 0, -2], [82, 2, 82], "@A", "stone", "@A")
+        d.box([-0.15, 2, -0.15], [80.15, 6, 80.15], "@B", "stone", "@M")
+        d.box([-1.15, 6, -1.15], [81.15, 8.15, 81.15], "r", "trim", "@M")
+        for z0, y1 in ((-6, 2), (-4.5, 4), (-3, 6)):
+            d.box([28, y1 - 2, z0], [52, y1, 0], "@A", "stone", "@M")
+    else:
+        d.box([0, -6 if floor == "block" else 0, 0], [80, 4, 80], "@A", "stone", "@A")
+        d.box([2, 4, 6], [78, 8, 78], "@B", "stone", "@M")
+        d.box([1, 8, 5], [79, 10, 79], "r", "trim", "@M")
+        for z0, y1 in ((0.5, 6), (2.5, 8), (4.5, 10)):
+            d.box([28, 4, z0], [52, y1, 6], "@A", "stone", "@M")
+    start = len(d.boxes)
     d.box([24, 10, 24], [56, 10.4, 56], "@C", "stone", "@C", faces=("up",))
     for cx in (14, 66):
         for cz in (14, 66):
@@ -464,7 +487,8 @@ def shrine5():
             for sx in (-1, 1):
                 for sz in (-1, 1):
                     x0, z0 = (cx + 4 if sx > 0 else cx - 5), (cz + 4 if sz > 0 else cz - 5)
-                    d.box([x0 - 0.01, 18, z0 - 0.01], [x0 + 1.01, 75, z0 + 1.01], "r", "stone", faces=SIDES)
+                    out = ("east" if sx > 0 else "west", "south" if sz > 0 else "north")
+                    d.box([x0 - 0.1, 18, z0 - 0.1], [x0 + 1.1, 75, z0 + 1.1], "r", "stone", faces=out)
             for face in SIDES:
                 rune_panel(d, cx, cz, 5, 34, face)
             d.box([cx - 6, 56, cz - 6], [cx + 6, 59, cz + 6], "r", "trim", "t")
@@ -491,8 +515,8 @@ def shrine5():
     sprite(d, 40, y + 3 + 7.5, 40, 7, 15, "x:shard", planes=2, spin=45)
     for cx in (9, 71):
         for cz in (9, 71):
-            d.box([cx - 3, 96, cz - 3], [cx + 3, 99, cz + 3], "@C", "stone", "@M")
-            sprite(d, cx, 99 + 5.5, cz, 5, 11, "x:shard", planes=2, spin=45)
+            d.box([cx - 3, 96, cz - 3], [cx + 3, 100, cz + 3], "@C", "stone", "@M")
+            sprite(d, cx, 100 + 5.5, cz, 5, 11, "x:shard_small", planes=2, spin=45)
     d.box([29, 10, 29], [51, 13, 51], "@A", "stone", "@A")
     d.box([31, 13, 31], [49, 15, 49], "r", "trim", "t")
     d.box([34, 15, 34], [46, 28, 46], "s", "stone", faces=SIDES)
@@ -500,8 +524,17 @@ def shrine5():
         rune_panel(d, 40, 40, 6, 15.5, face, height=12)
     d.box([32, 28, 32], [48, 30, 48], "r", "trim", faces=SIDES + ("down", "up"))
     d.box([30, 30, 30], [50, 34, 50], "@C", "stone", "b")
-    d.plane([34, 34.02, 34], [46, 34.02, 46], "up", "w", [1, 1, 15, 15], True)
-    heart_sprite(d, 40, 60, 40)
+    d.plane([34, 34.15, 34], [46, 34.15, 46], "up", "w", [1, 1, 15, 15], True)
+    if heart:
+        heart_sprite(d, 40, 60, 40)
+    if floor == "slab":
+        # everything on the plinth stands 2 pixels lower (its top at 8)
+        for b in d.boxes[start:]:
+            if b["frm"] is not None:
+                b["frm"][1] -= 2
+                b["to"][1] -= 2
+            if b.get("pts"):
+                b["pts"] = [(p[0], p[1] - 2, p[2]) for p in b["pts"]]
     return d
 
 
@@ -559,7 +592,7 @@ def rune_panel(d, cx, cz, half, y0, face, height=13):
     y1 = y0 + height
     win = [PANEL[0], 15 - height, PANEL[2], 15] if height < 13 else list(PANEL)
     glyph = [6, 16 - height, 10, 16] if height < 13 else [6, 3, 10, 14]
-    off, g = 0.01, 0.03
+    off, g = 0.1, 0.3
     if face == "north":
         d.plane([cx - 3, y0, cz - half - off], [cx + 3, y1, cz - half - off], "north", "p", win)
         d.plane([cx - 2, y0 + 1, cz - half - g], [cx + 2, y1 - 1, cz - half - g], "north", "g", glyph, True)
@@ -578,7 +611,7 @@ def frieze(d, u, face, y0=111.5, inset=8):
     """One rune (4 x 3) on the outside of the ring beam, {u} along it."""
     win = [6, 7, 10, 10]
     y1 = y0 + 3
-    lo, hi = inset - 0.03, 80 - inset + 0.03
+    lo, hi = inset - 0.3, 80 - inset + 0.3
     if face == "north":
         d.plane([u, y0, lo], [u + 4, y1, lo], "north", "g", win, True)
     elif face == "south":
@@ -647,8 +680,16 @@ def faces_of(b):
         else:
             a[fixed] = z[fixed]
         axes = [i for i in range(3) if i != fixed]
-        if b["kind"] == "stretch":
-            out.append(dict(face=face, a=a, b=z, tex=b["tex"], uv=[0, 0, 16, 16], tint=b["tint"], shade=False))
+        if b["kind"] == "local":
+            lo = [min(a[i], z[i]) for i in range(3)]
+            hi = [max(a[i], z[i]) for i in range(3)]
+            u0, u1 = (lo[axes[0]] - b["frm"][axes[0]], hi[axes[0]] - b["frm"][axes[0]])
+            v0, v1 = (lo[axes[1]] - b["frm"][axes[1]], hi[axes[1]] - b["frm"][axes[1]])
+            uv = [u0, v0, u1, v1] if face in ("up", "down") else [u0, 16 - v1, u1, 16 - v0] if fixed == 2 else [v0, 16 - u1, v1, 16 - u0]
+            out.append(dict(face=face, a=a, b=z, tex=b["tex"], uv=uv, tint=b["tint"], shade=True))
+            continue
+        if b["kind"] in ("stretch", "block"):
+            out.append(dict(face=face, a=a, b=z, tex=b["tex"], uv=[0, 0, 16, 16], tint=b["tint"], shade=b["kind"] == "block"))
             continue
         for p0, p1 in cuts(a[axes[0]], z[axes[0]]):
             for q0, q1 in cuts(a[axes[1]], z[axes[1]]):
@@ -744,13 +785,13 @@ def preview_faces(design, variant, tint, at=(0, 0, 0)):
 def main():
     out = "/home/claude/mock/grand"
     os.makedirs(out, exist_ok=True)
-    designs = {"shrine5": shrine5(), "shrine4": shrine4(), "shrine": shrine(), "monument": monument(), "pavilion": grand()}
+    designs = {"slab": shrine5("slab"), "sculk": shrine5("sculk"), "shrine5": shrine5(), "shrine4": shrine4(), "shrine": shrine(), "monument": monument(), "pavilion": grand()}
     only = sys.argv[2] if len(sys.argv) > 2 else None
     for dname, d in designs.items():
         if only and dname != only:
             continue
         for variant, tint in (("light", (199, 155, 240)), ("dark", (95, 242, 224))):
-            faces = preview_faces(d, variant, tint, at=(-40, 0, -40))
+            faces = preview_faces(d, variant, tint, at=(-40, 6 if dname == "sculk" else 0, -40))
             for name, eye, night in (("front", (-8.5, 4.5, -11.5), False), ("low", (5.0, 1.7, -7.0), False), ("night", (-8.5, 4.5, -11.5), True),
                                      ("open", (-2.5, 2.6, -9.5), False), ("back", (8.0, 4.0, 10.0), True)):
                 cam = preview.Camera(eye, (0, 5.0, 0), fov=60)

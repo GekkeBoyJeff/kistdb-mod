@@ -64,7 +64,7 @@ final class WaystoneLook {
 		return s;
 	}
 
-	private static ItemDisplayElement part(String path, int rgb, boolean lit, float range) {
+	static ItemDisplayElement part(String path, int rgb, boolean lit, float range) {
 		ItemDisplayElement e = new ItemDisplayElement(stack(path, rgb));
 		e.setItemDisplayContext(ItemDisplayContext.NONE);
 		if (lit) e.setBrightness(new Brightness(15, 15));

@@ -1384,6 +1384,27 @@ public final class Screens implements FabricClientGameTest {
 				close(ctx, server, player);
 				run(server, "clear @a");
 			});
+			// A grand waystone (theirs): how it looks, its window with Take it down, the question first, the list (all free)
+			safe("grand_waystone", () -> {
+				run(server, "time set 1000", f("fill %d %d %d %d %d %d minecraft:air", wx - 4, y, wz - 14, wx + 12, y + 10, wz - 4));
+				server.runOnServer(s -> nl.libreria.waystones.WaystonesDebug.grand(player, new BlockPos(wx + 4, y, wz - 9), net.minecraft.core.Direction.NORTH,
+						false, "", true, "Starfall", false));
+				run(server, f("tp @a %.1f %d %.1f", wx + 8.5, y, wz - 15.5));
+				ctx.waitTicks(60);
+				ctx.getInput().lookAt(new BlockPos(wx + 4, y + 3, wz - 9));
+				noToasts(ctx);
+				ctx.waitTicks(10);
+				ctx.takeScreenshot("grand_waystone");
+				run(server, f("tp @a %.1f %.1f %.1f", wx + 4.5, y + 0.5, wz - 9.5 - 1));
+				ctx.waitTicks(20);
+				ctx.getInput().lookAt(new BlockPos(wx + 4, y + 3, wz - 9));
+				ctx.waitTicks(10);
+				ctx.takeScreenshot("grand_waystone_inside");
+			});
+			menu(ctx, server, player, "grand_waystone_settings", nl.libreria.waystones.WaystonesDebug::grandSettings);
+			menu(ctx, server, player, "grand_waystone_take_down", nl.libreria.waystones.WaystonesDebug::grandTakeDown);
+			menu(ctx, server, player, "grand_waystone_list", nl.libreria.waystones.WaystonesDebug::grandList);
+			server.runOnServer(s -> nl.libreria.waystones.WaystonesDebug.clearGrand(player));
 			server.runOnServer(s -> nl.libreria.waystones.WaystonesDebug.clear(player));
 			String[] villageTypes = {"plains", "desert", "savanna", "snowy", "taiga"};
 			for (int i = 0; i < villageTypes.length; i++) {

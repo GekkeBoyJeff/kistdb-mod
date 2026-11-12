@@ -40,21 +40,23 @@ final class WaystonePlaces {
 				.about("Waystones you found. At a waystone:", "click one to travel there.")
 				.empty("Right-click a waystone to find it.", "New villages have one by the bell;", "or craft your own.")
 				.help("At a waystone, click one: travel there", "for a little XP (at most 1.5 levels).",
-						"Right-click: free, for an ender pearl.", "Waystone pearls: bound to one waystone,", "they take you there from anywhere.")
+						"Right-click: free, for an ender pearl.", "From a grand waystone: always free.", "Waystone pearls: bound to one waystone,",
+						"they take you there from anywhere.")
 				.action(WaystonePlaces::settingsButton);
 		PlaceList.addSource((p, out) -> {
 			if (!WaystonesMod.MODULE.on()) return;
 			Stones.Stone from = at(p);
 			for (Stones.Stone s : Stones.knownBy(p)) {
 				if (from != null && from.key().equals(s.key())) continue;
-				PlaceList.Place pl = PlaceList.place(KIND, s.name, new ItemStack(WaystonesMod.WAYSTONE_ITEM), s.dim, new Vec3(s.x + 0.5, s.y, s.z + 0.5))
+				PlaceList.Place pl = PlaceList.place(KIND, s.name, new ItemStack(s.grand ? WaystonesMod.HEART : WaystonesMod.WAYSTONE_ITEM), s.dim,
+						new Vec3(s.x + 0.5, s.y, s.z + 0.5))
 						.lore(about(p, s));
 				if (from != null) {
-					double levels = Stones.levels(p, s);
+					double levels = from.grand ? 0 : Stones.levels(p, s);
 					String price = p.isCreative() || levels <= 0 ? "travel there (free)" : "travel there (" + Stones.levelsText(levels) + ")";
 					pl.goAnywhere(price, q -> {
 						AT.remove(q.getUUID());
-						Stones.travel(q, s, false);
+						Stones.travel(q, s, false, from);
 					});
 					if (!p.isCreative() && levels > 0) pl.details("for an ender pearl (free)", q -> {
 						q.closeContainer();
@@ -73,7 +75,9 @@ final class WaystonePlaces {
 
 	/** Who it belongs to, and whether it's open. */
 	private static Component[] about(ServerPlayer p, Stones.Stone s) {
-		Component whose = s.village ? Ui.text("A village's waystone", ChatFormatting.GRAY)
+		Component whose = s.grand ? (Stones.owns(p, s) ? Ui.text("Your grand waystone", 0xC79BF0)
+				: s.owner != null ? Ui.kv("A grand waystone by ", s.ownerName, ChatFormatting.WHITE) : Ui.text("A grand waystone", 0xC79BF0))
+				: s.village ? Ui.text("A village's waystone", ChatFormatting.GRAY)
 				: Stones.owns(p, s) ? Ui.text("Yours", 0xC79BF0)
 				: s.owner != null ? Ui.kv("Made by ", s.ownerName, ChatFormatting.WHITE) : Ui.text("A waystone", ChatFormatting.GRAY);
 		if (s.secret) return new Component[] {whose, Ui.text("Private: its owner and who they trust", ChatFormatting.GRAY)};
