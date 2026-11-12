@@ -209,7 +209,7 @@ public abstract class CanvasWindow extends SimpleGui {
 	}
 
 	/** One of the old menus' buttons, pressed (from a dialog). */
-	private void pressed(eu.pb4.sgui.api.elements.GuiElementInterface.ClickCallback callback, int index) {
+	private void pressed(Object callback, int index) {
 		for (var m : callback.getClass().getMethods()) {
 			if (!m.getName().equals("click") || m.getParameterCount() != 4) continue;
 			try {
