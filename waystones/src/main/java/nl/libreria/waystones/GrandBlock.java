@@ -117,7 +117,7 @@ public final class GrandBlock extends Block implements PolymerBlock, BlockWithEl
 		if (middle && k == 0) return (dark ? Blocks.CHISELED_DEEPSLATE : Blocks.CHISELED_STONE_BRICKS).defaultBlockState();
 		if (k <= 4) return (dark ? Blocks.DEEPSLATE_BRICKS : Blocks.STONE_BRICKS).defaultBlockState();
 		if (k == 5) return (dark ? Blocks.POLISHED_BLACKSTONE : Blocks.SMOOTH_STONE).defaultBlockState();
-		return (dark ? Blocks.OXIDIZED_CUT_COPPER : Blocks.DEEPSLATE_TILES).defaultBlockState();
+		return (dark ? Blocks.DARK_PRISMARINE : Blocks.DEEPSLATE_TILES).defaultBlockState();
 	}
 
 	@Override
