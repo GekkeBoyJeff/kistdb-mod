@@ -9,7 +9,8 @@
 	"icon": "assets/libreria/icon.png",
 	"environment": "*",
 	"entrypoints": {
-		"main": ["nl.libreria.core.Libreria"]
+		"main": ["nl.libreria.core.Libreria"],
+		"preLaunch": ["nl.libreria.core.BedrockFiles"]
 	},
 	"mixins": ["libreria.mixins.json"],
 	"depends": {

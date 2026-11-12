@@ -28,9 +28,9 @@ public final class Pack {
 	private Pack() {
 	}
 
-	/** Does this player have the pack loaded? */
+	/** Does this player have the pack loaded? (A Bedrock player never really has: their game can't use it.) */
 	public static boolean has(ServerPlayer p) {
-		return PolymerResourcePackUtils.hasMainPack(p.connection);
+		return PolymerResourcePackUtils.hasMainPack(p.connection) && !Bedrock.is(p);
 	}
 
 	/** Adds the assets of a mod (its jar's assets/ folder) to the pack. */

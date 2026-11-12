@@ -67,7 +67,10 @@ public final class Welcome {
 		STORE.get(p).seen = true;
 		STORE.markDirty(p);
 		String line = LINE.isSet() ? LINE.get() : "A few handy extras here. No mods needed.";
-		List<TopCard.Row> rows = List.of(
+		// Bedrock (Geyser) has no such key: the menu is a command there
+		List<TopCard.Row> rows = Bedrock.is(p) ? List.of(
+				TopCard.Row.text("key", "Libreria", Ui.text("type /l in chat", ChatFormatting.WHITE)),
+				TopCard.Row.text("star", "Help", Ui.text("in Libreria", ChatFormatting.WHITE))) : List.of(
 				TopCard.Row.text("key", "Libreria", key("key.quickActions")),
 				TopCard.Row.text("chest", "Your items", Ui.text("{inventory}, right-click beside it", ChatFormatting.WHITE)),
 				TopCard.Row.text("star", "Help", Ui.text("in Libreria", ChatFormatting.WHITE)));
@@ -88,6 +91,7 @@ public final class Welcome {
 	public static void guide(ServerPlayer p) {
 		Window w = Window.of(Ui.text("Help", ChatFormatting.WHITE).withStyle(ChatFormatting.BOLD));
 		w.text(Ui.text("Everything works with a normal Minecraft: nothing to install.", ChatFormatting.GRAY));
+		if (Bedrock.is(p)) w.text(Ui.text("On Bedrock: type /l in chat for the Libreria menu.", ChatFormatting.YELLOW));
 		w.text(line("Libreria", key("key.quickActions", ChatFormatting.YELLOW),
 				"everything in three places: Progress, Land & places and You (your items and chests too). Also in the pause menu."));
 		w.text(line("Your items", key("key.inventory", ChatFormatting.YELLOW),

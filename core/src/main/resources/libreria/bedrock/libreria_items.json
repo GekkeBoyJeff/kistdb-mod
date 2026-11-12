@@ -1,0 +1,63 @@
+{
+  "format_version": 2,
+  "items": {
+    "minecraft:paper": [
+      {
+        "type": "definition",
+        "model": "libreria:waystone",
+        "bedrock_identifier": "libreria:waystone",
+        "display_name": "Waystone",
+        "bedrock_options": {
+          "icon": "libreria_waystone",
+          "allow_offhand": true,
+          "creative_category": "items"
+        },
+        "components": {
+          "minecraft:max_stack_size": 64
+        }
+      },
+      {
+        "type": "definition",
+        "model": "libreria:dark_waystone",
+        "bedrock_identifier": "libreria:dark_waystone",
+        "display_name": "Dark Waystone",
+        "bedrock_options": {
+          "icon": "libreria_dark_waystone",
+          "allow_offhand": true,
+          "creative_category": "items"
+        },
+        "components": {
+          "minecraft:max_stack_size": 64
+        }
+      },
+      {
+        "type": "definition",
+        "model": "libreria:waystone_pearl",
+        "bedrock_identifier": "libreria:waystone_pearl",
+        "display_name": "Waystone Pearl",
+        "bedrock_options": {
+          "icon": "libreria_waystone_pearl",
+          "allow_offhand": true,
+          "creative_category": "items"
+        },
+        "components": {
+          "minecraft:max_stack_size": 16
+        }
+      },
+      {
+        "type": "definition",
+        "model": "libreria:waystone_heart",
+        "bedrock_identifier": "libreria:waystone_heart",
+        "display_name": "Waystone Heart",
+        "bedrock_options": {
+          "icon": "libreria_waystone_heart",
+          "allow_offhand": true,
+          "creative_category": "items"
+        },
+        "components": {
+          "minecraft:max_stack_size": 16
+        }
+      }
+    ]
+  }
+}

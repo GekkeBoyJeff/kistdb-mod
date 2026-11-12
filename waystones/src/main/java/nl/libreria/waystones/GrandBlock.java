@@ -100,7 +100,24 @@ public final class GrandBlock extends Block implements PolymerBlock, BlockWithEl
 			return (state.getValue(DARK) ? Blocks.POLISHED_BLACKSTONE_SLAB : Blocks.SMOOTH_STONE_SLAB).defaultBlockState().setValue(SlabBlock.TYPE,
 					SlabType.BOTTOM);
 		}
+		if (nl.libreria.core.Bedrock.is(context)) return bedrock(state);
 		return Blocks.BARRIER.defaultBlockState();
+	}
+
+	/**
+	 * For Bedrock players (their game can't draw the shrine): the shrine in real blocks of its stone, where it has stone.
+	 * Pillars, balustrade and ring in bricks, the pedestal carved with amethyst on top (the heart's place), the cornice
+	 * smooth, the roof in its roof's colour.
+	 */
+	static BlockState bedrock(BlockState state) {
+		boolean dark = state.getValue(DARK);
+		int k = state.getValue(Y) - 1;
+		boolean middle = state.getValue(X) == 2 && state.getValue(Z) == 2;
+		if (middle && k == 1) return Blocks.AMETHYST_BLOCK.defaultBlockState();
+		if (middle && k == 0) return (dark ? Blocks.CHISELED_DEEPSLATE : Blocks.CHISELED_STONE_BRICKS).defaultBlockState();
+		if (k <= 4) return (dark ? Blocks.DEEPSLATE_BRICKS : Blocks.STONE_BRICKS).defaultBlockState();
+		if (k == 5) return (dark ? Blocks.POLISHED_BLACKSTONE : Blocks.SMOOTH_STONE).defaultBlockState();
+		return (dark ? Blocks.OXIDIZED_CUT_COPPER : Blocks.DEEPSLATE_TILES).defaultBlockState();
 	}
 
 	@Override
@@ -267,6 +284,13 @@ public final class GrandBlock extends Block implements PolymerBlock, BlockWithEl
 			click.setSize(1.1f, 2.5f);
 			click.setOffset(new Vec3(0, Grand.HEART_Y - 1.25, 0));
 			this.addElement(click);
+		}
+
+		/** Not for Bedrock players: their game can't draw these (they see real blocks instead). */
+		@Override
+		public boolean startWatching(net.minecraft.server.network.ServerGamePacketListenerImpl player) {
+			if (nl.libreria.core.Bedrock.is(player.getPlayer())) return false;
+			return super.startWatching(player);
 		}
 
 		private void name(Stones.Stone s) {

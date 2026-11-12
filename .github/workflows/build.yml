@@ -42,6 +42,26 @@ jobs:
           pkill -9 -f java || true
           grep -E 'LIBRERIA-SELFTEST|loaded|Mixin|ERROR|Exception' server.log | head -80
           grep -q 'LIBRERIA-SELFTEST OK' server.log
+      - name: bedrock check (Geyser on the server loads Libreria's Bedrock pack and item mappings)
+        id: bedrock
+        if: steps.build.outcome == 'success'
+        continue-on-error: true
+        run: |
+          mkdir -p testserver/run/mods
+          curl -sSL -o testserver/run/mods/Geyser-Fabric.jar https://cdn.modrinth.com/data/wKkoqHrH/versions/GRd6sCvw/Geyser-Fabric-2.12.1-b1300.jar
+          ls -la testserver/run/mods
+          unzip -p testserver/run/mods/Geyser-Fabric.jar config.yml 2>/dev/null | grep -n -i -B2 -A2 'custom' | head -30 || true
+          ./gradlew :testserver:runServer --no-daemon > bedrock.log 2>&1 &
+          for i in $(seq 1 120); do
+            if grep -qE 'LIBRERIA-SELFTEST (OK|FAIL) ' bedrock.log; then sleep 40; break; fi
+            if grep -qE 'Crash report|Failed to start the minecraft server|Exception in server tick loop|BUILD FAILED' bedrock.log; then break; fi
+            sleep 5
+          done
+          pkill -9 -f java || true
+          rm -f testserver/run/mods/Geyser-Fabric.jar
+          grep -iE 'geyser|bedrock|custom item|mapping|resource pack|LIBRERIA-SELFTEST' bedrock.log | grep -vE '^\s+at ' | head -80
+          ls -la testserver/run/config/Geyser-Fabric testserver/run/config/Geyser-Fabric/packs testserver/run/config/Geyser-Fabric/custom_mappings 2>&1 | head -30
+          grep -q 'LIBRERIA-SELFTEST OK' bedrock.log
       - name: screenshots (start a real 26.3 client)
         id: shots
         if: steps.build.outcome == 'success'
@@ -61,6 +81,8 @@ jobs:
         run: |
           mkdir -p out
           cp server.log out/ 2>/dev/null || true
+          cp bedrock.log out/ 2>/dev/null || true
+          echo "${{ steps.bedrock.outcome }}" > out/bedrock.txt
           echo "${{ steps.smoke.outcome }}" > out/smoke.txt
           cp build.log out/ || true
           echo "${{ steps.build.outcome }}" > out/status.txt

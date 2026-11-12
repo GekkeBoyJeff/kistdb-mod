@@ -63,6 +63,14 @@ public final class WaystoneBlock extends Block implements PolymerBlock, BlockWit
 
 	@Override
 	public BlockState getPolymerBlockState(BlockState state, PacketContext context) {
+		// Bedrock can't draw the stone (no display entities there): real blocks instead, a stone with amethyst and a lodestone
+		if (nl.libreria.core.Bedrock.is(context)) {
+			return switch (state.getValue(PART)) {
+				case 0 -> Blocks.CHISELED_STONE_BRICKS.defaultBlockState();
+				case 1 -> Blocks.AMETHYST_BLOCK.defaultBlockState();
+				default -> Blocks.LODESTONE.defaultBlockState();
+			};
+		}
 		return Blocks.BARRIER.defaultBlockState();
 	}
 
@@ -113,6 +121,13 @@ public final class WaystoneBlock extends Block implements PolymerBlock, BlockWit
 			draw(Look.of(level, this.pos));
 			Stones.Stone s = Stones.at(level, this.pos);
 			if (s != null) name(s);
+		}
+
+		/** Not for Bedrock players: their game can't draw these (they see real blocks instead). */
+		@Override
+		public boolean startWatching(net.minecraft.server.network.ServerGamePacketListenerImpl player) {
+			if (nl.libreria.core.Bedrock.is(player.getPlayer())) return false;
+			return super.startWatching(player);
 		}
 
 		private void draw(Look look) {

@@ -271,6 +271,36 @@ public final class Window {
 		return new CustomAll(Dialogs.WINDOW, Optional.of(tag));
 	}
 
+	/** (Self-tests: what it says.) The title, the text, the buttons' labels. */
+	public String titleText() {
+		return this.title.getString();
+	}
+
+	public List<String> bodyText() {
+		List<String> out = new ArrayList<>();
+		for (DialogBody b : this.body) if (b instanceof PlainMessage m) out.add(m.contents().getString());
+		return out;
+	}
+
+	public List<String> buttonLabels() {
+		List<String> out = new ArrayList<>();
+		for (ActionButton b : this.buttons) out.add(b.button().label().getString());
+		return out;
+	}
+
+	/** (Self-tests: presses the button with this label, as its player would.) */
+	public boolean press(ServerPlayer player, String label) {
+		for (int i = 0; i < this.buttons.size(); i++) {
+			if (!this.buttons.get(i).button().label().getString().equals(label)) continue;
+			var action = this.buttons.get(i).action();
+			if (action.isEmpty() || !(action.get() instanceof CustomAll c)) return false;
+			var tag = c.additions().orElse(null) instanceof CompoundTag t ? t : new CompoundTag();
+			click(player, tag.getIntOr(KEY_BUTTON, -1), Values.of(tag));
+			return true;
+		}
+		return false;
+	}
+
 	void click(ServerPlayer player, int button, Values values) {
 		if (button < 0 || button >= this.callbacks.size()) return;
 		this.callbacks.get(button).accept(player, values);

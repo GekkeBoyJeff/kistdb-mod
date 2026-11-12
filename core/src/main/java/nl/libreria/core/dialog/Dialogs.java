@@ -47,6 +47,11 @@ public final class Dialogs {
 		OPEN.remove(player);
 	}
 
+	/** (Self-tests: the dialog this player has open, if it's one of ours.) */
+	public static @org.jetbrains.annotations.Nullable Window open(UUID player) {
+		return OPEN.get(player);
+	}
+
 	/** From the mixin, on the server thread. Returns true when it was one of ours. */
 	public static boolean dispatch(ServerPlayer player, Identifier id, Optional<Tag> payload) {
 		if (!id.getNamespace().equals(NAMESPACE)) return false;

@@ -2220,4 +2220,55 @@ public final class Screens implements FabricClientGameTest {
 			close(ctx, server, player);
 		});
 	}
+
+	/**
+	 * As a Bedrock player (through Geyser) gets it: the player treated as one. Libreria's windows become dialogs (Geyser
+	 * shows a dialog as a Bedrock form: these are what's on it), the menu by /l; a waystone and a grand waystone in real
+	 * blocks. Runs after the whole walk, so the screenshots before stay as they were.
+	 */
+	static void bedrock(ClientGameTestContext ctx, TestServerContext server, ServerPlayer player) {
+		BlockPos o = server.computeOnServer(s -> player.blockPosition());
+		int x = o.getX(), y = o.getY(), z = o.getZ();
+		ctx.runOnClient(mc -> mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.HIDDEN));
+		server.runOnServer(s -> nl.libreria.core.Bedrock.pretend(player.getUUID(), true));
+		try {
+			menu(ctx, server, player, "bedrock_start", nl.libreria.core.Start::open);
+			menu(ctx, server, player, "bedrock_places", p -> nl.libreria.core.Start.domain(p, nl.libreria.core.Domain.PLACES));
+			menu(ctx, server, player, "bedrock_you", p -> nl.libreria.core.Start.domain(p, nl.libreria.core.Domain.YOU));
+			menu(ctx, server, player, "bedrock_profile", p -> nl.libreria.core.ProfileWindow.open(p, p.getUUID(), "",
+					q -> nl.libreria.core.Start.domain(q, nl.libreria.core.Domain.YOU)));
+			menu(ctx, server, player, "bedrock_players", nl.libreria.core.PlayersWindow::open);
+			menu(ctx, server, player, "bedrock_records", nl.libreria.collector.gui.RecordsWindow::open);
+			menu(ctx, server, player, "bedrock_settings", nl.libreria.core.gui.SettingsWindow::open);
+			menu(ctx, server, player, "bedrock_help", nl.libreria.core.Welcome::guide);
+			// A waystone and a grand waystone, built now (so they're sent as a Bedrock player gets them)
+			int wx = x + 30, wz = z + 30;
+			safe("bedrock_waystones", () -> {
+				run(server, "time set 1000", f("fill %d %d %d %d %d %d minecraft:grass_block", wx - 12, y - 1, wz - 12, wx + 12, y - 1, wz + 12),
+						f("fill %d %d %d %d %d %d minecraft:air", wx - 12, y, wz - 12, wx + 12, y + 12, wz + 12),
+						f("tp @a %.1f %d %.1f", wx + 0.5, y, wz - 10.5));
+				ctx.waitTicks(30);
+				server.runOnServer(s -> {
+					nl.libreria.waystones.WaystonesDebug.scene(player, new BlockPos(wx - 5, y, wz), net.minecraft.core.Direction.NORTH);
+					nl.libreria.waystones.WaystonesDebug.grand(player, new BlockPos(wx + 4, y, wz + 1), net.minecraft.core.Direction.NORTH, false, "", true,
+							"Starfall", false);
+					nl.libreria.core.Guide.clear(player);
+				});
+				ctx.waitTicks(40);
+				ctx.getInput().lookAt(new BlockPos(wx, y + 2, wz));
+				noToasts(ctx);
+				ctx.waitTicks(10);
+				ctx.takeScreenshot("bedrock_waystones");
+			});
+			menu(ctx, server, player, "bedrock_waystone_settings", nl.libreria.waystones.WaystonesDebug::settings);
+			menu(ctx, server, player, "bedrock_grand_settings", nl.libreria.waystones.WaystonesDebug::grandSettings);
+			menu(ctx, server, player, "bedrock_waystone_list", nl.libreria.waystones.WaystonesDebug::grandList);
+			server.runOnServer(s -> {
+				nl.libreria.waystones.WaystonesDebug.clearGrand(player);
+				nl.libreria.waystones.WaystonesDebug.clear(player);
+			});
+		} finally {
+			server.runOnServer(s -> nl.libreria.core.Bedrock.pretend(player.getUUID(), false));
+		}
+	}
 }

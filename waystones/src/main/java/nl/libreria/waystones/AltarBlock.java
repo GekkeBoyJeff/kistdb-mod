@@ -52,6 +52,8 @@ public final class AltarBlock extends Block implements PolymerBlock, BlockWithEl
 
 	@Override
 	public BlockState getPolymerBlockState(BlockState state, PacketContext context) {
+		// Bedrock: a real block (it can't draw the altar)
+		if (nl.libreria.core.Bedrock.is(context)) return Blocks.SMOOTH_STONE.defaultBlockState();
 		return Blocks.BARRIER.defaultBlockState();
 	}
 
@@ -84,6 +86,13 @@ public final class AltarBlock extends Block implements PolymerBlock, BlockWithEl
 			this.front = state.getValue(FACING);
 			this.stone = pos.relative(this.front.getOpposite()).immutable();
 			draw(WaystoneBlock.Look.of(level, this.stone));
+		}
+
+		/** Not for Bedrock players: their game can't draw these (they see real blocks instead). */
+		@Override
+		public boolean startWatching(net.minecraft.server.network.ServerGamePacketListenerImpl player) {
+			if (nl.libreria.core.Bedrock.is(player.getPlayer())) return false;
+			return super.startWatching(player);
 		}
 
 		private void draw(WaystoneBlock.Look look) {

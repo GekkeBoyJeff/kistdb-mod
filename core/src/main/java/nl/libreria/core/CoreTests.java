@@ -15,6 +15,40 @@ final class CoreTests {
 	}
 
 	static void register() {
+		SelfTests.register("core.bedrock", level -> {
+			FakePlayer p = FakePlayer.get(level, new com.mojang.authlib.GameProfile(UUID.randomUUID(), "Bedrock"));
+			UUID id = p.getUUID();
+			SelfTests.check(!Bedrock.is(p), "a Java player isn't a Bedrock player");
+			Bedrock.pretend(id, true);
+			try {
+				SelfTests.check(Bedrock.is(p) && !Pack.has(p) && !nl.libreria.core.gui.CanvasWindow.available(p), "a Bedrock player gets no pack windows");
+				// A window drawn from the pack, opened for them: the same window as a dialog (Geyser shows it as a form)
+				PlayersWindow.open(p);
+				var w = nl.libreria.core.dialog.Dialogs.open(id);
+				SelfTests.check(w != null && w.titleText().contains("Players") && !w.buttonLabels().isEmpty(),
+						"the players window as a dialog: " + (w == null ? "none" : w.titleText() + " " + w.buttonLabels()));
+				ProfileWindow.open(p, id, "", q -> PlayersWindow.open(q));
+				var profile = nl.libreria.core.dialog.Dialogs.open(id);
+				SelfTests.check(profile != null && profile != w && !profile.bodyText().isEmpty(),
+						"a profile as a dialog says what the window says: " + (profile == null ? "none" : profile.bodyText()));
+				// A button does what the area does (Back: to the players)
+				String back = profile == null ? null : profile.buttonLabels().stream().filter(l -> l.startsWith("Back")).findFirst().orElse(null);
+				SelfTests.check(back != null && profile.press(p, back) && nl.libreria.core.dialog.Dialogs.open(id) != profile
+						&& nl.libreria.core.dialog.Dialogs.open(id).titleText().contains("Players"), "its Back button goes back (" + back + ")");
+				// The Bedrock pack and Geyser's item mappings are in the jar, and go where Geyser looks
+				java.nio.file.Path dir = java.nio.file.Files.createTempDirectory("libreria-geyser");
+				java.nio.file.Files.createDirectories(dir.resolve("Geyser-Fabric"));
+				SelfTests.check(BedrockFiles.install(dir, false) && java.nio.file.Files.size(dir.resolve("Geyser-Fabric/packs/Libreria.mcpack")) > 1000
+						&& java.nio.file.Files.readString(dir.resolve("Geyser-Fabric/custom_mappings/libreria_items.json")).contains("libreria:waystone_heart"),
+						"the Bedrock pack and item mappings go into Geyser's folders");
+			} catch (java.io.IOException e) {
+				throw new RuntimeException(e);
+			} finally {
+				Bedrock.pretend(id, false);
+			}
+			SelfTests.check(!Bedrock.is(p), "and back to Java");
+		});
+
 		SelfTests.register("core.house", level -> {
 			FakePlayer p = FakePlayer.get(level);
 			Setting.STORE.get(p).values.remove(Tips.ENABLED.fullKey());

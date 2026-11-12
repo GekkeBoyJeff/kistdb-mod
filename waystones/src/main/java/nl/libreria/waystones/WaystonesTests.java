@@ -301,6 +301,8 @@ final class WaystonesTests {
 						&& GrandBlock.walkOn(level.getBlockState(Grand.at(lower, south, 2, 0, 0))) && !GrandBlock.walkOn(level.getBlockState(Grand.at(lower, south, 0, 0, 0))),
 						"the heart's place is open; the opening and inside are half a block to step onto; a pillar isn't");
 				SelfTests.check(WaystonesMod.GRAND.getDestroyProgress(level.getBlockState(roof), mason, level, roof) == 0, "nobody breaks it");
+				BlockState seen = GrandBlock.bedrock(level.getBlockState(roof));
+				SelfTests.check(!seen.is(Blocks.BARRIER) && seen.isCollisionShapeFullBlock(level, roof), "Bedrock players see its roof as real blocks (" + seen + ")");
 				// Leaving from it is free; from an ordinary one it isn't
 				mason.giveExperienceLevels(-100);
 				mason.experienceProgress = 0;
