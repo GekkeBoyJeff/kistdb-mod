@@ -8211,8 +8211,13 @@
    0,
    14
   ],
-  "libreria:waystone_pearl": [
+  "libreria:waystone_heart": [
    59400,
+   0,
+   15
+  ],
+  "libreria:waystone_pearl": [
+   59401,
    0,
    16
   ]
@@ -9890,15 +9895,15 @@
    8
   ],
   "hb.slot": [
-   59401,
+   59402,
    23
   ],
   "hb.shift": [
-   59402,
+   59403,
    5
   ],
   "hb.map": [
-   59403,
+   59404,
    17
   ]
  },
