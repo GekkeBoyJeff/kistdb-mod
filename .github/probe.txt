@@ -1,6 +1,2 @@
-net.minecraft.world.entity.Leashable
-net.minecraft.world.level.portal.TeleportTransition
-net.minecraft.world.entity.animal.Animal
-? /Animal\.class$
-? /Leashable\.class$
-? /TeleportTransition\.class$
+eu.pb4.polymer.core.api.item.PolymerItem
+net.minecraft.world.item.Item$Properties

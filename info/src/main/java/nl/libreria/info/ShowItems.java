@@ -32,18 +32,39 @@ final class ShowItems {
 	private ShowItems() {
 	}
 
-	/** An item that looks like a vanilla one to the player's game. */
+	/** An item that looks like a vanilla one to the player's game, with a name of its own. */
 	static final class Shown extends Item implements PolymerItem {
 		private final Item looks;
+		private final Identifier model;
+		private final Component name;
 
-		Shown(Properties properties, Item looks) {
+		Shown(Properties properties, Item looks, Identifier model, Component name) {
 			super(properties);
 			this.looks = looks;
+			this.model = model;
+			this.name = name;
 		}
 
 		@Override
 		public Item getPolymerItem(ItemStack stack, @Nullable PacketContext context) {
 			return this.looks;
+		}
+
+		/** What the player's game draws: Minecraft's own armour stand or item frame. */
+		@Override
+		public @Nullable Identifier getPolymerItemModel(ItemStack stack, @Nullable PacketContext context) {
+			return this.model;
+		}
+
+		/** Its name in the player's game (the item's own would be a translation key nobody has). */
+		@Override
+		public void modifyBasePolymerItemStack(ItemStack out, ItemStack stack, @Nullable PacketContext context) {
+			out.set(DataComponents.ITEM_NAME, this.name);
+		}
+
+		@Override
+		public Component getName(ItemStack stack) {
+			return this.name;
 		}
 	}
 
@@ -79,10 +100,7 @@ final class ShowItems {
 		List<Component> lines = lore.stream().map(c -> (Component) c.copy().withStyle(st -> st.withItalic(false))).toList();
 		Item.Properties props = new Item.Properties().stacksTo(stack).setId(ResourceKey.create(Registries.ITEM, key))
 				.component(DataComponents.CUSTOM_DATA, CustomData.of(mark))
-				.component(DataComponents.ITEM_NAME, Component.literal(name))
-				.component(DataComponents.LORE, new ItemLore(lines))
-				// what the player's game draws: Minecraft's own
-				.component(DataComponents.ITEM_MODEL, Identifier.withDefaultNamespace(model));
-		return Registry.register(BuiltInRegistries.ITEM, key, new Shown(props, looks));
+				.component(DataComponents.LORE, new ItemLore(lines));
+		return Registry.register(BuiltInRegistries.ITEM, key, new Shown(props, looks, Identifier.withDefaultNamespace(model), Component.literal(name)));
 	}
 }
