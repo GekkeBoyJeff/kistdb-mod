@@ -610,14 +610,7 @@ final class Showcase {
 	/** A mannequin or (dark oak) story wall as an item ("mannequin" / "wall"), as the recipe makes it. */
 	static ItemStack item(String what) {
 		if (!what.equals("mannequin")) return StoryWall.item("dark_oak");
-		ItemStack s = new ItemStack(Items.ARMOR_STAND);
-		CompoundTag tag = new CompoundTag();
-		tag.putString(KEY, "mannequin");
-		s.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
-		s.set(DataComponents.ITEM_NAME, Component.literal("Mannequin"));
-		s.set(DataComponents.LORE, new net.minecraft.world.item.component.ItemLore(List.of(Ui.text("Dress it in a whole story: armour,", ChatFormatting.GRAY),
-				Ui.text("both hands, its back, hips and feet.", ChatFormatting.GRAY), Ui.text("Right-click it: read its stories.", ChatFormatting.GRAY))));
-		return s;
+		return new ItemStack(ShowItems.MANNEQUIN);
 	}
 
 	static @Nullable String kindOf(ItemStack s) {

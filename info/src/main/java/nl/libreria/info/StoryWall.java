@@ -163,17 +163,7 @@ final class StoryWall {
 
 	/** A piece of story wall of this wood as an item, as its recipe makes it. */
 	static ItemStack item(String wood) {
-		wood = wood(wood);
-		ItemStack s = new ItemStack(Items.ITEM_FRAME);
-		CompoundTag tag = new CompoundTag();
-		tag.putString(Showcase.KEY, KIND);
-		tag.putString(WOOD, wood);
-		s.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
-		s.set(DataComponents.ITEM_NAME, Component.literal(woodName(wood) + " Story Wall"));
-		s.set(DataComponents.LORE, new net.minecraft.world.item.component.ItemLore(List.of(
-				Ui.text("A piece for a wall: two spots, one", ChatFormatting.GRAY), Ui.text("above the other. Pieces of one wood", ChatFormatting.GRAY),
-				Ui.text("side by side join, up to eight spots.", ChatFormatting.GRAY))));
-		return s;
+		return new ItemStack(ShowItems.WALLS.get(wood(wood)));
 	}
 
 	static String woodOf(ItemStack s) {

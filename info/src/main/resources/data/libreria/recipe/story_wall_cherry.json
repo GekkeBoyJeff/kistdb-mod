@@ -10,31 +10,7 @@
     "minecraft:gold_nugget"
   ],
   "result": {
-    "id": "minecraft:item_frame",
-    "components": {
-      "minecraft:custom_data": {
-        "libreria_showcase": "wall",
-        "libreria_wood": "cherry"
-      },
-      "minecraft:item_name": "Cherry Story Wall",
-      "minecraft:lore": [
-        {
-          "text": "A piece for a wall: two spots, one",
-          "color": "gray",
-          "italic": false
-        },
-        {
-          "text": "above the other. Pieces of one wood",
-          "color": "gray",
-          "italic": false
-        },
-        {
-          "text": "side by side join, up to eight spots.",
-          "color": "gray",
-          "italic": false
-        }
-      ]
-    },
+    "id": "libreria:story_wall_cherry",
     "count": 2
   }
 }

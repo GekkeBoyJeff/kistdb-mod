@@ -215,6 +215,7 @@ public final class InfoMod implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
+		ShowItems.init();
 		MODULE.hubEntry(Domain.PROGRESS, 20, Items.WRITABLE_BOOK, "Statistics", StatsGui::open,
 				"Playtime, distances, kills, most mined blocks and more, with the top players.");
 		Services.provideMenu(Services.MENU_STATS, MODULE.gate(StatsGui::open));
@@ -336,23 +337,6 @@ public final class InfoMod implements ModInitializer {
 				Leaderboards.removeNearest(p);
 				return 1;
 			})));
-			// (Operators) Story walls and mannequins are Minecraft's own item frame and armour stand with a mark, so /give
-			// doesn't know them by a name of their own: these give them
-			dispatcher.register(Commands.literal("storywall").then(Commands.argument("wood", com.mojang.brigadier.arguments.StringArgumentType.word())
-					.suggests((c, b) -> {
-						for (String w : StoryWall.WOODS) b.suggest(w);
-						return b.buildFuture();
-					})
-					.executes(ctx -> giveShowcase(ctx.getSource().getPlayerOrException(), StoryWall.item(
-							com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "wood")), 1))
-					.then(Commands.argument("count", com.mojang.brigadier.arguments.IntegerArgumentType.integer(1, 64))
-							.executes(ctx -> giveShowcase(ctx.getSource().getPlayerOrException(), StoryWall.item(
-									com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "wood")),
-									com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "count"))))));
-			dispatcher.register(Commands.literal("mannequin").executes(ctx -> giveShowcase(ctx.getSource().getPlayerOrException(), Showcase.item("mannequin"), 1))
-					.then(Commands.argument("count", com.mojang.brigadier.arguments.IntegerArgumentType.integer(1, 16))
-							.executes(ctx -> giveShowcase(ctx.getSource().getPlayerOrException(), Showcase.item("mannequin"),
-									com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "count")))));
 			for (String name : new String[] {"stats", "statistics"}) {
 				dispatcher.register(Commands.literal(name).requires(MODULE.available()).executes(ctx -> {
 					StatsGui.open(ctx.getSource().getPlayerOrException());
@@ -362,20 +346,5 @@ public final class InfoMod implements ModInitializer {
 		});
 
 		InfoTests.register();
-	}
-
-	/** (Operators) a story wall or mannequin in the inventory (or at their feet). */
-	private static int giveShowcase(ServerPlayer p, net.minecraft.world.item.ItemStack stack, int count) {
-		if (!nl.libreria.core.Ui.isOp(p)) {
-			p.sendSystemMessage(net.minecraft.network.chat.Component.literal("Only operators can do that; craft one instead (see your recipe book)."));
-			return 0;
-		}
-		stack.setCount(count);
-		String name = stack.getHoverName().getString();
-		if (!p.getInventory().add(stack) && !stack.isEmpty()) {
-			p.level().addFreshEntity(new net.minecraft.world.entity.item.ItemEntity(p.level(), p.getX(), p.getY(), p.getZ(), stack));
-		}
-		nl.libreria.core.Notify.done(p, stack.getItem(), "Given: " + count + " × " + name, "Place it like any item frame or armour stand.");
-		return 1;
 	}
 }
