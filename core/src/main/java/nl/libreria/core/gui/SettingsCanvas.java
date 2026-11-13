@@ -309,12 +309,6 @@ public final class SettingsCanvas extends CanvasWindow {
 		redraw();
 	}
 
-	/** Only the items changed (a switch): no new picture, so the window doesn't blink. */
-	private void refreshCells() {
-		for (int i = 0; i < 90; i++) this.clearSlot(i);
-		fill();
-	}
-
 	/** Text changed too (a choice, a page): new picture. */
 	private void redraw() {
 		refresh();
