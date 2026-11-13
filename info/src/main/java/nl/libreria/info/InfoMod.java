@@ -372,7 +372,9 @@ public final class InfoMod implements ModInitializer {
 		}
 		stack.setCount(count);
 		String name = stack.getHoverName().getString();
-		if (!p.getInventory().add(stack)) p.drop(stack, false);
+		if (!p.getInventory().add(stack) && !stack.isEmpty()) {
+			p.level().addFreshEntity(new net.minecraft.world.entity.item.ItemEntity(p.level(), p.getX(), p.getY(), p.getZ(), stack));
+		}
 		nl.libreria.core.Notify.done(p, stack.getItem(), "Given: " + count + " × " + name, "Place it like any item frame or armour stand.");
 		return 1;
 	}
