@@ -921,6 +921,31 @@ final class Found {
 			net.minecraft.world.item.Items.ARMOR_STAND, "Show your stories off", "Mannequin: an armour stand and a book.",
 			"Story wall: 2 planks, an item frame, a book and a gold nugget. In your recipe book now.");
 
+	/**
+	 * (Every few seconds) Who has chopped wood (a log in their inventory, or ever mined one) gets the mannequin and the
+	 * story walls in their recipe book, with the tip: so everyone knows they're there, before their first story.
+	 */
+	static void woodTick(net.minecraft.server.MinecraftServer server) {
+		for (ServerPlayer p : server.getPlayerList().getPlayers()) {
+			Seen s = SEEN.get(p);
+			if (s.toldShowcases || !choppedWood(p)) continue;
+			s.toldShowcases = true;
+			SEEN.markDirty(p);
+			showcaseRecipes(p);
+			nl.libreria.core.Tips.once(p, TIP_SHOW);
+		}
+	}
+
+	/** A log in the inventory, or one ever mined. */
+	static boolean choppedWood(ServerPlayer p) {
+		var inv = p.getInventory();
+		for (int i = 0; i < inv.getContainerSize(); i++) if (inv.getItem(i).is(net.minecraft.tags.ItemTags.LOGS)) return true;
+		for (var b : net.minecraft.core.registries.BuiltInRegistries.BLOCK) {
+			if (b.defaultBlockState().is(net.minecraft.tags.BlockTags.LOGS) && p.getStats().getValue(net.minecraft.stats.Stats.BLOCK_MINED.get(b)) > 0) return true;
+		}
+		return false;
+	}
+
 	/** Unlocks the mannequin and every story wall in this player's recipe book. */
 	static void showcaseRecipes(ServerPlayer p) {
 		var recipes = p.level().getServer().getRecipeManager();
