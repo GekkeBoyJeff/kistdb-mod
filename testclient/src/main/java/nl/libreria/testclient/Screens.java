@@ -1402,6 +1402,7 @@ public final class Screens implements FabricClientGameTest {
 				ctx.takeScreenshot("grand_waystone_inside");
 			});
 			menu(ctx, server, player, "grand_waystone_settings", nl.libreria.waystones.WaystonesDebug::grandSettings);
+			menu(ctx, server, player, "grand_waystone_on_lists", nl.libreria.waystones.WaystonesDebug::grandFinders);
 			menu(ctx, server, player, "grand_waystone_take_down", nl.libreria.waystones.WaystonesDebug::grandTakeDown);
 			menu(ctx, server, player, "grand_waystone_list", nl.libreria.waystones.WaystonesDebug::grandList);
 			server.runOnServer(s -> nl.libreria.waystones.WaystonesDebug.clearGrand(player));
@@ -2262,6 +2263,7 @@ public final class Screens implements FabricClientGameTest {
 			});
 			menu(ctx, server, player, "bedrock_waystone_settings", nl.libreria.waystones.WaystonesDebug::settings);
 			menu(ctx, server, player, "bedrock_grand_settings", nl.libreria.waystones.WaystonesDebug::grandSettings);
+			menu(ctx, server, player, "bedrock_grand_on_lists", nl.libreria.waystones.WaystonesDebug::grandFinders);
 			menu(ctx, server, player, "bedrock_waystone_list", nl.libreria.waystones.WaystonesDebug::grandList);
 			server.runOnServer(s -> {
 				nl.libreria.waystones.WaystonesDebug.clearGrand(player);

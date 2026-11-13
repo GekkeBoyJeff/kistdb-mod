@@ -66,6 +66,8 @@ final class Stones {
 		public boolean grand;
 		/** Who has it on their list (found it): id → name, so its land's owner can take someone off. */
 		public Map<UUID, String> finders = new LinkedHashMap<>();
+		/** Who its land's owner took off (id → name): not on their list, and they can't find it again until it's given back. */
+		public Map<UUID, String> takenOff = new LinkedHashMap<>();
 		/** On claimed land: its land's owner opened it to visitors (anyone may click it there). */
 		public boolean visitors;
 
@@ -267,8 +269,27 @@ final class Stones {
 
 	/** May use it: it's open, or theirs, or they're trusted by its owner, or an operator. */
 	static boolean mayUse(ServerPlayer p, Stone s) {
+		if (takenOff(p, s)) return false;
 		if (!s.secret || owns(p, s) || Ui.isOp(p)) return true;
 		return s.owner != null && Services.land().map(l -> l.trusts(s.owner, p.getUUID())).orElse(false);
+	}
+
+	/** Its land's owner took them off: not theirs to use until it's given back (its owner and operators never are). */
+	static boolean takenOff(ServerPlayer p, Stone s) {
+		return s.takenOff != null && s.takenOff.containsKey(p.getUUID()) && !owns(p, s) && !Ui.isOp(p);
+	}
+
+	/** Not for them (taken off, or private): says why. */
+	static boolean refused(ServerPlayer p, Stone s) {
+		if (takenOff(p, s)) {
+			Notify.warn(p, Items.BARRIER, s.name + " isn't on your list", "Whoever owns its land took it off. They can give it back.");
+			return true;
+		}
+		if (!mayUse(p, s)) {
+			Notify.warn(p, Items.BARRIER, s.name + " is private", "Only " + s.ownerName + " and the people they trust can use it.");
+			return true;
+		}
+		return false;
 	}
 
 	/** May put it on everyone's list (or take it off): its owner, an operator, and for a village's who found it. */
@@ -302,6 +323,7 @@ final class Stones {
 
 	/** Found now: true the first time. */
 	static boolean discover(ServerPlayer p, Stone s) {
+		if (takenOff(p, s)) return false;
 		if (!(s.owner != null && s.owner.equals(p.getUUID()))) {
 			if (s.finders == null) s.finders = new LinkedHashMap<>();
 			if (!p.getName().getString().equals(s.finders.put(p.getUUID(), p.getName().getString()))) STORE.markDirty();
@@ -311,16 +333,38 @@ final class Stones {
 		return true;
 	}
 
-	/** Takes someone's find of this waystone away: off their list (until they find it again). Nobody else's changes. */
+	/**
+	 * Takes someone's find of this waystone away: off their list, and they can't find it again until it's given back.
+	 * Nobody else's changes.
+	 */
 	static boolean unfind(MinecraftServer server, Stone s, UUID who) {
-		boolean was = s.finders != null && s.finders.remove(who) != null;
+		String name = s.finders == null ? null : s.finders.remove(who);
+		boolean was = name != null;
 		Found f = FOUND.get(who);
 		if (f.found.remove(s.key())) {
 			FOUND.markDirty(who);
 			was = true;
 		}
-		if (was) STORE.markDirty();
+		if (name == null) {
+			var k = nl.libreria.core.Players.get(server, who);
+			name = k == null ? "?" : k.name();
+		}
+		if (s.takenOff == null) s.takenOff = new LinkedHashMap<>();
+		if (s.takenOff.put(who, name) == null) was = true;
+		STORE.markDirty();
 		return was;
+	}
+
+	/** Gives it back to someone taken off: on their list again right away, and theirs to use (no need to find it again). */
+	static boolean giveBack(MinecraftServer server, Stone s, UUID who) {
+		String name = s.takenOff == null ? null : s.takenOff.remove(who);
+		if (name == null) return false;
+		if (s.finders == null) s.finders = new LinkedHashMap<>();
+		s.finders.put(who, name);
+		Found f = FOUND.get(who);
+		if (f.found.add(s.key())) FOUND.markDirty(who);
+		STORE.markDirty();
+		return true;
 	}
 
 	/**
@@ -467,10 +511,7 @@ final class Stones {
 			Notify.warn(p, Items.BARRIER, to.name + " is blocked", "Its spot is taken by something else now, so you stay here (nothing paid).");
 			return null;
 		}
-		if (!mayUse(p, to)) {
-			Notify.warn(p, Items.BARRIER, to.name + " is private", "Only " + to.ownerName + " and the people they trust can use it.");
-			return null;
-		}
+		if (refused(p, to)) return null;
 		return level;
 	}
 
@@ -678,10 +719,7 @@ final class Stones {
 		BlockState state = level.getBlockState(lower);
 		if (!standing(level, lower)) return;
 		Stone s = ensure(level, lower, state);
-		if (!mayUse(p, s)) {
-			Notify.warn(p, Items.BARRIER, s.name + " is private", "Only " + s.ownerName + " and the people they trust can use it.");
-			return;
-		}
+		if (refused(p, s)) return;
 		if (discover(p, s)) {
 			Notify.card(p, new ItemStack(WaystonesMod.WAYSTONE_ITEM), 0xC79BF0, Ui.text("Waystone found: ", ChatFormatting.WHITE).append(Ui.text(s.name, 0xC79BF0)),
 					Ui.text("You can travel here from any waystone you know", ChatFormatting.GRAY));

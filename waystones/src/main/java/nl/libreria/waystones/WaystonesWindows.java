@@ -44,7 +44,7 @@ final class WaystonesWindows {
 		settings(p, s, false);
 	}
 
-	private static void settings(ServerPlayer p, Stones.Stone s, boolean fromAdmin) {
+	static void settings(ServerPlayer p, Stones.Stone s, boolean fromAdmin) {
 		boolean op = Ui.isOp(p);
 		boolean names = Stones.owns(p, s) || op;
 		boolean share = Stones.mayShare(p, s), visitors = Stones.mayOpenToVisitors(p, s);
@@ -79,6 +79,11 @@ final class WaystonesWindows {
 					: s.shared ? "On everyone's list." : "Open to everyone who found it.");
 			if (fromAdmin) admin(pl);
 		});
+		if (visitors) {
+			// Its land's owner: who has it on their list, one by one
+			w.button(Ui.text(WaystoneCanvas.listsLabel(s, p), ChatFormatting.WHITE), Ui.text("Take someone off, or give it back", ChatFormatting.GRAY),
+					(pl, v) -> WaystoneCanvas.finders(pl, s, fromAdmin));
+		}
 		if (s.grand && Stones.owns(p, s)) {
 			w.button(Ui.text("Take it down", ChatFormatting.RED), Ui.text("The waystone and the nether star come back", ChatFormatting.GRAY), (pl, v) -> {
 				Window c = Window.path(s.name, "Take it down");

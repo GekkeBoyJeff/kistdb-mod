@@ -91,6 +91,16 @@ public abstract class CanvasWindow extends SimpleGui {
 		this.setTitle(draw().build());
 	}
 
+	/** Only the cells changed (a switch): no new picture, so the window doesn't blink (as a dialog: shown again). */
+	protected void refreshCells() {
+		if (this.dialog) {
+			asDialog();
+			return;
+		}
+		for (int i = 0; i < 90; i++) this.clearSlot(i);
+		fill();
+	}
+
 	/** A button over {@code w × h} cells: the same tooltip and action in each of them. */
 	protected void area(int col, int row, int w, int h, Component name, List<Component> lines, Consumer<ServerPlayer> action) {
 		if (record(col, row, w, h, name, lines, action, null)) return;

@@ -184,7 +184,28 @@ public final class WaystonesDebug {
 	/** The last grand waystone's window (theirs: with Take it down). */
 	public static void grandSettings(ServerPlayer p) {
 		Stones.Stone s = grandOne == null ? null : Stones.at(p.level(), grandOne);
-		if (s != null) WaystonesWindows.settings(p, s);
+		if (s != null) withFinders(s, () -> WaystonesWindows.settings(p, s));
+	}
+
+	/** Who has it on their list (as its land's owner sees it): two have it, one was taken off. */
+	public static void grandFinders(ServerPlayer p) {
+		Stones.Stone s = grandOne == null ? null : Stones.at(p.level(), grandOne);
+		if (s != null) withFinders(s, () -> WaystoneCanvas.finders(p, s, false));
+	}
+
+	/** Anna and Bram found it, Tess was taken off, while the window is made (and gone after). */
+	private static void withFinders(Stones.Stone s, Runnable open) {
+		java.util.Map<java.util.UUID, String> finders = s.finders, off = s.takenOff;
+		s.finders = new java.util.LinkedHashMap<>();
+		s.takenOff = new java.util.LinkedHashMap<>();
+		for (String n : new String[] {"Anna", "Bram"}) s.finders.put(java.util.UUID.nameUUIDFromBytes(n.getBytes()), n);
+		s.takenOff.put(java.util.UUID.nameUUIDFromBytes("Tess".getBytes()), "Tess");
+		try {
+			open.run();
+		} finally {
+			s.finders = finders;
+			s.takenOff = off;
+		}
 	}
 
 	/** Asked before it's taken down. */

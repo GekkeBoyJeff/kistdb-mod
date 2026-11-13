@@ -63,6 +63,10 @@ final class WaystonesTests {
 				// Its land's owner takes one of them off: only theirs goes
 				SelfTests.check(Stones.unfind(level.getServer(), s, other.getUUID()) && !Stones.known(other, s) && Stones.known(finder, s)
 						&& s.finders.size() == 1, "taken off one list, the other stays");
+				SelfTests.check(!Stones.discover(other, s) && !Stones.known(other, s) && !Stones.mayUse(other, s) && s.takenOff.containsKey(other.getUUID()),
+						"taken off: they can't find it again by themselves");
+				SelfTests.check(Stones.giveBack(level.getServer(), s, other.getUUID()) && Stones.known(other, s) && Stones.mayUse(other, s)
+						&& s.takenOff.isEmpty() && s.finders.size() == 2, "given back: on their list right away, no need to find it again");
 				// What became of someone's waystones
 				nl.libreria.core.Players.note(finder.getUUID(), "Finder", System.currentTimeMillis(), System.currentTimeMillis());
 				Stones.FOUND.get(finder).found.add("minecraft:overworld|1|2|3");
@@ -133,6 +137,16 @@ final class WaystonesTests {
 				SelfTests.check(click.get() == net.minecraft.world.InteractionResult.PASS, "opened to visitors: they can");
 				guest.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, new ItemStack(net.minecraft.world.item.Items.COBBLESTONE));
 				SelfTests.check(click.get() == net.minecraft.world.InteractionResult.FAIL, "but they can't build against it");
+				// Its window: the switch, and who has it on their list (take off, give back)
+				Stones.discover(guest, s);
+				String one = new WaystoneCanvas.One(owner, s, false).pictureJson();
+				SelfTests.check(one.contains("Open to visitors") && one.contains("1 player"), "its window has the switch and who has it: " + one.length());
+				String list = new WaystoneCanvas.Finders(owner, s, false).pictureJson();
+				SelfTests.check(list.contains("Guest") && list.contains("Take off"), "who has it: Guest, to take off");
+				Stones.unfind(level.getServer(), s, guest.getUUID());
+				list = new WaystoneCanvas.Finders(owner, s, false).pictureJson();
+				SelfTests.check(list.contains("Guest") && list.contains("Give back") && WaystoneCanvas.listsLabel(s, owner).contains("1 taken off"),
+						"taken off: still in the list, to give back");
 			} finally {
 				Stones.removed(level, a, "self-test");
 				clear(level, a);

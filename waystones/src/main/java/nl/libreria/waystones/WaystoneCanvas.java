@@ -29,7 +29,9 @@ import nl.libreria.core.gui.Glyphs;
  */
 final class WaystoneCanvas {
 	static final int ACCENT = 0xC79BF0;
-	private static final int TEXT = 0xFFFFFF, VALUE = 0x8FE3F0, DANGER = 0xE0605A;
+	private static final int TEXT = 0xFFFFFF, VALUE = 0x8FE3F0, DANGER = 0xE0605A, BACK = 0x6EDC78;
+	private static final net.minecraft.resources.Identifier SWITCH_ON = net.minecraft.resources.Identifier.fromNamespaceAndPath("libreria", "gui/switch_on");
+	private static final net.minecraft.resources.Identifier SWITCH_OFF = net.minecraft.resources.Identifier.fromNamespaceAndPath("libreria", "gui/switch_off");
 	private static final int ROOM_FULL = 18 * 9 - 2 * Canvas.CARD_MARGIN - 12;
 	private static final int ROOM = 18 * 8 - 2 * Canvas.CARD_MARGIN - 12;
 
@@ -85,6 +87,11 @@ final class WaystoneCanvas {
 		/** A grand waystone of theirs: they take it down (and get the waystone and the nether star). */
 		private boolean takesDown() {
 			return this.stone.grand && Stones.owns(this.player, this.stone);
+		}
+
+		/** On claimed land, for its owner (or an operator): open to visitors, and who has it on their list. */
+		private boolean land() {
+			return Stones.mayOpenToVisitors(this.player, this.stone);
 		}
 
 		private boolean canSecret() {
@@ -151,8 +158,30 @@ final class WaystoneCanvas {
 				c.text(Canvas.fit(said(now()), ROOM_FULL - 16), left, y + 10, VALUE);
 				if (canChoose()) c.text("›", Canvas.cellX(9) - Canvas.CARD_MARGIN - 8, y + 10, Glyphs.muted);
 			}
-			// Operators (rows 6–8)
-			if (op()) {
+			int arrow = Canvas.cellX(9) - Canvas.CARD_MARGIN - 8;
+			if (land()) {
+				// Its land's owner (rows 6–7): open to visitors (a switch), who has it on their list
+				c.card(0, 6, 8, 1, Glyphs.neutral);
+				c.text("Open to visitors", left, Canvas.cellY(6) + 5, TEXT);
+				c.card(0, 7, 9, 1, Glyphs.neutral);
+				c.text(Canvas.fit(listsLabel(s, this.player), ROOM_FULL - 16), left, Canvas.cellY(7) + 5, TEXT);
+				if (!Finders.who(s, this.player).isEmpty()) c.text("›", arrow, Canvas.cellY(7) + 5, Glyphs.muted);
+				// Below them (row 8): an operator's two side by side, or the owner's taking it down
+				if (op()) {
+					int mid = Canvas.cellX(4);
+					c.card(0, 8, 4, 1, Glyphs.neutral);
+					c.text("Go there", left, Canvas.cellY(8) + 5, TEXT);
+					c.text("›", mid - Canvas.CARD_MARGIN - 8, Canvas.cellY(8) + 5, Glyphs.muted);
+					c.card(4, 8, 5, 1, DANGER);
+					c.text(takesDown() ? "Take it down" : "Remove it", mid + Canvas.CARD_MARGIN + 6, Canvas.cellY(8) + 5, TEXT);
+					c.text("›", arrow, Canvas.cellY(8) + 5, Glyphs.muted);
+				} else if (takesDown()) {
+					c.card(0, 8, 9, 1, DANGER);
+					c.text("Take it down", left, Canvas.cellY(8) + 5, TEXT);
+					c.text("›", arrow, Canvas.cellY(8) + 5, Glyphs.muted);
+				}
+			} else if (op()) {
+				// Operators (rows 6–8)
 				c.text("Operators", Canvas.cellX(0) + 3, Canvas.cellY(6) + 5, nl.libreria.core.gui.AdminCanvas.TINT);
 				c.card(0, 7, 9, 1, Glyphs.neutral);
 				c.text("Go there", left, Canvas.cellY(7) + 5, TEXT);
@@ -171,10 +200,41 @@ final class WaystoneCanvas {
 			return c;
 		}
 
-		private void takeDownArea(int row) {
-			area(0, row, 9, 1, Ui.text("Take it down", 0xE0605A).withStyle(ChatFormatting.BOLD), List.of(Ui.text("The shrine and its floor go;", ChatFormatting.GRAY),
+		private void takeDownArea(int col, int row, int w) {
+			area(col, row, w, 1, Ui.text("Take it down", 0xE0605A).withStyle(ChatFormatting.BOLD), List.of(Ui.text("The shrine and its floor go;", ChatFormatting.GRAY),
 					Ui.text("it's off everyone's list. You get the", ChatFormatting.GRAY), Ui.text("waystone and the nether star back.", ChatFormatting.GRAY),
 					Component.empty(), Ui.text("▸ Click: take it down (you're asked first)", ChatFormatting.YELLOW)), p -> confirmTakeDown(p, this.stone, this.fromAdmin));
+		}
+
+		/** Its land's owner: the switch for visitors (row 6) and who has it on their list (row 7). */
+		private void landAreas() {
+			Stones.Stone s = this.stone;
+			boolean on = s.visitors;
+			Component name = Ui.text("Open to visitors", ChatFormatting.WHITE).withStyle(ChatFormatting.BOLD);
+			List<Component> lore = List.of(Ui.text("Now: " + (on ? "open" : "closed"), ChatFormatting.AQUA),
+					Ui.text("Open: anyone may click it here, find it", ChatFormatting.GRAY), Ui.text("and travel on from it.", ChatFormatting.GRAY),
+					Ui.text("Closed: only who may build here can", ChatFormatting.GRAY), Ui.text("click it. Who has it on their list can", ChatFormatting.GRAY),
+					Ui.text("still travel here.", ChatFormatting.GRAY), Component.empty(), Ui.text("▸ Click: " + (on ? "close it" : "open it"), ChatFormatting.YELLOW));
+			java.util.function.Consumer<ServerPlayer> flip = p -> {
+				if (!Stones.mayOpenToVisitors(p, s)) return;
+				s.visitors = !s.visitors;
+				Stones.STORE.markDirty();
+				Notify.whisper(p, Ui.text(s.name + ": " + (s.visitors ? "open to visitors" : "closed to visitors"), ChatFormatting.GRAY));
+				refreshCells();
+			};
+			area(0, 6, 8, 1, name, lore, flip);
+			ItemStack sw = new ItemStack(Items.PAPER);
+			sw.set(net.minecraft.core.component.DataComponents.ITEM_MODEL, on ? SWITCH_ON : SWITCH_OFF);
+			icon(8, 6, sw, name, lore, flip);
+			List<Finders.Who> all = Finders.who(s, this.player);
+			Component lists = Ui.text("Who has it on their list", ChatFormatting.WHITE).withStyle(ChatFormatting.BOLD);
+			if (all.isEmpty()) {
+				area(0, 7, 9, 1, lists, List.of(Ui.text(listsLabel(s, this.player) + ".", ChatFormatting.GRAY)), NOTE);
+			} else {
+				area(0, 7, 9, 1, lists, List.of(Ui.text(listsLabel(s, this.player), ChatFormatting.AQUA),
+						Ui.text("Take someone off, or give it back:", ChatFormatting.GRAY), Ui.text("one by one, the others keep theirs.", ChatFormatting.GRAY),
+						Component.empty(), Ui.text("▸ Click: see who", ChatFormatting.YELLOW)), p -> finders(p, s, this.fromAdmin));
+			}
 		}
 
 		@Override
@@ -214,26 +274,44 @@ final class WaystoneCanvas {
 					refresh();
 				});
 			}
+			boolean land = land();
+			if (land) landAreas();
 			if (op()) {
-				area(0, 7, 9, 1, Ui.text("Go there", ChatFormatting.WHITE).withStyle(ChatFormatting.BOLD),
+				// on claimed land the two share row 8; elsewhere rows 7 and 8
+				int goRow = land ? 8 : 7, goW = land ? 4 : 9, offCol = land ? 4 : 0, offW = land ? 5 : 9;
+				area(0, goRow, goW, 1, Ui.text("Go there", ChatFormatting.WHITE).withStyle(ChatFormatting.BOLD),
 						List.of(Ui.text("Free, as an operator.", ChatFormatting.GRAY), Component.empty(), Ui.text("▸ Click: go", ChatFormatting.YELLOW)), p -> {
 							ServerLevel level = Stones.check(p, s);
 							if (level == null) return;
 							p.closeContainer();
 							Stones.go(p, level, s);
 						});
-				if (takesDown()) takeDownArea(8);
-				else area(0, 8, 9, 1, Ui.text("Remove it", 0xE0605A).withStyle(ChatFormatting.BOLD), List.of(Ui.text(s.grand ? "The shrine and its floor go;"
+				if (takesDown()) takeDownArea(offCol, 8, offW);
+				else area(offCol, 8, offW, 1, Ui.text("Remove it", 0xE0605A).withStyle(ChatFormatting.BOLD), List.of(Ui.text(s.grand ? "The shrine and its floor go;"
 						: "The stone and its altar go;", ChatFormatting.GRAY), Ui.text("it's off everyone's list. Nothing drops.", ChatFormatting.GRAY), Component.empty(),
 						Ui.text("▸ Click: remove (you're asked first)", ChatFormatting.YELLOW)), p -> confirmRemove(p, s, this.fromAdmin));
 			} else if (takesDown()) {
-				takeDownArea(7);
+				takeDownArea(0, land ? 8 : 7, 9);
 			}
 			area(0, 9, 9, 1, Ui.text("Back", ChatFormatting.WHITE).withStyle(ChatFormatting.BOLD), List.of(), p -> {
 				if (this.fromAdmin) All.open(p, 0);
 				else PlaceList.open(p, WaystonePlaces.KIND);
 			});
 		}
+	}
+
+	/** What the row of who has it on their list says: how many, and how many were taken off. */
+	static String listsLabel(Stones.Stone s, ServerPlayer viewer) {
+		List<Finders.Who> all = Finders.who(s, viewer);
+		long on = all.stream().filter(w -> !w.off()).count(), off = all.size() - on;
+		String a = s.shared ? "On everyone's list" : on == 0 ? "On no one else's list yet" : "On " + on + (on == 1 ? " player's list" : " players' lists");
+		return off > 0 ? a + " · " + off + " taken off" : a;
+	}
+
+	/** Who has it on their list: take someone off, give it back (its land's owner; a dialog for who can't see our windows). */
+	static void finders(ServerPlayer p, Stones.Stone s, boolean fromAdmin) {
+		if (!Stones.mayOpenToVisitors(p, s)) return;
+		new Finders(p, s, fromAdmin).show();
 	}
 
 	/** (For the screenshots: the question, as from its window.) */
@@ -284,6 +362,172 @@ final class WaystoneCanvas {
 			All.open(q, 0);
 		});
 		c.cancel(q -> one(q, s, fromAdmin)).show(p);
+	}
+
+	// ---------------------------------------------------------------- who has it on their list (its land's owner)
+
+	/**
+	 * Everyone who has this waystone on their list, and who was taken off: click someone to take it off their list, or
+	 * to give it back (on their list right away, no need to find it again). Nobody else's list changes.
+	 */
+	static final class Finders extends CanvasWindow {
+		private static final int PER_PAGE = 9;
+		private final Stones.Stone stone;
+		private final boolean fromAdmin;
+		private int page;
+
+		/** Someone on the list, or taken off it. */
+		record Who(java.util.UUID id, String name, boolean off) {
+		}
+
+		Finders(ServerPlayer p, Stones.Stone stone, boolean fromAdmin) {
+			super(p);
+			this.stone = stone;
+			this.fromAdmin = fromAdmin;
+		}
+
+		/** Everyone but its owner (always theirs) and who's looking: by name, so nobody moves when clicked. */
+		static List<Who> who(Stones.Stone s, ServerPlayer viewer) {
+			var server = viewer.level().getServer();
+			List<Who> out = new ArrayList<>();
+			java.util.function.BiConsumer<java.util.Map<java.util.UUID, String>, Boolean> add = (m, off) -> {
+				if (m == null) return;
+				m.forEach((id, n) -> {
+					if (id.equals(s.owner) || id.equals(viewer.getUUID())) return;
+					Players.Known k = server == null ? null : Players.get(server, id);
+					out.add(new Who(id, k != null ? k.name() : n, off));
+				});
+			};
+			add.accept(s.finders, false);
+			add.accept(s.takenOff, true);
+			out.sort(Comparator.comparing((Who w) -> w.name().toLowerCase(Locale.ROOT)));
+			return out;
+		}
+
+		private int pages(int n) {
+			return Math.max(1, (n + PER_PAGE - 1) / PER_PAGE);
+		}
+
+		@Override
+		protected Canvas draw() {
+			List<Who> all = who(this.stone, this.player);
+			int pages = pages(all.size());
+			this.page = Math.max(0, Math.min(this.page, pages - 1));
+			Canvas c = new Canvas().panel();
+			String count = all.size() + (all.size() == 1 ? " player" : " players");
+			String tail = " › ";
+			int room = 168 - 8 - Glyphs.width(Component.literal(tail + "On lists")) - Glyphs.width(Component.literal(count)) - 10;
+			String name = Canvas.fit(this.stone.name, room);
+			c.text(name, 8, 5, ACCENT);
+			int x = 8 + Glyphs.width(Component.literal(name));
+			c.text(tail, x, 5, Glyphs.muted);
+			c.text("On lists", x + Glyphs.width(Component.literal(tail)), 5, TEXT);
+			c.right(count, 168 - 2, 5, Glyphs.muted);
+			int left = Canvas.cellX(1) + 4, width = Canvas.cellX(9) - Canvas.CARD_MARGIN - left;
+			int from = this.page * PER_PAGE;
+			for (int i = 0; i < PER_PAGE && from + i < all.size(); i++) {
+				Who w = all.get(from + i);
+				c.line(left, i, width, Glyphs.neutral);
+				int y = Canvas.cellY(i) + 5;
+				String act = w.off() ? "Give back" : "Take off";
+				int aw = Glyphs.width(Component.literal(act));
+				c.right(act, left + width - 6, y, w.off() ? BACK : DANGER);
+				c.text(Canvas.fit(w.name(), width - 12 - aw - 8), left + 6, y, w.off() ? Glyphs.muted : TEXT);
+			}
+			if (all.isEmpty()) {
+				c.centred("No one else has it on their list", 88, Canvas.cellY(3), TEXT);
+				c.centred("Who finds it shows up here.", 88, Canvas.cellY(3) + 11, Glyphs.muted);
+			}
+			if (pages > 1) {
+				small(c, 0, 3, "Back");
+				if (this.page > 0) small(c, 3, 1, "‹");
+				c.centred((this.page + 1) + "/" + pages, Canvas.cellX(4) + 9, Canvas.cellY(9) + 5, Glyphs.muted);
+				if (this.page < pages - 1) small(c, 5, 1, "›");
+			} else {
+				small(c, 0, 9, "Back");
+			}
+			return c;
+		}
+
+		@Override
+		protected void fill() {
+			Stones.Stone s = this.stone;
+			List<Who> all = who(s, this.player);
+			int from = this.page * PER_PAGE;
+			for (int i = 0; i < PER_PAGE && from + i < all.size(); i++) {
+				Who w = all.get(from + i);
+				Component name = Ui.text(w.name(), w.off() ? ChatFormatting.GRAY : ChatFormatting.WHITE).withStyle(ChatFormatting.BOLD);
+				List<Component> lore = new ArrayList<>();
+				if (w.off()) {
+					for (String l : Canvas.wrap("Taken off: " + s.name + " isn't on their list.", 180)) lore.add(Ui.text(l, ChatFormatting.GRAY));
+					lore.add(Component.empty());
+					for (String l : Canvas.wrap("Given back, it's on their list right away and they can travel here. They don't need to find it again.", 180)) {
+						lore.add(Ui.text(l, ChatFormatting.GRAY));
+					}
+					lore.add(Component.empty());
+					lore.add(Ui.text("▸ Click: give it back to " + w.name(), ChatFormatting.YELLOW));
+				} else {
+					for (String l : Canvas.wrap("Has " + s.name + " on their list.", 180)) lore.add(Ui.text(l, ChatFormatting.GRAY));
+					lore.add(Component.empty());
+					for (String l : Canvas.wrap("Taken off, it's gone from their list and they can't use it, until you give it back. The others keep it.", 180)) {
+						lore.add(Ui.text(l, ChatFormatting.GRAY));
+					}
+					lore.add(Component.empty());
+					lore.add(Ui.text("▸ Click: take " + w.name() + " off", ChatFormatting.YELLOW));
+				}
+				java.util.function.Consumer<ServerPlayer> act = p -> change(p, w);
+				icon(0, i, headOf(p(), w), name, lore, act);
+				area(1, i, 8, 1, name, lore, act);
+			}
+			Component back = Ui.text("Back", ChatFormatting.WHITE).withStyle(ChatFormatting.BOLD);
+			java.util.function.Consumer<ServerPlayer> toStone = p -> WaystonesWindows.settings(p, s, this.fromAdmin);
+			int pages = pages(all.size());
+			if (pages > 1) {
+				area(0, 9, 3, 1, back, List.of(), toStone);
+				if (this.page > 0) area(3, 9, 1, 1, Ui.text("Previous page", ChatFormatting.WHITE), List.of(), p -> {
+					this.page--;
+					refresh();
+				});
+				if (this.page < pages - 1) area(5, 9, 1, 1, Ui.text("Next page", ChatFormatting.WHITE), List.of(), p -> {
+					this.page++;
+					refresh();
+				});
+			} else {
+				area(0, 9, 9, 1, back, List.of(), toStone);
+			}
+		}
+
+		private ServerPlayer p() {
+			return this.player;
+		}
+
+		private static ItemStack headOf(ServerPlayer viewer, Who w) {
+			Players.Known k = Players.get(viewer.level().getServer(), w.id());
+			return k != null ? nl.libreria.core.ProfileWindow.head(k)
+					: new eu.pb4.sgui.api.elements.GuiElementBuilder(Items.PLAYER_HEAD).setProfile(w.id()).asStack();
+		}
+
+		/** Takes them off, or gives it back; they hear it if they're here. */
+		private void change(ServerPlayer p, Who w) {
+			Stones.Stone s = this.stone;
+			if (!Stones.mayOpenToVisitors(p, s)) return;
+			var server = p.level().getServer();
+			ServerPlayer them = server.getPlayerList().getPlayer(w.id());
+			if (w.off()) {
+				if (!Stones.giveBack(server, s, w.id())) return;
+				Notify.whisper(p, Ui.text(w.name() + " has " + s.name + " on their list again", ChatFormatting.GRAY));
+				nl.libreria.core.Libreria.LOG.info("Waystones: {} gave {} ({}) back to {}", p.getName().getString(), s.name, s.key(), w.name());
+				if (them != null) Notify.card(them, new ItemStack(WaystonesMod.WAYSTONE_ITEM), ACCENT,
+						Ui.text("Back on your list: ", ChatFormatting.WHITE).append(Ui.text(s.name, ACCENT)),
+						Ui.text("You can travel there again", ChatFormatting.GRAY));
+			} else {
+				Stones.unfind(server, s, w.id());
+				Notify.whisper(p, Ui.text(w.name() + " is off " + s.name + "'s list", ChatFormatting.GRAY));
+				nl.libreria.core.Libreria.LOG.info("Waystones: {} took {} ({}) off {}'s list", p.getName().getString(), s.name, s.key(), w.name());
+				if (them != null) Notify.info(them, WaystonesMod.WAYSTONE_ITEM, s.name + " is off your list", "Whoever owns its land took it off.");
+			}
+			refresh();
+		}
 	}
 
 	// ---------------------------------------------------------------- all of them (operators)

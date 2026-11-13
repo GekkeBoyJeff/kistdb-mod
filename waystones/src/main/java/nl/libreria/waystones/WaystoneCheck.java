@@ -45,6 +45,10 @@ final class WaystoneCheck {
 				ChatFormatting.GRAY));
 		if (WaystonesMod.KNOWN.get() == 1) out.add(Ui.text("Every village's waystone is on everyone's list (Village waystones: everyone knows them).",
 				ChatFormatting.GRAY));
+		// Taken off their list by a land's owner (it's still there; they can give it back)
+		List<String> off = new ArrayList<>();
+		for (Stones.Stone s : Stones.list()) if (s.takenOff != null && s.takenOff.containsKey(k.id())) off.add(s.name);
+		if (!off.isEmpty()) out.add(Ui.text("Taken off by its land's owner: " + String.join(", ", off) + ".", ChatFormatting.YELLOW));
 		SimpleDateFormat when = new SimpleDateFormat("d MMM HH:mm", Locale.ENGLISH);
 		int shown = 0;
 		for (String key : gone) {

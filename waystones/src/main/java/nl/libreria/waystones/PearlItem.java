@@ -55,10 +55,7 @@ public final class PearlItem extends Item implements PolymerItem {
 			lore(stack, s);
 			return false;
 		}
-		if (!Stones.mayUse(p, s)) {
-			Notify.warn(p, Items.BARRIER, s.name + " is private", "Only " + s.ownerName + " and the people they trust can use it.");
-			return true;
-		}
+		if (Stones.refused(p, s)) return true;
 		Stones.discover(p, s);
 		CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> tag.putString(KEY, s.key()));
 		lore(stack, s);
