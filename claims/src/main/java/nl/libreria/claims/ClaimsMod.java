@@ -197,6 +197,10 @@ public final class ClaimsMod implements ModInitializer {
 			BlockPos pos = hit.getBlockPos();
 			BlockState st = world.getBlockState(pos);
 			Action action = isSwitch(st) ? Action.SWITCH : Action.BUILD;
+			// A waystone its land's owner opened to visitors: anyone may click it (with an empty hand, or a pearl to bind)
+			boolean open = world instanceof net.minecraft.server.level.ServerLevel sl && nl.libreria.core.Services.openToVisitors(sl, pos)
+					&& !(sp.getItemInHand(hand).getItem() instanceof net.minecraft.world.item.BlockItem);
+			if (open) return InteractionResult.PASS;
 			if (!allowed(sp, world, pos, action)) return deny(sp, pos);
 			// Plaatsen tegen een blok aan kan net over de grens vallen
 			BlockPos next = pos.relative(hit.getDirection());

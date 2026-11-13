@@ -168,6 +168,26 @@ public final class Services {
 		return land != null && player.getUUID().equals(land.ownerAt(level, pos));
 	}
 
+	/**
+	 * A block on claimed land that its land's owner opened to visitors (a waystone): anyone may click it, also who isn't
+	 * trusted there. Modules say which of their blocks are open; claims ask before saying no.
+	 */
+	public interface OpenToVisitors {
+		boolean open(net.minecraft.server.level.ServerLevel level, net.minecraft.core.BlockPos pos);
+	}
+
+	private static final List<OpenToVisitors> OPEN = new java.util.concurrent.CopyOnWriteArrayList<>();
+
+	public static void provideOpenToVisitors(OpenToVisitors o) {
+		OPEN.add(o);
+	}
+
+	/** Did the owner of this land open this block to visitors? */
+	public static boolean openToVisitors(net.minecraft.server.level.ServerLevel level, net.minecraft.core.BlockPos pos) {
+		for (OpenToVisitors o : OPEN) if (o.open(level, pos)) return true;
+		return false;
+	}
+
 	// ---------------------------------------------------------------- sterfbericht
 
 	/** Extra regel in het bericht na respawnen (bijvoorbeeld "je spullen liggen in je graf"). */

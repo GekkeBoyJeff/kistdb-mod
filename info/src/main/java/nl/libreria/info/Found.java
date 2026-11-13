@@ -926,14 +926,18 @@ final class Found {
 	 * story walls in their recipe book, with the tip: so everyone knows they're there, before their first story.
 	 */
 	static void woodTick(net.minecraft.server.MinecraftServer server) {
-		for (ServerPlayer p : server.getPlayerList().getPlayers()) {
-			Seen s = SEEN.get(p);
-			if (s.toldShowcases || !choppedWood(p)) continue;
-			s.toldShowcases = true;
-			SEEN.markDirty(p);
-			showcaseRecipes(p);
-			nl.libreria.core.Tips.once(p, TIP_SHOW);
-		}
+		for (ServerPlayer p : server.getPlayerList().getPlayers()) unlockIfWood(p);
+	}
+
+	/** The recipes (and the tip), once, when they chopped wood. True when that happened now. */
+	static boolean unlockIfWood(ServerPlayer p) {
+		Seen s = SEEN.get(p);
+		if (s.toldShowcases || !choppedWood(p)) return false;
+		s.toldShowcases = true;
+		SEEN.markDirty(p);
+		showcaseRecipes(p);
+		nl.libreria.core.Tips.once(p, TIP_SHOW);
+		return true;
 	}
 
 	/** A log in the inventory, or one ever mined. */

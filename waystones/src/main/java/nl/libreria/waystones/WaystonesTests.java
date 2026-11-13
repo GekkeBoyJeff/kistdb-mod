@@ -118,6 +118,32 @@ final class WaystonesTests {
 				level.setBlock(a.south(), Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
 			}
 		});
+		SelfTests.register("waystones.visitors", level -> {
+			FakePlayer owner = FakePlayer.get(level, new GameProfile(UUID.randomUUID(), "Landlord"));
+			FakePlayer guest = FakePlayer.get(level, new GameProfile(UUID.randomUUID(), "Guest"));
+			BlockPos a = ground(level, 2400, 600);
+			try {
+				Class.forName("nl.libreria.claims.ClaimsMod").getMethod("debugClaim", ServerLevel.class, net.minecraft.world.level.ChunkPos.class, UUID.class,
+						String.class).invoke(null, level, net.minecraft.world.level.ChunkPos.containing(a), owner.getUUID(), "Landlord");
+			} catch (ReflectiveOperationException e) {
+				return; // no claims on this server: nothing to open
+			}
+			try {
+				Stones.Stone s = place(level, owner, a, Direction.SOUTH);
+				var hit = new net.minecraft.world.phys.BlockHitResult(Vec3.atCenterOf(a.above()), Direction.SOUTH, a.above(), false);
+				java.util.function.Supplier<net.minecraft.world.InteractionResult> click = () -> net.fabricmc.fabric.api.event.player.UseBlockCallback.EVENT
+						.invoker().interact(guest, level, net.minecraft.world.InteractionHand.MAIN_HAND, hit);
+				SelfTests.check(Stones.mayOpenToVisitors(owner, s) && !Stones.mayOpenToVisitors(guest, s), "its land's owner may open it to visitors");
+				SelfTests.check(click.get() == net.minecraft.world.InteractionResult.FAIL, "on someone's land a visitor can't click it");
+				s.visitors = true;
+				SelfTests.check(click.get() == net.minecraft.world.InteractionResult.PASS, "opened to visitors: they can");
+				guest.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, new ItemStack(net.minecraft.world.item.Items.COBBLESTONE));
+				SelfTests.check(click.get() == net.minecraft.world.InteractionResult.FAIL, "but they can't build against it");
+			} finally {
+				Stones.removed(level, a, "self-test");
+				clear(level, a);
+			}
+		});
 		SelfTests.register("waystones.animals", level -> {
 			FakePlayer rider = FakePlayer.get(level, new GameProfile(UUID.randomUUID(), "Herder"));
 			BlockPos a = ground(level, 2000, 600), b = ground(level, 2200, 600);

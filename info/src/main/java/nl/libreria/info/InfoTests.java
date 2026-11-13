@@ -20,6 +20,16 @@ final class InfoTests {
 	}
 
 	static void register() {
+		SelfTests.register("info.wood_recipes", level -> {
+			net.fabricmc.fabric.api.entity.FakePlayer fp = net.fabricmc.fabric.api.entity.FakePlayer.get(level,
+					new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "Woodcutter"));
+			SelfTests.check(!Found.unlockIfWood(fp), "no wood yet: nothing");
+			fp.getInventory().add(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.OAK_LOG));
+			var key = net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.RECIPE,
+					net.minecraft.resources.Identifier.fromNamespaceAndPath("libreria", "story_wall_oak"));
+			SelfTests.check(Found.unlockIfWood(fp) && fp.getRecipeBook().contains(key) && !Found.unlockIfWood(fp),
+					"a log chopped: the story walls and the mannequin in the recipe book, once");
+		});
 		SelfTests.register("info.completion", level -> {
 			java.util.function.Function<String, java.util.Set<String>> keys = id -> {
 				var c = nl.libreria.core.Completion.get(id);

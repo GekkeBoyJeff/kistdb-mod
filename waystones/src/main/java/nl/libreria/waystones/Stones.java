@@ -66,6 +66,8 @@ final class Stones {
 		public boolean grand;
 		/** Someone found it (right-clicked it once): a world refresh leaves its land alone. */
 		public boolean found;
+		/** On claimed land: its land's owner opened it to visitors (anyone may click it there). */
+		public boolean visitors;
 
 		DyeColor colour() {
 			DyeColor d = this.dye == null || this.dye.isEmpty() ? null : DyeColor.byName(this.dye, null);
@@ -236,6 +238,28 @@ final class Stones {
 	}
 
 	// ---------------------------------------------------------------- who may
+
+	/** The owner of the land it stands on (a claim), or null on free land. */
+	static @Nullable UUID landOwner(ServerLevel level, Stone s) {
+		return Services.land().filter(Services.Land::active).map(l -> l.ownerAt(level, s.pos())).orElse(null);
+	}
+
+	/** May open it to visitors (or close it): its land's owner, an operator. */
+	static boolean mayOpenToVisitors(ServerPlayer p, Stone s) {
+		if (!(p.level() instanceof ServerLevel)) return false;
+		ServerLevel level = level(p.level().getServer(), s.dim);
+		UUID owner = level == null ? null : landOwner(level, s);
+		return owner != null && (owner.equals(p.getUUID()) || Ui.isOp(p));
+	}
+
+	/** For claims: a waystone (its stone, altar or shrine) its land's owner opened to visitors. */
+	static boolean openToVisitors(ServerLevel level, BlockPos pos) {
+		BlockState st = level.getBlockState(pos);
+		BlockPos lower = st.is(WaystonesMod.GRAND) ? GrandBlock.middleOf(pos, st) : WaystoneBlock.lowerOf(level, pos, st);
+		if (lower == null) return false;
+		Stone s = at(level, lower);
+		return s != null && s.visitors;
+	}
 
 	static boolean owns(ServerPlayer p, Stone s) {
 		return s.owner != null && s.owner.equals(p.getUUID());
@@ -666,7 +690,7 @@ final class Stones {
 			Libreria.LOG.debug("{} found the waystone {}", p.getName().getString(), s.name);
 			nl.libreria.core.Tips.once(p, WaystonesMod.TIP);
 		}
-		if (p.isShiftKeyDown() && mayShare(p, s)) {
+		if (p.isShiftKeyDown() && (mayShare(p, s) || mayOpenToVisitors(p, s))) {
 			WaystonesWindows.settings(p, s);
 			return;
 		}

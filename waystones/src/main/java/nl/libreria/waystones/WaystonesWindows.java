@@ -47,7 +47,8 @@ final class WaystonesWindows {
 	private static void settings(ServerPlayer p, Stones.Stone s, boolean fromAdmin) {
 		boolean op = Ui.isOp(p);
 		boolean names = Stones.owns(p, s) || op;
-		if (!names && !Stones.mayShare(p, s)) return;
+		boolean share = Stones.mayShare(p, s), visitors = Stones.mayOpenToVisitors(p, s);
+		if (!names && !share && !visitors) return;
 		if (WaystoneCanvas.available(p)) {
 			WaystoneCanvas.one(p, s, fromAdmin);
 			return;
@@ -57,7 +58,8 @@ final class WaystonesWindows {
 				+ (s.made > 0 ? ", " + Players.ago(s.made).toLowerCase(Locale.ROOT) : "") + ".";
 		w.text(Ui.text(where(s) + ". " + made, ChatFormatting.GRAY));
 		if (names) w.field("name", Ui.text("Name", ChatFormatting.WHITE), s.name, 32);
-		w.toggle("shared", Ui.text("On everyone's list (also who never found it)", ChatFormatting.WHITE), s.shared);
+		if (share) w.toggle("shared", Ui.text("On everyone's list (also who never found it)", ChatFormatting.WHITE), s.shared);
+		if (visitors) w.toggle("visitors", Ui.text("Open to visitors: anyone on this land may use it", ChatFormatting.WHITE), s.visitors);
 		if (names && !s.village && s.owner != null) {
 			w.toggle("secret", Ui.text("Private: only " + (Stones.owns(p, s) ? "you" : s.ownerName) + " and the people "
 					+ (Stones.owns(p, s) ? "you trust" : "they trust"), ChatFormatting.WHITE), s.secret);
@@ -68,7 +70,8 @@ final class WaystonesWindows {
 				if (!name.isEmpty()) s.name = name;
 				if (!s.village && s.owner != null) s.secret = v.bool("secret", s.secret);
 			}
-			s.shared = v.bool("shared", s.shared);
+			if (share) s.shared = v.bool("shared", s.shared);
+			if (visitors) s.visitors = v.bool("visitors", s.visitors);
 			// on everyone's list is open to everyone: it can't be private as well
 			if (s.shared) s.secret = false;
 			Stones.STORE.markDirty();
