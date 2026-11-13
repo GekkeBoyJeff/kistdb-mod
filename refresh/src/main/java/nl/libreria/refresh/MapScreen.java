@@ -994,7 +994,7 @@ final class MapScreen {
 				long min = w.near(x, z) / 1200;
 				m.append(t("  ·  people near for " + (min >= 120 ? Ui.n((int) (min / 60)) + " h" : min + " min"), GREY));
 				String owner = v.ctx.owner(x, z);
-				String reason = owner != null ? owner + "'s claim" : why == Plan.Why.PLACE ? v.ctx.places.getOrDefault(v.hover, why.words) : why.words;
+				String reason = owner != null ? owner + "'s claim" : why.words;
 				m.append(t("  ·  ", MUTED)).append(t(why.stays ? "stays" : "goes", why.stays ? GREEN : REDT));
 				if (why != Plan.Why.GO) m.append(t(" (" + reason + ")", MUTED));
 			}

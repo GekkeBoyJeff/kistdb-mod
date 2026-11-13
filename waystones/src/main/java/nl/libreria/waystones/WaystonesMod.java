@@ -118,8 +118,6 @@ public final class WaystonesMod implements ModInitializer {
 		nl.libreria.core.Services.onChunksGone((server, dimension, chunks) -> Stones.chunksGone(dimension, chunks));
 		// Claims let anyone click a waystone its land's owner opened to visitors
 		nl.libreria.core.Services.provideOpenToVisitors((level, pos) -> MODULE.on() && Stones.openToVisitors(level, pos));
-		// A world refresh leaves the land round a waystone someone found (or a player's own) alone
-		nl.libreria.core.Services.provideKept((server, dimension) -> MODULE.on() ? Stones.kept(dimension) : java.util.Map.of());
 		net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STARTED.register(Stones::readFinds);
 		net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback.EVENT.register((dispatcher, context, selection) -> dispatcher.register(
 				net.minecraft.commands.Commands.literal("waystones").then(net.minecraft.commands.Commands.literal("check")

@@ -31,7 +31,6 @@ final class Plan {
 	enum Why {
 		NOT_MADE(true, "never made yet"), CLAIM(true, "claimed"), CENTRE(true, "the middle of the End"), GATEWAY(true, "where a gateway leads"),
 		KEPT(true, "kept by you"), ROOM(true, "close to a claim"), NEAR(true, "people were near"), OFF(true, "this world takes no part"),
-		PLACE(true, "a place someone found"),
 		GO(false, "goes"), LET_GO(false, "let go by you");
 
 		final boolean stays;
@@ -70,8 +69,6 @@ final class Plan {
 		final Map<Long, String> claims;
 		final Set<Long> room = new HashSet<>();
 		final Set<Long> gateways = new HashSet<>();
-		/** Kept by another module (a waystone someone found…), with why. */
-		final Map<Long, String> places;
 		final Set<Long> keep, letGo;
 		final boolean end, on;
 		final long nearTicks;
@@ -87,7 +84,6 @@ final class Plan {
 			}
 			this.end = dim.equals(Level.END);
 			if (this.end) gateways(server, this.gateways);
-			this.places = Services.kept(server, this.id);
 			Dim d = dim(this.id);
 			this.keep = new HashSet<>(d.keep);
 			this.letGo = new HashSet<>(d.letGo);
@@ -103,7 +99,6 @@ final class Plan {
 			if (this.gateways.contains(k)) return Why.GATEWAY;
 			if (this.letGo.contains(k)) return this.on ? Why.LET_GO : Why.OFF;
 			if (this.keep.contains(k)) return Why.KEPT;
-			if (this.places.containsKey(k)) return Why.PLACE;
 			if (this.room.contains(k)) return Why.ROOM;
 			if (w.near(cx, cz) >= this.nearTicks && this.nearTicks > 0) return Why.NEAR;
 			return this.on ? Why.GO : Why.OFF;

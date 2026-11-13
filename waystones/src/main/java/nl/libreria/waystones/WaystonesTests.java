@@ -49,26 +49,20 @@ final class WaystonesTests {
 	}
 
 	static void register() {
-		SelfTests.register("waystones.kept", level -> {
+		SelfTests.register("waystones.finders", level -> {
 			FakePlayer finder = FakePlayer.get(level, new GameProfile(UUID.randomUUID(), "Finder"));
+			FakePlayer other = FakePlayer.get(level, new GameProfile(UUID.randomUUID(), "Wanderer"));
 			FakePlayer owner = FakePlayer.get(level, new GameProfile(UUID.randomUUID(), "Keeper"));
 			BlockPos a = ground(level, 1600, 600);
 			try {
 				Stones.Stone s = place(level, owner, a, Direction.SOUTH);
-				String d = Stones.dim(level);
-				SelfTests.check(s != null && !s.found, "someone's own waystone isn't 'found' by its placer");
-				var kept = Stones.kept(d);
-				long middle = ((a.getX() >> 4) & 0xFFFFFFFFL) | ((long) (a.getZ() >> 4) << 32);
-				long corner = (((a.getX() >> 4) + 2) & 0xFFFFFFFFL) | ((long) ((a.getZ() >> 4) - 2) << 32);
-				long out = (((a.getX() >> 4) + 3) & 0xFFFFFFFFL) | ((long) (a.getZ() >> 4) << 32);
-				SelfTests.check(kept.containsKey(middle) && kept.containsKey(corner) && !kept.containsKey(out) && kept.get(middle).contains("Keeper"),
-						"a player's waystone keeps 2 chunks round it in a world refresh: " + kept.get(middle));
-				// A village's: only once someone found it
-				s.owner = null;
-				s.village = true;
-				SelfTests.check(!Stones.kept(d).containsKey(middle), "a village's nobody found isn't kept");
+				SelfTests.check(s != null && s.finders.isEmpty(), "its placer isn't one of who found it");
 				Stones.discover(finder, s);
-				SelfTests.check(s.found && Stones.kept(d).containsKey(middle), "found: kept");
+				Stones.discover(other, s);
+				SelfTests.check(s.finders.size() == 2 && "Finder".equals(s.finders.get(finder.getUUID())), "who found it is kept on the waystone: " + s.finders);
+				// Its land's owner takes one of them off: only theirs goes
+				SelfTests.check(Stones.unfind(level.getServer(), s, other.getUUID()) && !Stones.known(other, s) && Stones.known(finder, s)
+						&& s.finders.size() == 1, "taken off one list, the other stays");
 				// What became of someone's waystones
 				nl.libreria.core.Players.note(finder.getUUID(), "Finder", System.currentTimeMillis(), System.currentTimeMillis());
 				Stones.FOUND.get(finder).found.add("minecraft:overworld|1|2|3");

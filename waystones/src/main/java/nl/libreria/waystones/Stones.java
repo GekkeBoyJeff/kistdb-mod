@@ -64,8 +64,8 @@ final class Stones {
 		public boolean glow;
 		/** A grand waystone (a shrine 5 × 5 round it, see {@link Grand}): leaving from it is free. */
 		public boolean grand;
-		/** Someone found it (right-clicked it once): a world refresh leaves its land alone. */
-		public boolean found;
+		/** Who has it on their list (found it): id → name, so its land's owner can take someone off. */
+		public Map<UUID, String> finders = new LinkedHashMap<>();
 		/** On claimed land: its land's owner opened it to visitors (anyone may click it there). */
 		public boolean visitors;
 
@@ -96,8 +96,8 @@ final class Stones {
 		public Map<String, Stone> stones = new LinkedHashMap<>();
 		/** Waystones that went off every list: what they were, why and when (the newest few hundred). */
 		public Map<String, Gone> gone = new LinkedHashMap<>();
-		/** The players' finds were read once to mark the waystones someone found (from before {@link Stone#found}). */
-		public boolean foundRead;
+		/** The players' finds were read once to know who has which waystone (from before {@link Stone#finders}). */
+		public boolean findersRead;
 	}
 
 	/** A waystone that's gone: its name, why, when. */
@@ -302,36 +302,55 @@ final class Stones {
 
 	/** Found now: true the first time. */
 	static boolean discover(ServerPlayer p, Stone s) {
-		if (!s.found && !(s.owner != null && s.owner.equals(p.getUUID()))) {
-			s.found = true;
-			STORE.markDirty();
+		if (!(s.owner != null && s.owner.equals(p.getUUID()))) {
+			if (s.finders == null) s.finders = new LinkedHashMap<>();
+			if (!p.getName().getString().equals(s.finders.put(p.getUUID(), p.getName().getString()))) STORE.markDirty();
 		}
 		if (!FOUND.get(p).found.add(s.key())) return false;
 		FOUND.markDirty(p);
 		return true;
 	}
 
+	/** Takes someone's find of this waystone away: off their list (until they find it again). Nobody else's changes. */
+	static boolean unfind(MinecraftServer server, Stone s, UUID who) {
+		boolean was = s.finders != null && s.finders.remove(who) != null;
+		Found f = FOUND.get(who);
+		if (f.found.remove(s.key())) {
+			FOUND.markDirty(who);
+			was = true;
+		}
+		if (was) STORE.markDirty();
+		return was;
+	}
+
 	/**
-	 * Once: the waystones in anyone's finds are marked found (finds from before that was kept on the waystone itself),
-	 * read from every player's file.
+	 * Once: who has which waystone, read from every player's finds (from before that was kept on the waystone itself),
+	 * so its land's owner sees everyone who has it on their list.
 	 */
 	static void readFinds(MinecraftServer server) {
 		Data d = STORE.get();
-		if (d.foundRead) return;
+		if (d.findersRead) return;
 		java.nio.file.Path dir = server.getWorldPath(net.minecraft.world.level.storage.LevelResource.ROOT).resolve("libreria").resolve("waystones");
+		Map<UUID, String> names = new java.util.HashMap<>();
+		for (var k : nl.libreria.core.Players.all(server)) names.put(k.id(), k.name());
 		int marked = 0;
 		if (java.nio.file.Files.isDirectory(dir)) {
 			try (var files = java.nio.file.Files.list(dir)) {
 				for (java.nio.file.Path f : files.filter(f -> f.getFileName().toString().endsWith(".json")).toList()) {
+					UUID who;
+					try {
+						who = UUID.fromString(f.getFileName().toString().replace(".json", ""));
+					} catch (IllegalArgumentException e) {
+						continue;
+					}
 					try (var r = java.nio.file.Files.newBufferedReader(f)) {
 						Found found = new com.google.gson.Gson().fromJson(r, Found.class);
 						if (found == null || found.found == null) continue;
 						for (String k : found.found) {
 							Stone s = all().get(k);
-							if (s != null && !s.found) {
-								s.found = true;
-								marked++;
-							}
+							if (s == null || who.equals(s.owner)) continue;
+							if (s.finders == null) s.finders = new LinkedHashMap<>();
+							if (s.finders.putIfAbsent(who, names.getOrDefault(who, "?")) == null) marked++;
 						}
 					} catch (Exception e) {
 						Libreria.LOG.warn("Waystones: couldn't read {}", f, e);
@@ -342,29 +361,9 @@ final class Stones {
 				return;
 			}
 		}
-		d.foundRead = true;
+		d.findersRead = true;
 		STORE.markDirty();
-		if (marked > 0) Libreria.LOG.info("Waystones: {} found by someone (a world refresh leaves their land alone)", marked);
-	}
-
-	/** How far round a waystone someone found (or a player's own) its land stays in a world refresh, in chunks. */
-	static final int KEPT_AROUND = 2;
-
-	/** For the world refresh: the chunks round the waystones that matter to someone, with why. */
-	static Map<Long, String> kept(String dimension) {
-		Map<Long, String> out = new java.util.HashMap<>();
-		for (Stone s : all().values()) {
-			if (!s.dim.equals(dimension)) continue;
-			String why = s.owner != null ? s.ownerName + "'s waystone " + s.name : s.found || s.shared ? "waystone " + s.name + ", found" : null;
-			if (why == null) continue;
-			int cx = s.x >> 4, cz = s.z >> 4;
-			for (int dx = -KEPT_AROUND; dx <= KEPT_AROUND; dx++) {
-				for (int dz = -KEPT_AROUND; dz <= KEPT_AROUND; dz++) {
-					out.putIfAbsent(((cx + dx) & 0xFFFFFFFFL) | ((long) (cz + dz) << 32), why);
-				}
-			}
-		}
-		return out;
+		if (marked > 0) Libreria.LOG.info("Waystones: {} finds read (who has which waystone on their list)", marked);
 	}
 
 	// ---------------------------------------------------------------- the price

@@ -127,33 +127,6 @@ public final class Services {
 		}
 	}
 
-	/**
-	 * Places a module wants kept when the world is made anew (the world refresh): per chunk (the same keys as above), a
-	 * few words on why ("a waystone someone found"). Asked when the refresh works out what stays.
-	 */
-	public interface Kept {
-		java.util.Map<Long, String> kept(net.minecraft.server.MinecraftServer server, String dimension);
-	}
-
-	private static final List<Kept> KEPT = new java.util.concurrent.CopyOnWriteArrayList<>();
-
-	public static void provideKept(Kept k) {
-		KEPT.add(k);
-	}
-
-	/** Every chunk some module wants kept in this world, with why. */
-	public static java.util.Map<Long, String> kept(net.minecraft.server.MinecraftServer server, String dimension) {
-		java.util.Map<Long, String> out = new java.util.HashMap<>();
-		for (Kept k : KEPT) {
-			try {
-				k.kept(server, dimension).forEach(out::putIfAbsent);
-			} catch (RuntimeException e) {
-				Libreria.LOG.warn("World refresh: a module couldn't say what it keeps", e);
-			}
-		}
-		return out;
-	}
-
 	public static Optional<Land> land() {
 		return Optional.ofNullable(land);
 	}
