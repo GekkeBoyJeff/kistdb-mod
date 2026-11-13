@@ -1360,6 +1360,7 @@ public final class Screens implements FabricClientGameTest {
 			menu(ctx, server, player, "waystone_list", nl.libreria.waystones.WaystonesDebug::list);
 			menu(ctx, server, player, "waystone_settings", nl.libreria.waystones.WaystonesDebug::settings);
 			menu(ctx, server, player, "waystone_settings_shared", nl.libreria.waystones.WaystonesDebug::settingsShared);
+			menu(ctx, server, player, "waystone_on_lists", nl.libreria.waystones.WaystonesDebug::finders);
 			menu(ctx, server, player, "window_admin_waystones", p -> nl.libreria.core.gui.AdminWindow.open(p, nl.libreria.waystones.WaystonesMod.MODULE));
 			menu(ctx, server, player, "window_admin_waystones_all", nl.libreria.waystones.WaystonesDebug::admin);
 			safe("waystone_items", () -> {

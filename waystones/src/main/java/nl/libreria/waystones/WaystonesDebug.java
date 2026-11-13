@@ -56,6 +56,12 @@ public final class WaystonesDebug {
 		if (s != null) WaystonesWindows.settings(p, s);
 	}
 
+	/** Who has it on their list (as its land's owner sees it). */
+	public static void finders(ServerPlayer p) {
+		Stones.Stone s = stone == null ? null : Stones.at(p.level(), stone);
+		if (s != null) withFinders(s, () -> WaystoneCanvas.finders(p, s, false));
+	}
+
 	/** Its window once it's on everyone's list (and back to open after). */
 	public static void settingsShared(ServerPlayer p) {
 		Stones.Stone s = stone == null ? null : Stones.at(p.level(), stone);
