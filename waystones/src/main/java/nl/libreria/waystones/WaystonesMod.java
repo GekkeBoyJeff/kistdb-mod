@@ -116,6 +116,28 @@ public final class WaystonesMod implements ModInitializer {
 		WaystonePlaces.register();
 		VillageWaystones.register();
 		nl.libreria.core.Services.onChunksGone((server, dimension, chunks) -> Stones.chunksGone(dimension, chunks));
+		// A world refresh leaves the land round a waystone someone found (or a player's own) alone
+		nl.libreria.core.Services.provideKept((server, dimension) -> MODULE.on() ? Stones.kept(dimension) : java.util.Map.of());
+		net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STARTED.register(Stones::readFinds);
+		net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback.EVENT.register((dispatcher, context, selection) -> dispatcher.register(
+				net.minecraft.commands.Commands.literal("waystones").then(net.minecraft.commands.Commands.literal("check")
+						.then(net.minecraft.commands.Commands.argument("player", com.mojang.brigadier.arguments.StringArgumentType.word())
+								.suggests((c, b) -> {
+									for (var k : nl.libreria.core.Players.all(c.getSource().getServer())) b.suggest(k.name());
+									return b.buildFuture();
+								})
+								.executes(c -> {
+									ServerPlayer asker = c.getSource().getPlayer();
+									if (asker != null && !nl.libreria.core.Ui.isOp(asker)) {
+										c.getSource().sendFailure(net.minecraft.network.chat.Component.literal("Only operators can check someone's waystones."));
+										return 0;
+									}
+									for (var line : WaystoneCheck.lines(c.getSource().getServer(),
+											com.mojang.brigadier.arguments.StringArgumentType.getString(c, "player"))) {
+										c.getSource().sendSystemMessage(line);
+									}
+									return 1;
+								})))));
 
 		// Breaking: a village's waystone only an operator, a player's its owner and the people they trust
 		PlayerBlockBreakEvents.BEFORE.register((level, player, pos, state, be) -> {
@@ -138,7 +160,12 @@ public final class WaystonesMod implements ModInitializer {
 			return net.minecraft.world.InteractionResult.PASS;
 		});
 		ServerPlayConnectionEvents.JOIN.register((h, sender, server) -> server.execute(() -> recipes(h.player)));
+		// A waystone whose chunk the host cleared is put back when its chunk loads again
+		net.fabricmc.fabric.api.event.lifecycle.v1.ServerChunkEvents.CHUNK_LOAD.register((level, chunk, generated) -> {
+			if (MODULE.on()) Stones.chunkLoaded(level, chunk.getPos().x(), chunk.getPos().z());
+		});
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
+			if (server.getTickCount() % 20 == 13 && MODULE.on()) Stones.lookAtLoaded(server);
 			if (server.getTickCount() % 40 == 11) WaystonePlaces.tick(server);
 			if (server.getTickCount() % 20 == 7) VillageWaystones.tick(server);
 		});

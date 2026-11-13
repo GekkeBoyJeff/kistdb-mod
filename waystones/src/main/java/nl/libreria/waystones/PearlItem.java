@@ -101,10 +101,17 @@ public final class PearlItem extends Item implements PolymerItem {
 		}
 		ServerLevel to = Stones.check(p, s);
 		if (to == null) return InteractionResult.FAIL;
+		// With animals on your lead: two pearls
+		var animals = nl.libreria.core.Leashed.along(p);
+		int take = Stones.times(animals);
+		if (!p.isCreative() && stack.getCount() < take) {
+			Notify.info(p, WaystonesMod.PEARL, "Two pearls", "With " + nl.libreria.core.Leashed.words(animals) + " on your lead it takes two.");
+			return InteractionResult.FAIL;
+		}
 		lore(stack, s);
 		p.getCooldowns().addCooldown(stack, 20);
-		if (!p.isCreative()) stack.shrink(1);
-		Stones.go(p, to, s);
+		if (!p.isCreative()) stack.shrink(take);
+		Stones.go(p, to, s, animals);
 		return InteractionResult.SUCCESS;
 	}
 }

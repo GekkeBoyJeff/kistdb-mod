@@ -204,7 +204,7 @@ public final class WaystonesDebug {
 			Stones.Stone s = Stones.at(p.level(), b);
 			if (s != null && s.grand) Grand.takeDown(s, p.level(), null);
 			else WaystonesTests.clear(p.level(), b);
-			Stones.removed(p.level(), b);
+			Stones.removed(p.level(), b, "debug");
 		}
 		GRAND.clear();
 		grandOne = null;

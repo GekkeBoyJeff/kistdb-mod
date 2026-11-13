@@ -122,6 +122,17 @@ final class VillageWaystones {
 		BlockPos bell = new BlockPos(p.x, p.y, p.z);
 		Plaza.Palette pal = Plaza.palette(Plaza.Style.of(p.style));
 		Plaza.Site site = Plaza.find(level, bell);
+		// This village had a waystone already (its chunks were cleared and made again): that one comes back, no second one
+		Stones.Stone old = null;
+		String d = Stones.dim(level);
+		for (Stones.Stone s : Stones.list()) {
+			if (s.village && s.dim.equals(d) && Math.abs(s.x - bell.getX()) <= 24 && Math.abs(s.z - bell.getZ()) <= 24 && Math.abs(s.y - bell.getY()) <= 12) old = s;
+		}
+		if (old != null && (site == null || !site.centre().equals(old.pos()))) {
+			if (!Stones.standing(level, old.pos())) Stones.restore(level, old);
+			last = old.pos();
+			return true;
+		}
 		BlockPos lower;
 		Direction front;
 		if (site != null) {

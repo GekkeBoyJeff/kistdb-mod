@@ -82,9 +82,12 @@ public final class Travel {
 		rememberBack(p, Why.TELEPORT);
 		ServerLevel from = p.level();
 		Vec3 was = p.position();
+		// The animals on your lead come along
+		var animals = nl.libreria.core.Leashed.along(p);
 		if (p.isPassenger()) p.stopRiding();
 		p.teleportTo(to.level(), to.pos().x, to.pos().y, to.pos().z, Set.of(), to.yaw(), to.pitch(), false);
 		p.fallDistance = 0;
+		nl.libreria.core.Leashed.bring(p, animals);
 		LAST.put(p.getUUID(), System.currentTimeMillis());
 		puff(from, was);
 		puff(to.level(), to.pos());

@@ -114,11 +114,11 @@ final class WaystonesWindows {
 			Notify.done(p, Items.BARRIER, "Removed: " + s.name, where(s));
 			return;
 		}
+		if (level != null) Stones.removed(level, s.pos(), "removed by " + p.getName().getString());
 		if (level != null && level.getBlockState(s.pos()).is(WaystonesMod.WAYSTONE)) {
 			level.setBlock(s.pos().above(), Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
 			level.setBlock(s.pos(), Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
 		}
-		if (level != null) Stones.removed(level, s.pos());
 		Notify.done(p, Items.BARRIER, "Removed: " + s.name, where(s));
 	}
 

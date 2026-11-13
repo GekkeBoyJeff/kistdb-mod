@@ -64,6 +64,8 @@ final class Stones {
 		public boolean glow;
 		/** A grand waystone (a shrine 5 × 5 round it, see {@link Grand}): leaving from it is free. */
 		public boolean grand;
+		/** Someone found it (right-clicked it once): a world refresh leaves its land alone. */
+		public boolean found;
 
 		DyeColor colour() {
 			DyeColor d = this.dye == null || this.dye.isEmpty() ? null : DyeColor.byName(this.dye, null);
@@ -90,7 +92,22 @@ final class Stones {
 
 	public static final class Data {
 		public Map<String, Stone> stones = new LinkedHashMap<>();
+		/** Waystones that went off every list: what they were, why and when (the newest few hundred). */
+		public Map<String, Gone> gone = new LinkedHashMap<>();
+		/** The players' finds were read once to mark the waystones someone found (from before {@link Stone#found}). */
+		public boolean foundRead;
 	}
+
+	/** A waystone that's gone: its name, why, when. */
+	public static final class Gone {
+		public String name = "";
+		public boolean village;
+		public String why = "";
+		public long at;
+	}
+
+	/** How many gone waystones are remembered. */
+	private static final int GONE_KEPT = 400;
 
 	public static final class Found {
 		public Set<String> found = new LinkedHashSet<>();
@@ -118,6 +135,12 @@ final class Stones {
 		Data d = STORE.get();
 		if (d.stones == null) d.stones = new LinkedHashMap<>();
 		return d.stones;
+	}
+
+	/** (Self-tests: a waystone on the lists again, as if its chunk had been cleared outside the game.) */
+	static void remember(Stone s) {
+		all().put(s.key(), s);
+		STORE.markDirty();
 	}
 
 	static @Nullable Stone byKey(String key) {
@@ -172,25 +195,44 @@ final class Stones {
 		return st.is(WaystonesMod.WAYSTONE) || st.is(WaystonesMod.GRAND) && GrandBlock.isMiddle(st);
 	}
 
-	static void removed(Level level, BlockPos lower) {
-		if (all().remove(key(dim(level), lower.getX(), lower.getY(), lower.getZ())) != null) STORE.markDirty();
+	static void removed(Level level, BlockPos lower, String why) {
+		forget(key(dim(level), lower.getX(), lower.getY(), lower.getZ()), why);
+	}
+
+	/** Off every list, with why (written down and in the log). */
+	static void forget(String key, String why) {
+		Stone s = all().remove(key);
+		if (s == null) return;
+		Data d = STORE.get();
+		if (d.gone == null) d.gone = new LinkedHashMap<>();
+		Gone g = new Gone();
+		g.name = s.name;
+		g.village = s.village;
+		g.why = why;
+		g.at = System.currentTimeMillis();
+		d.gone.remove(key);
+		d.gone.put(key, g);
+		while (d.gone.size() > GONE_KEPT) d.gone.remove(d.gone.keySet().iterator().next());
+		STORE.markDirty();
+		Libreria.LOG.info("Waystones: {} ({}) is off every list: {}", s.name, key, why);
+	}
+
+	/** Why a waystone that was here is gone, or null when that isn't known. */
+	static @Nullable Gone gone(String key) {
+		Data d = STORE.get();
+		return d.gone == null ? null : d.gone.get(key);
 	}
 
 	/** Chunks of a world made anew (the world refresh): the waystones that stood in them are gone, off every list. */
 	static int chunksGone(String dimension, java.util.Set<Long> chunks) {
-		int n = 0;
-		for (var it = all().values().iterator(); it.hasNext();) {
-			Stone s = it.next();
+		List<String> going = new ArrayList<>();
+		for (Stone s : all().values()) {
 			long chunk = ((s.x >> 4) & 0xFFFFFFFFL) | ((long) (s.z >> 4) << 32);
-			if (!s.dim.equals(dimension) || !chunks.contains(chunk)) continue;
-			it.remove();
-			n++;
+			if (s.dim.equals(dimension) && chunks.contains(chunk)) going.add(s.key());
 		}
-		if (n > 0) {
-			STORE.markDirty();
-			Libreria.LOG.info("Waystones: {} gone with the chunks made anew in {}", n, dimension);
-		}
-		return n;
+		for (String k : going) forget(k, "its land was made anew (world refresh)");
+		if (!going.isEmpty()) Libreria.LOG.info("Waystones: {} gone with the chunks made anew in {}", going.size(), dimension);
+		return going.size();
 	}
 
 	// ---------------------------------------------------------------- who may
@@ -236,9 +278,69 @@ final class Stones {
 
 	/** Found now: true the first time. */
 	static boolean discover(ServerPlayer p, Stone s) {
+		if (!s.found && !(s.owner != null && s.owner.equals(p.getUUID()))) {
+			s.found = true;
+			STORE.markDirty();
+		}
 		if (!FOUND.get(p).found.add(s.key())) return false;
 		FOUND.markDirty(p);
 		return true;
+	}
+
+	/**
+	 * Once: the waystones in anyone's finds are marked found (finds from before that was kept on the waystone itself),
+	 * read from every player's file.
+	 */
+	static void readFinds(MinecraftServer server) {
+		Data d = STORE.get();
+		if (d.foundRead) return;
+		java.nio.file.Path dir = server.getWorldPath(net.minecraft.world.level.storage.LevelResource.ROOT).resolve("libreria").resolve("waystones");
+		int marked = 0;
+		if (java.nio.file.Files.isDirectory(dir)) {
+			try (var files = java.nio.file.Files.list(dir)) {
+				for (java.nio.file.Path f : files.filter(f -> f.getFileName().toString().endsWith(".json")).toList()) {
+					try (var r = java.nio.file.Files.newBufferedReader(f)) {
+						Found found = new com.google.gson.Gson().fromJson(r, Found.class);
+						if (found == null || found.found == null) continue;
+						for (String k : found.found) {
+							Stone s = all().get(k);
+							if (s != null && !s.found) {
+								s.found = true;
+								marked++;
+							}
+						}
+					} catch (Exception e) {
+						Libreria.LOG.warn("Waystones: couldn't read {}", f, e);
+					}
+				}
+			} catch (java.io.IOException e) {
+				Libreria.LOG.warn("Waystones: couldn't read the players' finds", e);
+				return;
+			}
+		}
+		d.foundRead = true;
+		STORE.markDirty();
+		if (marked > 0) Libreria.LOG.info("Waystones: {} found by someone (a world refresh leaves their land alone)", marked);
+	}
+
+	/** How far round a waystone someone found (or a player's own) its land stays in a world refresh, in chunks. */
+	static final int KEPT_AROUND = 2;
+
+	/** For the world refresh: the chunks round the waystones that matter to someone, with why. */
+	static Map<Long, String> kept(String dimension) {
+		Map<Long, String> out = new java.util.HashMap<>();
+		for (Stone s : all().values()) {
+			if (!s.dim.equals(dimension)) continue;
+			String why = s.owner != null ? s.ownerName + "'s waystone " + s.name : s.found || s.shared ? "waystone " + s.name + ", found" : null;
+			if (why == null) continue;
+			int cx = s.x >> 4, cz = s.z >> 4;
+			for (int dx = -KEPT_AROUND; dx <= KEPT_AROUND; dx++) {
+				for (int dz = -KEPT_AROUND; dz <= KEPT_AROUND; dz++) {
+					out.putIfAbsent(((cx + dx) & 0xFFFFFFFFL) | ((long) (cz + dz) << 32), why);
+				}
+			}
+		}
+		return out;
 	}
 
 	// ---------------------------------------------------------------- the price
@@ -286,23 +388,43 @@ final class Stones {
 		ServerLevel level = check(p, to);
 		if (level == null) return false;
 		boolean free = from != null && from.grand && !withPearl;
+		List<net.minecraft.world.entity.Mob> animals = nl.libreria.core.Leashed.along(p);
+		int times = times(animals);
 		if (!p.isCreative() && !free) {
 			if (withPearl) {
-				if (!takePearl(p)) {
-					Notify.info(p, Items.ENDER_PEARL, "No ender pearl", "With an ender pearl the trip is free; without, it costs a little XP.");
+				if (pearls(p) < times) {
+					Notify.info(p, Items.ENDER_PEARL, times == 1 ? "No ender pearl" : "Two ender pearls",
+							times == 1 ? "With an ender pearl the trip is free; without, it costs a little XP."
+									: "With " + nl.libreria.core.Leashed.words(animals) + " on your lead it takes two.");
 					return false;
 				}
+				for (int i = 0; i < times; i++) takePearl(p);
 			} else {
-				int cost = points(p, levels(p, to));
+				double levels = levels(p, to) * times;
+				int cost = points(p, levels);
 				if (cost > held(p)) {
-					Notify.info(p, Items.EXPERIENCE_BOTTLE, "Not enough XP", "It takes " + levelsText(levels(p, to)) + ". With an ender pearl it's free (right-click).");
+					Notify.info(p, Items.EXPERIENCE_BOTTLE, "Not enough XP", "It takes " + levelsText(levels)
+							+ (times > 1 ? " with " + nl.libreria.core.Leashed.words(animals) : "") + ". With an ender pearl it's free (right-click).");
 					return false;
 				}
 				if (cost > 0) p.giveExperiencePoints(-cost);
 			}
 		}
-		go(p, level, to);
+		go(p, level, to, animals);
 		return true;
+	}
+
+	/** What a trip costs times what it would alone: twice with animals on your lead. */
+	static int times(List<?> animals) {
+		return animals.isEmpty() ? 1 : 2;
+	}
+
+	/** Ender pearls in the inventory. */
+	private static int pearls(ServerPlayer p) {
+		int n = 0;
+		var inv = p.getInventory();
+		for (int i = 0; i < inv.getContainerSize(); i++) if (inv.getItem(i).is(Items.ENDER_PEARL)) n += inv.getItem(i).getCount();
+		return n;
 	}
 
 	/** The world of {@code to} when this player may go there now; null (and why) when not. */
@@ -317,9 +439,9 @@ final class Stones {
 			Notify.warn(p, Items.OBSIDIAN, "Not between worlds", "Waystones only reach their own world here.");
 			return null;
 		}
-		if (!standing(level, to.pos())) {
-			if (all().remove(to.key()) != null) STORE.markDirty();
-			Notify.warn(p, Items.BARRIER, "That waystone is gone", to.name + " isn't there any more.");
+		if (!standing(level, to.pos()) && !restore(level, to)) {
+			// Gone without anybody taking it away here (the host cleared its chunk), and something else stands there now
+			Notify.warn(p, Items.BARRIER, to.name + " is blocked", "Its spot is taken by something else now, so you stay here (nothing paid).");
 			return null;
 		}
 		if (!mayUse(p, to)) {
@@ -341,15 +463,71 @@ final class Stones {
 		return false;
 	}
 
-	/** Teleports there: in front of its altar, looking at the stone. */
+	// ---------------------------------------------------------------- put back
+
+	/**
+	 * A waystone that's on the lists but whose block isn't there: nobody took it away here (that would have taken it off
+	 * every list), so its chunk was cleared outside the game (the host clears chunks nobody uses much). It's put back as
+	 * it was, from what's kept of it (place, look, name, owner). False, and nothing changes, when something else
+	 * stands on its spot now.
+	 */
+	static boolean restore(ServerLevel level, Stone s) {
+		BlockPos lower = s.pos();
+		Direction f = s.front();
+		if (s.grand) {
+			for (int[] c : Grand.places()) {
+				BlockPos b = Grand.at(lower, f, c[0], c[1], c[2]);
+				BlockState st = level.getBlockState(b);
+				// the floor sinks into the ground anyway; above it only what's loose (grass, flowers, snow) may go
+				if (c[2] < 0 ? level.getBlockEntity(b) != null : !(st.canBeReplaced() || st.is(WaystonesMod.GRAND))) return false;
+			}
+			Grand.build(level, lower, f, s, false);
+		} else {
+			for (BlockPos b : new BlockPos[] {lower, lower.above(), lower.above(2), lower.relative(f)}) {
+				BlockState st = level.getBlockState(b);
+				if (!st.canBeReplaced() || !st.getFluidState().isEmpty()) return false;
+			}
+			WaystoneBlock.put(level, lower, f, s.village, net.minecraft.world.level.block.Block.UPDATE_ALL);
+		}
+		Libreria.LOG.info("Waystones: {} ({}) put back: its chunk had been cleared", s.name, s.key());
+		return true;
+	}
+
+	/** Chunks that loaded (world and chunk), to look at their waystones a moment later. */
+	private static final java.util.Queue<Object[]> LOADED = new java.util.concurrent.ConcurrentLinkedQueue<>();
+
+	/** A chunk loaded: its waystones are looked at a moment later (put back if their chunk was cleared). */
+	static void chunkLoaded(ServerLevel level, int cx, int cz) {
+		LOADED.add(new Object[] {dim(level), cx, cz});
+	}
+
+	/** (Every second) the waystones in the chunks that loaded: still standing, or put back. */
+	static void lookAtLoaded(MinecraftServer server) {
+		if (LOADED.isEmpty()) return;
+		Set<String> chunks = new java.util.HashSet<>();
+		for (Object[] c; (c = LOADED.poll()) != null;) chunks.add(c[0] + "|" + c[1] + "|" + c[2]);
+		for (Stone s : List.copyOf(all().values())) {
+			if (!chunks.contains(s.dim + "|" + (s.x >> 4) + "|" + (s.z >> 4))) continue;
+			ServerLevel level = level(server, s.dim);
+			if (level == null || !level.hasChunk(s.x >> 4, s.z >> 4)) continue;
+			if (!standing(level, s.pos())) restore(level, s);
+		}
+	}
+
+	/** Teleports there: in front of its altar, looking at the stone (with the animals on your lead). */
 	static void go(ServerPlayer p, ServerLevel level, Stone to) {
-		Services.beforeTeleport(p);
+		go(p, level, to, nl.libreria.core.Leashed.along(p));
+	}
+
+	static void go(ServerPlayer p, ServerLevel level, Stone to, List<net.minecraft.world.entity.Mob> animals) {
+		// (No /back from here: going back where you came from for free would make the price pointless)
 		Vec3 at = arrival(level, to);
 		ServerLevel from = p.level();
 		Vec3 was = p.position();
 		if (p.isPassenger()) p.stopRiding();
 		p.teleportTo(level, at.x, at.y, at.z, java.util.Set.of(), to.front().getOpposite().toYRot(), 10, false);
 		p.fallDistance = 0;
+		nl.libreria.core.Leashed.bring(p, animals);
 		from.sendParticles(ParticleTypes.REVERSE_PORTAL, was.x, was.y + 1, was.z, 30, 0.3, 0.7, 0.3, 0.05);
 		level.sendParticles(ParticleTypes.REVERSE_PORTAL, at.x, at.y + 1, at.z, 30, 0.3, 0.7, 0.3, 0.05);
 		level.playSound(null, at.x, at.y, at.z, SoundEvents.ENDERMAN_TELEPORT, SoundSource.PLAYERS, 0.6f, 0.9f);

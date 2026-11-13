@@ -228,6 +228,8 @@ final class Grand {
 		if (level != null) {
 			BlockPos lower = s.pos();
 			Direction front = s.front();
+			// off every list first, with why (taking its blocks away would say "broken")
+			Stones.removed(level, lower, "taken down by " + (to != null ? to.getName().getString() : "an operator"));
 			int flags = Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE;
 			for (int[] c : places()) {
 				BlockPos b = at(lower, front, c[0], c[1], c[2]);
@@ -238,7 +240,6 @@ final class Grand {
 			double x = lower.getX() + 0.5, z = lower.getZ() + 0.5;
 			level.sendParticles(ParticleTypes.CLOUD, x, lower.getY() + 2, z, 60, 2, 2.5, 2, 0.02);
 			level.playSound(null, x, lower.getY() + 1, z, SoundEvents.DEEPSLATE_BRICKS_BREAK, SoundSource.BLOCKS, 2f, 0.6f);
-			Stones.removed(level, lower);
 		}
 		s.grand = false;
 		RISING.remove(s.key());

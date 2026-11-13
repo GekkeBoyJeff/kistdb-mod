@@ -53,7 +53,8 @@ public final class WorldStore<T> {
 					try (Reader r = Files.newBufferedReader(p, StandardCharsets.UTF_8)) {
 						loaded = GSON.fromJson(r, this.type);
 					} catch (Exception e) {
-						Libreria.LOG.error("Could not read {}; starting empty", p, e);
+						// Never written over: kept aside, so nothing is lost and it can be looked at
+						Libreria.LOG.error("Could not read {}; starting empty, the file is kept as {}", p, PlayerStore.keepAside(p), e);
 					}
 				}
 			}

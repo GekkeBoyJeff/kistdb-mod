@@ -49,6 +49,101 @@ final class WaystonesTests {
 	}
 
 	static void register() {
+		SelfTests.register("waystones.kept", level -> {
+			FakePlayer finder = FakePlayer.get(level, new GameProfile(UUID.randomUUID(), "Finder"));
+			FakePlayer owner = FakePlayer.get(level, new GameProfile(UUID.randomUUID(), "Keeper"));
+			BlockPos a = ground(level, 1600, 600);
+			try {
+				Stones.Stone s = place(level, owner, a, Direction.SOUTH);
+				String d = Stones.dim(level);
+				SelfTests.check(s != null && !s.found, "someone's own waystone isn't 'found' by its placer");
+				var kept = Stones.kept(d);
+				long middle = ((a.getX() >> 4) & 0xFFFFFFFFL) | ((long) (a.getZ() >> 4) << 32);
+				long corner = (((a.getX() >> 4) + 2) & 0xFFFFFFFFL) | ((long) ((a.getZ() >> 4) - 2) << 32);
+				long out = (((a.getX() >> 4) + 3) & 0xFFFFFFFFL) | ((long) (a.getZ() >> 4) << 32);
+				SelfTests.check(kept.containsKey(middle) && kept.containsKey(corner) && !kept.containsKey(out) && kept.get(middle).contains("Keeper"),
+						"a player's waystone keeps 2 chunks round it in a world refresh: " + kept.get(middle));
+				// A village's: only once someone found it
+				s.owner = null;
+				s.village = true;
+				SelfTests.check(!Stones.kept(d).containsKey(middle), "a village's nobody found isn't kept");
+				Stones.discover(finder, s);
+				SelfTests.check(s.found && Stones.kept(d).containsKey(middle), "found: kept");
+				// What became of someone's waystones
+				nl.libreria.core.Players.note(finder.getUUID(), "Finder", System.currentTimeMillis(), System.currentTimeMillis());
+				Stones.FOUND.get(finder).found.add("minecraft:overworld|1|2|3");
+				Stones.Stone ghost = new Stones.Stone();
+				ghost.x = 1;
+				ghost.y = 2;
+				ghost.z = 3;
+				ghost.name = "Ghostford";
+				Stones.remember(ghost);
+				Stones.forget(ghost.key(), "its land was made anew (world refresh)");
+				String said = String.join("\n", WaystoneCheck.lines(level.getServer(), "Finder").stream().map(c -> c.getString()).toList());
+				SelfTests.check(said.contains("Found 2: 1 still there, 1 gone") && said.contains("Ghostford") && said.contains("world refresh"),
+						"/waystones check says what became of them: " + said);
+			} finally {
+				Stones.removed(level, a, "self-test");
+				clear(level, a);
+				nl.libreria.core.Players.forget(finder.getUUID());
+			}
+		});
+		SelfTests.register("waystones.restore", level -> {
+			FakePlayer owner = FakePlayer.get(level, new GameProfile(UUID.randomUUID(), "Rook"));
+			BlockPos a = ground(level, 1800, 600);
+			try {
+				Stones.Stone s = place(level, owner, a, Direction.SOUTH);
+				s.name = "Rookhaven";
+				s.dye = "red";
+				// Its chunk cleared outside the game: the blocks go, but it's still on the lists
+				Stones.removed(level, a, "self-test");
+				level.setBlock(a.above(2), Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
+				level.setBlock(a.above(), Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
+				level.setBlock(a, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
+				level.setBlock(a.south(), Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
+				Stones.remember(s);
+				SelfTests.check(!Stones.standing(level, a), "gone from the world, still on the lists");
+				SelfTests.check(Stones.check(owner, s) == level && Stones.standing(level, a) && level.getBlockState(a.south()).is(WaystonesMod.ALTAR)
+						&& Stones.at(level, a) == s && "red".equals(s.dye) && "Rookhaven".equals(s.name), "put back as it was when someone travels there");
+				// Something else stands there now: nobody goes, nothing is paid, it stays on the lists
+				Stones.removed(level, a, "self-test");
+				clear(level, a);
+				level.setBlock(a.south(), Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
+				level.setBlock(a.above(), Blocks.COBBLESTONE.defaultBlockState(), Block.UPDATE_ALL);
+				Stones.remember(s);
+				SelfTests.check(Stones.check(owner, s) == null && Stones.byKey(s.key()) == s && !Stones.standing(level, a), "a spot taken by something else: no trip");
+			} finally {
+				Stones.removed(level, a, "self-test");
+				for (int i = 0; i < 3; i++) level.setBlock(a.above(i), Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
+				level.setBlock(a.south(), Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
+			}
+		});
+		SelfTests.register("waystones.animals", level -> {
+			FakePlayer rider = FakePlayer.get(level, new GameProfile(UUID.randomUUID(), "Herder"));
+			BlockPos a = ground(level, 2000, 600), b = ground(level, 2200, 600);
+			net.minecraft.world.entity.animal.Animal cow = null;
+			net.minecraft.world.entity.Mob zombie = null;
+			try {
+				rider.teleportTo(level, a.getX() + 0.5, a.getY(), a.getZ() + 0.5, java.util.Set.of(), 0, 0, false);
+				cow = (net.minecraft.world.entity.animal.Animal) net.minecraft.world.entity.EntityTypes.COW.create(level, net.minecraft.world.entity.EntitySpawnReason.COMMAND);
+				cow.setPos(a.getX() + 2.5, a.getY(), a.getZ() + 0.5);
+				level.addFreshEntity(cow);
+				cow.setLeashedTo(rider, true);
+				zombie = net.minecraft.world.entity.EntityTypes.ZOMBIE.create(level, net.minecraft.world.entity.EntitySpawnReason.COMMAND);
+				zombie.setPos(a.getX() - 2.5, a.getY(), a.getZ() + 0.5);
+				level.addFreshEntity(zombie);
+				zombie.setLeashedTo(rider, true);
+				var along = nl.libreria.core.Leashed.along(rider);
+				SelfTests.check(along.size() == 1 && along.getFirst() == cow && Stones.times(along) == 2, "a cow on your lead comes along (a zombie doesn't), and the trip costs twice");
+				rider.teleportTo(level, b.getX() + 0.5, b.getY(), b.getZ() + 0.5, java.util.Set.of(), 0, 0, false);
+				nl.libreria.core.Leashed.bring(rider, along);
+				SelfTests.check(cow.position().distanceTo(rider.position()) < 3 && cow.getLeashHolder() == rider, "the cow is there too, on the lead (" + cow.position() + ")");
+				SelfTests.check(Stones.times(java.util.List.of()) == 1, "alone: the usual price");
+			} finally {
+				if (cow != null) cow.discard();
+				if (zombie != null) zombie.discard();
+			}
+		});
 		SelfTests.register("waystones.travel", level -> {
 			FakePlayer mason = FakePlayer.get(level, new GameProfile(UUID.randomUUID(), "Mason"));
 			FakePlayer anna = FakePlayer.get(level, new GameProfile(UUID.randomUUID(), "Anna"));
@@ -322,9 +417,9 @@ final class WaystonesTests {
 				for (int dx = -3; dx <= 3; dx++) {
 					for (int dz = -3; dz <= 3; dz++) for (int dy = -1; dy <= 10; dy++) level.setBlock(lower.offset(dx, dy, dz), Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
 				}
-				Stones.removed(level, lower);
+				Stones.removed(level, lower, "self-test");
 				clear(level, other);
-				Stones.removed(level, other);
+				Stones.removed(level, other, "self-test");
 			}
 		});
 

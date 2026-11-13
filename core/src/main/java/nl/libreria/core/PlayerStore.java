@@ -85,13 +85,25 @@ public final class PlayerStore<T> {
 						return value;
 					}
 				} catch (Exception e) {
-					Libreria.LOG.error("Could not read {}", file, e);
+					// Never written over: kept aside, so nothing is lost and it can be looked at
+					Libreria.LOG.error("Could not read {}; starting empty, the file is kept as {}", file, keepAside(file), e);
 				}
 			}
 		}
 		T value = this.factory.get();
 		if (this.fixer != null) this.fixer.accept(value);
 		return value;
+	}
+
+	/** A file that couldn't be read, renamed so a save doesn't overwrite it ("….broken-1731500000000"). */
+	static String keepAside(Path file) {
+		Path to = file.resolveSibling(file.getFileName() + ".broken-" + System.currentTimeMillis());
+		try {
+			Files.move(file, to);
+			return to.getFileName().toString();
+		} catch (IOException e) {
+			return "(couldn't move it: " + e.getMessage() + ")";
+		}
 	}
 
 	private void write(UUID id) {

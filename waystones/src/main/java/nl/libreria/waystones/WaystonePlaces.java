@@ -46,19 +46,22 @@ final class WaystonePlaces {
 		PlaceList.addSource((p, out) -> {
 			if (!WaystonesMod.MODULE.on()) return;
 			Stones.Stone from = at(p);
+			var animals = from != null ? nl.libreria.core.Leashed.along(p) : java.util.List.<net.minecraft.world.entity.Mob>of();
+			int times = Stones.times(animals);
+			String with = animals.isEmpty() ? "" : ", with " + nl.libreria.core.Leashed.words(animals);
 			for (Stones.Stone s : Stones.knownBy(p)) {
 				if (from != null && from.key().equals(s.key())) continue;
 				PlaceList.Place pl = PlaceList.place(KIND, s.name, new ItemStack(s.grand ? WaystonesMod.HEART : WaystonesMod.WAYSTONE_ITEM), s.dim,
 						new Vec3(s.x + 0.5, s.y, s.z + 0.5))
 						.lore(about(p, s));
 				if (from != null) {
-					double levels = from.grand ? 0 : Stones.levels(p, s);
-					String price = p.isCreative() || levels <= 0 ? "travel there (free)" : "travel there (" + Stones.levelsText(levels) + ")";
+					double levels = from.grand ? 0 : Stones.levels(p, s) * times;
+					String price = p.isCreative() || levels <= 0 ? "travel there (free" + with + ")" : "travel there (" + Stones.levelsText(levels) + with + ")";
 					pl.goAnywhere(price, q -> {
 						AT.remove(q.getUUID());
 						Stones.travel(q, s, false, from);
 					});
-					if (!p.isCreative() && levels > 0) pl.details("for an ender pearl (free)", q -> {
+					if (!p.isCreative() && levels > 0) pl.details(times == 1 ? "for an ender pearl (free)" : "for two ender pearls (free" + with + ")", q -> {
 						q.closeContainer();
 						AT.remove(q.getUUID());
 						Stones.travel(q, s, true);

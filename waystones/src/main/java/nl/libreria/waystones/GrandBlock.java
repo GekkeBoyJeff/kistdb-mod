@@ -162,7 +162,7 @@ public final class GrandBlock extends Block implements PolymerBlock, BlockWithEl
 		// Gone some other way than being taken down (a command): it's off every list
 		if (isMiddle(state) && !level.getBlockState(pos).is(this)) {
 			Stones.Stone s = Stones.at(level, pos);
-			if (s != null && s.grand) Stones.removed(level, pos);
+			if (s != null && s.grand) Stones.removed(level, pos, "its shrine was broken or replaced (not taken down)");
 		}
 		super.affectNeighborsAfterRemoval(state, level, pos, moved);
 	}

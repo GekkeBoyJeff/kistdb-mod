@@ -251,7 +251,7 @@ public final class WaystoneBlock extends Block implements PolymerBlock, BlockWit
 		if (state.getValue(PART) == 0 && !level.getBlockState(pos).is(this)) {
 			// (becoming a grand waystone it stays on the lists)
 			Stones.Stone s = Stones.at(level, pos);
-			if (s == null || !s.grand) Stones.removed(level, pos);
+			if (s == null || !s.grand) Stones.removed(level, pos, "its stone was broken or replaced");
 			BlockPos altar = pos.relative(state.getValue(FACING));
 			BlockState a = level.getBlockState(altar);
 			if (a.is(WaystonesMod.ALTAR) && a.getValue(AltarBlock.FACING) == state.getValue(FACING)) {

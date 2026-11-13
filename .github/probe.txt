@@ -1,1 +1,6 @@
-net.minecraft.world.level.material.PushReaction
+net.minecraft.world.entity.Leashable
+net.minecraft.world.level.portal.TeleportTransition
+net.minecraft.world.entity.animal.Animal
+? /Animal\.class$
+? /Leashable\.class$
+? /TeleportTransition\.class$
