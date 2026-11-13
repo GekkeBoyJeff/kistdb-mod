@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import net.fabricmc.fabric.api.networking.v1.context.PacketContext;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -52,13 +53,13 @@ final class ShowItems {
 
 		/** What the player's game draws: Minecraft's own armour stand or item frame. */
 		@Override
-		public @Nullable Identifier getPolymerItemModel(ItemStack stack, @Nullable PacketContext context) {
+		public @Nullable Identifier getPolymerItemModel(ItemStack stack, @Nullable PacketContext context, HolderLookup.Provider lookup) {
 			return this.model;
 		}
 
 		/** Its name in the player's game (the item's own would be a translation key nobody has). */
 		@Override
-		public void modifyBasePolymerItemStack(ItemStack out, ItemStack stack, @Nullable PacketContext context) {
+		public void modifyBasePolymerItemStack(ItemStack out, ItemStack stack, @Nullable PacketContext context, HolderLookup.Provider lookup) {
 			out.set(DataComponents.ITEM_NAME, this.name);
 		}
 
