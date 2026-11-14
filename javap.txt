@@ -1,0 +1,73 @@
+Compiled from "PolymerItem.java"
+public interface eu.pb4.polymer.core.api.item.PolymerItem extends eu.pb4.polymer.core.api.utils.PolymerSyncedObject<net.minecraft.world.item.Item> {
+  public abstract net.minecraft.world.item.Item getPolymerItem(net.minecraft.world.item.ItemStack, net.fabricmc.fabric.api.networking.v1.context.PacketContext);
+  public default net.minecraft.world.item.ItemStack getPolymerItemStack(net.minecraft.world.item.ItemStack, net.minecraft.world.item.TooltipFlag, net.fabricmc.fabric.api.networking.v1.context.PacketContext, net.minecraft.core.HolderLookup$Provider);
+  public default net.minecraft.resources.Identifier getPolymerItemModel(net.minecraft.world.item.ItemStack, net.fabricmc.fabric.api.networking.v1.context.PacketContext, net.minecraft.core.HolderLookup$Provider);
+  public default void modifyBasePolymerItemStack(net.minecraft.world.item.ItemStack, net.minecraft.world.item.ItemStack, net.fabricmc.fabric.api.networking.v1.context.PacketContext, net.minecraft.core.HolderLookup$Provider);
+  public default void modifyClientTooltip(java.util.List<net.minecraft.network.chat.Component>, net.minecraft.world.item.ItemStack, net.fabricmc.fabric.api.networking.v1.context.PacketContext);
+  public default net.minecraft.world.item.Item getPolymerReplacement(net.minecraft.world.item.Item, net.fabricmc.fabric.api.networking.v1.context.PacketContext);
+  public default boolean handleMiningOnServer(net.minecraft.world.item.ItemStack, net.minecraft.world.level.block.state.BlockState, net.minecraft.core.BlockPos, net.minecraft.server.level.ServerPlayer);
+  public default boolean shouldStorePolymerItemStackCount();
+  public default boolean isPolymerBlockInteraction(net.minecraft.world.level.block.state.BlockState, net.minecraft.server.level.ServerPlayer, net.minecraft.world.InteractionHand, net.minecraft.world.item.ItemStack, net.minecraft.server.level.ServerLevel, net.minecraft.world.phys.BlockHitResult, net.minecraft.world.InteractionResult);
+  public default boolean isPolymerEntityInteraction(net.minecraft.server.level.ServerPlayer, net.minecraft.world.InteractionHand, net.minecraft.world.item.ItemStack, net.minecraft.server.level.ServerLevel, net.minecraft.world.entity.Entity, net.minecraft.world.InteractionResult);
+  public default boolean isPolymerItemInteraction(net.minecraft.server.level.ServerPlayer, net.minecraft.world.InteractionHand, net.minecraft.world.item.ItemStack, net.minecraft.server.level.ServerLevel, net.minecraft.world.InteractionResult);
+  public default boolean isIgnoringBlockInteractionPlaySoundExceptedEntity(net.minecraft.world.level.block.state.BlockState, net.minecraft.server.level.ServerPlayer, net.minecraft.world.InteractionHand, net.minecraft.world.item.ItemStack, net.minecraft.server.level.ServerLevel, net.minecraft.world.phys.BlockHitResult);
+  public default boolean isIgnoringItemInteractionPlaySoundExceptedEntity(net.minecraft.server.level.ServerPlayer, net.minecraft.world.InteractionHand, net.minecraft.world.item.ItemStack, net.minecraft.server.level.ServerLevel);
+  public default net.minecraft.world.item.ItemStack getDecodedItemStack(net.minecraft.world.item.ItemStack, net.minecraft.world.item.ItemStack, net.fabricmc.fabric.api.networking.v1.context.PacketContext, net.minecraft.core.HolderLookup$Provider);
+  public static void registerOverlay(net.minecraft.world.item.Item, eu.pb4.polymer.core.api.item.PolymerItem);
+  public default java.lang.Object getPolymerReplacement(java.lang.Object, net.fabricmc.fabric.api.networking.v1.context.PacketContext);
+}
+Compiled from "Item.java"
+public class net.minecraft.world.item.Item$Properties implements net.fabricmc.fabric.api.item.v1.FabricItem$Properties {
+  public net.minecraft.world.item.Item$Properties();
+  public net.minecraft.world.item.Item$Properties food(net.minecraft.world.food.FoodProperties);
+  public net.minecraft.world.item.Item$Properties food(net.minecraft.world.food.FoodProperties, net.minecraft.world.item.component.Consumable);
+  public net.minecraft.world.item.Item$Properties villagerFood(int);
+  public net.minecraft.world.item.Item$Properties usingConvertsTo(net.minecraft.world.item.Item);
+  public net.minecraft.world.item.Item$Properties useCooldown(float);
+  public net.minecraft.world.item.Item$Properties stacksTo(int);
+  public net.minecraft.world.item.Item$Properties durability(int);
+  public net.minecraft.world.item.Item$Properties craftRemainder(net.minecraft.world.item.Item);
+  public net.minecraft.world.item.Item$Properties craftRemainder(net.minecraft.world.item.ItemStackTemplate);
+  public net.minecraft.world.item.Item$Properties rarity(net.minecraft.world.item.Rarity);
+  public net.minecraft.world.item.Item$Properties fireResistant();
+  public net.minecraft.world.item.Item$Properties jukeboxPlayable(net.minecraft.resources.ResourceKey<net.minecraft.world.item.JukeboxSong>);
+  public net.minecraft.world.item.Item$Properties enchantable(int);
+  public net.minecraft.world.item.Item$Properties potPattern(net.minecraft.resources.ResourceKey<net.minecraft.world.level.block.entity.DecoratedPotPattern>);
+  public net.minecraft.world.item.Item$Properties repairable(net.minecraft.world.item.Item);
+  public net.minecraft.world.item.Item$Properties repairable(net.minecraft.tags.TagKey<net.minecraft.world.item.Item>);
+  public net.minecraft.world.item.Item$Properties equippable(net.minecraft.world.entity.EquipmentSlot);
+  public net.minecraft.world.item.Item$Properties equippableUnswappable(net.minecraft.world.entity.EquipmentSlot);
+  public net.minecraft.world.item.Item$Properties tool(net.minecraft.world.item.ToolMaterial, net.minecraft.tags.TagKey<net.minecraft.world.level.block.Block>, float, float, float);
+  public net.minecraft.world.item.Item$Properties pickaxe(net.minecraft.world.item.ToolMaterial, float, float);
+  public net.minecraft.world.item.Item$Properties axe(net.minecraft.world.item.ToolMaterial, float, float);
+  public net.minecraft.world.item.Item$Properties hoe(net.minecraft.world.item.ToolMaterial, float, float);
+  public net.minecraft.world.item.Item$Properties shovel(net.minecraft.world.item.ToolMaterial, float, float);
+  public net.minecraft.world.item.Item$Properties sword(net.minecraft.world.item.ToolMaterial, float, float);
+  public net.minecraft.world.item.Item$Properties spear(net.minecraft.world.item.ToolMaterial, float, float, float, float, float, float, float, float, float);
+  public net.minecraft.world.item.Item$Properties spawnEgg(net.minecraft.world.entity.EntityType<?>);
+  public net.minecraft.world.item.Item$Properties humanoidArmor(net.minecraft.world.item.equipment.ArmorMaterial, net.minecraft.world.item.equipment.ArmorType);
+  public net.minecraft.world.item.Item$Properties wolfArmor(net.minecraft.world.item.equipment.ArmorMaterial);
+  public net.minecraft.world.item.Item$Properties horseArmor(net.minecraft.world.item.equipment.ArmorMaterial);
+  public net.minecraft.world.item.Item$Properties nautilusArmor(net.minecraft.world.item.equipment.ArmorMaterial);
+  public net.minecraft.world.item.Item$Properties trimMaterial(net.minecraft.resources.ResourceKey<net.minecraft.world.item.equipment.trim.TrimMaterial>);
+  public net.minecraft.world.item.Item$Properties signText();
+  public net.minecraft.world.item.Item$Properties cookingFuel(net.minecraft.resources.ResourceKey<net.minecraft.world.level.storage.loot.providers.number.ints.ContextIntProvider>);
+  public net.minecraft.world.item.Item$Properties brewingFuel(net.minecraft.resources.ResourceKey<net.minecraft.world.level.storage.loot.providers.number.ints.ContextIntProvider>);
+  public net.minecraft.world.item.Item$Properties requiredFeatures(net.minecraft.world.flag.FeatureFlag...);
+  public net.minecraft.world.item.Item$Properties requiredFeatures(net.minecraft.world.flag.FeatureFlagSet);
+  public net.minecraft.world.item.Item$Properties setId(net.minecraft.resources.ResourceKey<net.minecraft.world.item.Item>);
+  public net.minecraft.world.item.Item$Properties overrideDescription(java.lang.String);
+  public net.minecraft.world.item.Item$Properties useBlockDescriptionPrefix();
+  public net.minecraft.world.item.Item$Properties useItemDescriptionPrefix();
+  public final net.minecraft.resources.ResourceKey<net.minecraft.world.item.Item> itemIdOrThrow();
+  protected java.lang.String effectiveDescriptionId();
+  public net.minecraft.resources.Identifier effectiveModel();
+  public <T> net.minecraft.world.item.Item$Properties component(net.minecraft.core.component.DataComponentType<T>, T);
+  public <T> net.minecraft.world.item.Item$Properties delayedComponent(net.minecraft.core.component.DataComponentType<T>, net.minecraft.core.component.DataComponentInitializers$SingleComponentInitializer<T>);
+  public <T> net.minecraft.world.item.Item$Properties delayedHolderComponent(net.minecraft.core.component.DataComponentType<net.minecraft.core.Holder<T>>, net.minecraft.resources.ResourceKey<T>);
+  public net.minecraft.world.item.Item$Properties attributes(net.minecraft.world.item.component.ItemAttributeModifiers);
+  public net.minecraft.world.item.Item$Properties compostable(net.minecraft.resources.ResourceKey<net.minecraft.world.level.storage.loot.providers.number.ints.ContextIntProvider>);
+  public final net.minecraft.world.item.Item$Properties loweredMobVisibility(net.minecraft.resources.ResourceKey<net.minecraft.world.entity.EntityType<?>>...);
+}
+vanilla assets from .gradle/loom-cache/minecraftMaven/net/minecraft/minecraft-merged-27659ce045/26.3/minecraft-merged-27659ce045-26.3.jar
