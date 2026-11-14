@@ -30,6 +30,8 @@ import org.jetbrains.annotations.Nullable;
 public final class PlayerStore<T> {
 	private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 	private static final List<PlayerStore<?>> ALL = new ArrayList<>();
+	/** The world's folder, once the server starts (a store made after that gets its folder right away). */
+	private static @Nullable Path root;
 
 	private final String folder;
 	private final Class<T> type;
@@ -55,6 +57,12 @@ public final class PlayerStore<T> {
 	public static <T> PlayerStore<T> create(String folder, Class<T> type, Supplier<T> factory, @Nullable Consumer<T> fixer) {
 		PlayerStore<T> s = new PlayerStore<>(folder, type, factory, fixer);
 		ALL.add(s);
+		if (root != null) {
+			// Made after the server started (its class was first used later): without its folder it would read and save
+			// nothing, and everything in it would be gone at the next restart
+			s.dir = root.resolve(folder);
+			Libreria.LOG.info("Libreria: {} was opened after the server started; it reads and saves in its folder", folder);
+		}
 		return s;
 	}
 
@@ -127,8 +135,31 @@ public final class PlayerStore<T> {
 		for (UUID id : new ArrayList<>(this.dirty)) write(id);
 	}
 
+	/** Does it read and save (does it know its folder)? */
+	public boolean saves() {
+		return this.dir != null;
+	}
+
+	/** The file someone's data is saved in (null before the server started). */
+	public @Nullable Path file(UUID id) {
+		return this.dir == null ? null : this.dir.resolve(id + ".json");
+	}
+
+	/** Saves someone's data now (if anything changed). */
+	public void saveNow(UUID id) {
+		if (this.dirty.contains(id)) write(id);
+	}
+
+	/** (Self-tests: the stores that don't know their folder.) */
+	static List<String> withoutFolder() {
+		List<String> out = new ArrayList<>();
+		for (PlayerStore<?> s : ALL) if (s.dir == null) out.add(s.folder);
+		return out;
+	}
+
 	static void initAll(MinecraftServer server) {
 		Path root = server.getWorldPath(LevelResource.ROOT);
+		PlayerStore.root = root;
 		for (PlayerStore<?> s : ALL) {
 			s.dir = root.resolve(s.folder);
 			s.loaded.clear();

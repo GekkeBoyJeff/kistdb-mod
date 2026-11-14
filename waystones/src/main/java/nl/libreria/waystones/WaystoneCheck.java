@@ -34,14 +34,16 @@ final class WaystoneCheck {
 			out.add(Ui.text("Nobody called " + name + " has played here.", ChatFormatting.RED));
 			return out;
 		}
-		Stones.Found f = Stones.FOUND.get(k.id());
+		// What they found: their own list, and the waystones that have them on their list of who found it
+		java.util.Set<String> found = new java.util.LinkedHashSet<>(Stones.FOUND.get(k.id()).found);
+		for (Stones.Stone s : Stones.list()) if (s.finders != null && s.finders.containsKey(k.id())) found.add(s.key());
 		List<String> there = new ArrayList<>(), gone = new ArrayList<>();
-		for (String key : f.found) (Stones.byKey(key) != null ? there : gone).add(key);
+		for (String key : found) (Stones.byKey(key) != null ? there : gone).add(key);
 		int own = 0;
 		for (Stones.Stone s : Stones.list()) if (k.id().equals(s.owner)) own++;
 		out.add(Ui.text("◆ ", 0xC79BF0).append(Ui.text("Waystones of " + k.name(), ChatFormatting.WHITE))
 				.append(Ui.text(floodgate(k.id()) ? "  (Bedrock account)" : "", ChatFormatting.AQUA)));
-		out.add(Ui.text("Found " + f.found.size() + ": " + there.size() + " still there, " + gone.size() + " gone. Placed: " + own + ".",
+		out.add(Ui.text("Found " + found.size() + ": " + there.size() + " still there, " + gone.size() + " gone. Placed: " + own + ".",
 				ChatFormatting.GRAY));
 		if (WaystonesMod.KNOWN.get() == 1) out.add(Ui.text("Every village's waystone is on everyone's list (Village waystones: everyone knows them).",
 				ChatFormatting.GRAY));

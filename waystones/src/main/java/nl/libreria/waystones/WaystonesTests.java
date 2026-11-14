@@ -49,6 +49,33 @@ final class WaystonesTests {
 	}
 
 	static void register() {
+		// Who found which waystone is saved: it's still there after a restart
+		SelfTests.register("waystones.saved", level -> {
+			UUID id = UUID.randomUUID();
+			SelfTests.check(Stones.FOUND.saves(), "the players' finds are saved in their folder");
+			Stones.FOUND.get(id).found.add("minecraft:overworld|9|9|9");
+			Stones.FOUND.markDirty(id);
+			Stones.FOUND.saveNow(id);
+			java.nio.file.Path f = Stones.FOUND.file(id);
+			try {
+				SelfTests.check(f != null && java.nio.file.Files.readString(f).contains("minecraft:overworld|9|9|9"), "a find is written to the player's file");
+			} catch (java.io.IOException e) {
+				SelfTests.check(false, "a find is written to the player's file: " + e);
+			} finally {
+				try {
+					if (f != null) java.nio.file.Files.deleteIfExists(f);
+				} catch (java.io.IOException ignored) {
+				}
+			}
+			// Kept with the waystone too: on the list even when the player's own file has nothing
+			FakePlayer someone = FakePlayer.get(level, new GameProfile(UUID.randomUUID(), "Rover"));
+			Stones.Stone s = new Stones.Stone();
+			s.x = 5;
+			s.y = 6;
+			s.z = 7;
+			s.finders.put(someone.getUUID(), "Rover");
+			SelfTests.check(Stones.known(someone, s) && !Stones.discover(someone, s), "found by the waystone's own list: known, no second 'found'");
+		});
 		SelfTests.register("waystones.finders", level -> {
 			FakePlayer finder = FakePlayer.get(level, new GameProfile(UUID.randomUUID(), "Finder"));
 			FakePlayer other = FakePlayer.get(level, new GameProfile(UUID.randomUUID(), "Wanderer"));

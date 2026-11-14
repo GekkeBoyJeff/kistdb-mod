@@ -15,6 +15,9 @@ final class CoreTests {
 	}
 
 	static void register() {
+		// Every per-player store reads and saves in its folder, also one first used after the server started
+		SelfTests.register("core.stores", level -> SelfTests.check(PlayerStore.withoutFolder().isEmpty(),
+				"stores without their folder (they'd lose everything at a restart): " + PlayerStore.withoutFolder()));
 		SelfTests.register("core.bedrock", level -> {
 			FakePlayer p = FakePlayer.get(level, new com.mojang.authlib.GameProfile(UUID.randomUUID(), "Bedrock"));
 			UUID id = p.getUUID();

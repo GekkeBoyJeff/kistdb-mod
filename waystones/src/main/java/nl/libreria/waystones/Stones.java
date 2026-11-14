@@ -295,7 +295,15 @@ final class Stones {
 	/** May put it on everyone's list (or take it off): its owner, an operator, and for a village's who found it. */
 	static boolean mayShare(ServerPlayer p, Stone s) {
 		if (owns(p, s) || Ui.isOp(p)) return true;
-		return s.village && FOUND.get(p).found.contains(s.key());
+		return s.village && foundBy(p.getUUID(), s);
+	}
+
+	/**
+	 * Found it: in their own list, or on the waystone's list of who found it (kept with the waystones themselves, so a
+	 * find is never lost with a player's file).
+	 */
+	static boolean foundBy(UUID who, Stone s) {
+		return FOUND.get(who).found.contains(s.key()) || s.finders != null && s.finders.containsKey(who);
 	}
 
 	/** May break it: a player's, its owner or someone they trust; a village's, only an operator. */
@@ -308,7 +316,7 @@ final class Stones {
 
 	/** On their list: found, theirs, shared with everyone, or a village's when the server makes those known to everyone. */
 	static boolean known(ServerPlayer p, Stone s) {
-		if (owns(p, s) || s.shared || FOUND.get(p).found.contains(s.key())) return true;
+		if (owns(p, s) || s.shared || foundBy(p.getUUID(), s)) return true;
 		return s.village && WaystonesMod.KNOWN.get() == 1;
 	}
 
@@ -324,13 +332,13 @@ final class Stones {
 	/** Found now: true the first time. */
 	static boolean discover(ServerPlayer p, Stone s) {
 		if (takenOff(p, s)) return false;
+		boolean had = foundBy(p.getUUID(), s);
 		if (!(s.owner != null && s.owner.equals(p.getUUID()))) {
 			if (s.finders == null) s.finders = new LinkedHashMap<>();
 			if (!p.getName().getString().equals(s.finders.put(p.getUUID(), p.getName().getString()))) STORE.markDirty();
 		}
-		if (!FOUND.get(p).found.add(s.key())) return false;
-		FOUND.markDirty(p);
-		return true;
+		if (FOUND.get(p).found.add(s.key())) FOUND.markDirty(p);
+		return !had;
 	}
 
 	/**
